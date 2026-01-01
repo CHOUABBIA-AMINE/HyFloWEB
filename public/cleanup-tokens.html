@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Cleanup Utility</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .status.before {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .status.after {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        button {
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        .token-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .token-item {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .token-item.legacy {
+            color: #dc3545;
+            text-decoration: line-through;
+        }
+        .token-item.standard {
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧺 Token Cleanup Utility</h1>
+        <p>This utility helps clean up duplicate or legacy authentication tokens from localStorage.</p>
+        
+        <div class="status before" id="beforeStatus">
+            <h3>Current Tokens:</h3>
+            <div class="token-list" id="currentTokens">Loading...</div>
+        </div>
+
+        <div style="margin: 20px 0;">
+            <button onclick="cleanupLegacyTokens()">Clean Legacy Tokens Only</button>
+            <button class="danger" onclick="clearAllTokens()">Clear All Tokens</button>
+            <button onclick="location.reload()">Refresh Status</button>
+        </div>
+
+        <div class="status after" id="afterStatus" style="display: none;">
+            <h3>After Cleanup:</h3>
+            <div class="token-list" id="cleanedTokens"></div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #e7f3ff; border-radius: 4px;">
+            <h3>Standard Token Keys:</h3>
+            <ul>
+                <li><strong>access_token</strong> - Access token (snake_case)</li>
+                <li><strong>refresh_token</strong> - Refresh token (snake_case)</li>
+                <li><strong>user</strong> - User data (JSON)</li>
+            </ul>
+            <h3>Legacy Keys (Will be Removed):</h3>
+            <ul>
+                <li><s>accessToken</s> - Old camelCase variant</li>
+                <li><s>refreshToken</s> - Old camelCase variant</li>
+                <li><s>authToken</s> - Alternative variant</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Standard token keys
+        const STANDARD_KEYS = ['access_token', 'refresh_token', 'user'];
+        
+        // Legacy keys to clean up
+        const LEGACY_KEYS = ['accessToken', 'refreshToken', 'authToken'];
+
+        // Display current tokens
+        function displayCurrentTokens() {
+            const container = document.getElementById('currentTokens');
+            let html = '';
+            let hasLegacy = false;
+
+            // Check standard keys
+            STANDARD_KEYS.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    const display = key === 'user' ? 
+                        JSON.stringify(JSON.parse(value).username || 'user') : 
+                        value.substring(0, 30) + '...';
+                    html += `<div class="token-item standard">✅ ${key}: ${display}</div>`;
+                }
+            });
+
+            // Check legacy keys
+            LEGACY_KEYS.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    hasLegacy = true;
+                    const display = value.substring(0, 30) + '...';
+                    html += `<div class="token-item legacy">❌ ${key}: ${display} (LEGACY - Should be removed)</div>`;
+                }
+            });
+
+            if (!html) {
+                html = '<div style="color: #6c757d;">No tokens found in localStorage</div>';
+            }
+
+            container.innerHTML = html;
+            return hasLegacy;
+        }
+
+        // Clean up legacy tokens only
+        function cleanupLegacyTokens() {
+            const removed = [];
+            
+            LEGACY_KEYS.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    removed.push(key);
+                }
+            });
+
+            if (removed.length > 0) {
+                showAfterStatus(`Removed ${removed.length} legacy token(s): ${removed.join(', ')}`);
+            } else {
+                showAfterStatus('No legacy tokens found. Everything is clean! ✅');
+            }
+        }
+
+        // Clear all tokens (requires re-login)
+        function clearAllTokens() {
+            if (confirm('This will clear ALL tokens and you will need to login again. Continue?')) {
+                localStorage.clear();
+                showAfterStatus('All tokens cleared. Redirecting to login in 2 seconds...');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            }
+        }
+
+        // Show after cleanup status
+        function showAfterStatus(message) {
+            const container = document.getElementById('afterStatus');
+            const tokensDiv = document.getElementById('cleanedTokens');
+            
+            tokensDiv.innerHTML = `<div>${message}</div>`;
+            container.style.display = 'block';
+            
+            // Update current status
+            setTimeout(() => {
+                displayCurrentTokens();
+            }, 100);
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            const hasLegacy = displayCurrentTokens();
+            
+            if (hasLegacy) {
+                document.getElementById('beforeStatus').innerHTML += 
+                    '<p style="color: #856404; margin-top: 10px;">⚠️ Legacy tokens detected! Click "Clean Legacy Tokens Only" to remove them.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
