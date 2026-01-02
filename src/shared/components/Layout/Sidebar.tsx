@@ -108,11 +108,11 @@ const Sidebar = ({ open }: SidebarProps) => {
       ],
     },
     {
-      titleKey: 'nav.common',
-      icon: <LayersIcon />,
+      titleKey: 'nav.network',
+      icon: <NetworkCheckIcon />,
       children: [
-        {
-          titleKey: 'nav.administration',
+		{
+          titleKey: 'nav.organization',
           icon: <AdminPanelSettingsIcon />,
           children: [
             {
@@ -127,67 +127,19 @@ const Sidebar = ({ open }: SidebarProps) => {
             },
           ],
         },
-        {
-          titleKey: 'nav.communication',
-          icon: <ContactMailIcon />,
+		{
+          titleKey: 'nav.localization',
+          icon: <AdminPanelSettingsIcon />,
           children: [
             {
-              titleKey: 'nav.mails',
-              icon: <MailIcon />,
-              path: '/communication/mails',
-            },
+              titleKey: 'nav.locations',
+              icon: <CorporateFareIcon />,
+              path: '/localization/locations',
+            }
           ],
         },
         {
-          titleKey: 'nav.environment',
-          icon: <NatureIcon />,
-          children: [
-            {
-              titleKey: 'nav.archiveBoxes',
-              icon: <InventoryIcon />,
-              path: '/environment/archive-boxes',
-            },
-            {
-              titleKey: 'nav.folders',
-              icon: <CreateNewFolderIcon />,
-              path: '/environment/folders',
-            },
-            {
-              titleKey: 'nav.shelves',
-              icon: <ViewListIcon />,
-              path: '/environment/shelves',
-            },
-            {
-              titleKey: 'nav.rooms',
-              icon: <MeetingRoomIcon />,
-              path: '/environment/rooms',
-            },
-            {
-              titleKey: 'nav.blocs',
-              icon: <ApartmentIcon />,
-              path: '/environment/blocs',
-            },
-          ],
-        },
-      ],
-    },
-    {
-      titleKey: 'nav.business',
-      icon: <BusinessIcon />,
-      children: [
-        {
-          titleKey: 'nav.overview',
-          icon: <BusinessIcon />,
-          path: '/business/overview',
-        },
-      ],
-    },
-    {
-      titleKey: 'nav.network',
-      icon: <NetworkCheckIcon />,
-      children: [
-        {
-          titleKey: 'nav.networkCommon',
+          titleKey: 'nav.common',
           icon: <PublicIcon />,
           children: [
             {

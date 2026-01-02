@@ -10,7 +10,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/iaas/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/hyflo/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
