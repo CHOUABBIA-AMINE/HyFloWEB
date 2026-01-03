@@ -10,7 +10,7 @@
  * @updated 01-03-2026 - Added pageable methods for list and search
  * @updated 01-03-2026 - Fixed endpoint format for structureTypeId filter
  * @updated 01-03-2026 - Handle both pageable and array responses from backend
- * @updated 01-03-2026 - Server-side pagination with search query parameters
+ * @updated 01-03-2026 - Server-side pagination with /search?q= endpoint
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -39,17 +39,8 @@ class StructureService {
 
   /**
    * Get pageable structures with server-side pagination and search
-   * Expected backend endpoint format: GET /general/organization/structure?page=0&size=25&search=xxx&structureTypeId=1
-   * Backend should return Spring Page format:
-   * {
-   *   content: [...],
-   *   totalElements: 100,
-   *   totalPages: 4,
-   *   size: 25,
-   *   number: 0,
-   *   first: true,
-   *   last: false
-   * }
+   * Uses /search?q= endpoint when search is provided
+   * Uses base endpoint for list without search
    * 
    * @param params - Pagination and filter parameters
    * @returns Promise with pageable response
@@ -57,19 +48,23 @@ class StructureService {
   async getPageable(params: PageableParams = {}): Promise<PageableResponse<StructureDTO>> {
     const { page = 0, size = 25, sort, search, structureTypeId } = params;
     
-    // Build query parameters for server-side filtering
+    // Determine endpoint based on whether search is provided
+    let url = this.BASE_URL;
     const queryParams = new URLSearchParams();
+    
+    // If search is provided, use /search endpoint with q parameter
+    if (search && search.trim()) {
+      url = `${this.BASE_URL}/search`;
+      queryParams.append('q', search.trim());
+    }
+    
+    // Add pagination parameters
     queryParams.append('page', page.toString());
     queryParams.append('size', size.toString());
     
     // Add sort parameter if provided
     if (sort) {
       queryParams.append('sort', sort);
-    }
-    
-    // Add search parameter if provided (server will handle the search)
-    if (search && search.trim()) {
-      queryParams.append('search', search.trim());
     }
     
     // Add structureTypeId filter if provided
@@ -79,7 +74,7 @@ class StructureService {
 
     try {
       const response = await axiosInstance.get(
-        `${this.BASE_URL}?${queryParams.toString()}`
+        `${url}?${queryParams.toString()}`
       );
       
       const data = response.data;
@@ -145,7 +140,7 @@ class StructureService {
   }
 
   /**
-   * Search structures with pagination (delegates to getPageable)
+   * Search structures with pagination (delegates to getPageable with /search?q= endpoint)
    * @param searchTerm - Search term
    * @param params - Additional parameters
    * @returns Promise with pageable response
