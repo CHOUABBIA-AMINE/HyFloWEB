@@ -1,53 +1,39 @@
 /**
  * Structure DTO
  * Data Transfer Object for Structure entity
- * Matches: dz.mdn.iaas.common.administration.model.Structure.java
+ * Aligned with Backend: dz.sh.trc.hyflo.general.organization.dto.StructureDTO
  * 
- * @author CHOUABBIA Amine
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 12-23-2025
- * @updated 12-28-2025
+ * @updated 01-03-2026
+ * @package common/administration
  */
 
 import { StructureTypeDTO } from './StructureTypeDTO';
-import { LocalityDTO } from './LocalityDTO';
 
 export interface StructureDTO {
-  id: number;
-  
-  // Designations (multilingual)
+  // Identifier
+  id?: number;
+
+  // Code (unique identifier)
   code: string;
+
+  // Designations (multilingual)
   designationAr?: string;
   designationEn?: string;
   designationFr: string;
-  
-  // Legacy fields for backward compatibility
-  label?: string;  // Maps to designationFr
-  description?: string;  // Maps to designationEn
-  address?: string;
-  
-  // Structure Type relationship
+
+  // Structure Type relationship (required)
   structureTypeId: number;
   structureType?: StructureTypeDTO;
-  
-  // Legacy field for backward compatibility
-  typeId?: number;  // Maps to structureTypeId
-  type?: StructureTypeDTO;
-  
-  // Locality relationship (if applicable)
-  localityId?: number;
-  locality?: LocalityDTO;
-  
+
   // Parent Structure (self-referencing hierarchy)
   parentStructureId?: number;
   parentStructure?: StructureDTO;
-  
+
   // Child Structures (inverse relationship)
   sources?: StructureDTO[];
-  
-  // Organization (alias for parentStructure - top-level structure)
-  organizationId?: number;
-  organization?: StructureDTO;
-  
+
   // Timestamps
   createdAt?: string;
   updatedAt?: string;
