@@ -1,23 +1,23 @@
 /**
- * Locality DTO
- * Data Transfer Object for Locality entity
- * Aligned with iaas repository structure - uses designation fields
+ * Locality DTO - Localization Module
+ * Represents a locality (city, town, district) in the system
  * 
- * @author CHOUABBIA Amine
- * @created 12-23-2025
- * @updated 12-23-2025
+ * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocalityDTO
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 01-03-2026
  */
 
-import { StateDTO } from './StateDTO';
+import type { StateDTO } from './StateDTO';
 
 export interface LocalityDTO {
   id: number;
-  code?: string;
-  designationAr: string;
-  designationEn: string;
-  designationFr: string;
-  stateId: number;
-  state?: StateDTO;
+  code: string;
+  nameAr: string;
+  nameFr: string;
+  nameEn: string;
+  state: StateDTO;
+  isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
