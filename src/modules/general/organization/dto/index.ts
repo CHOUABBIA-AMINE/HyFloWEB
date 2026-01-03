@@ -1,11 +1,12 @@
 /**
- * General > Organization DTOs barrel.
- *
- * This module is the frontend equivalent of the backend package:
- *   dz.sh.trc.hyflo.general.organization
- *
- * For backward-compatibility, DTOs are currently re-exported from
- * common/administration/dto.
+ * Organization DTOs - Central Export
+ * Aligned with Backend DTOs from HyFloAPI
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @updated 01-03-2026
  */
 
-export * from '../../../common/administration/dto';
+export type { EmployeeDTO } from './EmployeeDTO';
+export type { PersonDTO } from './PersonDTO';
+export type { JobDTO } from './JobDTO';
+export type { StructureDTO } from './StructureDTO';
