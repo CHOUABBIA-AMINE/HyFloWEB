@@ -10,7 +10,7 @@
  * @updated 01-03-2026 - Added pageable methods for list and search
  * @updated 01-03-2026 - Fixed endpoint format for structureTypeId filter
  * @updated 01-03-2026 - Handle both pageable and array responses from backend
- * @updated 01-03-2026 - Fixed search to work with type filter using query params
+ * @updated 01-03-2026 - Server-side pagination with search query parameters
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -38,20 +38,44 @@ class StructureService {
   private readonly BASE_URL = '/general/organization/structure';
 
   /**
-   * Get pageable structures
+   * Get pageable structures with server-side pagination and search
+   * Expected backend endpoint format: GET /general/organization/structure?page=0&size=25&search=xxx&structureTypeId=1
+   * Backend should return Spring Page format:
+   * {
+   *   content: [...],
+   *   totalElements: 100,
+   *   totalPages: 4,
+   *   size: 25,
+   *   number: 0,
+   *   first: true,
+   *   last: false
+   * }
+   * 
    * @param params - Pagination and filter parameters
    * @returns Promise with pageable response
    */
   async getPageable(params: PageableParams = {}): Promise<PageableResponse<StructureDTO>> {
     const { page = 0, size = 25, sort, search, structureTypeId } = params;
     
-    // Build query parameters
+    // Build query parameters for server-side filtering
     const queryParams = new URLSearchParams();
     queryParams.append('page', page.toString());
     queryParams.append('size', size.toString());
-    if (sort) queryParams.append('sort', sort);
-    if (search && search.trim()) queryParams.append('search', search.trim());
-    if (structureTypeId) queryParams.append('structureTypeId', structureTypeId.toString());
+    
+    // Add sort parameter if provided
+    if (sort) {
+      queryParams.append('sort', sort);
+    }
+    
+    // Add search parameter if provided (server will handle the search)
+    if (search && search.trim()) {
+      queryParams.append('search', search.trim());
+    }
+    
+    // Add structureTypeId filter if provided
+    if (structureTypeId) {
+      queryParams.append('structureTypeId', structureTypeId.toString());
+    }
 
     try {
       const response = await axiosInstance.get(
@@ -60,50 +84,37 @@ class StructureService {
       
       const data = response.data;
       
-      // Check if response is already in pageable format
+      // Check if response is in Spring Page format (preferred)
       if (data && typeof data === 'object' && 'content' in data) {
-        return data as PageableResponse<StructureDTO>;
+        return {
+          content: data.content || [],
+          totalElements: data.totalElements || 0,
+          totalPages: data.totalPages || 0,
+          size: data.size || size,
+          number: data.number || page,
+          first: data.first !== undefined ? data.first : page === 0,
+          last: data.last !== undefined ? data.last : true,
+        };
       }
       
-      // If response is an array, convert to pageable format
+      // Fallback: If backend returns a plain array (not recommended for large datasets)
+      // This should only happen if backend doesn't support pagination yet
       if (Array.isArray(data)) {
-        // Filter by search if provided
-        let filteredData = data;
-        if (search && search.trim()) {
-          const searchLower = search.toLowerCase();
-          filteredData = data.filter(item => {
-            const code = (item.code || '').toLowerCase();
-            const designationFr = (item.designationFr || '').toLowerCase();
-            const designationEn = (item.designationEn || '').toLowerCase();
-            const designationAr = (item.designationAr || '').toLowerCase();
-            
-            return code.includes(searchLower) ||
-                   designationFr.includes(searchLower) ||
-                   designationEn.includes(searchLower) ||
-                   designationAr.includes(searchLower);
-          });
-        }
+        console.warn('Backend returned array instead of Page. Consider implementing server-side pagination.');
         
-        // Filter by type if provided
-        if (structureTypeId) {
-          filteredData = filteredData.filter(
-            item => item.structureType?.id === structureTypeId
-          );
-        }
-        
-        // Paginate
+        // Client-side pagination as fallback (not ideal for production)
         const start = page * size;
         const end = start + size;
-        const paginatedData = filteredData.slice(start, end);
+        const paginatedData = data.slice(start, end);
         
         return {
           content: paginatedData,
-          totalElements: filteredData.length,
-          totalPages: Math.ceil(filteredData.length / size),
+          totalElements: data.length,
+          totalPages: Math.ceil(data.length / size),
           size: size,
           number: page,
           first: page === 0,
-          last: end >= filteredData.length,
+          last: end >= data.length,
         };
       }
       
@@ -117,14 +128,24 @@ class StructureService {
         first: true,
         last: true,
       };
-    } catch (error) {
-      console.error('Error fetching structures:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('Error fetching pageable structures:', error);
+      
+      // Return empty page on error
+      return {
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        size: size,
+        number: page,
+        first: true,
+        last: true,
+      };
     }
   }
 
   /**
-   * Search structures with pagination
+   * Search structures with pagination (delegates to getPageable)
    * @param searchTerm - Search term
    * @param params - Additional parameters
    * @returns Promise with pageable response
