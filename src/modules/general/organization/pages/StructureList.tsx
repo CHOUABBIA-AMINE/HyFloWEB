@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
+ * @updated 01-03-2026 - Fixed imports to align with new architecture
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -45,10 +46,12 @@ import {
   Business as OrganizationIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+
+// Import from correct modules aligned with backend architecture
 import structureService from '../services/StructureService';
-import structureTypeService from '../services/StructureTypeService';
+import { structureTypeService } from '@/modules/general/type/services';
 import { StructureDTO } from '../dto/StructureDTO';
-import { StructureTypeDTO } from '../dto/StructureTypeDTO';
+import { StructureTypeDTO } from '@/modules/general/type/dto';
 
 const StructureList = () => {
   const { t } = useTranslation();
