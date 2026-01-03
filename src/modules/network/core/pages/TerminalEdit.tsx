@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 12-24-2025
+ * @updated 01-03-2026
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,8 +32,8 @@ import {
 import { terminalService } from '../services';
 import { vendorService, operationalStatusService } from '../../common/services';
 import { terminalTypeService } from '../../type/services';
-import { stateService, localityService } from '../../../general/organization/services';
-import { getLocalizedName as getAdminLocalizedName } from '../../../general/organization/utils';
+import { stateService, localityService } from '../../../general/localization/services';
+import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
 import { TerminalDTO, TerminalCreateDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -432,7 +432,7 @@ const TerminalEdit = () => {
                     {states.length > 0 ? (
                       states.map((state) => (
                         <MenuItem key={state.id} value={state.id}>
-                          {getAdminLocalizedName(state, currentLanguage)}
+                          {getLocalizationLocalizedName(state, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
@@ -464,7 +464,7 @@ const TerminalEdit = () => {
                     ) : localities.length > 0 ? (
                       localities.map((locality) => (
                         <MenuItem key={locality.id} value={locality.id}>
-                          {getAdminLocalizedName(locality, currentLanguage)}
+                          {getLocalizationLocalizedName(locality, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
