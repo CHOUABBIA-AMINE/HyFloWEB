@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-28-2025
  * @updated 01-03-2026 - Fixed imports to use relative paths
+ * @updated 01-03-2026 - Single multilingual designation column, removed ID column, fixed type filter
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -54,7 +55,7 @@ import { StructureDTO } from '../dto/StructureDTO';
 import { StructureTypeDTO } from '../../../type/dto';
 
 const StructureList = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   
   // Data state
@@ -70,6 +71,17 @@ const StructureList = () => {
   
   // Export menu
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Get current language
+  const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
+
+  // Helper to get designation based on current language
+  const getDesignation = (item: any): string => {
+    if (!item) return '';
+    if (lang === 'ar') return item.designationAr || item.designationFr || item.designationEn || '';
+    if (lang === 'en') return item.designationEn || item.designationFr || item.designationAr || '';
+    return item.designationFr || item.designationEn || item.designationAr || '';
+  };
 
   useEffect(() => {
     loadData();
@@ -132,16 +144,9 @@ const StructureList = () => {
   // DataGrid columns
   const columns: GridColDef[] = [
     { 
-      field: 'id', 
-      headerName: 'ID', 
-      width: 80,
-      align: 'center',
-      headerAlign: 'center',
-    },
-    { 
       field: 'code', 
       headerName: 'Code', 
-      width: 120,
+      width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <StructureIcon fontSize="small" color="action" />
@@ -152,26 +157,26 @@ const StructureList = () => {
       ),
     },
     { 
-      field: 'designationFr', 
-      headerName: 'Designation (FR)', 
-      minWidth: 250,
-      flex: 2,
-    },
-    { 
-      field: 'designationEn', 
-      headerName: 'Designation (EN)', 
-      minWidth: 200,
-      flex: 1.5,
+      field: 'designation', 
+      headerName: 'Designation', 
+      minWidth: 300,
+      flex: 3,
+      valueGetter: (params: any) => getDesignation(params.row),
+      renderCell: (params) => (
+        <Typography variant="body2">
+          {params.value}
+        </Typography>
+      ),
     },
     { 
       field: 'structureType', 
       headerName: 'Type', 
-      width: 150,
+      width: 180,
+      valueGetter: (params: any) => getDesignation(params.row.structureType),
       renderCell: (params) => {
-        const type = params.row.structureType;
-        return type ? (
+        return params.value ? (
           <Chip 
-            label={type.designationFr || type.designationEn} 
+            label={params.value} 
             size="small" 
             color="primary" 
             variant="outlined"
@@ -182,14 +187,16 @@ const StructureList = () => {
     { 
       field: 'parentStructure', 
       headerName: 'Organization', 
-      width: 180,
+      width: 220,
+      flex: 1,
+      valueGetter: (params: any) => getDesignation(params.row.parentStructure) || params.row.parentStructure?.code,
       renderCell: (params) => {
         const parent = params.row.parentStructure;
         return parent ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <OrganizationIcon fontSize="small" color="action" />
             <Typography variant="body2" noWrap>
-              {parent.designationFr || parent.code}
+              {params.value}
             </Typography>
           </Box>
         ) : (
@@ -395,11 +402,11 @@ const StructureList = () => {
                   label="Structure Type"
                 >
                   <MenuItem value="">
-                    <em>All Types</em>
+                    All Types
                   </MenuItem>
                   {structureTypes.map((type) => (
                     <MenuItem key={type.id} value={type.id.toString()}>
-                      {type.designationFr || type.designationEn}
+                      {getDesignation(type)}
                     </MenuItem>
                   ))}
                 </Select>
