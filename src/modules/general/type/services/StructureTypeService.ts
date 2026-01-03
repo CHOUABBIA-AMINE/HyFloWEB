@@ -12,7 +12,7 @@
 import axios from 'axios';
 import { StructureTypeDTO } from '../dto/StructureTypeDTO';
 
-const API_URL = '/api/structure-types';
+const API_URL = '/general/type/structureType';
 
 class StructureTypeService {
   /**

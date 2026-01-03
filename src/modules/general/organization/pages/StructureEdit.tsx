@@ -37,9 +37,9 @@ import {
 
 // Import from correct modules aligned with backend architecture
 import structureService from '../services/StructureService';
-import { structureTypeService } from '../../../type/services';
+import { structureTypeService } from '../../type/services';
 import { StructureDTO } from '../dto/StructureDTO';
-import { StructureTypeDTO } from '../../../type/dto';
+import { StructureTypeDTO } from '../../type/dto';
 import { JobDTO } from '../dto/JobDTO';
 import JobList from '../components/JobList';
 import JobEditDialog from '../components/JobEditDialog';

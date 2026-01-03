@@ -50,9 +50,9 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 // Import from correct modules aligned with backend architecture
 import structureService from '../services/StructureService';
-import { structureTypeService } from '../../../type/services';
+import { structureTypeService } from '../../type/services';
 import { StructureDTO } from '../dto/StructureDTO';
-import { StructureTypeDTO } from '../../../type/dto';
+import { StructureTypeDTO } from '../../type/dto';
 
 const StructureList = () => {
   const { t, i18n } = useTranslation();
