@@ -9,6 +9,7 @@
  * @updated 12-30-2025 - Added getAllList method
  * @updated 01-03-2026 - Added pageable methods for list and search
  * @updated 01-03-2026 - Fixed endpoint format for structureTypeId filter
+ * @updated 01-03-2026 - Handle both pageable and array responses from backend
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -55,10 +56,45 @@ class StructureService {
     if (sort) queryParams.append('sort', sort);
     if (search) queryParams.append('search', search);
 
-    const response = await axiosInstance.get<PageableResponse<StructureDTO>>(
+    const response = await axiosInstance.get(
       `${url}?${queryParams.toString()}`
     );
-    return response.data;
+    
+    // Handle both pageable response and plain array response
+    const data = response.data;
+    
+    // Check if response is already in pageable format
+    if (data && typeof data === 'object' && 'content' in data) {
+      return data as PageableResponse<StructureDTO>;
+    }
+    
+    // If response is an array, convert to pageable format
+    if (Array.isArray(data)) {
+      const start = page * size;
+      const end = start + size;
+      const paginatedData = data.slice(start, end);
+      
+      return {
+        content: paginatedData,
+        totalElements: data.length,
+        totalPages: Math.ceil(data.length / size),
+        size: size,
+        number: page,
+        first: page === 0,
+        last: end >= data.length,
+      };
+    }
+    
+    // Fallback: empty response
+    return {
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: size,
+      number: page,
+      first: true,
+      last: true,
+    };
   }
 
   /**
