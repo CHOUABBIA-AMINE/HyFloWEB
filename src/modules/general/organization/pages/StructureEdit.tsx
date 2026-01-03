@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
- * @updated 01-03-2026 - Fixed imports to align with new architecture
+ * @updated 01-03-2026 - Fixed imports to use relative paths
  */
 
 import { useState, useEffect } from 'react';
@@ -37,9 +37,9 @@ import {
 
 // Import from correct modules aligned with backend architecture
 import structureService from '../services/StructureService';
-import { structureTypeService } from '@/modules/general/type/services';
+import { structureTypeService } from '../../../type/services';
 import { StructureDTO } from '../dto/StructureDTO';
-import { StructureTypeDTO } from '@/modules/general/type/dto';
+import { StructureTypeDTO } from '../../../type/dto';
 import { JobDTO } from '../dto/JobDTO';
 import JobList from '../components/JobList';
 import JobEditDialog from '../components/JobEditDialog';
