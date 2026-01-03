@@ -1,11 +1,13 @@
 /**
- * General > Organization services barrel.
- *
- * This module is the frontend equivalent of the backend package:
- *   dz.sh.trc.hyflo.general.organization
- *
- * For backward-compatibility, these services currently re-export the
- * implementations located under common/administration.
+ * Organization Services
+ * Exports all services related to organization entities
+ * 
+ * Aligned with backend: dz.sh.trc.hyflo.general.organization.service
+ * 
+ * @author CHOUABBIA Amine
+ * @created 01-03-2026
  */
 
-export { stateService, localityService } from '../../../common/administration/services';
+// Re-export localization services that organization depends on
+export { countryService, stateService, localityService } from '../../localization/services';
+export { countryService as localCountryService, stateService as localStateService, localityService as localLocalityService } from '../../localization/services';
