@@ -1,27 +1,52 @@
 /**
  * Person DTO
  * Data Transfer Object for Person entity
+ * Aligned with Backend: dz.sh.trc.hyflo.general.organization.dto.PersonDTO
  * 
- * @author CHOUABBIA Amine
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 12-23-2025
+ * @updated 01-03-2026
+ * @package common/administration
  */
 
-import { LocalityDTO } from './LocalityDTO';
-import { MilitaryRankDTO } from './MilitaryRankDTO';
+import { StateDTO } from './StateDTO';
+import { CountryDTO } from './CountryDTO';
+import { FileDTO } from '../../system/dto/FileDTO';
 
 export interface PersonDTO {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  dateOfBirth?: string;
-  placeOfBirth?: string;
-  localityId?: number;
-  locality?: LocalityDTO;
-  militaryRankId?: number;
-  militaryRank?: MilitaryRankDTO;
+  // Identifier
+  id?: number;
+
+  // Name Fields (Arabic)
+  lastNameAr: string;
+  firstNameAr: string;
+
+  // Name Fields (Latin)
+  lastNameLt: string;
+  firstNameLt: string;
+
+  // Birth Information
+  birthDate?: string | Date;
+  birthPlaceAr?: string;
+  birthPlaceLt?: string;
+
+  // Address Information
+  addressAr?: string;
+  addressLt?: string;
+
+  // Foreign Keys (IDs)
+  birthStateId?: number;
+  addressStateId?: number;
+  pictureId?: number;
+  countryId?: number;
+
+  // Relationships (Objects)
+  birthState?: StateDTO;
+  addressState?: StateDTO;
+  picture?: FileDTO;
+  country?: CountryDTO;
+
+  // Timestamps
   createdAt?: string;
   updatedAt?: string;
 }

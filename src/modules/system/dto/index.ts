@@ -1,2 +1,1 @@
-// System module shared DTOs
-// Add system-level DTO exports here
+export * from './FileDTO';

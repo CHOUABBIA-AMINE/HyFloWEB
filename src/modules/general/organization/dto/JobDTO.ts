@@ -1,29 +1,32 @@
 /**
  * Job DTO
  * Data Transfer Object for Job entity
- * Matches: dz.mdn.iaas.common.administration.model.Job.java
+ * Aligned with Backend: dz.sh.trc.hyflo.general.organization.dto.JobDTO
  * 
- * @author CHOUABBIA Amine
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 12-28-2025
+ * @updated 01-03-2026
+ * @package common/administration
  */
 
 import { StructureDTO } from './StructureDTO';
 
 export interface JobDTO {
-  id: number;
-  
+  // Identifier
+  id?: number;
+
   // Code (unique identifier)
   code: string;
-  
+
   // Designations (multilingual)
   designationAr?: string;
   designationEn?: string;
   designationFr: string;
-  
+
   // Structure relationship (required)
   structureId: number;
   structure?: StructureDTO;
-  
+
   // Timestamps
   createdAt?: string;
   updatedAt?: string;
