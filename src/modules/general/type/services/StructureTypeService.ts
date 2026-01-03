@@ -2,17 +2,18 @@
  * Structure Type Service
  * Handles API calls for structure type management
  * 
- * Backend endpoint: /api/structure-types
+ * Backend endpoint: /general/type/structure
  * Backend controller: dz.sh.trc.hyflo.general.type.controller.StructureTypeController
  * 
  * @author CHOUABBIA Amine
  * @created 01-03-2026
+ * @updated 01-03-2026 - Corrected BASE_URL to /general/type/structure
  */
 
-import axios from 'axios';
+import axiosInstance from '../../../../shared/config/axios';
 import { StructureTypeDTO } from '../dto/StructureTypeDTO';
 
-const API_URL = '/general/type/structureType';
+const BASE_URL = '/general/type/structure';
 
 class StructureTypeService {
   /**
@@ -21,7 +22,7 @@ class StructureTypeService {
    */
   async getAll(): Promise<StructureTypeDTO[]> {
     try {
-      const response = await axios.get(API_URL);
+      const response = await axiosInstance.get(BASE_URL);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching structure types:', error);
@@ -35,7 +36,7 @@ class StructureTypeService {
    */
   async getActive(): Promise<StructureTypeDTO[]> {
     try {
-      const response = await axios.get(`${API_URL}/active`);
+      const response = await axiosInstance.get(`${BASE_URL}/active`);
       return response.data;
     } catch (error: any) {
       console.error('Error fetching active structure types:', error);
@@ -50,7 +51,7 @@ class StructureTypeService {
    */
   async getById(id: number): Promise<StructureTypeDTO> {
     try {
-      const response = await axios.get(`${API_URL}/${id}`);
+      const response = await axiosInstance.get(`${BASE_URL}/${id}`);
       return response.data;
     } catch (error: any) {
       console.error(`Error fetching structure type ${id}:`, error);
@@ -65,7 +66,7 @@ class StructureTypeService {
    */
   async getByCode(code: string): Promise<StructureTypeDTO> {
     try {
-      const response = await axios.get(`${API_URL}/code/${code}`);
+      const response = await axiosInstance.get(`${BASE_URL}/code/${code}`);
       return response.data;
     } catch (error: any) {
       console.error(`Error fetching structure type with code ${code}:`, error);
@@ -80,7 +81,7 @@ class StructureTypeService {
    */
   async create(structureType: Omit<StructureTypeDTO, 'id'>): Promise<StructureTypeDTO> {
     try {
-      const response = await axios.post(API_URL, structureType);
+      const response = await axiosInstance.post(BASE_URL, structureType);
       return response.data;
     } catch (error: any) {
       console.error('Error creating structure type:', error);
@@ -96,7 +97,7 @@ class StructureTypeService {
    */
   async update(id: number, structureType: Partial<StructureTypeDTO>): Promise<StructureTypeDTO> {
     try {
-      const response = await axios.put(`${API_URL}/${id}`, structureType);
+      const response = await axiosInstance.put(`${BASE_URL}/${id}`, structureType);
       return response.data;
     } catch (error: any) {
       console.error(`Error updating structure type ${id}:`, error);
@@ -111,7 +112,7 @@ class StructureTypeService {
    */
   async delete(id: number): Promise<void> {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      await axiosInstance.delete(`${BASE_URL}/${id}`);
     } catch (error: any) {
       console.error(`Error deleting structure type ${id}:`, error);
       throw new Error(error.response?.data?.message || `Failed to delete structure type ${id}`);
@@ -125,7 +126,7 @@ class StructureTypeService {
    */
   async toggleActive(id: number): Promise<StructureTypeDTO> {
     try {
-      const response = await axios.patch(`${API_URL}/${id}/toggle-active`);
+      const response = await axiosInstance.patch(`${BASE_URL}/${id}/toggle-active`);
       return response.data;
     } catch (error: any) {
       console.error(`Error toggling structure type ${id} active status:`, error);
