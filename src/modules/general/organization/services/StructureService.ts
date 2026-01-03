@@ -8,6 +8,7 @@
  * @updated 12-29-2025 - Set id=null in create
  * @updated 12-30-2025 - Added getAllList method
  * @updated 01-03-2026 - Added pageable methods for list and search
+ * @updated 01-03-2026 - Fixed endpoint format for structureTypeId filter
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -42,15 +43,20 @@ class StructureService {
   async getPageable(params: PageableParams = {}): Promise<PageableResponse<StructureDTO>> {
     const { page = 0, size = 25, sort, search, structureTypeId } = params;
     
+    // Build the base URL - use /type/{id} endpoint if structureTypeId is provided
+    let url = this.BASE_URL;
+    if (structureTypeId) {
+      url = `${this.BASE_URL}/type/${structureTypeId}`;
+    }
+    
     const queryParams = new URLSearchParams();
     queryParams.append('page', page.toString());
     queryParams.append('size', size.toString());
     if (sort) queryParams.append('sort', sort);
     if (search) queryParams.append('search', search);
-    if (structureTypeId) queryParams.append('structureTypeId', structureTypeId.toString());
 
     const response = await axiosInstance.get<PageableResponse<StructureDTO>>(
-      `${this.BASE_URL}?${queryParams.toString()}`
+      `${url}?${queryParams.toString()}`
     );
     return response.data;
   }
