@@ -6,9 +6,10 @@
  * @created 12-28-2025
  * @updated 01-03-2026 - Fixed imports to use relative paths
  * @updated 01-03-2026 - Single multilingual designation column, removed ID column, fixed type filter
+ * @updated 01-03-2026 - Use pageable requests instead of /all for better performance
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -46,7 +47,7 @@ import {
   AccountTree as StructureIcon,
   Business as OrganizationIcon,
 } from '@mui/icons-material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 
 // Import from correct modules aligned with backend architecture
 import structureService from '../services/StructureService';
@@ -65,9 +66,17 @@ const StructureList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
+  // Pagination state
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 25,
+  });
+  const [rowCount, setRowCount] = useState(0);
+  
   // Filter state
   const [searchText, setSearchText] = useState('');
   const [selectedTypeId, setSelectedTypeId] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   
   // Export menu
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
@@ -83,24 +92,27 @@ const StructureList = () => {
     return item.designationFr || item.designationEn || item.designationAr || '';
   };
 
+  // Debounce search input
   useEffect(() => {
-    loadData();
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchText);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  useEffect(() => {
+    loadStructureTypes();
   }, []);
 
-  const loadData = async () => {
+  useEffect(() => {
+    loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedTypeId]);
+
+  const loadStructureTypes = async () => {
     try {
-      setLoading(true);
-      const [structuresData, typesData] = await Promise.all([
-        structureService.getAll(),
-        structureTypeService.getAll()
-      ]);
-      
-      let structuresList: StructureDTO[] = [];
-      if (Array.isArray(structuresData)) {
-        structuresList = structuresData;
-      } else if (structuresData && typeof structuresData === 'object') {
-        structuresList = (structuresData as any).data || (structuresData as any).content || [];
-      }
+      const typesData = await structureTypeService.getAll();
       
       let typesList: StructureTypeDTO[] = [];
       if (Array.isArray(typesData)) {
@@ -109,37 +121,39 @@ const StructureList = () => {
         typesList = (typesData as any).data || (typesData as any).content || [];
       }
       
-      setStructures(structuresList);
       setStructureTypes(typesList);
+    } catch (err: any) {
+      console.error('Failed to load structure types:', err);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await structureService.getPageable({
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        search: debouncedSearch || undefined,
+        structureTypeId: selectedTypeId ? Number(selectedTypeId) : undefined,
+      });
+      
+      setStructures(response.content || []);
+      setRowCount(response.totalElements || 0);
       setError('');
     } catch (err: any) {
       console.error('Failed to load structures:', err);
       setError(err.message || 'Failed to load structures');
       setStructures([]);
-      setStructureTypes([]);
+      setRowCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter structures
-  const filteredStructures = useMemo(() => {
-    if (!Array.isArray(structures)) return [];
-    
-    return structures.filter((structure) => {
-      const searchLower = searchText.toLowerCase();
-      const matchesSearch = !searchText || 
-        (structure.code && structure.code.toLowerCase().includes(searchLower)) ||
-        (structure.designationFr && structure.designationFr.toLowerCase().includes(searchLower)) ||
-        (structure.designationEn && structure.designationEn.toLowerCase().includes(searchLower)) ||
-        (structure.designationAr && structure.designationAr.toLowerCase().includes(searchLower));
-
-      const matchesType = !selectedTypeId || 
-        (structure.structureTypeId && structure.structureTypeId.toString() === selectedTypeId);
-
-      return matchesSearch && matchesType;
-    });
-  }, [structures, searchText, selectedTypeId]);
+  const handlePaginationModelChange = useCallback((newModel: GridPaginationModel) => {
+    setPaginationModel(newModel);
+  }, []);
 
   // DataGrid columns
   const columns: GridColDef[] = [
@@ -265,11 +279,13 @@ const StructureList = () => {
 
   const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
     setSelectedTypeId(event.target.value);
+    setPaginationModel({ ...paginationModel, page: 0 }); // Reset to first page
   };
 
   const handleClearFilters = () => {
     setSearchText('');
     setSelectedTypeId('');
+    setPaginationModel({ ...paginationModel, page: 0 });
   };
 
   // Export handlers
@@ -425,12 +441,7 @@ const StructureList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {filteredStructures.length} {t('common.results')}
-                {structures.length !== filteredStructures.length && (
-                  <Typography component="span" variant="body2" color="text.disabled" sx={{ ml: 1 }}>
-                    (filtered from {structures.length})
-                  </Typography>
-                )}
+                {rowCount} {t('common.results')}
               </Typography>
             </Box>
           </Stack>
@@ -440,15 +451,14 @@ const StructureList = () => {
       {/* DataGrid */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
-          rows={filteredStructures}
+          rows={structures}
           columns={columns}
           loading={loading}
+          rowCount={rowCount}
           pageSizeOptions={[10, 25, 50, 100]}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 25 },
-            },
-          }}
+          paginationModel={paginationModel}
+          paginationMode="server"
+          onPaginationModelChange={handlePaginationModelChange}
           disableRowSelectionOnClick
           autoHeight
           sx={{
