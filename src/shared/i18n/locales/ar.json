@@ -31,7 +31,13 @@
     "clearFilters": "مسح المرشحات",
     "results": "النتائج",
     "all": "الكل",
-    "legend": "دليل"
+    "legend": "دليل",
+    "refresh": "تحديث",
+    "refreshed": "تم تحديث البيانات",
+    "exportedCSV": "تم التصدير إلى CSV",
+    "exportedExcel": "تم التصدير إلى Excel",
+    "exportedPDF": "تم التصدير إلى PDF",
+    "noData": "لا توجد بيانات متاحة"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -55,7 +61,7 @@
     "confirmPassword": "تأكيد كلمة المرور",
     "passwordChanged": "تم تغيير كلمة المرور بنجاح",
     "passwordMismatch": "كلمات المرور غير متطابقة",
-    "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+    "passwordTooShort": "يجب أن تكون كلمة المرور 8 أحرف علم الأقل",
     "updateProfile": "تحديث الملف الشخصي",
     "profileUpdated": "تم تحديث الملف الشخصي بنجاح"
   },
@@ -119,6 +125,28 @@
     "settings": "الإعدادات",
     "overview": "نظرة عامة",
     "profile": "الملف الشخصي"
+  },
+  "structure": {
+    "title": "الهياكل التنظيمية",
+    "subtitle": "إدارة الهياكل التنظيمية والتسلسلات الهرمية",
+    "code": "الرمز",
+    "designation": "التسمية",
+    "type": "النوع",
+    "parentStructure": "الهيكل الأب",
+    "root": "جذر",
+    "create": "إنشاء هيكل",
+    "edit": "تعديل الهيكل",
+    "searchPlaceholder": "البحث بالرمز أو التسمية...",
+    "filterByType": "نوع الهيكل",
+    "allTypes": "جميع الأنواع",
+    "confirmDelete": "حذف هذا الهيكل؟",
+    "deleteSuccess": "تم حذف الهيكل بنجاح",
+    "deleteError": "فشل حذف الهيكل",
+    "errorLoading": "فشل تحميل الهياكل",
+    "createSuccess": "تم إنشاء الهيكل بنجاح",
+    "createError": "فشل إنشاء الهيكل",
+    "updateSuccess": "تم تحديث الهيكل بنجاح",
+    "updateError": "فشل تحديث الهيكل"
   },
   "employee": {
     "title": "الموظفين",
