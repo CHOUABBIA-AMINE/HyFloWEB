@@ -1,8 +1,11 @@
 /**
- * Administration DTOs - Central Export
- * @author CHOUABBIA Amine
+ * General > Organization DTOs barrel.
+ *
+ * This module is the frontend equivalent of the backend package:
+ *   dz.sh.trc.hyflo.general.organization
+ *
+ * For backward-compatibility, DTOs are currently re-exported from
+ * common/administration/dto.
  */
 
-export type { StructureDTO } from './StructureDTO';
-export type { JobDTO } from './JobDTO';
-export type { EmployeeDTO } from './EmployeeDTO';
+export * from '../../../common/administration/dto';

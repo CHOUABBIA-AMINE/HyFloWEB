@@ -1,10 +1,10 @@
 /**
- * General > Organization utilities.
+ * Common administration utilities (legacy location).
  *
- * Provides helpers for rendering localized names for entities that may expose
- * multilingual fields such as:
- * - nameAr, nameLt, nameEn, nameFr
- * - designationAr, designationEn, designationFr
+ * NOTE: The backend places these concepts under dz.sh.trc.hyflo.general.organization.
+ * The frontend is transitioning to src/modules/general/organization.
+ *
+ * This file remains to avoid breaking existing imports.
  */
 
 export type LocalizableEntity = Record<string, any>;
@@ -22,17 +22,14 @@ export const getLocalizedName = (entity: LocalizableEntity | null | undefined, l
     return undefined;
   };
 
-  // Common field families
   const ar = pick(['nameAr', 'designationAr']);
   const lt = pick(['nameLt', 'designationLt']);
   const en = pick(['nameEn', 'designationEn']);
   const fr = pick(['nameFr', 'designationFr', 'label']);
 
-  // Heuristic mapping by language
   if (l.startsWith('ar')) return ar || fr || en || lt || pick(['code']) || String(entity?.id ?? '');
   if (l.startsWith('fr')) return fr || en || lt || ar || pick(['code']) || String(entity?.id ?? '');
   if (l.startsWith('en')) return en || fr || lt || ar || pick(['code']) || String(entity?.id ?? '');
 
-  // Latin (lt) or fallback
   return lt || en || fr || ar || pick(['code']) || String(entity?.id ?? '');
 };

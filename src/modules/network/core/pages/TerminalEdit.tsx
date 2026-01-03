@@ -32,8 +32,8 @@ import {
 import { terminalService } from '../services';
 import { vendorService, operationalStatusService } from '../../common/services';
 import { terminalTypeService } from '../../type/services';
-import { stateService, localityService } from '../../../common/administration/services';
-import { getLocalizedName as getAdminLocalizedName } from '../../../common/administration/utils';
+import { stateService, localityService } from '../../../general/organization/services';
+import { getLocalizedName as getAdminLocalizedName } from '../../../general/organization/utils';
 import { TerminalDTO, TerminalCreateDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 

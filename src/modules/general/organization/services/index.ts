@@ -1,7 +1,11 @@
 /**
- * Administration Services - Central Export
+ * General > Organization services barrel.
+ *
+ * This module is the frontend equivalent of the backend package:
+ *   dz.sh.trc.hyflo.general.organization
+ *
+ * For backward-compatibility, these services currently re-export the
+ * implementations located under common/administration.
  */
 
-export { default as structureService } from './StructureService';
-export { default as jobService } from './JobService';
-export { employeeService } from './employeeService';
+export { stateService, localityService } from '../../../common/administration/services';

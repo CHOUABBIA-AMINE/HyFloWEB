@@ -1,8 +1,7 @@
-// Pages
-export * from './pages';
+/**
+ * General > Organization barrel.
+ */
 
-// Services
-export * from './services';
-
-// DTOs
 export * from './dto';
+export * from './services';
+export * from './utils';
