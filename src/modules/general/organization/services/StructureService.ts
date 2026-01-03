@@ -7,13 +7,63 @@
  * @created 12-28-2025
  * @updated 12-29-2025 - Set id=null in create
  * @updated 12-30-2025 - Added getAllList method
+ * @updated 01-03-2026 - Added pageable methods for list and search
  */
 
 import axiosInstance from '../../../../shared/config/axios';
 import { StructureDTO } from '../dto/StructureDTO';
 
+interface PageableResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+interface PageableParams {
+  page?: number;
+  size?: number;
+  sort?: string;
+  search?: string;
+  structureTypeId?: number;
+}
+
 class StructureService {
   private readonly BASE_URL = '/general/organization/structure';
+
+  /**
+   * Get pageable structures
+   * @param params - Pagination and filter parameters
+   * @returns Promise with pageable response
+   */
+  async getPageable(params: PageableParams = {}): Promise<PageableResponse<StructureDTO>> {
+    const { page = 0, size = 25, sort, search, structureTypeId } = params;
+    
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', page.toString());
+    queryParams.append('size', size.toString());
+    if (sort) queryParams.append('sort', sort);
+    if (search) queryParams.append('search', search);
+    if (structureTypeId) queryParams.append('structureTypeId', structureTypeId.toString());
+
+    const response = await axiosInstance.get<PageableResponse<StructureDTO>>(
+      `${this.BASE_URL}?${queryParams.toString()}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Search structures with pagination
+   * @param searchTerm - Search term
+   * @param params - Additional parameters
+   * @returns Promise with pageable response
+   */
+  async search(searchTerm: string, params: PageableParams = {}): Promise<PageableResponse<StructureDTO>> {
+    return this.getPageable({ ...params, search: searchTerm });
+  }
 
   async getAll(): Promise<StructureDTO[]> {
     const response = await axiosInstance.get<StructureDTO[]>(`${this.BASE_URL}/all`);
@@ -65,3 +115,4 @@ class StructureService {
 }
 
 export default new StructureService();
+export type { PageableResponse, PageableParams };
