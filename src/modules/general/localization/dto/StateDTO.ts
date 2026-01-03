@@ -1,19 +1,23 @@
 /**
- * State DTO
- * Data Transfer Object for State entity
- * Aligned with iaas repository structure - uses designation fields
+ * State DTO - Localization Module
+ * Represents a state/province in the system
  * 
- * @author CHOUABBIA Amine
- * @created 12-23-2025
- * @updated 12-23-2025
+ * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.StateDTO
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 01-03-2026
  */
+
+import type { CountryDTO } from './CountryDTO';
 
 export interface StateDTO {
   id: number;
-  code?: string;
-  designationAr: string;
-  designationEn: string;
-  designationFr: string;
+  code: string;
+  nameAr: string;
+  nameFr: string;
+  nameEn: string;
+  country: CountryDTO;
+  isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
