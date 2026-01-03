@@ -10,6 +10,7 @@
  * @updated 01-03-2026 - Added pageable methods for list and search
  * @updated 01-03-2026 - Fixed endpoint format for structureTypeId filter
  * @updated 01-03-2026 - Handle both pageable and array responses from backend
+ * @updated 01-03-2026 - Fixed search to work with type filter using query params
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -44,57 +45,82 @@ class StructureService {
   async getPageable(params: PageableParams = {}): Promise<PageableResponse<StructureDTO>> {
     const { page = 0, size = 25, sort, search, structureTypeId } = params;
     
-    // Build the base URL - use /type/{id} endpoint if structureTypeId is provided
-    let url = this.BASE_URL;
-    if (structureTypeId) {
-      url = `${this.BASE_URL}/type/${structureTypeId}`;
-    }
-    
+    // Build query parameters
     const queryParams = new URLSearchParams();
     queryParams.append('page', page.toString());
     queryParams.append('size', size.toString());
     if (sort) queryParams.append('sort', sort);
-    if (search) queryParams.append('search', search);
+    if (search && search.trim()) queryParams.append('search', search.trim());
+    if (structureTypeId) queryParams.append('structureTypeId', structureTypeId.toString());
 
-    const response = await axiosInstance.get(
-      `${url}?${queryParams.toString()}`
-    );
-    
-    // Handle both pageable response and plain array response
-    const data = response.data;
-    
-    // Check if response is already in pageable format
-    if (data && typeof data === 'object' && 'content' in data) {
-      return data as PageableResponse<StructureDTO>;
-    }
-    
-    // If response is an array, convert to pageable format
-    if (Array.isArray(data)) {
-      const start = page * size;
-      const end = start + size;
-      const paginatedData = data.slice(start, end);
+    try {
+      const response = await axiosInstance.get(
+        `${this.BASE_URL}?${queryParams.toString()}`
+      );
       
+      const data = response.data;
+      
+      // Check if response is already in pageable format
+      if (data && typeof data === 'object' && 'content' in data) {
+        return data as PageableResponse<StructureDTO>;
+      }
+      
+      // If response is an array, convert to pageable format
+      if (Array.isArray(data)) {
+        // Filter by search if provided
+        let filteredData = data;
+        if (search && search.trim()) {
+          const searchLower = search.toLowerCase();
+          filteredData = data.filter(item => {
+            const code = (item.code || '').toLowerCase();
+            const designationFr = (item.designationFr || '').toLowerCase();
+            const designationEn = (item.designationEn || '').toLowerCase();
+            const designationAr = (item.designationAr || '').toLowerCase();
+            
+            return code.includes(searchLower) ||
+                   designationFr.includes(searchLower) ||
+                   designationEn.includes(searchLower) ||
+                   designationAr.includes(searchLower);
+          });
+        }
+        
+        // Filter by type if provided
+        if (structureTypeId) {
+          filteredData = filteredData.filter(
+            item => item.structureType?.id === structureTypeId
+          );
+        }
+        
+        // Paginate
+        const start = page * size;
+        const end = start + size;
+        const paginatedData = filteredData.slice(start, end);
+        
+        return {
+          content: paginatedData,
+          totalElements: filteredData.length,
+          totalPages: Math.ceil(filteredData.length / size),
+          size: size,
+          number: page,
+          first: page === 0,
+          last: end >= filteredData.length,
+        };
+      }
+      
+      // Fallback: empty response
       return {
-        content: paginatedData,
-        totalElements: data.length,
-        totalPages: Math.ceil(data.length / size),
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
         size: size,
         number: page,
-        first: page === 0,
-        last: end >= data.length,
+        first: true,
+        last: true,
       };
+    } catch (error) {
+      console.error('Error fetching structures:', error);
+      throw error;
     }
-    
-    // Fallback: empty response
-    return {
-      content: [],
-      totalElements: 0,
-      totalPages: 0,
-      size: size,
-      number: page,
-      first: true,
-      last: true,
-    };
   }
 
   /**
