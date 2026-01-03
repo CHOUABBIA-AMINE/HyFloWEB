@@ -31,7 +31,13 @@
     "clearFilters": "Clear Filters",
     "results": "results",
     "all": "All",
-    "legend": "Legend"
+    "legend": "Legend",
+    "refresh": "Refresh",
+    "refreshed": "Data refreshed",
+    "exportedCSV": "Exported to CSV",
+    "exportedExcel": "Exported to Excel",
+    "exportedPDF": "Exported to PDF",
+    "noData": "No data available"
   },
   "auth": {
     "login": "Login",
@@ -119,6 +125,28 @@
     "settings": "Settings",
     "overview": "Overview",
     "profile": "Profile"
+  },
+  "structure": {
+    "title": "Organizational Structures",
+    "subtitle": "Manage organizational structures and hierarchies",
+    "code": "Code",
+    "designation": "Designation",
+    "type": "Type",
+    "parentStructure": "Parent Structure",
+    "root": "Root",
+    "create": "Create Structure",
+    "edit": "Edit Structure",
+    "searchPlaceholder": "Search by code or designation...",
+    "filterByType": "Structure Type",
+    "allTypes": "All Types",
+    "confirmDelete": "Delete this structure?",
+    "deleteSuccess": "Structure deleted successfully",
+    "deleteError": "Failed to delete structure",
+    "errorLoading": "Failed to load structures",
+    "createSuccess": "Structure created successfully",
+    "createError": "Failed to create structure",
+    "updateSuccess": "Structure updated successfully",
+    "updateError": "Failed to update structure"
   },
   "employee": {
     "title": "Employees",

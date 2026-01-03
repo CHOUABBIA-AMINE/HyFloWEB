@@ -31,7 +31,13 @@
     "clearFilters": "Effacer les filtres",
     "results": "résultats",
     "all": "Tous",
-    "legend": "Légende"
+    "legend": "Légende",
+    "refresh": "Actualiser",
+    "refreshed": "Données actualisées",
+    "exportedCSV": "Exporté en CSV",
+    "exportedExcel": "Exporté en Excel",
+    "exportedPDF": "Exporté en PDF",
+    "noData": "Aucune donnée disponible"
   },
   "auth": {
     "login": "Connexion",
@@ -119,6 +125,28 @@
     "settings": "Paramètres",
     "overview": "Aperçu",
     "profile": "Profil"
+  },
+  "structure": {
+    "title": "Structures Organisationnelles",
+    "subtitle": "Gérer les structures organisationnelles et les hiérarchies",
+    "code": "Code",
+    "designation": "Désignation",
+    "type": "Type",
+    "parentStructure": "Structure Parente",
+    "root": "Racine",
+    "create": "Créer une Structure",
+    "edit": "Modifier la Structure",
+    "searchPlaceholder": "Rechercher par code ou désignation...",
+    "filterByType": "Type de Structure",
+    "allTypes": "Tous les Types",
+    "confirmDelete": "Supprimer cette structure ?",
+    "deleteSuccess": "Structure supprimée avec succès",
+    "deleteError": "Échec de la suppression de la structure",
+    "errorLoading": "Échec du chargement des structures",
+    "createSuccess": "Structure créée avec succès",
+    "createError": "Échec de la création de la structure",
+    "updateSuccess": "Structure mise à jour avec succès",
+    "updateError": "Échec de la mise à jour de la structure"
   },
   "employee": {
     "title": "Employés",
