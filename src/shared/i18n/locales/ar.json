@@ -5,6 +5,7 @@
   },
   "common": {
     "save": "حفظ",
+    "saving": "جاري الحفظ...",
     "cancel": "إلغاء",
     "delete": "حذف",
     "edit": "تعديل",
@@ -129,13 +130,20 @@
   "structure": {
     "title": "الهياكل التنظيمية",
     "subtitle": "إدارة الهياكل التنظيمية والتسلسلات الهرمية",
+    "createSubtitle": "إضافة هيكل تنظيمي جديد",
+    "editSubtitle": "تحديث معلومات الهيكل التنظيمي وإدارة الوظائف",
     "code": "الرمز",
     "designation": "التسمية",
+    "designationAr": "التسمية العربية",
+    "designationEn": "التسمية الإنجليزية",
+    "designationFr": "التسمية الفرنسية",
     "type": "النوع",
+    "structureType": "نوع الهيكل",
     "parentStructure": "الهيكل الأب",
     "root": "جذر",
     "create": "إنشاء هيكل",
     "edit": "تعديل الهيكل",
+    "delete": "حذف الهيكل",
     "searchPlaceholder": "البحث بالرمز أو التسمية...",
     "filterByType": "نوع الهيكل",
     "allTypes": "جميع الأنواع",
@@ -143,10 +151,40 @@
     "deleteSuccess": "تم حذف الهيكل بنجاح",
     "deleteError": "فشل حذف الهيكل",
     "errorLoading": "فشل تحميل الهياكل",
+    "errorLoadingFormData": "فشل تحميل بيانات النموذج",
     "createSuccess": "تم إنشاء الهيكل بنجاح",
     "createError": "فشل إنشاء الهيكل",
     "updateSuccess": "تم تحديث الهيكل بنجاح",
-    "updateError": "فشل تحديث الهيكل"
+    "updateError": "فشل تحديث الهيكل",
+    "saveError": "فشل حفظ الهيكل",
+    "selectType": "اختر نوع الهيكل",
+    "selectParent": "اختر الهيكل الأب",
+    "noParent": "بدون أب (هيكل جذر)",
+    "tabs": {
+      "generalInformation": "معلومات عامة",
+      "jobs": "الوظائف"
+    },
+    "sections": {
+      "basicInformation": "معلومات أساسية",
+      "designations": "التسميات",
+      "organizationalHierarchy": "الهيكل التنظيمي"
+    },
+    "fields": {
+      "code": "رمز الهيكل",
+      "designationAr": "التسمية العربية",
+      "designationEn": "التسمية الإنجليزية",
+      "designationFr": "التسمية الفرنسية",
+      "structureType": "نوع الهيكل",
+      "parentStructure": "الهيكل الأب"
+    },
+    "validation": {
+      "formInvalid": "يرجى ملء جميع الحقول المطلوبة",
+      "codeRequired": "الرمز مطلوب",
+      "designationFrRequired": "التسمية بالفرنسية مطلوبة",
+      "typeRequired": "نوع الهيكل مطلوب",
+      "codeMaxLength": "يجب ألا يتجاوز الرمز 50 حرفًا",
+      "designationMaxLength": "يجب ألا تتجاوز التسمية 100 حرف"
+    }
   },
   "employee": {
     "title": "الموظفين",

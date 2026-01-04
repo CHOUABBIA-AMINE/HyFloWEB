@@ -5,6 +5,7 @@
   },
   "common": {
     "save": "Enregistrer",
+    "saving": "Enregistrement...",
     "cancel": "Annuler",
     "delete": "Supprimer",
     "edit": "Modifier",
@@ -129,13 +130,20 @@
   "structure": {
     "title": "Structures Organisationnelles",
     "subtitle": "Gérer les structures organisationnelles et les hiérarchies",
+    "createSubtitle": "Ajouter une nouvelle structure organisationnelle",
+    "editSubtitle": "Mettre à jour les informations de la structure et gérer les postes",
     "code": "Code",
     "designation": "Désignation",
+    "designationAr": "Désignation arabe",
+    "designationEn": "Désignation anglaise",
+    "designationFr": "Désignation française",
     "type": "Type",
+    "structureType": "Type de Structure",
     "parentStructure": "Structure Parente",
     "root": "Racine",
     "create": "Créer une Structure",
     "edit": "Modifier la Structure",
+    "delete": "Supprimer la Structure",
     "searchPlaceholder": "Rechercher par code ou désignation...",
     "filterByType": "Type de Structure",
     "allTypes": "Tous les Types",
@@ -143,10 +151,40 @@
     "deleteSuccess": "Structure supprimée avec succès",
     "deleteError": "Échec de la suppression de la structure",
     "errorLoading": "Échec du chargement des structures",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire",
     "createSuccess": "Structure créée avec succès",
     "createError": "Échec de la création de la structure",
     "updateSuccess": "Structure mise à jour avec succès",
-    "updateError": "Échec de la mise à jour de la structure"
+    "updateError": "Échec de la mise à jour de la structure",
+    "saveError": "Échec de l'enregistrement de la structure",
+    "selectType": "Sélectionner le type de structure",
+    "selectParent": "Sélectionner la structure parente",
+    "noParent": "Aucun parent (structure racine)",
+    "tabs": {
+      "generalInformation": "Informations générales",
+      "jobs": "Postes"
+    },
+    "sections": {
+      "basicInformation": "Informations de base",
+      "designations": "Désignations",
+      "organizationalHierarchy": "Hiérarchie organisationnelle"
+    },
+    "fields": {
+      "code": "Code de la structure",
+      "designationAr": "Désignation arabe",
+      "designationEn": "Désignation anglaise",
+      "designationFr": "Désignation française",
+      "structureType": "Type de Structure",
+      "parentStructure": "Structure Parente"
+    },
+    "validation": {
+      "formInvalid": "Veuillez remplir tous les champs obligatoires",
+      "codeRequired": "Le code est requis",
+      "designationFrRequired": "La désignation française est requise",
+      "typeRequired": "Le type de structure est requis",
+      "codeMaxLength": "Le code ne doit pas dépasser 50 caractères",
+      "designationMaxLength": "La désignation ne doit pas dépasser 100 caractères"
+    }
   },
   "employee": {
     "title": "Employés",
@@ -422,7 +460,7 @@
   },
   "vendor": {
     "title": "Fournisseurs",
-    "subtitle": "Gérer les informations des fournisseurs et des fou rnisseurs",
+    "subtitle": "Gérer les informations des fournisseurs et des fournisseurs",
     "create": "Créer un fournisseur",
     "edit": "Modifier le fournisseur",
     "delete": "Supprimer le fournisseur",

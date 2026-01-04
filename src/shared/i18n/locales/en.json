@@ -5,6 +5,7 @@
   },
   "common": {
     "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
@@ -129,6 +130,8 @@
   "structure": {
     "title": "Organizational Structures",
     "subtitle": "Manage organizational structures and hierarchies",
+    "createSubtitle": "Add a new organizational structure",
+    "editSubtitle": "Update organizational structure information and manage jobs",
     "code": "Code",
     "designation": "Designation",
     "designationAr": "Arabic Designation",
@@ -148,13 +151,24 @@
     "deleteSuccess": "Structure deleted successfully",
     "deleteError": "Failed to delete structure",
     "errorLoading": "Failed to load structures",
+    "errorLoadingFormData": "Failed to load form data",
     "createSuccess": "Structure created successfully",
     "createError": "Failed to create structure",
     "updateSuccess": "Structure updated successfully",
     "updateError": "Failed to update structure",
+    "saveError": "Failed to save structure",
     "selectType": "Select structure type",
     "selectParent": "Select parent structure",
     "noParent": "No parent (Root structure)",
+    "tabs": {
+      "generalInformation": "General Information",
+      "jobs": "Jobs"
+    },
+    "sections": {
+      "basicInformation": "Basic Information",
+      "designations": "Designations",
+      "organizationalHierarchy": "Organizational Hierarchy"
+    },
     "fields": {
       "code": "Structure Code",
       "designationAr": "Arabic Designation",
@@ -164,6 +178,7 @@
       "parentStructure": "Parent Structure"
     },
     "validation": {
+      "formInvalid": "Please fill in all required fields",
       "codeRequired": "Code is required",
       "designationFrRequired": "French designation is required",
       "typeRequired": "Structure type is required",

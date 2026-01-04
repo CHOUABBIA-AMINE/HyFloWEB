@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-28-2025
  * @updated 01-03-2026 - Fixed imports to use relative paths
+ * @updated 01-04-2026 - i18n: replaced hardcoded strings with translation keys
  */
 
 import { useState, useEffect } from 'react';
@@ -111,25 +112,28 @@ const StructureEdit = () => {
     try {
       const [typesData, structuresData] = await Promise.all([
         structureTypeService.getAll(),
-        structureService.getAll()
+        structureService.getAll(),
       ]);
-      
-      let typesList: StructureTypeDTO[] = Array.isArray(typesData) ? typesData : 
-        (typesData as any).data || (typesData as any).content || [];
-      let structuresList: StructureDTO[] = Array.isArray(structuresData) ? structuresData : 
-        (structuresData as any).data || (structuresData as any).content || [];
-      
+
+      const typesList: StructureTypeDTO[] = Array.isArray(typesData)
+        ? typesData
+        : (typesData as any).data || (typesData as any).content || [];
+
+      const structuresList: StructureDTO[] = Array.isArray(structuresData)
+        ? structuresData
+        : (structuresData as any).data || (structuresData as any).content || [];
+
       setStructureTypes(typesList);
       setParentStructures(structuresList);
     } catch (err: any) {
       console.error('Failed to load dropdown data:', err);
-      setError('Failed to load form data');
+      setError(t('structure.errorLoadingFormData'));
     }
   };
 
   const loadStructure = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       const data = await structureService.getById(parseInt(id));
@@ -144,7 +148,7 @@ const StructureEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load structure:', err);
-      setError(err.message || 'Failed to load structure');
+      setError(err.message || t('structure.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -154,13 +158,13 @@ const StructureEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.code?.trim()) {
-      errors.code = 'Code is required';
+      errors.code = t('structure.validation.codeRequired');
     }
     if (!formData.designationFr?.trim()) {
-      errors.designationFr = 'French designation is required';
+      errors.designationFr = t('structure.validation.designationFrRequired');
     }
     if (!formData.structureTypeId || formData.structureTypeId === 0) {
-      errors.structureTypeId = 'Structure type is required';
+      errors.structureTypeId = t('structure.validation.typeRequired');
     }
 
     setValidationErrors(errors);
@@ -169,16 +173,16 @@ const StructureEdit = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
-      setError('Please fill in all required fields');
+      setError(t('structure.validation.formInvalid'));
       return;
     }
 
     try {
       setLoading(true);
       setError('');
-      
+
       const structureData: StructureDTO = {
         ...formData,
         id: isEditMode ? parseInt(id!) : 0,
@@ -189,16 +193,16 @@ const StructureEdit = () => {
 
       if (isEditMode) {
         await structureService.update(parseInt(id!), structureData);
-        setSuccess('Structure updated successfully');
+        setSuccess(t('structure.updateSuccess'));
       } else {
         const created = await structureService.create(structureData);
-        setSuccess('Structure created successfully');
+        setSuccess(t('structure.createSuccess'));
         // Redirect to edit mode after creation
         setTimeout(() => navigate(`/administration/structures/${created.id}/edit`), 1500);
       }
     } catch (err: any) {
       console.error('Failed to save structure:', err);
-      setError(err.message || 'Failed to save structure');
+      setError(err.message || t('structure.saveError'));
     } finally {
       setLoading(false);
     }
@@ -212,11 +216,11 @@ const StructureEdit = () => {
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
   ) => {
     const value = event.target.value;
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Clear validation error for this field
     if (validationErrors[field]) {
-      setValidationErrors(prev => {
+      setValidationErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
         return newErrors;
@@ -245,7 +249,7 @@ const StructureEdit = () => {
   };
 
   const handleJobSaved = () => {
-    setJobRefreshTrigger(prev => prev + 1);
+    setJobRefreshTrigger((prev) => prev + 1);
   };
 
   return (
@@ -255,11 +259,11 @@ const StructureEdit = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <StructureIcon color="primary" sx={{ fontSize: 32 }} />
           <Typography variant="h4" fontWeight={700} color="text.primary">
-            {isEditMode ? 'Edit Structure' : 'Create Structure'}
+            {isEditMode ? t('structure.edit') : t('structure.create')}
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary">
-          {isEditMode ? 'Update organizational structure information and manage jobs' : 'Add a new organizational structure'}
+          {isEditMode ? t('structure.editSubtitle') : t('structure.createSubtitle')}
         </Typography>
       </Box>
 
@@ -286,8 +290,8 @@ const StructureEdit = () => {
             px: 2,
           }}
         >
-          <Tab label="General Information" />
-          <Tab label="Jobs" disabled={!isEditMode} />
+          <Tab label={t('structure.tabs.generalInformation')} />
+          <Tab label={t('structure.tabs.jobs')} disabled={!isEditMode} />
         </Tabs>
 
         <CardContent sx={{ p: 3 }}>
@@ -298,7 +302,7 @@ const StructureEdit = () => {
                 {/* Basic Information */}
                 <Grid item xs={12}>
                   <Typography variant="h6" fontWeight={600} gutterBottom>
-                    Basic Information
+                    {t('structure.sections.basicInformation')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                 </Grid>
@@ -307,7 +311,7 @@ const StructureEdit = () => {
                   <TextField
                     fullWidth
                     required
-                    label="Code"
+                    label={t('structure.fields.code')}
                     value={formData.code || ''}
                     onChange={handleChange('code')}
                     error={Boolean(validationErrors.code)}
@@ -317,16 +321,20 @@ const StructureEdit = () => {
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required error={Boolean(validationErrors.structureTypeId)}>
-                    <InputLabel>Structure Type</InputLabel>
+                  <FormControl
+                    fullWidth
+                    required
+                    error={Boolean(validationErrors.structureTypeId)}
+                  >
+                    <InputLabel>{t('structure.fields.structureType')}</InputLabel>
                     <Select
                       value={formData.structureTypeId || ''}
                       onChange={handleChange('structureTypeId')}
-                      label="Structure Type"
+                      label={t('structure.fields.structureType')}
                       disabled={loading}
                     >
                       <MenuItem value="">
-                        <em>Select type</em>
+                        <em>{t('structure.selectType')}</em>
                       </MenuItem>
                       {structureTypes.map((type) => (
                         <MenuItem key={type.id} value={type.id}>
@@ -335,17 +343,26 @@ const StructureEdit = () => {
                       ))}
                     </Select>
                     {validationErrors.structureTypeId && (
-                      <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                      <Typography
+                        variant="caption"
+                        color="error"
+                        sx={{ mt: 0.5, ml: 1.5 }}
+                      >
                         {validationErrors.structureTypeId}
                       </Typography>
                     )}
                   </FormControl>
                 </Grid>
 
-                {/* Designations - Single Row */}
+                {/* Designations */}
                 <Grid item xs={12}>
-                  <Typography variant="h6" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-                    Designations
+                  <Typography
+                    variant="h6"
+                    fontWeight={600}
+                    gutterBottom
+                    sx={{ mt: 2 }}
+                  >
+                    {t('structure.sections.designations')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                 </Grid>
@@ -354,7 +371,7 @@ const StructureEdit = () => {
                   <TextField
                     fullWidth
                     required
-                    label="Designation (French)"
+                    label={t('structure.fields.designationFr')}
                     value={formData.designationFr || ''}
                     onChange={handleChange('designationFr')}
                     error={Boolean(validationErrors.designationFr)}
@@ -366,7 +383,7 @@ const StructureEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Designation (English)"
+                    label={t('structure.fields.designationEn')}
                     value={formData.designationEn || ''}
                     onChange={handleChange('designationEn')}
                     disabled={loading}
@@ -376,7 +393,7 @@ const StructureEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Designation (Arabic)"
+                    label={t('structure.fields.designationAr')}
                     value={formData.designationAr || ''}
                     onChange={handleChange('designationAr')}
                     disabled={loading}
@@ -386,29 +403,35 @@ const StructureEdit = () => {
 
                 {/* Hierarchy */}
                 <Grid item xs={12}>
-                  <Typography variant="h6" fontWeight={600} gutterBottom sx={{ mt: 2 }}>
-                    Organizational Hierarchy
+                  <Typography
+                    variant="h6"
+                    fontWeight={600}
+                    gutterBottom
+                    sx={{ mt: 2 }}
+                  >
+                    {t('structure.sections.organizationalHierarchy')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                 </Grid>
 
                 <Grid item xs={12}>
                   <FormControl fullWidth>
-                    <InputLabel>Parent Structure</InputLabel>
+                    <InputLabel>{t('structure.fields.parentStructure')}</InputLabel>
                     <Select
                       value={formData.parentStructureId || ''}
                       onChange={handleChange('parentStructureId')}
-                      label="Parent Structure"
+                      label={t('structure.fields.parentStructure')}
                       disabled={loading}
                     >
                       <MenuItem value="">
-                        <em>None (Root Level)</em>
+                        <em>{t('structure.noParent')}</em>
                       </MenuItem>
                       {parentStructures
-                        .filter(s => !isEditMode || s.id !== parseInt(id!))
+                        .filter((s) => !isEditMode || s.id !== parseInt(id!))
                         .map((structure) => (
                           <MenuItem key={structure.id} value={structure.id}>
-                            {structure.code} - {structure.designationFr || structure.designationEn}
+                            {structure.code} -
+                            {structure.designationFr || structure.designationEn}
                           </MenuItem>
                         ))}
                     </Select>
@@ -451,7 +474,7 @@ const StructureEdit = () => {
             disabled={loading}
             sx={{ minWidth: 120, boxShadow: 2 }}
           >
-            {loading ? 'Saving...' : t('common.save')}
+            {loading ? t('common.saving') : t('common.save')}
           </Button>
         </Stack>
       </Paper>
