@@ -131,11 +131,16 @@
     "subtitle": "Manage organizational structures and hierarchies",
     "code": "Code",
     "designation": "Designation",
+    "designationAr": "Arabic Designation",
+    "designationEn": "English Designation",
+    "designationFr": "French Designation",
     "type": "Type",
+    "structureType": "Structure Type",
     "parentStructure": "Parent Structure",
     "root": "Root",
     "create": "Create Structure",
     "edit": "Edit Structure",
+    "delete": "Delete Structure",
     "searchPlaceholder": "Search by code or designation...",
     "filterByType": "Structure Type",
     "allTypes": "All Types",
@@ -146,7 +151,25 @@
     "createSuccess": "Structure created successfully",
     "createError": "Failed to create structure",
     "updateSuccess": "Structure updated successfully",
-    "updateError": "Failed to update structure"
+    "updateError": "Failed to update structure",
+    "selectType": "Select structure type",
+    "selectParent": "Select parent structure",
+    "noParent": "No parent (Root structure)",
+    "fields": {
+      "code": "Structure Code",
+      "designationAr": "Arabic Designation",
+      "designationEn": "English Designation",
+      "designationFr": "French Designation",
+      "structureType": "Structure Type",
+      "parentStructure": "Parent Structure"
+    },
+    "validation": {
+      "codeRequired": "Code is required",
+      "designationFrRequired": "French designation is required",
+      "typeRequired": "Structure type is required",
+      "codeMaxLength": "Code must not exceed 50 characters",
+      "designationMaxLength": "Designation must not exceed 100 characters"
+    }
   },
   "employee": {
     "title": "Employees",
