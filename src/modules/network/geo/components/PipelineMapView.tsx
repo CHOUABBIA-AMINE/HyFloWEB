@@ -4,10 +4,10 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Fixed product access from pipelineSystem
+ * @updated 01-06-2026 - Added debug logging for product colors
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
 import { MapContainer, TileLayer, Polyline, Popup, Tooltip } from 'react-leaflet';
 import { useMapData } from '../hooks/useMapData';
@@ -51,6 +51,19 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     toggleAllStatuses,
   } = usePipelineFilters(pipelines);
 
+  // Debug: Log product distribution on mount
+  useEffect(() => {
+    if (pipelines.length > 0) {
+      const productCounts = new Map<string, number>();
+      pipelines.forEach(p => {
+        const productCode = p.pipeline.pipelineSystem?.product?.code || 'NO_PRODUCT';
+        productCounts.set(productCode, (productCounts.get(productCode) || 0) + 1);
+      });
+      console.log('PipelineMapView - Product distribution:', Object.fromEntries(productCounts));
+      console.log('PipelineMapView - Color mapping:', DEFAULT_PRODUCT_COLORS);
+    }
+  }, [pipelines]);
+
   // Calculate map center from all pipelines
   const mapCenter = useMemo(() => {
     if (pipelines.length === 0) return [28.0, 3.0] as [number, number];
@@ -63,10 +76,17 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   const getPipelineStyleByProduct = (pipelineData: PipelineGeoData, isHovered: boolean) => {
     const pipeline = pipelineData.pipeline;
     // Product comes from pipelineSystem
-    const productCode = pipeline.pipelineSystem?.product?.code || 'OTHER';
+    const productCode = pipeline.pipelineSystem?.product?.code;
     const statusCode = pipeline.operationalStatus?.code?.toLowerCase();
     
-    let color = DEFAULT_PRODUCT_COLORS[productCode] || DEFAULT_PRODUCT_COLORS['OTHER'];
+    // Get color from mapping or use default
+    let color = DEFAULT_PRODUCT_COLORS['OTHER']; // Default fallback
+    if (productCode && DEFAULT_PRODUCT_COLORS[productCode]) {
+      color = DEFAULT_PRODUCT_COLORS[productCode];
+    } else {
+      console.warn(`Pipeline ${pipeline.code} - Product code "${productCode}" not in color map. Using default.`);
+    }
+    
     let weight = 4;
     let opacity = 0.8;
     let dashArray: string | undefined = undefined;
@@ -197,7 +217,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                     </Typography>
                     {product && (
                       <Typography variant="caption" display="block">
-                        Product: {product.name}
+                        Product: {product.name} ({product.code})
                       </Typography>
                     )}
                   </Box>
@@ -222,7 +242,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                     )}
                     {product && (
                       <Typography variant="body2">
-                        <strong>Product:</strong> {product.name}
+                        <strong>Product:</strong> {product.name} ({product.code})
                       </Typography>
                     )}
                     {pipeline.operationalStatus && (
