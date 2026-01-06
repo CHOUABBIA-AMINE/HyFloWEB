@@ -8,7 +8,7 @@
  * @updated 01-06-2026
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer } from 'react-leaflet';
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +37,17 @@ export const MapView: React.FC<MapViewProps> = ({
   const { t } = useTranslation();
   const { data, loading, error } = useMapData();
   const { filters, toggleFilter } = useMapFilters();
+
+  // Debug logging
+  useEffect(() => {
+    if (data) {
+      console.log('MapView - Data received:', data);
+      console.log('MapView - Pipelines data:', data.pipelines);
+      console.log('MapView - Has pipelines:', data.pipelines && data.pipelines.length > 0);
+      console.log('MapView - Filters:', filters);
+      console.log('MapView - Show pipelines filter:', filters.showPipelines);
+    }
+  }, [data, filters]);
 
   if (loading) {
     return (
@@ -90,6 +101,12 @@ export const MapView: React.FC<MapViewProps> = ({
   const hasFields = data.hydrocarbonFields && data.hydrocarbonFields.length > 0;
   const hasPipelines = data.pipelines && data.pipelines.length > 0;
 
+  console.log('MapView - hasStations:', hasStations);
+  console.log('MapView - hasTerminals:', hasTerminals);
+  console.log('MapView - hasFields:', hasFields);
+  console.log('MapView - hasPipelines:', hasPipelines);
+  console.log('MapView - Will render pipelines:', filters.showPipelines && hasPipelines);
+
   if (!hasStations && !hasTerminals && !hasFields && !hasPipelines) {
     return (
       <Box sx={{ p: 3 }}>
@@ -134,7 +151,10 @@ export const MapView: React.FC<MapViewProps> = ({
 
         {/* Pipeline polylines - render first so markers appear on top */}
         {filters.showPipelines && hasPipelines && (
-          <PipelinePolylines pipelines={data.pipelines} />
+          <>
+            {console.log('MapView - Rendering PipelinePolylines with', data.pipelines.length, 'pipelines')}
+            <PipelinePolylines pipelines={data.pipelines} />
+          </>
         )}
 
         {/* Infrastructure markers with custom SVG icons */}
