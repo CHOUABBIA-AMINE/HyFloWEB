@@ -18,3 +18,7 @@ export { OfflineTileLayer } from './OfflineTileLayer';
 export { OfflineIndicator } from './OfflineIndicator';
 export { TileModeToggle } from './TileModeToggle';
 export { CoordinateDisplay } from './CoordinateDisplay';
+
+// Pipeline Map Components
+export { PipelineMapView } from './PipelineMapView';
+export { PipelineFilterPanel } from './PipelineFilterPanel';
