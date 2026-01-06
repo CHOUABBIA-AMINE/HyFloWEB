@@ -10,6 +10,7 @@
  * @updated 01-01-2026 - Restored Common children (Administration/Communication/Environment)
  * @updated 01-01-2026 - Added Workspace + Home translations
  * @updated 01-01-2026 - Moved Dashboard/Map under Workspace
+ * @updated 01-06-2026 - Added Pipeline Map entry under Workspace
  */
 
 import {
@@ -55,6 +56,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import MapIcon from '@mui/icons-material/Map';
+import TimelineIcon from '@mui/icons-material/Timeline';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -82,7 +84,7 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   // Top-level order: Home page, Workspace, Common, Business, Network, System
-  // Workspace: Network Dashboard + Map Flow (previously top-level)
+  // Workspace: Network Dashboard + Infrastructure Map + Pipeline Map (product-based visualization)
   // Network/Common: keep Product, Region, Partner, Vendor
   // Network/Core: keep PipelineSystem, Pipeline, HydrocarbonField, Station, Terminal
   const menuItems: MenuItem[] = [
@@ -104,6 +106,11 @@ const Sidebar = ({ open }: SidebarProps) => {
           titleKey: 'nav.map',
           icon: <MapIcon />,
           path: '/network/map',
+        },
+        {
+          titleKey: 'nav.pipelineMap',
+          icon: <TimelineIcon />,
+          path: '/network/map/pipelines',
         },
       ],
     },
