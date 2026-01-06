@@ -48,13 +48,11 @@ class GeoService {
   private extractData<T>(response: any): T[] {
     // Check if response has Spring Data Page structure
     if (response && typeof response === 'object' && 'content' in response && Array.isArray(response.content)) {
-      console.log('GeoService - Extracting from paginated response, items:', response.content.length);
       return response.content;
     }
     
     // If it's already an array, return it
     if (Array.isArray(response)) {
-      console.log('GeoService - Response is already an array, items:', response.length);
       return response;
     }
     
@@ -71,17 +69,11 @@ class GeoService {
       if (!locationIds || locationIds.length === 0) {
         return [];
       }
-
-      console.log(`GeoService - Fetching ${locationIds.length} locations`);
       
       // Fetch all locations in parallel
       const locationPromises = locationIds.map(id => 
         axiosInstance.get(`/general/localization/location/${id}`)
-          .then(response => {
-            const loc = response.data;
-            console.log(`GeoService - Location ${id} RAW from backend:`, loc);
-            return loc;
-          })
+          .then(response => response.data)
           .catch(error => {
             console.error(`GeoService - Error fetching location ${id}:`, error);
             return null;
@@ -94,25 +86,14 @@ class GeoService {
       // IMPORTANT: Swap latitude/longitude because backend has them reversed!
       const validLocations: LocationPoint[] = locations
         .filter((loc): loc is LocationDTO => loc !== null)
-        .map((loc, index) => {
-          const correctedLocation = {
-            id: loc.id,
-            latitude: loc.longitude,  // SWAP: backend's "longitude" is actually latitude
-            longitude: loc.latitude,  // SWAP: backend's "latitude" is actually longitude
-            altitude: loc.elevation,
-            sequence: index
-          };
-          
-          console.log(`GeoService - Location ${loc.id} CORRECTED:`, {
-            backend: { lat: loc.latitude, lng: loc.longitude },
-            corrected: { lat: correctedLocation.latitude, lng: correctedLocation.longitude }
-          });
-          
-          return correctedLocation;
-        });
+        .map((loc, index) => ({
+          id: loc.id,
+          latitude: loc.longitude,  // SWAP: backend's "longitude" is actually latitude
+          longitude: loc.latitude,  // SWAP: backend's "latitude" is actually longitude
+          altitude: loc.elevation,
+          sequence: index
+        }));
       
-      console.log(`GeoService - Successfully fetched and corrected ${validLocations.length} locations`);
-      console.log('GeoService - First corrected location:', validLocations[0]);
       return validLocations;
     } catch (error) {
       console.error('GeoService - Error fetching locations:', error);
@@ -125,11 +106,8 @@ class GeoService {
    */
   private async getPipelinesWithGeoData(): Promise<PipelineGeoData[]> {
     try {
-      console.log('GeoService - Fetching pipelines from /network/core/pipeline');
       const response = await axiosInstance.get('/network/core/pipeline');
       const pipelines = this.extractData<PipelineDTO>(response.data);
-      
-      console.log(`GeoService - Fetched ${pipelines.length} pipelines`);
       
       if (pipelines.length === 0) {
         return [];
@@ -140,8 +118,6 @@ class GeoService {
         pipelines.map(async (pipeline) => {
           // Check if pipeline has locationIds
           if (pipeline.locationIds && pipeline.locationIds.length > 0) {
-            console.log(`GeoService - Pipeline ${pipeline.code} has ${pipeline.locationIds.length} location IDs`);
-            
             // Convert Set to Array if needed
             const locationIdArray = Array.isArray(pipeline.locationIds) 
               ? pipeline.locationIds 
@@ -150,36 +126,22 @@ class GeoService {
             // Fetch the actual location data (with coordinate correction)
             const locations = await this.getLocationsByIds(locationIdArray);
             
-            console.log(`GeoService - Pipeline ${pipeline.code} corrected locations:`, locations);
-            
             // Validate coordinates before adding
             if (locations.length >= 2 && validatePipelineCoordinates(locations)) {
               const coordinates = convertLocationsToCoordinates(locations);
-              console.log(`GeoService - Pipeline ${pipeline.code} final coordinates:`, coordinates);
-              console.log(`GeoService - Pipeline ${pipeline.code} first coordinate [lat,lng]:`, coordinates[0]);
-              console.log(`GeoService - Pipeline ${pipeline.code} has ${locations.length} valid coordinates`);
               return {
                 pipeline,
                 locations,
                 coordinates
               };
-            } else {
-              console.warn(`GeoService - Pipeline ${pipeline.code} has insufficient or invalid coordinates (${locations.length} locations)`);
-              return null;
             }
-          } else {
-            // Pipeline has no location data
-            console.log(`GeoService - Pipeline ${pipeline.code} has no location data`);
-            return null;
           }
+          return null;
         })
       );
       
       // Filter out null entries (pipelines without valid geo data)
-      const validPipelines = pipelinesWithGeo.filter((p): p is PipelineGeoData => p !== null);
-      console.log(`GeoService - ${validPipelines.length} pipelines have valid geo data`);
-      
-      return validPipelines;
+      return pipelinesWithGeo.filter((p): p is PipelineGeoData => p !== null);
     } catch (error) {
       console.error('GeoService - Error fetching pipelines:', error);
       return [];
@@ -191,12 +153,6 @@ class GeoService {
    */
   async getAllInfrastructure(): Promise<InfrastructureData> {
     try {
-      console.log('GeoService - Fetching all infrastructure data');
-      console.log('GeoService - Fetching stations from /network/core/station');
-      console.log('GeoService - Fetching terminals from /network/core/terminal');
-      console.log('GeoService - Fetching hydrocarbon fields from /network/core/hydrocarbonField');
-      console.log('GeoService - Fetching pipelines with geo data');
-      
       const [stationsResponse, terminalsResponse, fieldsResponse, pipelines] = await Promise.all([
         axiosInstance.get('/network/core/station'),
         axiosInstance.get('/network/core/terminal'),
@@ -204,40 +160,19 @@ class GeoService {
         this.getPipelinesWithGeoData()
       ]);
 
-      console.log('GeoService - Stations raw response:', stationsResponse.data);
-      console.log('GeoService - Terminals raw response:', terminalsResponse.data);
-      console.log('GeoService - Fields raw response:', fieldsResponse.data);
-
       // Extract data from paginated responses
       const stations = this.extractData<StationDTO>(stationsResponse.data);
       const terminals = this.extractData<TerminalDTO>(terminalsResponse.data);
       const hydrocarbonFields = this.extractData<HydrocarbonFieldDTO>(fieldsResponse.data);
 
-      console.log('GeoService - Extracted stations:', stations.length);
-      console.log('GeoService - Extracted terminals:', terminals.length);
-      console.log('GeoService - Extracted fields:', hydrocarbonFields.length);
-      console.log('GeoService - Extracted pipelines with geo:', pipelines.length);
-
-      const result = {
+      return {
         stations,
         terminals,
         hydrocarbonFields,
         pipelines
       };
-      
-      console.log('GeoService - Returning result with totals:', {
-        stations: stations.length,
-        terminals: terminals.length,
-        hydrocarbonFields: hydrocarbonFields.length,
-        pipelines: pipelines.length
-      });
-      
-      return result;
     } catch (error) {
       console.error('GeoService - Error fetching infrastructure data:', error);
-      if (error && typeof error === 'object' && 'response' in error) {
-        console.error('GeoService - Error response:', (error as any).response);
-      }
       // Return empty arrays on error to prevent crashes
       return {
         stations: [],
