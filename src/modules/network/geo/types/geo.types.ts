@@ -4,16 +4,31 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-06-2026
  */
 
-import { StationDTO, TerminalDTO, HydrocarbonFieldDTO } from '../../core/dto';
+import { StationDTO, TerminalDTO, HydrocarbonFieldDTO, PipelineDTO } from '../../core/dto';
 import { LatLngExpression } from 'leaflet';
+
+export interface LocationPoint {
+  id: number;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  sequence?: number;
+}
+
+export interface PipelineGeoData {
+  pipeline: PipelineDTO;
+  locations: LocationPoint[];
+  coordinates: LatLngExpression[];
+}
 
 export interface InfrastructureData {
   stations: StationDTO[];
   terminals: TerminalDTO[];
   hydrocarbonFields: HydrocarbonFieldDTO[];
+  pipelines?: PipelineGeoData[];
 }
 
 export interface MapFilters {
@@ -37,4 +52,17 @@ export interface MapBounds {
   south: number;
   east: number;
   west: number;
+}
+
+export interface PipelineStyleOptions {
+  color: string;
+  weight: number;
+  opacity: number;
+  dashArray?: string;
+}
+
+export interface PipelineDisplayOptions extends PipelineStyleOptions {
+  showLabels: boolean;
+  showDirection: boolean;
+  highlightOnHover: boolean;
 }
