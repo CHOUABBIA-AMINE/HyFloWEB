@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-06-2026
+ * @updated 01-06-2026 - Added product field
  */
 
 import { VendorDTO } from '../../common/dto';
@@ -12,6 +12,7 @@ import { OperationalStatusDTO } from '../../common/dto';
 import { PipelineSystemDTO } from './PipelineSystemDTO';
 import { AlloyDTO } from '../../common/dto';
 import { FacilityDTO } from './FacilityDTO';
+import { ProductDTO } from '../../common/dto';
 
 export interface PipelineDTO {
   id: number;
@@ -48,6 +49,7 @@ export interface PipelineDTO {
   pipelineSystemId?: number;
   departureFacilityId?: number;
   arrivalFacilityId?: number;
+  productId?: number;  // Product transported by pipeline
   
   // Location IDs - Added 01-06-2026
   locationIds?: number[];
@@ -61,6 +63,7 @@ export interface PipelineDTO {
   nominalInteriorCoating?: AlloyDTO;
   departureFacility?: FacilityDTO;
   arrivalFacility?: FacilityDTO;
+  product?: ProductDTO;  // Product object with code and name
   
   // Legacy string fields (fallback)
   operationalStatusName?: string;
@@ -71,6 +74,7 @@ export interface PipelineDTO {
   nominalInteriorCoatingName?: string;
   departureFacilityName?: string;
   arrivalFacilityName?: string;
+  productName?: string;
   
   createdAt?: string;
   updatedAt?: string;
@@ -105,6 +109,7 @@ export interface PipelineCreateDTO {
   pipelineSystemId?: number;
   departureFacilityId?: number;
   arrivalFacilityId?: number;
+  productId?: number;
   
   // Location IDs - Added 01-06-2026
   locationIds?: number[];
