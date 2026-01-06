@@ -14,7 +14,7 @@ import { getPipelineStyle, formatPipelineInfo, getPipelineCenter } from '../util
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Chip, Divider } from '@mui/material';
 
-interface PipelinePoly linesProps {
+interface PipelinePolylinesProps {
   pipelines: PipelineGeoData[];
   displayOptions?: Partial<PipelineDisplayOptions>;
   onPipelineClick?: (pipelineId: number) => void;
