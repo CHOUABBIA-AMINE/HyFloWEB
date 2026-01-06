@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 01-06-2026 - Added fallback for missing product data
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -29,14 +30,27 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
     pipelines.forEach((pipelineData) => {
       const pipeline = pipelineData.pipeline;
       
+      // Add product code if available
       if (pipeline.product?.code) {
         products.add(pipeline.product.code);
+      } else if (pipeline.productName) {
+        // Fallback to product name if code not available
+        products.add(pipeline.productName);
       }
       
+      // Add status code if available
       if (pipeline.operationalStatus?.code) {
         statuses.add(pipeline.operationalStatus.code);
+      } else if (pipeline.operationalStatusName) {
+        // Fallback to status name
+        statuses.add(pipeline.operationalStatusName);
       }
     });
+
+    // If no products found, add a default entry
+    if (products.size === 0) {
+      console.warn('usePipelineFilters - No product data found in pipelines');
+    }
 
     return {
       availableProducts: Array.from(products).sort(),
@@ -108,7 +122,7 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
 
       // Product filter
       if (filters.products.length > 0) {
-        const productCode = pipeline.product?.code;
+        const productCode = pipeline.product?.code || pipeline.productName;
         if (!productCode || !filters.products.includes(productCode)) {
           return false;
         }
@@ -116,7 +130,7 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
 
       // Status filter
       if (filters.statuses.length > 0) {
-        const statusCode = pipeline.operationalStatus?.code;
+        const statusCode = pipeline.operationalStatus?.code || pipeline.operationalStatusName;
         if (!statusCode || !filters.statuses.includes(statusCode)) {
           return false;
         }
