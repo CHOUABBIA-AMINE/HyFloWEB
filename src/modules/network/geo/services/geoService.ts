@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-06-2026 - Fixed pagination to fetch all data
+ * @updated 01-06-2026 - Fixed to check pipelineSystem.product
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -78,7 +78,7 @@ class GeoService {
         }
       }
 
-      console.log(`GeoService - Total items fetched: ${allData.length}`);
+      console.log(`GeoService - Total items fetched from ${url}: ${allData.length}`);
       return allData;
     } catch (error) {
       console.error(`GeoService - Error fetching all pages from ${url}:`, error);
@@ -159,14 +159,26 @@ class GeoService {
         return [];
       }
       
+      // Log product data structure for debugging
+      const samplePipeline = pipelines[0];
+      console.log('GeoService - Sample pipeline structure:', {
+        code: samplePipeline.code,
+        hasPipelineSystem: !!samplePipeline.pipelineSystem,
+        pipelineSystemName: samplePipeline.pipelineSystem?.name,
+        hasProduct: !!samplePipeline.pipelineSystem?.product,
+        productCode: samplePipeline.pipelineSystem?.product?.code,
+        productName: samplePipeline.pipelineSystem?.product?.name,
+      });
+      
       // Fetch locations for each pipeline that has locationIds
       const pipelinesWithGeo = await Promise.all(
         pipelines.map(async (pipeline) => {
-          // Log product data for debugging
-          if (pipeline.product) {
-            console.log(`Pipeline ${pipeline.code} - Product: ${pipeline.product.code}`);
+          // Log product data for debugging - check pipelineSystem.product
+          const productCode = pipeline.pipelineSystem?.product?.code;
+          if (productCode) {
+            console.log(`Pipeline ${pipeline.code} - Product: ${productCode}`);
           } else {
-            console.warn(`Pipeline ${pipeline.code} - NO PRODUCT DATA`);
+            console.warn(`Pipeline ${pipeline.code} - NO PRODUCT DATA (pipelineSystem: ${!!pipeline.pipelineSystem})`);
           }
 
           // Check if pipeline has locationIds
@@ -201,6 +213,14 @@ class GeoService {
       const validPipelines = pipelinesWithGeo.filter((p): p is PipelineGeoData => p !== null);
       
       console.log(`GeoService - ${validPipelines.length} pipelines with valid geo data`);
+      
+      // Summary of products found
+      const productCounts = new Map<string, number>();
+      validPipelines.forEach(p => {
+        const productCode = p.pipeline.pipelineSystem?.product?.code || 'NO_PRODUCT';
+        productCounts.set(productCode, (productCounts.get(productCode) || 0) + 1);
+      });
+      console.log('GeoService - Product distribution:', Object.fromEntries(productCounts));
       
       return validPipelines;
     } catch (error) {
