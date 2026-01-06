@@ -5,6 +5,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-06-2026 - Changed to 5px margin on all sides
  */
 
 import { useState } from 'react';
@@ -19,6 +20,7 @@ const NAVBAR_HEIGHT = 64;
 const FOOTER_HEIGHT = 40;
 const DRAWER_WIDTH_COLLAPSED = 64;
 const DRAWER_WIDTH_EXPANDED = 260;
+const CONTENT_MARGIN = 5; // 5px margin on all sides
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -59,18 +61,18 @@ const Layout = () => {
           minHeight: 0,
         }}
       >
-        {/* Content with padding for navbar and footer */}
+        {/* Content with 5px margin on all sides */}
         <Box
           sx={{
             flexGrow: 1,
-            mt: `${NAVBAR_HEIGHT}px`,
-            mb: `${FOOTER_HEIGHT}px`,
-            ml: contentLeftMargin,
+            mt: `${NAVBAR_HEIGHT + CONTENT_MARGIN}px`,
+            mb: `${FOOTER_HEIGHT + CONTENT_MARGIN}px`,
+            ml: `calc(${contentLeftMargin} + ${CONTENT_MARGIN}px)`,
+            mr: `${CONTENT_MARGIN}px`,
             // Allow horizontal + vertical scrolling when needed (DataGrid wide columns)
             overflowX: 'auto',
             overflowY: 'auto',
             bgcolor: 'background.default',
-            p: isLoginPage ? 0 : 3,
             transition: 'margin-left 0.2s ease-in-out',
             // Critical: allow children (DataGrid) to shrink within flex containers
             minWidth: 0,
