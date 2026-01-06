@@ -4,12 +4,12 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Using flexible color matching
+ * @updated 01-06-2026 - Zoom-dependent pipeline thickness
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Box, CircularProgress, Alert, Typography, Paper } from '@mui/material';
-import { MapContainer, TileLayer, Polyline, Popup, Tooltip } from 'react-leaflet';
+import { MapContainer, Polyline, Popup, Tooltip, useMapEvents } from 'react-leaflet';
 import { useMapData } from '../hooks/useMapData';
 import { usePipelineFilters } from '../hooks/usePipelineFilters';
 import { PipelineFilterPanel } from './PipelineFilterPanel';
@@ -27,6 +27,17 @@ interface PipelineMapViewProps {
   onOfflineAvailabilityChange?: (available: boolean) => void;
 }
 
+// Helper component to track zoom changes
+const ZoomWatcher: React.FC<{ onZoomChange: (zoom: number) => void }> = ({ onZoomChange }) => {
+  useMapEvents({
+    zoomend: (e) => {
+      const z = e.target.getZoom();
+      onZoomChange(z);
+    },
+  });
+  return null;
+};
+
 export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   forceOffline = false,
   onOfflineAvailabilityChange,
@@ -35,9 +46,12 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   const { data, loading, error } = useMapData();
   const [hoveredPipeline, setHoveredPipeline] = useState<number | null>(null);
 
+  // Track zoom to adjust line thickness
+  const [zoom, setZoom] = useState<number>(6);
+
   // Initialize filters with pipeline data
   const pipelines = data?.pipelines || [];
-  
+
   const {
     state: filterState,
     filteredPipelines,
@@ -56,8 +70,8 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     if (pipelines.length > 0) {
       const productCounts = new Map<string, number>();
       const productSample = new Map<string, string>();
-      
-      pipelines.forEach(p => {
+
+      pipelines.forEach((p) => {
         const productCode = p.pipeline.pipelineSystem?.product?.code || 'NO_PRODUCT';
         const color = getProductColor(productCode);
         productCounts.set(productCode, (productCounts.get(productCode) || 0) + 1);
@@ -65,7 +79,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
           productSample.set(productCode, color);
         }
       });
-      
+
       console.log('PipelineMapView - Product distribution:', Object.fromEntries(productCounts));
       console.log('PipelineMapView - Product colors:', Object.fromEntries(productSample));
     }
@@ -74,51 +88,54 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   // Calculate map center from all pipelines
   const mapCenter = useMemo(() => {
     if (pipelines.length === 0) return [28.0, 3.0] as [number, number];
-    
+
     const allCoordinates = pipelines.flatMap((p) => p.coordinates);
     return calculateCenter(allCoordinates);
   }, [pipelines]);
 
+  // Convert zoom level to a base stroke weight
+  // zoom range: 6..10
+  const baseWeightByZoom = useMemo(() => {
+    if (zoom <= 6) return 1.5;
+    if (zoom === 7) return 2;
+    if (zoom === 8) return 2.5;
+    if (zoom === 9) return 3;
+    return 3.5; // zoom 10+
+  }, [zoom]);
+
   // Get pipeline style based on product
   const getPipelineStyleByProduct = (pipelineData: PipelineGeoData, isHovered: boolean) => {
     const pipeline = pipelineData.pipeline;
-    // Product comes from pipelineSystem
     const productCode = pipeline.pipelineSystem?.product?.code;
     const statusCode = pipeline.operationalStatus?.code?.toLowerCase();
-    
-    // Use flexible color matching
+
     const color = getProductColor(productCode);
-    
-    let weight = 4;
-    let opacity = 0.8;
+
+    // Start from zoom-based weight
+    let weight = baseWeightByZoom;
+    let opacity = 0.85;
     let dashArray: string | undefined = undefined;
+
+    // Slight diameter influence (kept subtle)
+    if (pipeline.nominalDiameter) {
+      if (pipeline.nominalDiameter >= 36) weight += 0.6;
+      else if (pipeline.nominalDiameter >= 24) weight += 0.4;
+      else if (pipeline.nominalDiameter >= 12) weight += 0.2;
+    }
 
     // Adjust based on status
     if (statusCode === 'maintenance') {
-      dashArray = '10, 10';
+      dashArray = '8, 8';
     } else if (statusCode === 'inactive' || statusCode === 'decommissioned') {
-      opacity = 0.5;
-      dashArray = '5, 10';
+      opacity = 0.45;
+      dashArray = '4, 8';
     } else if (statusCode === 'construction' || statusCode === 'under_construction') {
-      dashArray = '15, 5';
+      dashArray = '12, 4';
     }
 
-    // Adjust weight based on diameter
-    if (pipeline.nominalDiameter) {
-      if (pipeline.nominalDiameter >= 36) {
-        weight = 6;
-      } else if (pipeline.nominalDiameter >= 24) {
-        weight = 5;
-      } else if (pipeline.nominalDiameter >= 12) {
-        weight = 4;
-      } else {
-        weight = 3;
-      }
-    }
-
-    // Apply hover effect
+    // Hover effect (noticeable but not too thick)
     if (isHovered) {
-      weight += 2;
+      weight += 1;
       opacity = 1;
     }
 
@@ -128,14 +145,14 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   // Get unique products in current view for legend
   const activeProducts = useMemo(() => {
     const products = new Map<string, { code: string; name: string; color: string }>();
-    pipelines.forEach(p => {
+    pipelines.forEach((p) => {
       const productCode = p.pipeline.pipelineSystem?.product?.code;
       const productName = p.pipeline.pipelineSystem?.product?.name;
       if (productCode && !products.has(productCode)) {
         products.set(productCode, {
           code: productCode,
           name: productName || productCode,
-          color: getProductColor(productCode)
+          color: getProductColor(productCode),
         });
       }
     });
@@ -194,6 +211,8 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
         maxZoom={10}
         minZoom={6}
       >
+        <ZoomWatcher onZoomChange={setZoom} />
+
         <OfflineTileLayer
           offlineUrl="/tiles/algeria/{z}/{x}/{y}.png"
           onlineUrl="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
