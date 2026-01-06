@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-06-2026
  */
 
 import { VendorDTO } from '../../common/dto';
@@ -48,6 +48,9 @@ export interface PipelineDTO {
   pipelineSystemId?: number;
   departureFacilityId?: number;
   arrivalFacilityId?: number;
+  
+  // Location IDs - Added 01-06-2026
+  locationIds?: number[];
   
   // Nested objects (from backend)
   operationalStatus?: OperationalStatusDTO;
@@ -102,6 +105,9 @@ export interface PipelineCreateDTO {
   pipelineSystemId?: number;
   departureFacilityId?: number;
   arrivalFacilityId?: number;
+  
+  // Location IDs - Added 01-06-2026
+  locationIds?: number[];
 }
 
 export interface PipelineUpdateDTO extends Partial<PipelineCreateDTO> {
