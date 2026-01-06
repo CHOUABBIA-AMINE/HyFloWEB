@@ -20,6 +20,7 @@ import { PipelinePolylines } from './PipelinePolylines';
 import { MapControls } from './MapControls';
 import { OfflineTileLayer } from './OfflineTileLayer';
 import { OfflineIndicator } from './OfflineIndicator';
+import { CoordinateDisplay } from './CoordinateDisplay';
 import { calculateCenter, toLatLng } from '../utils';
 import 'leaflet/dist/leaflet.css';
 
@@ -148,6 +149,9 @@ export const MapView: React.FC<MapViewProps> = ({
           forceOffline={forceOffline}
           onOfflineAvailabilityChange={onOfflineAvailabilityChange}
         />
+
+        {/* Floating coordinate display */}
+        <CoordinateDisplay />
 
         {/* Pipeline polylines - render first so markers appear on top */}
         {filters.showPipelines && hasPipelines && (
