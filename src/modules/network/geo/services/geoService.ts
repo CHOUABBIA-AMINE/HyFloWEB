@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-06-2026
+ * @updated 01-06-2026 - Fixed pagination to fetch all data
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -42,6 +42,50 @@ interface LocationDTO {
 }
 
 class GeoService {
+  /**
+   * Fetch all pages from a paginated endpoint
+   */
+  private async fetchAllPages<T>(url: string, pageSize: number = 100): Promise<T[]> {
+    try {
+      const allData: T[] = [];
+      let page = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const response = await axiosInstance.get(url, {
+          params: {
+            page,
+            size: pageSize
+          }
+        });
+
+        const pageData = response.data;
+
+        // Check if it's a Spring Data Page response
+        if (pageData && typeof pageData === 'object' && 'content' in pageData) {
+          allData.push(...pageData.content);
+          hasMore = !pageData.last && pageData.content.length > 0;
+          page++;
+          
+          console.log(`GeoService - Fetched page ${page}/${pageData.totalPages} (${pageData.content.length} items)`);
+        } else if (Array.isArray(pageData)) {
+          // If it's a direct array, just return it
+          allData.push(...pageData);
+          hasMore = false;
+        } else {
+          // Unexpected format
+          hasMore = false;
+        }
+      }
+
+      console.log(`GeoService - Total items fetched: ${allData.length}`);
+      return allData;
+    } catch (error) {
+      console.error(`GeoService - Error fetching all pages from ${url}:`, error);
+      return [];
+    }
+  }
+
   /**
    * Extract array from Spring Data Page response or return direct array
    */
@@ -102,12 +146,14 @@ class GeoService {
   }
 
   /**
-   * Fetch all pipelines with their geo data
+   * Fetch all pipelines with their geo data and complete product information
    */
   private async getPipelinesWithGeoData(): Promise<PipelineGeoData[]> {
     try {
-      const response = await axiosInstance.get('/network/core/pipeline');
-      const pipelines = this.extractData<PipelineDTO>(response.data);
+      // Fetch ALL pipelines across all pages
+      const pipelines = await this.fetchAllPages<PipelineDTO>('/network/core/pipeline', 100);
+      
+      console.log(`GeoService - Processing ${pipelines.length} pipelines`);
       
       if (pipelines.length === 0) {
         return [];
@@ -116,6 +162,13 @@ class GeoService {
       // Fetch locations for each pipeline that has locationIds
       const pipelinesWithGeo = await Promise.all(
         pipelines.map(async (pipeline) => {
+          // Log product data for debugging
+          if (pipeline.product) {
+            console.log(`Pipeline ${pipeline.code} - Product: ${pipeline.product.code}`);
+          } else {
+            console.warn(`Pipeline ${pipeline.code} - NO PRODUCT DATA`);
+          }
+
           // Check if pipeline has locationIds
           if (pipeline.locationIds && pipeline.locationIds.length > 0) {
             // Convert Set to Array if needed
@@ -134,14 +187,22 @@ class GeoService {
                 locations,
                 coordinates
               };
+            } else {
+              console.warn(`Pipeline ${pipeline.code} - Invalid or insufficient coordinates`);
             }
+          } else {
+            console.warn(`Pipeline ${pipeline.code} - No location IDs`);
           }
           return null;
         })
       );
       
       // Filter out null entries (pipelines without valid geo data)
-      return pipelinesWithGeo.filter((p): p is PipelineGeoData => p !== null);
+      const validPipelines = pipelinesWithGeo.filter((p): p is PipelineGeoData => p !== null);
+      
+      console.log(`GeoService - ${validPipelines.length} pipelines with valid geo data`);
+      
+      return validPipelines;
     } catch (error) {
       console.error('GeoService - Error fetching pipelines:', error);
       return [];
@@ -153,17 +214,21 @@ class GeoService {
    */
   async getAllInfrastructure(): Promise<InfrastructureData> {
     try {
-      const [stationsResponse, terminalsResponse, fieldsResponse, pipelines] = await Promise.all([
-        axiosInstance.get('/network/core/station'),
-        axiosInstance.get('/network/core/terminal'),
-        axiosInstance.get('/network/core/hydrocarbonField'),
+      console.log('GeoService - Fetching all infrastructure data...');
+      
+      const [stations, terminals, hydrocarbonFields, pipelines] = await Promise.all([
+        this.fetchAllPages<StationDTO>('/network/core/station'),
+        this.fetchAllPages<TerminalDTO>('/network/core/terminal'),
+        this.fetchAllPages<HydrocarbonFieldDTO>('/network/core/hydrocarbonField'),
         this.getPipelinesWithGeoData()
       ]);
 
-      // Extract data from paginated responses
-      const stations = this.extractData<StationDTO>(stationsResponse.data);
-      const terminals = this.extractData<TerminalDTO>(terminalsResponse.data);
-      const hydrocarbonFields = this.extractData<HydrocarbonFieldDTO>(fieldsResponse.data);
+      console.log('GeoService - Infrastructure loaded:', {
+        stations: stations.length,
+        terminals: terminals.length,
+        hydrocarbonFields: hydrocarbonFields.length,
+        pipelines: pipelines.length
+      });
 
       return {
         stations,
