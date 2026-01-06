@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-06-2026
  */
 
 import { useState, useEffect } from 'react';
@@ -35,6 +35,7 @@ export const useMapData = (): UseMapDataResult => {
       console.log('useMapData - Stations count:', result.stations?.length || 0);
       console.log('useMapData - Terminals count:', result.terminals?.length || 0);
       console.log('useMapData - Hydrocarbon Fields count:', result.hydrocarbonFields?.length || 0);
+      console.log('useMapData - Pipelines count:', result.pipelines?.length || 0);
       
       // Log first item of each type if exists
       if (result.stations && result.stations.length > 0) {
@@ -53,6 +54,13 @@ export const useMapData = (): UseMapDataResult => {
         console.log('useMapData - First hydrocarbon field:', result.hydrocarbonFields[0]);
       } else {
         console.log('useMapData - No hydrocarbon fields found');
+      }
+      
+      if (result.pipelines && result.pipelines.length > 0) {
+        console.log('useMapData - First pipeline:', result.pipelines[0]);
+        console.log('useMapData - First pipeline coordinates count:', result.pipelines[0].coordinates?.length || 0);
+      } else {
+        console.log('useMapData - No pipelines found');
       }
       
       setData(result);
