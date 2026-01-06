@@ -4,11 +4,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 01-06-2026 - Updated to use hover-expandable filter panel
  */
 
 import React, { useState, useMemo } from 'react';
-import { Box, CircularProgress, Alert, Typography, Fab, Badge } from '@mui/material';
-import { FilterList as FilterListIcon } from '@mui/icons-material';
+import { Box, CircularProgress, Alert, Typography } from '@mui/material';
 import { MapContainer, TileLayer, Polyline, Popup, Tooltip } from 'react-leaflet';
 import { useMapData } from '../hooks/useMapData';
 import { usePipelineFilters } from '../hooks/usePipelineFilters';
@@ -33,7 +33,6 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
 }) => {
   const navigate = useNavigate();
   const { data, loading, error } = useMapData();
-  const [showFilterPanel, setShowFilterPanel] = useState(true);
   const [hoveredPipeline, setHoveredPipeline] = useState<number | null>(null);
 
   // Initialize filters with pipeline data
@@ -145,11 +144,6 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     );
   }
 
-  const activeFilterCount =
-    filterState.filters.products.length +
-    filterState.filters.statuses.length +
-    (filterState.filters.searchCode ? 1 : 0);
-
   return (
     <Box sx={{ position: 'relative', height: '100%', minHeight: '600px' }}>
       <MapContainer
@@ -252,40 +246,20 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
         })}
       </MapContainer>
 
-      {/* Filter Panel Toggle Button */}
-      <Fab
-        color="primary"
-        size="medium"
-        onClick={() => setShowFilterPanel(!showFilterPanel)}
-        sx={{
-          position: 'absolute',
-          top: 16,
-          right: 16,
-          zIndex: 1001,
-        }}
-      >
-        <Badge badgeContent={activeFilterCount} color="error">
-          <FilterListIcon />
-        </Badge>
-      </Fab>
-
-      {/* Filter Panel */}
-      {showFilterPanel && (
-        <PipelineFilterPanel
-          filterState={filterState}
-          onToggleProduct={toggleProduct}
-          onToggleStatus={toggleStatus}
-          onSearchChange={setSearchCode}
-          onToggleLabels={toggleLabels}
-          onToggleDirection={toggleDirection}
-          onReset={resetFilters}
-          onToggleAllProducts={toggleAllProducts}
-          onToggleAllStatuses={toggleAllStatuses}
-          totalPipelines={pipelines.length}
-          filteredCount={filteredPipelines.length}
-          onClose={() => setShowFilterPanel(false)}
-        />
-      )}
+      {/* Compact Hover-Expandable Filter Panel - Always Visible */}
+      <PipelineFilterPanel
+        filterState={filterState}
+        onToggleProduct={toggleProduct}
+        onToggleStatus={toggleStatus}
+        onSearchChange={setSearchCode}
+        onToggleLabels={toggleLabels}
+        onToggleDirection={toggleDirection}
+        onReset={resetFilters}
+        onToggleAllProducts={toggleAllProducts}
+        onToggleAllStatuses={toggleAllStatuses}
+        totalPipelines={pipelines.length}
+        filteredCount={filteredPipelines.length}
+      />
 
       <OfflineIndicator />
     </Box>
