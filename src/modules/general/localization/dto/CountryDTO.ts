@@ -3,19 +3,52 @@
  * Represents a country in the system
  * 
  * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.CountryDTO
+ * Updated: 01-06-2026 - Fixed field naming to match Java backend (designation* instead of name*)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @created 01-03-2026
  */
 
 export interface CountryDTO {
-  id: number;
-  code: string;
-  nameAr: string;
-  nameFr: string;
-  nameEn: string;
+  id?: number;
+  code: string; // @NotBlank, max 3 chars
+  designationAr?: string; // max 100 chars
+  designationEn?: string; // max 100 chars
+  designationFr: string; // @NotBlank, max 100 chars
+  
+  // UI metadata (optional)
   flagUrl?: string;
-  isActive: boolean;
+  isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
+
+/**
+ * Validates CountryDTO according to backend constraints
+ * @param data - Partial country data to validate
+ * @returns Array of validation error messages
+ */
+export const validateCountryDTO = (data: Partial<CountryDTO>): string[] => {
+  const errors: string[] = [];
+  
+  if (!data.code) {
+    errors.push("Code is required");
+  } else if (data.code.length > 3) {
+    errors.push("Code must not exceed 3 characters");
+  }
+  
+  if (!data.designationFr) {
+    errors.push("French designation is required");
+  } else if (data.designationFr.length > 100) {
+    errors.push("French designation must not exceed 100 characters");
+  }
+  
+  if (data.designationAr && data.designationAr.length > 100) {
+    errors.push("Arabic designation must not exceed 100 characters");
+  }
+  
+  if (data.designationEn && data.designationEn.length > 100) {
+    errors.push("English designation must not exceed 100 characters");
+  }
+  
+  return errors;
+};
