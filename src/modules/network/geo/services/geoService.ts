@@ -27,6 +27,18 @@ interface PageResponse<T> {
   empty: boolean;
 }
 
+/**
+ * Backend LocationDTO structure
+ */
+interface LocationDTO {
+  id: number;
+  code: string;
+  latitude: number;
+  longitude: number;
+  elevation?: number;
+  localityId?: number;
+}
+
 class GeoService {
   /**
    * Extract array from Spring Data Page response or return direct array
@@ -50,14 +62,43 @@ class GeoService {
   }
 
   /**
-   * Fetch locations for a specific pipeline
+   * Fetch specific locations by their IDs
    */
-  private async getPipelineLocations(pipelineId: number): Promise<LocationPoint[]> {
+  private async getLocationsByIds(locationIds: number[]): Promise<LocationPoint[]> {
     try {
-      const response = await axiosInstance.get(`/network/geo/location/pipeline/${pipelineId}`);
-      return this.extractData<LocationPoint>(response.data);
+      if (!locationIds || locationIds.length === 0) {
+        return [];
+      }
+
+      console.log(`GeoService - Fetching ${locationIds.length} locations`);
+      
+      // Fetch all locations in parallel
+      const locationPromises = locationIds.map(id => 
+        axiosInstance.get(`/general/localization/location/${id}`)
+          .then(response => response.data)
+          .catch(error => {
+            console.error(`GeoService - Error fetching location ${id}:`, error);
+            return null;
+          })
+      );
+      
+      const locations = await Promise.all(locationPromises);
+      
+      // Filter out failed requests and convert to LocationPoint format
+      const validLocations: LocationPoint[] = locations
+        .filter((loc): loc is LocationDTO => loc !== null)
+        .map((loc, index) => ({
+          id: loc.id,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          altitude: loc.elevation,
+          sequence: index // Use array index as sequence for now
+        }));
+      
+      console.log(`GeoService - Successfully fetched ${validLocations.length} locations`);
+      return validLocations;
     } catch (error) {
-      console.error(`GeoService - Error fetching locations for pipeline ${pipelineId}:`, error);
+      console.error('GeoService - Error fetching locations:', error);
       return [];
     }
   }
@@ -73,23 +114,36 @@ class GeoService {
       
       console.log(`GeoService - Fetched ${pipelines.length} pipelines`);
       
-      // Fetch locations for each pipeline
+      if (pipelines.length === 0) {
+        return [];
+      }
+      
+      // Fetch locations for each pipeline that has locationIds
       const pipelinesWithGeo = await Promise.all(
         pipelines.map(async (pipeline) => {
-          // If pipeline already has locationIds, fetch those locations
+          // Check if pipeline has locationIds
           if (pipeline.locationIds && pipeline.locationIds.length > 0) {
-            const locations = await this.getPipelineLocations(pipeline.id);
+            console.log(`GeoService - Pipeline ${pipeline.code} has ${pipeline.locationIds.length} location IDs`);
+            
+            // Convert Set to Array if needed
+            const locationIdArray = Array.isArray(pipeline.locationIds) 
+              ? pipeline.locationIds 
+              : Array.from(pipeline.locationIds);
+            
+            // Fetch the actual location data
+            const locations = await this.getLocationsByIds(locationIdArray);
             
             // Validate coordinates before adding
-            if (validatePipelineCoordinates(locations)) {
+            if (locations.length >= 2 && validatePipelineCoordinates(locations)) {
               const coordinates = convertLocationsToCoordinates(locations);
+              console.log(`GeoService - Pipeline ${pipeline.code} has ${locations.length} valid coordinates`);
               return {
                 pipeline,
                 locations,
                 coordinates
               };
             } else {
-              console.warn(`GeoService - Invalid coordinates for pipeline ${pipeline.code}`);
+              console.warn(`GeoService - Pipeline ${pipeline.code} has insufficient or invalid coordinates (${locations.length} locations)`);
               return null;
             }
           } else {
