@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Added color legend for products
+ * @updated 01-06-2026 - Using flexible color matching
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -16,7 +16,7 @@ import { PipelineFilterPanel } from './PipelineFilterPanel';
 import { CoordinateDisplay } from './CoordinateDisplay';
 import { OfflineTileLayer } from './OfflineTileLayer';
 import { OfflineIndicator } from './OfflineIndicator';
-import { DEFAULT_PRODUCT_COLORS } from '../types/pipeline-filters.types';
+import { getProductColor } from '../types/pipeline-filters.types';
 import { PipelineGeoData } from '../types';
 import { calculateCenter } from '../utils';
 import { useNavigate } from 'react-router-dom';
@@ -55,12 +55,19 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   useEffect(() => {
     if (pipelines.length > 0) {
       const productCounts = new Map<string, number>();
+      const productSample = new Map<string, string>();
+      
       pipelines.forEach(p => {
         const productCode = p.pipeline.pipelineSystem?.product?.code || 'NO_PRODUCT';
+        const color = getProductColor(productCode);
         productCounts.set(productCode, (productCounts.get(productCode) || 0) + 1);
+        if (!productSample.has(productCode)) {
+          productSample.set(productCode, color);
+        }
       });
+      
       console.log('PipelineMapView - Product distribution:', Object.fromEntries(productCounts));
-      console.log('PipelineMapView - Color mapping:', DEFAULT_PRODUCT_COLORS);
+      console.log('PipelineMapView - Product colors:', Object.fromEntries(productSample));
     }
   }, [pipelines]);
 
@@ -79,13 +86,8 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     const productCode = pipeline.pipelineSystem?.product?.code;
     const statusCode = pipeline.operationalStatus?.code?.toLowerCase();
     
-    // Get color from mapping or use default
-    let color = DEFAULT_PRODUCT_COLORS['OTHER']; // Default fallback
-    if (productCode && DEFAULT_PRODUCT_COLORS[productCode]) {
-      color = DEFAULT_PRODUCT_COLORS[productCode];
-    } else {
-      console.warn(`Pipeline ${pipeline.code} - Product code "${productCode}" not in color map. Using default.`);
-    }
+    // Use flexible color matching
+    const color = getProductColor(productCode);
     
     let weight = 4;
     let opacity = 0.8;
@@ -125,18 +127,19 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
 
   // Get unique products in current view for legend
   const activeProducts = useMemo(() => {
-    const products = new Set<string>();
+    const products = new Map<string, { code: string; name: string; color: string }>();
     pipelines.forEach(p => {
       const productCode = p.pipeline.pipelineSystem?.product?.code;
       const productName = p.pipeline.pipelineSystem?.product?.name;
-      if (productCode) {
-        products.add(`${productCode}|${productName || productCode}`);
+      if (productCode && !products.has(productCode)) {
+        products.set(productCode, {
+          code: productCode,
+          name: productName || productCode,
+          color: getProductColor(productCode)
+        });
       }
     });
-    return Array.from(products).map(p => {
-      const [code, name] = p.split('|');
-      return { code, name };
-    });
+    return Array.from(products.values());
   }, [pipelines]);
 
   if (loading) {
@@ -305,7 +308,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
           <Typography variant="caption" fontWeight="bold" display="block" gutterBottom>
             Product Colors
           </Typography>
-          {activeProducts.map(({ code, name }) => (
+          {activeProducts.map(({ code, name, color }) => (
             <Box
               key={code}
               sx={{
@@ -319,7 +322,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                 sx={{
                   width: 24,
                   height: 4,
-                  bgcolor: DEFAULT_PRODUCT_COLORS[code] || DEFAULT_PRODUCT_COLORS['OTHER'],
+                  bgcolor: color,
                   borderRadius: 1,
                 }}
               />
