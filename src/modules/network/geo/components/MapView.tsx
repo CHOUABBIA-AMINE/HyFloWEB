@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-26-2025
+ * @updated 01-06-2026
  */
 
 import { useState } from 'react';
@@ -16,6 +16,7 @@ import { useMapData, useMapFilters } from '../hooks';
 import { StationMarkers } from './StationMarkers';
 import { TerminalMarkers } from './TerminalMarkers';
 import { HydrocarbonFieldMarkers } from './HydrocarbonFieldMarkers';
+import { PipelinePolylines } from './PipelinePolylines';
 import { MapControls } from './MapControls';
 import { OfflineTileLayer } from './OfflineTileLayer';
 import { OfflineIndicator } from './OfflineIndicator';
@@ -87,8 +88,9 @@ export const MapView: React.FC<MapViewProps> = ({
   const hasStations = data.stations && data.stations.length > 0;
   const hasTerminals = data.terminals && data.terminals.length > 0;
   const hasFields = data.hydrocarbonFields && data.hydrocarbonFields.length > 0;
+  const hasPipelines = data.pipelines && data.pipelines.length > 0;
 
-  if (!hasStations && !hasTerminals && !hasFields) {
+  if (!hasStations && !hasTerminals && !hasFields && !hasPipelines) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="info">
@@ -102,7 +104,9 @@ export const MapView: React.FC<MapViewProps> = ({
   const allCoordinates = [
     ...(data.stations || []).filter(s => s.latitude && s.longitude).map(toLatLng),
     ...(data.terminals || []).filter(t => t.latitude && t.longitude).map(toLatLng),
-    ...(data.hydrocarbonFields || []).filter(f => f.latitude && f.longitude).map(toLatLng)
+    ...(data.hydrocarbonFields || []).filter(f => f.latitude && f.longitude).map(toLatLng),
+    // Add pipeline coordinates for center calculation
+    ...(data.pipelines || []).flatMap(p => p.coordinates)
   ];
   
   const center = calculateCenter(allCoordinates);
@@ -127,6 +131,11 @@ export const MapView: React.FC<MapViewProps> = ({
           forceOffline={forceOffline}
           onOfflineAvailabilityChange={onOfflineAvailabilityChange}
         />
+
+        {/* Pipeline polylines - render first so markers appear on top */}
+        {filters.showPipelines && hasPipelines && (
+          <PipelinePolylines pipelines={data.pipelines} />
+        )}
 
         {/* Infrastructure markers with custom SVG icons */}
         {filters.showStations && hasStations && (
