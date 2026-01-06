@@ -75,7 +75,11 @@ class GeoService {
       // Fetch all locations in parallel
       const locationPromises = locationIds.map(id => 
         axiosInstance.get(`/general/localization/location/${id}`)
-          .then(response => response.data)
+          .then(response => {
+            const loc = response.data;
+            console.log(`GeoService - Location ${id} data:`, loc);
+            return loc;
+          })
           .catch(error => {
             console.error(`GeoService - Error fetching location ${id}:`, error);
             return null;
@@ -87,15 +91,23 @@ class GeoService {
       // Filter out failed requests and convert to LocationPoint format
       const validLocations: LocationPoint[] = locations
         .filter((loc): loc is LocationDTO => loc !== null)
-        .map((loc, index) => ({
-          id: loc.id,
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          altitude: loc.elevation,
-          sequence: index // Use array index as sequence for now
-        }));
+        .map((loc, index) => {
+          console.log(`GeoService - Converting location ${loc.id}:`, {
+            original: { lat: loc.latitude, lng: loc.longitude },
+            converting_to: { latitude: loc.latitude, longitude: loc.longitude }
+          });
+          
+          return {
+            id: loc.id,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            altitude: loc.elevation,
+            sequence: index // Use array index as sequence for now
+          };
+        });
       
       console.log(`GeoService - Successfully fetched ${validLocations.length} locations`);
+      console.log('GeoService - First valid location:', validLocations[0]);
       return validLocations;
     } catch (error) {
       console.error('GeoService - Error fetching locations:', error);
@@ -133,9 +145,13 @@ class GeoService {
             // Fetch the actual location data
             const locations = await this.getLocationsByIds(locationIdArray);
             
+            console.log(`GeoService - Pipeline ${pipeline.code} fetched locations:`, locations);
+            
             // Validate coordinates before adding
             if (locations.length >= 2 && validatePipelineCoordinates(locations)) {
               const coordinates = convertLocationsToCoordinates(locations);
+              console.log(`GeoService - Pipeline ${pipeline.code} converted coordinates:`, coordinates);
+              console.log(`GeoService - Pipeline ${pipeline.code} first coordinate:`, coordinates[0]);
               console.log(`GeoService - Pipeline ${pipeline.code} has ${locations.length} valid coordinates`);
               return {
                 pipeline,
