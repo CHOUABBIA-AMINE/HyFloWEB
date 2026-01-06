@@ -5,7 +5,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 01-06-2026 - Changed to 5px margin on all sides
+ * @updated 01-06-2026 - Fixed margin calculation, 5px on all sides
  */
 
 import { useState } from 'react';
@@ -34,10 +34,6 @@ const Layout = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  const contentLeftMargin = isAuthenticated
-    ? `${sidebarOpen ? DRAWER_WIDTH_EXPANDED : DRAWER_WIDTH_COLLAPSED}px`
-    : 0;
-
   return (
     <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       {/* Navbar */}
@@ -46,7 +42,7 @@ const Layout = () => {
       {/* Sidebar - Only show when authenticated */}
       {isAuthenticated && <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Already positioned next to sidebar by flex layout */}
       <Box
         component="main"
         sx={{
@@ -67,13 +63,12 @@ const Layout = () => {
             flexGrow: 1,
             mt: `${NAVBAR_HEIGHT + CONTENT_MARGIN}px`,
             mb: `${FOOTER_HEIGHT + CONTENT_MARGIN}px`,
-            ml: `calc(${contentLeftMargin} + ${CONTENT_MARGIN}px)`,
+            ml: `${CONTENT_MARGIN}px`,  // Just 5px - sidebar already handled by flex
             mr: `${CONTENT_MARGIN}px`,
             // Allow horizontal + vertical scrolling when needed (DataGrid wide columns)
             overflowX: 'auto',
             overflowY: 'auto',
             bgcolor: 'background.default',
-            transition: 'margin-left 0.2s ease-in-out',
             // Critical: allow children (DataGrid) to shrink within flex containers
             minWidth: 0,
             minHeight: 0,
