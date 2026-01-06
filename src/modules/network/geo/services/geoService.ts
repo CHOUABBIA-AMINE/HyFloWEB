@@ -29,12 +29,14 @@ interface PageResponse<T> {
 
 /**
  * Backend LocationDTO structure
+ * NOTE: Backend has latitude/longitude SWAPPED in the database!
+ * What backend calls "latitude" is actually longitude, and vice versa.
  */
 interface LocationDTO {
   id: number;
   code: string;
-  latitude: number;
-  longitude: number;
+  latitude: number;  // Actually longitude in the backend!
+  longitude: number; // Actually latitude in the backend!
   elevation?: number;
   localityId?: number;
 }
@@ -77,7 +79,7 @@ class GeoService {
         axiosInstance.get(`/general/localization/location/${id}`)
           .then(response => {
             const loc = response.data;
-            console.log(`GeoService - Location ${id} data:`, loc);
+            console.log(`GeoService - Location ${id} RAW from backend:`, loc);
             return loc;
           })
           .catch(error => {
@@ -89,25 +91,28 @@ class GeoService {
       const locations = await Promise.all(locationPromises);
       
       // Filter out failed requests and convert to LocationPoint format
+      // IMPORTANT: Swap latitude/longitude because backend has them reversed!
       const validLocations: LocationPoint[] = locations
         .filter((loc): loc is LocationDTO => loc !== null)
         .map((loc, index) => {
-          console.log(`GeoService - Converting location ${loc.id}:`, {
-            original: { lat: loc.latitude, lng: loc.longitude },
-            converting_to: { latitude: loc.latitude, longitude: loc.longitude }
+          const correctedLocation = {
+            id: loc.id,
+            latitude: loc.longitude,  // SWAP: backend's "longitude" is actually latitude
+            longitude: loc.latitude,  // SWAP: backend's "latitude" is actually longitude
+            altitude: loc.elevation,
+            sequence: index
+          };
+          
+          console.log(`GeoService - Location ${loc.id} CORRECTED:`, {
+            backend: { lat: loc.latitude, lng: loc.longitude },
+            corrected: { lat: correctedLocation.latitude, lng: correctedLocation.longitude }
           });
           
-          return {
-            id: loc.id,
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            altitude: loc.elevation,
-            sequence: index // Use array index as sequence for now
-          };
+          return correctedLocation;
         });
       
-      console.log(`GeoService - Successfully fetched ${validLocations.length} locations`);
-      console.log('GeoService - First valid location:', validLocations[0]);
+      console.log(`GeoService - Successfully fetched and corrected ${validLocations.length} locations`);
+      console.log('GeoService - First corrected location:', validLocations[0]);
       return validLocations;
     } catch (error) {
       console.error('GeoService - Error fetching locations:', error);
@@ -142,16 +147,16 @@ class GeoService {
               ? pipeline.locationIds 
               : Array.from(pipeline.locationIds);
             
-            // Fetch the actual location data
+            // Fetch the actual location data (with coordinate correction)
             const locations = await this.getLocationsByIds(locationIdArray);
             
-            console.log(`GeoService - Pipeline ${pipeline.code} fetched locations:`, locations);
+            console.log(`GeoService - Pipeline ${pipeline.code} corrected locations:`, locations);
             
             // Validate coordinates before adding
             if (locations.length >= 2 && validatePipelineCoordinates(locations)) {
               const coordinates = convertLocationsToCoordinates(locations);
-              console.log(`GeoService - Pipeline ${pipeline.code} converted coordinates:`, coordinates);
-              console.log(`GeoService - Pipeline ${pipeline.code} first coordinate:`, coordinates[0]);
+              console.log(`GeoService - Pipeline ${pipeline.code} final coordinates:`, coordinates);
+              console.log(`GeoService - Pipeline ${pipeline.code} first coordinate [lat,lng]:`, coordinates[0]);
               console.log(`GeoService - Pipeline ${pipeline.code} has ${locations.length} valid coordinates`);
               return {
                 pipeline,
