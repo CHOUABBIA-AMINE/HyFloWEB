@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Added fallback for missing product data
+ * @updated 01-06-2026 - Fixed to get product from pipelineSystem
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -30,12 +30,9 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
     pipelines.forEach((pipelineData) => {
       const pipeline = pipelineData.pipeline;
       
-      // Add product code if available
-      if (pipeline.product?.code) {
-        products.add(pipeline.product.code);
-      } else if (pipeline.productName) {
-        // Fallback to product name if code not available
-        products.add(pipeline.productName);
+      // Product comes from pipelineSystem.product
+      if (pipeline.pipelineSystem?.product?.code) {
+        products.add(pipeline.pipelineSystem.product.code);
       }
       
       // Add status code if available
@@ -47,10 +44,8 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
       }
     });
 
-    // If no products found, add a default entry
-    if (products.size === 0) {
-      console.warn('usePipelineFilters - No product data found in pipelines');
-    }
+    console.log('usePipelineFilters - Available products:', Array.from(products));
+    console.log('usePipelineFilters - Available statuses:', Array.from(statuses));
 
     return {
       availableProducts: Array.from(products).sort(),
@@ -120,9 +115,9 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
     return pipelines.filter((pipelineData) => {
       const pipeline = pipelineData.pipeline;
 
-      // Product filter
+      // Product filter - get from pipelineSystem.product
       if (filters.products.length > 0) {
-        const productCode = pipeline.product?.code || pipeline.productName;
+        const productCode = pipeline.pipelineSystem?.product?.code;
         if (!productCode || !filters.products.includes(productCode)) {
           return false;
         }
