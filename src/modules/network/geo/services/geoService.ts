@@ -4,12 +4,13 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-06-2026
  */
 
 import axiosInstance from '../../../../shared/config/axios';
-import { StationDTO, TerminalDTO, HydrocarbonFieldDTO } from '../../core/dto';
-import { InfrastructureData } from '../types/geo.types';
+import { StationDTO, TerminalDTO, HydrocarbonFieldDTO, PipelineDTO } from '../../core/dto';
+import { InfrastructureData, PipelineGeoData, LocationPoint } from '../types/geo.types';
+import { convertLocationsToCoordinates, validatePipelineCoordinates } from '../utils/pipelineHelpers';
 
 /**
  * Spring Data Page response structure
@@ -49,18 +50,83 @@ class GeoService {
   }
 
   /**
+   * Fetch locations for a specific pipeline
+   */
+  private async getPipelineLocations(pipelineId: number): Promise<LocationPoint[]> {
+    try {
+      const response = await axiosInstance.get(`/network/geo/location/pipeline/${pipelineId}`);
+      return this.extractData<LocationPoint>(response.data);
+    } catch (error) {
+      console.error(`GeoService - Error fetching locations for pipeline ${pipelineId}:`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch all pipelines with their geo data
+   */
+  private async getPipelinesWithGeoData(): Promise<PipelineGeoData[]> {
+    try {
+      console.log('GeoService - Fetching pipelines from /network/core/pipeline');
+      const response = await axiosInstance.get('/network/core/pipeline');
+      const pipelines = this.extractData<PipelineDTO>(response.data);
+      
+      console.log(`GeoService - Fetched ${pipelines.length} pipelines`);
+      
+      // Fetch locations for each pipeline
+      const pipelinesWithGeo = await Promise.all(
+        pipelines.map(async (pipeline) => {
+          // If pipeline already has locationIds, fetch those locations
+          if (pipeline.locationIds && pipeline.locationIds.length > 0) {
+            const locations = await this.getPipelineLocations(pipeline.id);
+            
+            // Validate coordinates before adding
+            if (validatePipelineCoordinates(locations)) {
+              const coordinates = convertLocationsToCoordinates(locations);
+              return {
+                pipeline,
+                locations,
+                coordinates
+              };
+            } else {
+              console.warn(`GeoService - Invalid coordinates for pipeline ${pipeline.code}`);
+              return null;
+            }
+          } else {
+            // Pipeline has no location data
+            console.log(`GeoService - Pipeline ${pipeline.code} has no location data`);
+            return null;
+          }
+        })
+      );
+      
+      // Filter out null entries (pipelines without valid geo data)
+      const validPipelines = pipelinesWithGeo.filter((p): p is PipelineGeoData => p !== null);
+      console.log(`GeoService - ${validPipelines.length} pipelines have valid geo data`);
+      
+      return validPipelines;
+    } catch (error) {
+      console.error('GeoService - Error fetching pipelines:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get all infrastructure with geo data
    */
   async getAllInfrastructure(): Promise<InfrastructureData> {
     try {
+      console.log('GeoService - Fetching all infrastructure data');
       console.log('GeoService - Fetching stations from /network/core/station');
       console.log('GeoService - Fetching terminals from /network/core/terminal');
       console.log('GeoService - Fetching hydrocarbon fields from /network/core/hydrocarbonField');
+      console.log('GeoService - Fetching pipelines with geo data');
       
-      const [stationsResponse, terminalsResponse, fieldsResponse] = await Promise.all([
+      const [stationsResponse, terminalsResponse, fieldsResponse, pipelines] = await Promise.all([
         axiosInstance.get('/network/core/station'),
         axiosInstance.get('/network/core/terminal'),
-        axiosInstance.get('/network/core/hydrocarbonField')
+        axiosInstance.get('/network/core/hydrocarbonField'),
+        this.getPipelinesWithGeoData()
       ]);
 
       console.log('GeoService - Stations raw response:', stationsResponse.data);
@@ -75,17 +141,20 @@ class GeoService {
       console.log('GeoService - Extracted stations:', stations.length);
       console.log('GeoService - Extracted terminals:', terminals.length);
       console.log('GeoService - Extracted fields:', hydrocarbonFields.length);
+      console.log('GeoService - Extracted pipelines with geo:', pipelines.length);
 
       const result = {
         stations,
         terminals,
-        hydrocarbonFields
+        hydrocarbonFields,
+        pipelines
       };
       
       console.log('GeoService - Returning result with totals:', {
         stations: stations.length,
         terminals: terminals.length,
-        hydrocarbonFields: hydrocarbonFields.length
+        hydrocarbonFields: hydrocarbonFields.length,
+        pipelines: pipelines.length
       });
       
       return result;
@@ -98,7 +167,8 @@ class GeoService {
       return {
         stations: [],
         terminals: [],
-        hydrocarbonFields: []
+        hydrocarbonFields: [],
+        pipelines: []
       };
     }
   }
@@ -116,6 +186,14 @@ class GeoService {
     // For now, fetch all and filter client-side
     const data = await this.getAllInfrastructure();
     
+    // Filter pipelines based on bounds (check if any coordinate is within bounds)
+    const pipelinesInBounds = (data.pipelines || []).filter(pipelineData => {
+      return pipelineData.locations.some(loc => 
+        loc.latitude >= bounds.south && loc.latitude <= bounds.north &&
+        loc.longitude >= bounds.west && loc.longitude <= bounds.east
+      );
+    });
+    
     return {
       stations: data.stations.filter(s => 
         s.latitude >= bounds.south && s.latitude <= bounds.north &&
@@ -128,7 +206,8 @@ class GeoService {
       hydrocarbonFields: data.hydrocarbonFields.filter(f => 
         f.latitude >= bounds.south && f.latitude <= bounds.north &&
         f.longitude >= bounds.west && f.longitude <= bounds.east
-      )
+      ),
+      pipelines: pipelinesInBounds
     };
   }
 }
