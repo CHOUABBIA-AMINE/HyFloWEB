@@ -8,6 +8,7 @@
  * @updated 12-30-2025 - Added Employee routes
  * @updated 01-01-2026 - Added Product routes
  * @updated 01-01-2026 - Added Region/Partner/Vendor routes
+ * @updated 01-06-2026 - Added Pipeline Map route
  */
 
 import { useEffect, useMemo } from 'react';
@@ -40,7 +41,7 @@ import {
   PipelineSystemList,
   PipelineSystemEdit
 } from './modules/network/core/pages';
-import { NetworkMapPage, GeoDebugPage } from './modules/network/geo/pages';
+import { NetworkMapPage, GeoDebugPage, PipelineMapPage } from './modules/network/geo/pages';
 import { StructureList, StructureEdit, EmployeeList, EmployeeEdit } from './modules/general/organization';
 
 // Network Common
@@ -261,12 +262,22 @@ function App() {
 
                 {/* Network Module - Protected */}
                 <Route path="network">
-                  {/* Geovisualization Map */}
+                  {/* Geovisualization Maps */}
                   <Route
                     path="map"
                     element={
                       <ProtectedRoute>
                         <NetworkMapPage />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Pipeline Map - Product-based visualization */}
+                  <Route
+                    path="map/pipelines"
+                    element={
+                      <ProtectedRoute>
+                        <PipelineMapPage />
                       </ProtectedRoute>
                     }
                   />
