@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Updated to use hover-expandable filter panel
+ * @updated 01-06-2026 - Fixed product access from pipelineSystem
  */
 
 import React, { useState, useMemo } from 'react';
@@ -62,7 +62,8 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   // Get pipeline style based on product
   const getPipelineStyleByProduct = (pipelineData: PipelineGeoData, isHovered: boolean) => {
     const pipeline = pipelineData.pipeline;
-    const productCode = pipeline.product?.code || 'OTHER';
+    // Product comes from pipelineSystem
+    const productCode = pipeline.pipelineSystem?.product?.code || 'OTHER';
     const statusCode = pipeline.operationalStatus?.code?.toLowerCase();
     
     let color = DEFAULT_PRODUCT_COLORS[productCode] || DEFAULT_PRODUCT_COLORS['OTHER'];
@@ -171,6 +172,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
           const pipeline = pipelineData.pipeline;
           const isHovered = hoveredPipeline === pipeline.id;
           const style = getPipelineStyleByProduct(pipelineData, isHovered);
+          const product = pipeline.pipelineSystem?.product;
 
           return (
             <Polyline
@@ -193,9 +195,9 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                     <Typography variant="caption" color="text.secondary">
                       {pipeline.code}
                     </Typography>
-                    {pipeline.product && (
+                    {product && (
                       <Typography variant="caption" display="block">
-                        Product: {pipeline.product.name}
+                        Product: {product.name}
                       </Typography>
                     )}
                   </Box>
@@ -213,9 +215,14 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                   </Typography>
 
                   <Box sx={{ display: 'grid', gap: 0.5, mt: 1 }}>
-                    {pipeline.product && (
+                    {pipeline.pipelineSystem && (
                       <Typography variant="body2">
-                        <strong>Product:</strong> {pipeline.product.name}
+                        <strong>System:</strong> {pipeline.pipelineSystem.name}
+                      </Typography>
+                    )}
+                    {product && (
+                      <Typography variant="body2">
+                        <strong>Product:</strong> {product.name}
                       </Typography>
                     )}
                     {pipeline.operationalStatus && (
