@@ -7,10 +7,10 @@
  * @updated 01-06-2026
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Polyline, Popup, Tooltip } from 'react-leaflet';
 import { PipelineGeoData, PipelineDisplayOptions } from '../types';
-import { getPipelineStyle, formatPipelineInfo, getPipelineCenter } from '../utils/pipelineHelpers';
+import { getPipelineStyle } from '../utils/pipelineHelpers';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Chip, Divider } from '@mui/material';
 
@@ -39,45 +39,16 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
   
   const options = { ...defaultDisplayOptions, ...displayOptions };
   
-  // Debug logging on mount and when pipelines change
-  useEffect(() => {
-    console.log('PipelinePolylines - Component mounted/updated');
-    console.log('PipelinePolylines - Received pipelines:', pipelines);
-    console.log('PipelinePolylines - Pipeline count:', pipelines.length);
-    
-    pipelines.forEach((pipelineData, index) => {
-      console.log(`PipelinePolylines - Pipeline ${index}:`, {
-        id: pipelineData.pipeline.id,
-        code: pipelineData.pipeline.code,
-        name: pipelineData.pipeline.name,
-        coordinatesCount: pipelineData.coordinates?.length || 0,
-        coordinates: pipelineData.coordinates
-      });
-    });
-  }, [pipelines]);
-  
   const pipelineElements = useMemo(() => {
-    console.log('PipelinePolylines - Rendering pipeline elements, count:', pipelines.length);
-    
-    const elements = pipelines.map((pipelineData, index) => {
+    return pipelines.map((pipelineData) => {
       const { pipeline, coordinates } = pipelineData;
       
-      console.log(`PipelinePolylines - Processing pipeline ${index} (${pipeline.code}):`, {
-        hasCoordinates: !!coordinates,
-        coordinatesLength: coordinates?.length || 0,
-        firstCoordinate: coordinates?.[0],
-        lastCoordinate: coordinates?.[coordinates.length - 1]
-      });
-      
       if (!coordinates || coordinates.length < 2) {
-        console.warn(`PipelinePolylines - SKIPPING Pipeline ${pipeline.code}: insufficient coordinates (${coordinates?.length || 0})`);
         return null;
       }
       
       // Get dynamic style based on pipeline properties
       const pipelineStyle = getPipelineStyle(pipeline);
-      console.log(`PipelinePolylines - Pipeline ${pipeline.code} style:`, pipelineStyle);
-      
       const isHovered = hoveredPipeline === pipeline.id;
       
       // Apply hover effect
@@ -86,8 +57,6 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
         weight: isHovered ? pipelineStyle.weight + 2 : pipelineStyle.weight,
         opacity: isHovered ? 1 : pipelineStyle.opacity,
       };
-      
-      console.log(`PipelinePolylines - Creating Polyline for ${pipeline.code} with ${coordinates.length} positions`);
       
       const handleClick = () => {
         if (onPipelineClick) {
@@ -204,15 +173,8 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
           </Popup>
         </Polyline>
       );
-    });
-    
-    const validElements = elements.filter(el => el !== null);
-    console.log(`PipelinePolylines - Created ${validElements.length} valid pipeline elements out of ${elements.length} total`);
-    
-    return validElements;
+    }).filter(element => element !== null);
   }, [pipelines, hoveredPipeline, options, onPipelineClick, navigate]);
-  
-  console.log('PipelinePolylines - Returning', pipelineElements.length, 'elements');
   
   return <>{pipelineElements}</>;
 };
