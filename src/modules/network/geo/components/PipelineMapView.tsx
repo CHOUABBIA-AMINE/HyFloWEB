@@ -4,11 +4,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Added debug logging for product colors
+ * @updated 01-06-2026 - Added color legend for products
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Box, CircularProgress, Alert, Typography } from '@mui/material';
+import { Box, CircularProgress, Alert, Typography, Paper } from '@mui/material';
 import { MapContainer, TileLayer, Polyline, Popup, Tooltip } from 'react-leaflet';
 import { useMapData } from '../hooks/useMapData';
 import { usePipelineFilters } from '../hooks/usePipelineFilters';
@@ -122,6 +122,22 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
 
     return { color, weight, opacity, dashArray };
   };
+
+  // Get unique products in current view for legend
+  const activeProducts = useMemo(() => {
+    const products = new Set<string>();
+    pipelines.forEach(p => {
+      const productCode = p.pipeline.pipelineSystem?.product?.code;
+      const productName = p.pipeline.pipelineSystem?.product?.name;
+      if (productCode) {
+        products.add(`${productCode}|${productName || productCode}`);
+      }
+    });
+    return Array.from(products).map(p => {
+      const [code, name] = p.split('|');
+      return { code, name };
+    });
+  }, [pipelines]);
 
   if (loading) {
     return (
@@ -272,6 +288,46 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
           );
         })}
       </MapContainer>
+
+      {/* Color Legend */}
+      {activeProducts.length > 0 && (
+        <Paper
+          elevation={3}
+          sx={{
+            position: 'absolute',
+            bottom: 60,
+            left: 16,
+            p: 1.5,
+            minWidth: 180,
+            zIndex: 1000,
+          }}
+        >
+          <Typography variant="caption" fontWeight="bold" display="block" gutterBottom>
+            Product Colors
+          </Typography>
+          {activeProducts.map(({ code, name }) => (
+            <Box
+              key={code}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                mb: 0.5,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 24,
+                  height: 4,
+                  bgcolor: DEFAULT_PRODUCT_COLORS[code] || DEFAULT_PRODUCT_COLORS['OTHER'],
+                  borderRadius: 1,
+                }}
+              />
+              <Typography variant="caption">{name}</Typography>
+            </Box>
+          ))}
+        </Paper>
+      )}
 
       {/* Compact Hover-Expandable Filter Panel - Always Visible */}
       <PipelineFilterPanel
