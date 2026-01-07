@@ -4,6 +4,10 @@
  * Handles transformation between backend JSON responses and frontend TypeScript interfaces
  * for Organization module entities: Job, Structure, Person, Employee
  * 
+ * Updated: 01-07-2026 - Synced with backend U-002 update
+ * - Added support for nested objects (birthState, addressState, country, picture, job)
+ * - Removed createdAt/updatedAt (not in backend DTOs)
+ * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  */
@@ -27,8 +31,6 @@ export class OrganizationMapper {
       designationEn: data.designationEn,
       designationFr: data.designationFr,
       structureId: data.structureId,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
     };
   }
 
@@ -72,8 +74,6 @@ export class OrganizationMapper {
       designationFr: data.designationFr,
       structureTypeId: data.structureTypeId,
       parentStructureId: data.parentStructureId,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
     };
   }
 
@@ -106,6 +106,7 @@ export class OrganizationMapper {
 
   /**
    * Maps backend Person response to frontend PersonDTO
+   * Backend Update (U-002): Added nested object support for relationships
    * @param data - Raw backend response data
    * @returns Mapped PersonDTO
    */
@@ -123,10 +124,13 @@ export class OrganizationMapper {
       addressLt: data.addressLt,
       birthStateId: data.birthStateId,
       addressStateId: data.addressStateId,
-      pictureId: data.pictureId,
       countryId: data.countryId,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      pictureId: data.pictureId,
+      // Nested objects (populated from backend if available)
+      birthState: data.birthState,
+      addressState: data.addressState,
+      country: data.country,
+      picture: data.picture,
     };
   }
 
@@ -148,8 +152,8 @@ export class OrganizationMapper {
       addressLt: data.addressLt,
       birthStateId: data.birthStateId,
       addressStateId: data.addressStateId,
-      pictureId: data.pictureId,
       countryId: data.countryId,
+      pictureId: data.pictureId,
     };
   }
 
@@ -166,6 +170,8 @@ export class OrganizationMapper {
 
   /**
    * Maps backend Employee response to frontend EmployeeDTO
+   * Backend Update (U-002): Added nested object support for relationships
+   * Note: Backend uses flat structure (no inheritance from Person)
    * @param data - Raw backend response data
    * @returns Mapped EmployeeDTO
    */
@@ -184,11 +190,15 @@ export class OrganizationMapper {
       registrationNumber: data.registrationNumber,
       birthStateId: data.birthStateId,
       addressStateId: data.addressStateId,
-      pictureId: data.pictureId,
       countryId: data.countryId,
+      pictureId: data.pictureId,
       jobId: data.jobId,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      // Nested objects (populated from backend if available)
+      birthState: data.birthState,
+      addressState: data.addressState,
+      country: data.country,
+      picture: data.picture,
+      job: data.job,
     };
   }
 
@@ -211,8 +221,8 @@ export class OrganizationMapper {
       registrationNumber: data.registrationNumber,
       birthStateId: data.birthStateId,
       addressStateId: data.addressStateId,
-      pictureId: data.pictureId,
       countryId: data.countryId,
+      pictureId: data.pictureId,
       jobId: data.jobId,
     };
   }
