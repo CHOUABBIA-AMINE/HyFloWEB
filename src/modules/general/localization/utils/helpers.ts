@@ -6,12 +6,30 @@
  * @author CHOUABBIA Amine
  */
 
-import { sortBy } from '../../common/utils/helpers';
 import type { CountryDTO } from '../dto/CountryDTO';
 import type { StateDTO } from '../dto/StateDTO';
 import type { LocalityDTO } from '../dto/LocalityDTO';
 import type { LocationDTO } from '../dto/LocationDTO';
 import type { ZoneDTO } from '../dto/ZoneDTO';
+
+/**
+ * Generic sortBy helper function
+ * Sorts an array of objects by a given key
+ */
+export const sortBy = <T>(arr: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] => {
+  return [...arr].sort((a, b) => {
+    const aVal = a[key];
+    const bVal = b[key];
+    
+    if (aVal === bVal) return 0;
+    
+    if (aVal === null || aVal === undefined) return 1;
+    if (bVal === null || bVal === undefined) return -1;
+    
+    const comparison = aVal < bVal ? -1 : 1;
+    return order === 'asc' ? comparison : -comparison;
+  });
+};
 
 /**
  * Sort countries by designation
@@ -217,6 +235,3 @@ export const groupLocationsByLocality = (
     return acc;
   }, {} as Record<number, LocationDTO[]>);
 };
-
-// Re-export common helpers
-export { sortBy };
