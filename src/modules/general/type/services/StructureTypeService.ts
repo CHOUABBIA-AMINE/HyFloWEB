@@ -1,141 +1,91 @@
 /**
- * Structure Type Service
- * Handles API calls for structure type management
+ * StructureType Service - General Type Module
  * 
- * Backend endpoint: /general/type/structure
- * Backend controller: dz.sh.trc.hyflo.general.type.controller.StructureTypeController
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.type.service.StructureTypeService
  * 
- * @author CHOUABBIA Amine
- * @created 01-03-2026
- * @updated 01-03-2026 - Corrected BASE_URL to /general/type/structure
+ * Provides CRUD operations and search functionality for structure types.
+ * Structure types represent different organizational structure classifications.
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 06-26-2025
+ * @updated 01-02-2026
  */
 
-import axiosInstance from '../../../../shared/config/axios';
-import { StructureTypeDTO } from '../dto/StructureTypeDTO';
+import { apiClient } from '@/lib/api-client';
+import type { StructureTypeDTO } from '../dto/StructureTypeDTO';
+import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/type/structure';
+const BASE_URL = '/api/general/type/structure-types';
 
-class StructureTypeService {
+export class StructureTypeService {
   /**
-   * Get all structure types
-   * @returns Promise with array of structure types
+   * Get all structure types with pagination
    */
-  async getAll(): Promise<StructureTypeDTO[]> {
-    try {
-      const response = await axiosInstance.get(BASE_URL);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching structure types:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch structure types');
-    }
+  static async getAll(pageable: Pageable): Promise<Page<StructureTypeDTO>> {
+    const response = await apiClient.get<Page<StructureTypeDTO>>(BASE_URL, {
+      params: {
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
+    });
+    return response.data;
   }
 
   /**
-   * Get active structure types only
-   * @returns Promise with array of active structure types
+   * Get all structure types without pagination
    */
-  async getActive(): Promise<StructureTypeDTO[]> {
-    try {
-      const response = await axiosInstance.get(`${BASE_URL}/active`);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error fetching active structure types:', error);
-      throw new Error(error.response?.data?.message || 'Failed to fetch active structure types');
-    }
+  static async getAllNoPagination(): Promise<StructureTypeDTO[]> {
+    const response = await apiClient.get<StructureTypeDTO[]>(`${BASE_URL}/all`);
+    return response.data;
   }
 
   /**
    * Get structure type by ID
-   * @param id - Structure type ID
-   * @returns Promise with structure type details
    */
-  async getById(id: number): Promise<StructureTypeDTO> {
-    try {
-      const response = await axiosInstance.get(`${BASE_URL}/${id}`);
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error fetching structure type ${id}:`, error);
-      throw new Error(error.response?.data?.message || `Failed to fetch structure type ${id}`);
-    }
+  static async getById(id: number): Promise<StructureTypeDTO> {
+    const response = await apiClient.get<StructureTypeDTO>(`${BASE_URL}/${id}`);
+    return response.data;
   }
 
   /**
-   * Get structure type by code
-   * @param code - Structure type code
-   * @returns Promise with structure type details
+   * Create new structure type
    */
-  async getByCode(code: string): Promise<StructureTypeDTO> {
-    try {
-      const response = await axiosInstance.get(`${BASE_URL}/code/${code}`);
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error fetching structure type with code ${code}:`, error);
-      throw new Error(error.response?.data?.message || `Failed to fetch structure type with code ${code}`);
-    }
+  static async create(dto: StructureTypeDTO): Promise<StructureTypeDTO> {
+    const response = await apiClient.post<StructureTypeDTO>(BASE_URL, dto);
+    return response.data;
   }
 
   /**
-   * Create a new structure type
-   * @param structureType - Structure type data to create
-   * @returns Promise with created structure type
+   * Update existing structure type
    */
-  async create(structureType: Omit<StructureTypeDTO, 'id'>): Promise<StructureTypeDTO> {
-    try {
-      const response = await axiosInstance.post(BASE_URL, structureType);
-      return response.data;
-    } catch (error: any) {
-      console.error('Error creating structure type:', error);
-      throw new Error(error.response?.data?.message || 'Failed to create structure type');
-    }
+  static async update(id: number, dto: StructureTypeDTO): Promise<StructureTypeDTO> {
+    const response = await apiClient.put<StructureTypeDTO>(`${BASE_URL}/${id}`, dto);
+    return response.data;
   }
 
   /**
-   * Update an existing structure type
-   * @param id - Structure type ID
-   * @param structureType - Updated structure type data
-   * @returns Promise with updated structure type
+   * Delete structure type by ID
    */
-  async update(id: number, structureType: Partial<StructureTypeDTO>): Promise<StructureTypeDTO> {
-    try {
-      const response = await axiosInstance.put(`${BASE_URL}/${id}`, structureType);
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error updating structure type ${id}:`, error);
-      throw new Error(error.response?.data?.message || `Failed to update structure type ${id}`);
-    }
+  static async delete(id: number): Promise<void> {
+    await apiClient.delete(`${BASE_URL}/${id}`);
   }
 
   /**
-   * Delete a structure type
-   * @param id - Structure type ID
-   * @returns Promise that resolves when deletion is complete
+   * Global search across all structure type fields
    */
-  async delete(id: number): Promise<void> {
-    try {
-      await axiosInstance.delete(`${BASE_URL}/${id}`);
-    } catch (error: any) {
-      console.error(`Error deleting structure type ${id}:`, error);
-      throw new Error(error.response?.data?.message || `Failed to delete structure type ${id}`);
-    }
-  }
-
-  /**
-   * Toggle active status of a structure type
-   * @param id - Structure type ID
-   * @returns Promise with updated structure type
-   */
-  async toggleActive(id: number): Promise<StructureTypeDTO> {
-    try {
-      const response = await axiosInstance.patch(`${BASE_URL}/${id}/toggle-active`);
-      return response.data;
-    } catch (error: any) {
-      console.error(`Error toggling structure type ${id} active status:`, error);
-      throw new Error(error.response?.data?.message || `Failed to toggle structure type ${id} active status`);
-    }
+  static async globalSearch(
+    searchTerm: string,
+    pageable: Pageable
+  ): Promise<Page<StructureTypeDTO>> {
+    const response = await apiClient.get<Page<StructureTypeDTO>>(`${BASE_URL}/search`, {
+      params: {
+        q: searchTerm,
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
+    });
+    return response.data;
   }
 }
-
-// Export singleton instance
-const structureTypeService = new StructureTypeService();
-export default structureTypeService;
-export { structureTypeService, StructureTypeService };

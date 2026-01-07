@@ -1,5 +1,8 @@
 /**
- * Administration Services - Central Export
+ * General Type Services - Barrel Export
+ * 
+ * All services for the General Type module.
+ * These services provide API communication for type/classification entities.
  */
 
-export { default as structureTypeService } from './StructureTypeService';
+export * from './StructureTypeService';
