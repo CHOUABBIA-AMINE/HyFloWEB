@@ -6,7 +6,25 @@
  * @author CHOUABBIA Amine
  */
 
-import { toTitleCase, truncate } from '../../common/utils/formatters';
+/**
+ * Convert string to title case
+ */
+export const toTitleCase = (str: string): string => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+/**
+ * Truncate string to specified length with ellipsis
+ */
+export const truncate = (str: string, maxLength: number = 50): string => {
+  if (!str || str.length <= maxLength) return str;
+  return str.substring(0, maxLength) + '...';
+};
 
 /**
  * Format designation by locale
@@ -108,6 +126,3 @@ export const formatLocationLabel = (
   if (!designation) return code;
   return `${code} - ${designation}`;
 };
-
-// Re-export common formatters
-export { toTitleCase, truncate };
