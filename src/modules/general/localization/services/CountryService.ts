@@ -1,56 +1,93 @@
 /**
- * Country Service - Localization Module
- * Handles API calls for Country entities
+ * Country Service - General Localization Module
  * 
- * Backend Endpoint: /api/countries
- * Aligned with: dz.sh.trc.hyflo.general.localization.service
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.service.CountryService
  * 
- * @author CHOUABBIA Amine
- * @created 01-03-2026
+ * Provides CRUD operations and search functionality for countries.
+ * Countries represent the highest level in the geographic hierarchy.
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 06-26-2025
+ * @updated 01-02-2026
  */
 
+import { apiClient } from '@/lib/api-client';
 import type { CountryDTO } from '../dto/CountryDTO';
+import type { Page, Pageable } from '@/types/pagination';
 
-class CountryService {
-  private baseUrl = '/api/countries';
+const BASE_URL = '/api/general/localization/countries';
 
-  async getAll(): Promise<CountryDTO[]> {
-    const res = await fetch(this.baseUrl);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || data?.content || []);
-  }
-
-  async getById(id: number): Promise<CountryDTO> {
-    const res = await fetch(`${this.baseUrl}/${id}`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  }
-
-  async create(dto: Omit<CountryDTO, 'id' | 'createdAt' | 'updatedAt'>): Promise<CountryDTO> {
-    const res = await fetch(this.baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dto),
+export class CountryService {
+  /**
+   * Get all countries with pagination
+   */
+  static async getAll(pageable: Pageable): Promise<Page<CountryDTO>> {
+    const response = await apiClient.get<Page<CountryDTO>>(BASE_URL, {
+      params: {
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
+    return response.data;
   }
 
-  async update(id: number, dto: Partial<CountryDTO>): Promise<CountryDTO> {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dto),
+  /**
+   * Get all countries without pagination
+   */
+  static async getAllNoPagination(): Promise<CountryDTO[]> {
+    const response = await apiClient.get<CountryDTO[]>(`${BASE_URL}/all`);
+    return response.data;
+  }
+
+  /**
+   * Get country by ID
+   */
+  static async getById(id: number): Promise<CountryDTO> {
+    const response = await apiClient.get<CountryDTO>(`${BASE_URL}/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Create new country
+   * Backend logs: "Creating country: code={code}, designationFr={designationFr}"
+   */
+  static async create(dto: CountryDTO): Promise<CountryDTO> {
+    const response = await apiClient.post<CountryDTO>(BASE_URL, dto);
+    return response.data;
+  }
+
+  /**
+   * Update existing country
+   * Backend logs: "Updating country with ID: {id}"
+   */
+  static async update(id: number, dto: CountryDTO): Promise<CountryDTO> {
+    const response = await apiClient.put<CountryDTO>(`${BASE_URL}/${id}`, dto);
+    return response.data;
+  }
+
+  /**
+   * Delete country by ID
+   */
+  static async delete(id: number): Promise<void> {
+    await apiClient.delete(`${BASE_URL}/${id}`);
+  }
+
+  /**
+   * Global search across all country fields
+   */
+  static async globalSearch(
+    searchTerm: string,
+    pageable: Pageable
+  ): Promise<Page<CountryDTO>> {
+    const response = await apiClient.get<Page<CountryDTO>>(`${BASE_URL}/search`, {
+      params: {
+        q: searchTerm,
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  }
-
-  async delete(id: number): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return response.data;
   }
 }
-
-export const countryService = new CountryService();

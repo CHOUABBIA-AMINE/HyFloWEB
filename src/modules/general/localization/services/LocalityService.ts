@@ -1,63 +1,101 @@
 /**
- * Locality Service - Localization Module
- * Handles API calls for Locality entities
+ * Locality Service - General Localization Module
  * 
- * Backend Endpoint: /api/localities
- * Aligned with: dz.sh.trc.hyflo.general.localization.service
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.service.LocalityService
  * 
- * @author CHOUABBIA Amine
- * @created 01-03-2026
+ * Provides CRUD operations and search functionality for localities/cities.
+ * Localities belong to states in the geographic hierarchy.
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 06-26-2025
+ * @updated 01-02-2026
  */
 
+import { apiClient } from '@/lib/api-client';
 import type { LocalityDTO } from '../dto/LocalityDTO';
+import type { Page, Pageable } from '@/types/pagination';
 
-class LocalityService {
-  private baseUrl = '/api/localities';
+const BASE_URL = '/api/general/localization/localities';
 
-  async getAll(): Promise<LocalityDTO[]> {
-    const res = await fetch(this.baseUrl);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || data?.content || []);
-  }
-
-  async getById(id: number): Promise<LocalityDTO> {
-    const res = await fetch(`${this.baseUrl}/${id}`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  }
-
-  async getByStateId(stateId: number): Promise<LocalityDTO[]> {
-    const res = await fetch(`${this.baseUrl}?stateId=${stateId}`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || data?.content || []);
-  }
-
-  async create(dto: Omit<LocalityDTO, 'id' | 'createdAt' | 'updatedAt'>): Promise<LocalityDTO> {
-    const res = await fetch(this.baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dto),
+export class LocalityService {
+  /**
+   * Get all localities with pagination
+   */
+  static async getAll(pageable: Pageable): Promise<Page<LocalityDTO>> {
+    const response = await apiClient.get<Page<LocalityDTO>>(BASE_URL, {
+      params: {
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
+    return response.data;
   }
 
-  async update(id: number, dto: Partial<LocalityDTO>): Promise<LocalityDTO> {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dto),
+  /**
+   * Get all localities without pagination
+   */
+  static async getAllNoPagination(): Promise<LocalityDTO[]> {
+    const response = await apiClient.get<LocalityDTO[]>(`${BASE_URL}/all`);
+    return response.data;
+  }
+
+  /**
+   * Get locality by ID
+   */
+  static async getById(id: number): Promise<LocalityDTO> {
+    const response = await apiClient.get<LocalityDTO>(`${BASE_URL}/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Create new locality
+   * Backend logs: "Creating locality: code={code}, designationFr={designationFr}, stateId={stateId}"
+   */
+  static async create(dto: LocalityDTO): Promise<LocalityDTO> {
+    const response = await apiClient.post<LocalityDTO>(BASE_URL, dto);
+    return response.data;
+  }
+
+  /**
+   * Update existing locality
+   * Backend logs: "Updating locality with ID: {id}"
+   */
+  static async update(id: number, dto: LocalityDTO): Promise<LocalityDTO> {
+    const response = await apiClient.put<LocalityDTO>(`${BASE_URL}/${id}`, dto);
+    return response.data;
+  }
+
+  /**
+   * Delete locality by ID
+   */
+  static async delete(id: number): Promise<void> {
+    await apiClient.delete(`${BASE_URL}/${id}`);
+  }
+
+  /**
+   * Global search across all locality fields
+   */
+  static async globalSearch(
+    searchTerm: string,
+    pageable: Pageable
+  ): Promise<Page<LocalityDTO>> {
+    const response = await apiClient.get<Page<LocalityDTO>>(`${BASE_URL}/search`, {
+      params: {
+        q: searchTerm,
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
+    return response.data;
   }
 
-  async delete(id: number): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+  /**
+   * Get localities by state ID
+   */
+  static async getByStateId(stateId: number): Promise<LocalityDTO[]> {
+    const response = await apiClient.get<LocalityDTO[]>(`${BASE_URL}/by-state/${stateId}`);
+    return response.data;
   }
 }
-
-export const localityService = new LocalityService();

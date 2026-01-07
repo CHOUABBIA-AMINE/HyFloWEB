@@ -1,63 +1,93 @@
 /**
- * State Service - Localization Module
- * Handles API calls for State entities
+ * State Service - General Localization Module
  * 
- * Backend Endpoint: /api/states
- * Aligned with: dz.sh.trc.hyflo.general.localization.service
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.service.StateService
  * 
- * @author CHOUABBIA Amine
- * @created 01-03-2026
+ * Provides CRUD operations and search functionality for states/provinces.
+ * States belong to countries in the geographic hierarchy.
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 06-26-2025
+ * @updated 01-02-2026
  */
 
+import { apiClient } from '@/lib/api-client';
 import type { StateDTO } from '../dto/StateDTO';
+import type { Page, Pageable } from '@/types/pagination';
 
-class StateService {
-  private baseUrl = '/api/states';
+const BASE_URL = '/api/general/localization/states';
 
-  async getAll(): Promise<StateDTO[]> {
-    const res = await fetch(this.baseUrl);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || data?.content || []);
-  }
-
-  async getById(id: number): Promise<StateDTO> {
-    const res = await fetch(`${this.baseUrl}/${id}`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  }
-
-  async getByCountryId(countryId: number): Promise<StateDTO[]> {
-    const res = await fetch(`${this.baseUrl}?countryId=${countryId}`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    return Array.isArray(data) ? data : (data?.data || data?.content || []);
-  }
-
-  async create(dto: Omit<StateDTO, 'id' | 'createdAt' | 'updatedAt'>): Promise<StateDTO> {
-    const res = await fetch(this.baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dto),
+export class StateService {
+  /**
+   * Get all states with pagination
+   */
+  static async getAll(pageable: Pageable): Promise<Page<StateDTO>> {
+    const response = await apiClient.get<Page<StateDTO>>(BASE_URL, {
+      params: {
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
+    return response.data;
   }
 
-  async update(id: number, dto: Partial<StateDTO>): Promise<StateDTO> {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dto),
+  /**
+   * Get all states without pagination
+   */
+  static async getAllNoPagination(): Promise<StateDTO[]> {
+    const response = await apiClient.get<StateDTO[]>(`${BASE_URL}/all`);
+    return response.data;
+  }
+
+  /**
+   * Get state by ID
+   */
+  static async getById(id: number): Promise<StateDTO> {
+    const response = await apiClient.get<StateDTO>(`${BASE_URL}/${id}`);
+    return response.data;
+  }
+
+  /**
+   * Create new state
+   * Backend logs: "Creating state: code={code}, designationFr={designationFr}"
+   */
+  static async create(dto: StateDTO): Promise<StateDTO> {
+    const response = await apiClient.post<StateDTO>(BASE_URL, dto);
+    return response.data;
+  }
+
+  /**
+   * Update existing state
+   * Backend logs: "Updating state with ID: {id}"
+   */
+  static async update(id: number, dto: StateDTO): Promise<StateDTO> {
+    const response = await apiClient.put<StateDTO>(`${BASE_URL}/${id}`, dto);
+    return response.data;
+  }
+
+  /**
+   * Delete state by ID
+   */
+  static async delete(id: number): Promise<void> {
+    await apiClient.delete(`${BASE_URL}/${id}`);
+  }
+
+  /**
+   * Global search across all state fields
+   */
+  static async globalSearch(
+    searchTerm: string,
+    pageable: Pageable
+  ): Promise<Page<StateDTO>> {
+    const response = await apiClient.get<Page<StateDTO>>(`${BASE_URL}/search`, {
+      params: {
+        q: searchTerm,
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
     });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  }
-
-  async delete(id: number): Promise<void> {
-    const res = await fetch(`${this.baseUrl}/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return response.data;
   }
 }
-
-export const stateService = new StateService();
