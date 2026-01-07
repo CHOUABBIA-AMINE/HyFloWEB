@@ -2,11 +2,15 @@
  * Location DTO - Localization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocationDTO
- * Updated: 01-07-2026 - Synced with backend U-004 update
+ * Updated: 01-07-2026 - Synced with backend U-005 update
  * 
- * Backend Updates:
+ * Backend Updates History:
  * - U-001 (Jan 7, 2026, 10:04 AM): Added sequence field
  * - U-004 (Jan 7, 2026, 10:30 AM): Renamed infrastructureId → facilityId
+ * - U-005 (Jan 7, 2026, 10:48 AM): MAJOR CHANGES
+ *   • Renamed code → placeName
+ *   • REMOVED facilityId (relationship inverted - Facility now has locationId)
+ *   • Location is now an independent entity
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -19,17 +23,19 @@ export interface LocationDTO {
 
   // Core fields
   sequence: number; // @NotBlank (required)
-  code: string; // @NotBlank, max 10 chars
+  placeName: string; // @NotBlank, max 10 chars (renamed from 'code' in U-005)
   latitude: number; // @NotNull (required)
   longitude: number; // @NotNull (required)
   elevation?: number; // Optional
   
   // Relationships
-  facilityId?: number; // Optional - Links to Facility entity (renamed from infrastructureId in U-004)
-  localityId?: number; // Optional
+  localityId?: number; // Optional - Links to Locality entity
   
   // Nested objects (populated in responses)
   locality?: LocalityDTO; // Optional nested object
+  
+  // REMOVED in U-005: facilityId
+  // Note: Relationship inverted - Facility now has locationId, not Location has facilityId
 }
 
 /**
@@ -47,11 +53,11 @@ export const validateLocationDTO = (data: Partial<LocationDTO>): string[] => {
     errors.push("Sequence must be a non-negative number");
   }
   
-  // Code validation
-  if (!data.code) {
-    errors.push("Code is required");
-  } else if (data.code.length > 10) {
-    errors.push("Code must not exceed 10 characters");
+  // Place name validation (renamed from 'code')
+  if (!data.placeName) {
+    errors.push("Place name is required");
+  } else if (data.placeName.length > 10) {
+    errors.push("Place name must not exceed 10 characters");
   }
   
   // Latitude validation
