@@ -6,7 +6,21 @@
  * @author CHOUABBIA Amine
  */
 
-import { isNotEmpty, isValidEmail } from '../../common/utils/validation';
+/**
+ * Check if value is not empty
+ */
+export const isNotEmpty = (value: string | undefined | null): boolean => {
+  return value !== undefined && value !== null && value.trim().length > 0;
+};
+
+/**
+ * Validate email format
+ */
+export const isValidEmail = (email: string | undefined | null): boolean => {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
 /**
  * Validate registration number (employee)
@@ -88,6 +102,3 @@ export const isValidDateRange = (
   
   return start <= end;
 };
-
-// Re-export common validations
-export { isNotEmpty, isValidEmail };
