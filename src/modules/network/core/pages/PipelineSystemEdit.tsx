@@ -5,7 +5,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 01-01-2026
- * @updated 01-01-2026
+ * @updated 01-07-2026
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -40,9 +40,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
-import { pipelineSystemService } from '../services/pipelineSystemService';
-import { pipelineService } from '../services';
-import { operationalStatusService, productService, regionService } from '../../common/services';
+import { PipelineSystemService, PipelineService } from '../services';
+import { OperationalStatusService, ProductService, RegionService } from '../../common/services';
 import { PipelineSystemDTO } from '../dto/PipelineSystemDTO';
 import { PipelineDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
@@ -132,13 +131,13 @@ const PipelineSystemEdit = () => {
 
       let systemData: PipelineSystemDTO | null = null;
       if (isEditMode) {
-        systemData = await pipelineSystemService.getById(Number(pipelineSystemId));
+        systemData = await PipelineSystemService.getById(Number(pipelineSystemId));
       }
 
       const [productsData, statusesData, regionsData] = await Promise.allSettled([
-        productService.getAll(),
-        operationalStatusService.getAll(),
-        regionService.getAll(),
+        ProductService.getAllNoPagination(),
+        OperationalStatusService.getAllNoPagination(),
+        RegionService.getAllNoPagination(),
       ]);
 
       if (productsData.status === 'fulfilled') {
@@ -180,7 +179,7 @@ const PipelineSystemEdit = () => {
     try {
       setPipelinesLoading(true);
       setPipelinesError('');
-      const list = await pipelineService.getBySystem(Number(pipelineSystemId));
+      const list = await PipelineService.getBySystem(Number(pipelineSystemId));
       setPipelines(Array.isArray(list) ? list : []);
     } catch (err: any) {
       setPipelinesError(err.message || 'Failed to load pipelines');
@@ -245,10 +244,10 @@ const PipelineSystemEdit = () => {
       };
 
       if (isEditMode) {
-        await pipelineSystemService.update(Number(pipelineSystemId), payload);
+        await PipelineSystemService.update(Number(pipelineSystemId), payload);
         setSuccess('Pipeline system updated successfully');
       } else {
-        const created = await pipelineSystemService.create(payload);
+        const created = await PipelineSystemService.create(payload);
         setSuccess('Pipeline system created successfully');
         setTimeout(() => navigate(`/network/core/pipeline-systems/${created.id}/edit`), 800);
       }
