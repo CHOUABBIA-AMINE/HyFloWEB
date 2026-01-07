@@ -1,52 +1,96 @@
 /**
- * Person DTO
- * Data Transfer Object for Person entity
- * Aligned with Backend: dz.sh.trc.hyflo.general.organization.dto.PersonDTO
+ * Person DTO - Organization Module
+ * 
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.PersonDTO
+ * Updated: 01-07-2026 - Synced with backend U-002 update
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @created 12-23-2025
- * @updated 01-03-2026
- * @package common/administration
  */
 
-import { StateDTO } from './StateDTO';
-import { CountryDTO } from './CountryDTO';
-import { FileDTO } from '../../system/dto/FileDTO';
+import { StateDTO } from '../../localization/dto/StateDTO';
+import { CountryDTO } from '../../localization/dto/CountryDTO';
+import { FileDTO } from '../../../system/dto/FileDTO';
 
 export interface PersonDTO {
-  // Identifier
+  // Identifier (from GenericDTO)
   id?: number;
 
-  // Name Fields (Arabic)
-  lastNameAr: string;
-  firstNameAr: string;
+  // Name Fields (Arabic) - Optional in Person
+  lastNameAr?: string; // max 100 chars
+  firstNameAr?: string; // max 100 chars
 
-  // Name Fields (Latin)
-  lastNameLt: string;
-  firstNameLt: string;
+  // Name Fields (Latin) - Required
+  lastNameLt: string; // @NotBlank, max 100 chars
+  firstNameLt: string; // @NotBlank, max 100 chars
 
   // Birth Information
-  birthDate?: string | Date;
-  birthPlaceAr?: string;
-  birthPlaceLt?: string;
+  birthDate?: Date | string;
+  birthPlaceAr?: string; // max 200 chars
+  birthPlaceLt?: string; // max 200 chars
 
   // Address Information
-  addressAr?: string;
-  addressLt?: string;
+  addressAr?: string; // max 200 chars
+  addressLt?: string; // max 200 chars
 
-  // Foreign Keys (IDs)
+  // Relationship IDs (from backend)
   birthStateId?: number;
   addressStateId?: number;
-  pictureId?: number;
   countryId?: number;
+  pictureId?: number;
 
-  // Relationships (Objects)
+  // Nested Objects (optional, populated in responses)
   birthState?: StateDTO;
   addressState?: StateDTO;
-  picture?: FileDTO;
   country?: CountryDTO;
-
-  // Timestamps
-  createdAt?: string;
-  updatedAt?: string;
+  picture?: FileDTO;
 }
+
+/**
+ * Validates PersonDTO according to backend constraints
+ * @param data - Partial person data to validate
+ * @returns Array of validation error messages
+ */
+export const validatePersonDTO = (data: Partial<PersonDTO>): string[] => {
+  const errors: string[] = [];
+  
+  // Latin names are required
+  if (!data.lastNameLt) {
+    errors.push("Latin last name is required");
+  } else if (data.lastNameLt.length > 100) {
+    errors.push("Latin last name must not exceed 100 characters");
+  }
+  
+  if (!data.firstNameLt) {
+    errors.push("Latin first name is required");
+  } else if (data.firstNameLt.length > 100) {
+    errors.push("Latin first name must not exceed 100 characters");
+  }
+  
+  // Arabic names are optional but have max length
+  if (data.lastNameAr && data.lastNameAr.length > 100) {
+    errors.push("Arabic last name must not exceed 100 characters");
+  }
+  
+  if (data.firstNameAr && data.firstNameAr.length > 100) {
+    errors.push("Arabic first name must not exceed 100 characters");
+  }
+  
+  // Place and address validations
+  if (data.birthPlaceAr && data.birthPlaceAr.length > 200) {
+    errors.push("Arabic birth place must not exceed 200 characters");
+  }
+  
+  if (data.birthPlaceLt && data.birthPlaceLt.length > 200) {
+    errors.push("Latin birth place must not exceed 200 characters");
+  }
+  
+  if (data.addressAr && data.addressAr.length > 200) {
+    errors.push("Arabic address must not exceed 200 characters");
+  }
+  
+  if (data.addressLt && data.addressLt.length > 200) {
+    errors.push("Latin address must not exceed 200 characters");
+  }
+  
+  return errors;
+};
