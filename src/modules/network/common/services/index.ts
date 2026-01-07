@@ -1,10 +1,15 @@
 /**
  * Network Common Services - Barrel Export
  * 
- * All services for the Network Common module.
- * These services provide API communication for lookup/reference data.
+ * Services aligned with DTOs in network/common module.
+ * Each service corresponds to a DTO for API communication.
+ * 
+ * @module Network/Common/Services
+ * @category Service
+ * @author CHOUABBIA Amine
  */
 
+// Export service classes (PascalCase files only)
 export * from './AlloyService';
 export * from './OperationalStatusService';
 export * from './PartnerService';
