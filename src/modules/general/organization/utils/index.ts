@@ -1,38 +1,10 @@
 /**
- * General > Organization utilities.
- *
- * Provides helpers for rendering localized names for entities that may expose
- * multilingual fields such as:
- * - nameAr, nameLt, nameEn, nameFr
- * - designationAr, designationEn, designationFr
+ * General Organization Utils - Barrel Export
+ * 
+ * All utility functions for the General Organization module.
  */
 
-export type LocalizableEntity = Record<string, any>;
-
-export const getLocalizedName = (entity: LocalizableEntity | null | undefined, lang: string): string => {
-  if (!entity) return '';
-
-  const l = (lang || 'en').toLowerCase();
-
-  const pick = (keys: string[]): string | undefined => {
-    for (const k of keys) {
-      const v = entity?.[k];
-      if (typeof v === 'string' && v.trim().length > 0) return v;
-    }
-    return undefined;
-  };
-
-  // Common field families
-  const ar = pick(['nameAr', 'designationAr']);
-  const lt = pick(['nameLt', 'designationLt']);
-  const en = pick(['nameEn', 'designationEn']);
-  const fr = pick(['nameFr', 'designationFr', 'label']);
-
-  // Heuristic mapping by language
-  if (l.startsWith('ar')) return ar || fr || en || lt || pick(['code']) || String(entity?.id ?? '');
-  if (l.startsWith('fr')) return fr || en || lt || ar || pick(['code']) || String(entity?.id ?? '');
-  if (l.startsWith('en')) return en || fr || lt || ar || pick(['code']) || String(entity?.id ?? '');
-
-  // Latin (lt) or fallback
-  return lt || en || fr || ar || pick(['code']) || String(entity?.id ?? '');
-};
+export * from './validation';
+export * from './formatters';
+export * from './helpers';
+export * from './constants';
