@@ -6,11 +6,29 @@
  * @author CHOUABBIA Amine
  */
 
-import { sortBy } from '../../common/utils/helpers';
 import type { PersonDTO } from '../dto/PersonDTO';
 import type { EmployeeDTO } from '../dto/EmployeeDTO';
 import type { JobDTO } from '../dto/JobDTO';
 import type { StructureDTO } from '../dto/StructureDTO';
+
+/**
+ * Generic sortBy helper function
+ * Sorts an array of objects by a given key
+ */
+export const sortBy = <T>(arr: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] => {
+  return [...arr].sort((a, b) => {
+    const aVal = a[key];
+    const bVal = b[key];
+    
+    if (aVal === bVal) return 0;
+    
+    if (aVal === null || aVal === undefined) return 1;
+    if (bVal === null || bVal === undefined) return -1;
+    
+    const comparison = aVal < bVal ? -1 : 1;
+    return order === 'asc' ? comparison : -comparison;
+  });
+};
 
 /**
  * Sort persons by last name
@@ -266,6 +284,3 @@ export const groupJobsByStructure = (
     return acc;
   }, {} as Record<number, JobDTO[]>);
 };
-
-// Re-export common helpers
-export { sortBy };
