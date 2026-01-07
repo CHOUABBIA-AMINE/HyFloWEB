@@ -1,23 +1,27 @@
 /**
  * Locality DTO - Localization Module
- * Represents a locality (city, town, district) in the system
  * 
- * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocalityDTO
- * Updated: 01-06-2026 - Fixed field naming to match Java backend (designation* instead of name*)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocalityDTO
+ * Updated: 01-07-2026 - Cleaned extra fields, fixed code constraint to max 10 chars
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
+import { StateDTO } from './StateDTO';
+
 export interface LocalityDTO {
+  // Identifier (from GenericDTO)
   id?: number;
-  code: string; // @NotBlank, max 5 chars
-  stateId: number; // @NotBlank
+
+  // Core fields (from backend)
+  code: string; // @NotBlank, max 10 chars
   designationAr?: string; // max 100 chars
   designationEn?: string; // max 100 chars
   designationFr: string; // @NotBlank, max 100 chars
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  
+  // Relationships (from backend)
+  stateId: number; // @NotNull
+  state?: StateDTO; // Optional nested object
 }
 
 /**
@@ -30,8 +34,8 @@ export const validateLocalityDTO = (data: Partial<LocalityDTO>): string[] => {
   
   if (!data.code) {
     errors.push("Code is required");
-  } else if (data.code.length > 5) {
-    errors.push("Code must not exceed 5 characters");
+  } else if (data.code.length > 10) {
+    errors.push("Code must not exceed 10 characters");
   }
   
   if (!data.stateId) {
