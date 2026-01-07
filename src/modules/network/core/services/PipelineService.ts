@@ -4,7 +4,7 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.PipelineService
  * 
  * Provides CRUD operations and search functionality for pipelines.
- * Pipelines are the main conduits for transporting hydrocarbons.
+ * Pipelines are the main transport infrastructure connecting fields to terminals.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
@@ -92,10 +92,12 @@ export class PipelineService {
   }
 
   /**
-   * Find pipelines by pipeline system ID
+   * Find pipelines by pipeline system
    */
   static async findByPipelineSystem(systemId: number): Promise<PipelineDTO[]> {
-    const response = await apiClient.get<PipelineDTO[]>(`${BASE_URL}/by-system/${systemId}`);
+    const response = await apiClient.get<PipelineDTO[]>(
+      `${BASE_URL}/by-pipeline-system/${systemId}`
+    );
     return response.data;
   }
 }
