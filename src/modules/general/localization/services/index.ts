@@ -1,13 +1,18 @@
 /**
- * Localization Services
- * Exports all services related to localization entities
+ * General Localization Services - Barrel Export
  * 
- * Aligned with backend: dz.sh.trc.hyflo.general.localization.service
+ * All services for the General Localization module.
+ * These services provide API communication for geographic entities.
  * 
- * @author CHOUABBIA Amine
- * @created 01-03-2026
+ * Geographic Hierarchy:
+ * Country > State > Locality > Location
+ * 
+ * Also includes:
+ * - Zone (administrative/geographic regions)
  */
 
-export { countryService } from './CountryService';
-export { stateService } from './StateService';
-export { localityService } from './LocalityService';
+export * from './CountryService';
+export * from './StateService';
+export * from './LocalityService';
+export * from './LocationService';
+export * from './ZoneService';
