@@ -1,21 +1,18 @@
 /**
- * Organization Services
- * Exports all services related to organization entities
+ * General Organization Services - Barrel Export
  * 
- * Aligned with backend: dz.sh.trc.hyflo.general.organization.service
+ * All services for the General Organization module.
+ * These services provide API communication for organizational entities.
  * 
- * @author CHOUABBIA Amine
- * @created 01-03-2026
- * @updated 01-03-2026 - Added organization service exports
+ * Organizational Hierarchy:
+ * Structure (can have parent-child relationships)
+ *   └─> Job (positions within structures)
+ *        └─> Employee (persons assigned to jobs)
+ * 
+ * Person (independent, can become Employee)
  */
 
-// Organization services (default exports)
-export { default as structureService } from './StructureService';
-export { default as jobService } from './JobService';
-
-// Organization services (named exports)
-export { employeeService } from './employeeService';
-
-// Re-export localization services that organization depends on
-export { countryService, stateService, localityService } from '../../localization/services';
-export { countryService as localCountryService, stateService as localStateService, localityService as localLocalityService } from '../../localization/services';
+export * from './PersonService';
+export * from './EmployeeService';
+export * from './JobService';
+export * from './StructureService';

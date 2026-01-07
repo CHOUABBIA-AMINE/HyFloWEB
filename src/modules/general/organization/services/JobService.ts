@@ -1,57 +1,101 @@
 /**
- * Job Service
- * Matches: dz.mdn.iaas.common.administration.service.JobService.java
- * Communicates with: JobController.java
+ * Job Service - General Organization Module
  * 
- * @author CHOUABBIA Amine
- * @created 12-28-2025
- * @updated 12-29-2025 - Set id=null in create
- * @updated 12-30-2025 - Added getAllList method
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.service.JobService
+ * 
+ * Provides CRUD operations and search functionality for jobs/positions.
+ * Jobs represent positions within organizational structures.
+ * 
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @created 06-26-2025
+ * @updated 01-02-2026
  */
 
-import axiosInstance from '../../../../shared/config/axios';
-import { JobDTO } from '../dto/JobDTO';
+import { apiClient } from '@/lib/api-client';
+import type { JobDTO } from '../dto/JobDTO';
+import type { Page, Pageable } from '@/types/pagination';
 
-class JobService {
-  private readonly BASE_URL = '/general/organization/job';
+const BASE_URL = '/api/general/organization/jobs';
 
-  async getAll(): Promise<JobDTO[]> {
-    const response = await axiosInstance.get<JobDTO[]>(`${this.BASE_URL}/all`);
+export class JobService {
+  /**
+   * Get all jobs with pagination
+   */
+  static async getAll(pageable: Pageable): Promise<Page<JobDTO>> {
+    const response = await apiClient.get<Page<JobDTO>>(BASE_URL, {
+      params: {
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
+    });
     return response.data;
   }
 
-  async getAllList(): Promise<JobDTO[]> {
-    return this.getAll();
-  }
-
-  async getById(id: number): Promise<JobDTO> {
-    const response = await axiosInstance.get<JobDTO>(`${this.BASE_URL}/${id}`);
+  /**
+   * Get all jobs without pagination
+   */
+  static async getAllNoPagination(): Promise<JobDTO[]> {
+    const response = await apiClient.get<JobDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
-  async getByCode(code: string): Promise<JobDTO> {
-    const response = await axiosInstance.get<JobDTO>(`${this.BASE_URL}/code/${code}`);
+  /**
+   * Get job by ID
+   */
+  static async getById(id: number): Promise<JobDTO> {
+    const response = await apiClient.get<JobDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
-  async getByStructure(structureId: number): Promise<JobDTO[]> {
-    const response = await axiosInstance.get<JobDTO[]>(`${this.BASE_URL}/structure/${structureId}`);
+  /**
+   * Create new job
+   * Backend logs: "Creating job: code={code}, designationFr={designationFr}"
+   */
+  static async create(dto: JobDTO): Promise<JobDTO> {
+    const response = await apiClient.post<JobDTO>(BASE_URL, dto);
     return response.data;
   }
 
-  async create(job: JobDTO): Promise<JobDTO> {
-    const response = await axiosInstance.post<JobDTO>(this.BASE_URL, { ...job, id: null });
+  /**
+   * Update existing job
+   * Backend logs: "Updating job with ID: {id}"
+   */
+  static async update(id: number, dto: JobDTO): Promise<JobDTO> {
+    const response = await apiClient.put<JobDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
-  async update(id: number, job: JobDTO): Promise<JobDTO> {
-    const response = await axiosInstance.put<JobDTO>(`${this.BASE_URL}/${id}`, job);
+  /**
+   * Delete job by ID
+   */
+  static async delete(id: number): Promise<void> {
+    await apiClient.delete(`${BASE_URL}/${id}`);
+  }
+
+  /**
+   * Global search across all job fields
+   */
+  static async globalSearch(
+    searchTerm: string,
+    pageable: Pageable
+  ): Promise<Page<JobDTO>> {
+    const response = await apiClient.get<Page<JobDTO>>(`${BASE_URL}/search`, {
+      params: {
+        q: searchTerm,
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
+    });
     return response.data;
   }
 
-  async delete(id: number): Promise<void> {
-    await axiosInstance.delete(`${this.BASE_URL}/${id}`);
+  /**
+   * Get jobs by structure ID
+   */
+  static async getByStructureId(structureId: number): Promise<JobDTO[]> {
+    const response = await apiClient.get<JobDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
+    return response.data;
   }
 }
-
-export default new JobService();
