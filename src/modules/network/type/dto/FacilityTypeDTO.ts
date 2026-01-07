@@ -1,15 +1,15 @@
 /**
- * HydrocarbonFieldType DTO - Network Type Module
+ * FacilityType DTO - Network Type Module
  * 
- * Strictly aligned with backend: dz.sh.trc.hyflo.network.type.dto.HydrocarbonFieldTypeDTO
+ * Strictly aligned with backend: dz.sh.trc.hyflo.network.type.dto.FacilityTypeDTO
  * 
  * Type entity with multilingual designations (Arabic, English, French)
- * Used to classify HydrocarbonField entities in the Network module.
+ * Used to classify Facility entities in the Network module.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
-export interface HydrocarbonFieldTypeDTO {
+export interface FacilityTypeDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
@@ -21,9 +21,9 @@ export interface HydrocarbonFieldTypeDTO {
 }
 
 /**
- * Validates HydrocarbonFieldTypeDTO according to backend constraints
+ * Validates FacilityTypeDTO according to backend constraints
  */
-export const validateHydrocarbonFieldTypeDTO = (data: Partial<HydrocarbonFieldTypeDTO>): string[] => {
+export const validateFacilityTypeDTO = (data: Partial<FacilityTypeDTO>): string[] => {
   const errors: string[] = [];
   
   if (!data.code) {
