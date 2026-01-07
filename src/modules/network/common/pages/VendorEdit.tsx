@@ -1,5 +1,9 @@
 /**
  * Vendor Edit/Create Page
+ * 
+ * @author CHOUABBIA Amine
+ * @created 12-28-2025
+ * @updated 01-07-2026 - Fixed service imports to use correct paths and UpperCase static methods
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -19,12 +23,10 @@ import {
   MenuItem,
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon } from '@mui/icons-material';
-
-import { vendorService } from '../services/vendorService';
+import { VendorService } from '../services';
 import { VendorDTO } from '../dto/VendorDTO';
-import { vendorTypeService } from '../../type/services';
-import { countryService } from '../../../common/administration/services';
-import { getLocalizedName as getAdminLocalizedName } from '../../../common/administration/utils';
+import { VendorTypeService } from '../../type/services';
+import { CountryService } from '../../../general/localization/services';
 
 const VendorEdit = () => {
   const { t, i18n } = useTranslation();
@@ -49,7 +51,7 @@ const VendorEdit = () => {
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const getVendorTypeLabel = (obj: any): string => {
+  const getLocalizedLabel = (obj: any): string => {
     if (!obj) return '';
     if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '';
     if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '';
@@ -58,15 +60,14 @@ const VendorEdit = () => {
 
   const sortedVendorTypes = useMemo(() => {
     const copy = [...vendorTypes];
-    return copy.sort((a, b) => getVendorTypeLabel(a).localeCompare(getVendorTypeLabel(b)));
+    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorTypes, currentLanguage]);
 
   const sortedCountries = useMemo(() => {
     const copy = [...countries];
-    return copy.sort((a, b) =>
-      getAdminLocalizedName(a, currentLanguage).localeCompare(getAdminLocalizedName(b, currentLanguage))
-    );
+    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countries, currentLanguage]);
 
   useEffect(() => {
@@ -80,24 +81,20 @@ const VendorEdit = () => {
 
       let vendorData: VendorDTO | null = null;
       if (isEditMode) {
-        vendorData = await vendorService.getById(Number(vendorId));
+        vendorData = await VendorService.getById(Number(vendorId));
       }
 
       const [typesData, countriesData] = await Promise.allSettled([
-        vendorTypeService.getAll(),
-        countryService.getAllList(),
+        VendorTypeService.getAllNoPagination(),
+        CountryService.getAllNoPagination(),
       ]);
 
       if (typesData.status === 'fulfilled') {
-        const types = Array.isArray(typesData.value) ? typesData.value : (typesData.value as any)?.data || [];
-        setVendorTypes(types);
+        setVendorTypes(Array.isArray(typesData.value) ? typesData.value : []);
       }
 
       if (countriesData.status === 'fulfilled') {
-        const items = Array.isArray(countriesData.value)
-          ? countriesData.value
-          : (countriesData.value as any)?.data || (countriesData.value as any)?.content || [];
-        setCountries(items);
+        setCountries(Array.isArray(countriesData.value) ? countriesData.value : []);
       }
 
       if (vendorData) setVendor(vendorData);
@@ -146,9 +143,9 @@ const VendorEdit = () => {
       };
 
       if (isEditMode) {
-        await vendorService.update(Number(vendorId), payload);
+        await VendorService.update(Number(vendorId), payload);
       } else {
-        await vendorService.create(payload);
+        await VendorService.create(payload);
       }
 
       navigate('/network/common/vendors');
@@ -221,7 +218,7 @@ const VendorEdit = () => {
                   >
                     {sortedVendorTypes.map((vt) => (
                       <MenuItem key={vt.id} value={vt.id}>
-                        {getVendorTypeLabel(vt)}
+                        {getLocalizedLabel(vt)}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -240,7 +237,7 @@ const VendorEdit = () => {
                   >
                     {sortedCountries.map((c) => (
                       <MenuItem key={c.id} value={c.id}>
-                        {getAdminLocalizedName(c, currentLanguage)}
+                        {getLocalizedLabel(c)}
                       </MenuItem>
                     ))}
                   </TextField>

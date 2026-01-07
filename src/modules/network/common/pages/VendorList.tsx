@@ -1,5 +1,9 @@
 /**
- * Vendor List Page - SERVER-SIDE PAGINATION
+ * Vendor List Page
+ * 
+ * @author CHOUABBIA Amine
+ * @created 12-28-2025
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -26,8 +30,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
-
-import { vendorService } from '../services/vendorService';
+import { VendorService } from '../services';
 import { VendorDTO } from '../dto/VendorDTO';
 
 const VendorList = () => {
@@ -67,11 +70,17 @@ const VendorList = () => {
     try {
       setLoading(true);
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
-      const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
+      const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
+
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
 
       const pageResponse = searchText
-        ? await vendorService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
-        : await vendorService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        ? await VendorService.globalSearch(searchText, pageable)
+        : await VendorService.getAll(pageable);
 
       setRows(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
@@ -91,9 +100,10 @@ const VendorList = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this vendor?')) {
       try {
-        await vendorService.delete(id);
+        await VendorService.delete(id);
         setSuccess('Deleted');
         loadData();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
         setError(err.message || 'Failed to delete vendor');
       }
@@ -111,8 +121,7 @@ const VendorList = () => {
       field: 'shortName',
       headerName: 'Short name',
       width: 140,
-      valueGetter: (p) => p.row.shortName || '-',
-      renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
+      renderCell: (params) => <Chip label={params.value || '-'} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
     },
     {
       field: 'name',
