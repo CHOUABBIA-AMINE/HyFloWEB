@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 12-24-2025
+ * @updated 01-07-2026
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -29,11 +29,11 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { stationService, pipelineSystemService } from '../services';
-import { vendorService, operationalStatusService } from '../../common/services';
-import { stationTypeService } from '../../type/services';
-import { stateService, localityService } from '../../../common/administration/services';
-import { getLocalizedName as getAdminLocalizedName } from '../../../common/administration/utils';
+import { StationService, PipelineSystemService } from '../services';
+import { VendorService, OperationalStatusService } from '../../common/services';
+import { StationTypeService } from '../../type/services';
+import { StateService, LocalityService } from '../../../general/localization/services';
+import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
 import { StationDTO, StationCreateDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -118,7 +118,7 @@ const StationEdit = () => {
       // Load station first if editing
       let stationData: StationDTO | null = null;
       if (isEditMode) {
-        stationData = await stationService.getById(Number(stationId));
+        stationData = await StationService.getById(Number(stationId));
       }
       
       // Load all data from REST APIs in parallel
@@ -129,11 +129,11 @@ const StationEdit = () => {
         operationalStatusesData,
         statesData
       ] = await Promise.allSettled([
-        vendorService.getAll(),
-        pipelineSystemService.getAll(),
-        stationTypeService.getAll(),
-        operationalStatusService.getAll(),
-        stateService.getAll(),
+        VendorService.getAllNoPagination(),
+        PipelineSystemService.getAllNoPagination(),
+        StationTypeService.getAllNoPagination(),
+        OperationalStatusService.getAllNoPagination(),
+        StateService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -211,7 +211,7 @@ const StationEdit = () => {
   const loadLocalitiesByState = async (stateId: number) => {
     try {
       setLoadingLocalities(true);
-      const localitiesData = await localityService.getByStateId(stateId);
+      const localitiesData = await LocalityService.getByStateId(stateId);
       const localities = Array.isArray(localitiesData) 
         ? localitiesData 
         : (localitiesData?.data || localitiesData?.content || []);
@@ -321,9 +321,9 @@ const StationEdit = () => {
       };
 
       if (isEditMode) {
-        await stationService.update(Number(stationId), { id: Number(stationId), ...stationData });
+        await StationService.update(Number(stationId), { id: Number(stationId), ...stationData });
       } else {
-        await stationService.create(stationData);
+        await StationService.create(stationData);
       }
 
       navigate('/network/core/stations');
@@ -461,7 +461,7 @@ const StationEdit = () => {
                     {states.length > 0 ? (
                       states.map((state) => (
                         <MenuItem key={state.id} value={state.id}>
-                          {getAdminLocalizedName(state, currentLanguage)}
+                          {getLocalizationLocalizedName(state, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
@@ -493,7 +493,7 @@ const StationEdit = () => {
                     ) : localities.length > 0 ? (
                       localities.map((locality) => (
                         <MenuItem key={locality.id} value={locality.id}>
-                          {getAdminLocalizedName(locality, currentLanguage)}
+                          {getLocalizationLocalizedName(locality, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (

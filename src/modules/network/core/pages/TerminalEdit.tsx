@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 01-03-2026
+ * @updated 01-07-2026
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -29,10 +29,10 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { terminalService } from '../services';
-import { vendorService, operationalStatusService } from '../../common/services';
-import { terminalTypeService } from '../../type/services';
-import { stateService, localityService } from '../../../general/localization/services';
+import { TerminalService } from '../services';
+import { VendorService, OperationalStatusService } from '../../common/services';
+import { TerminalTypeService } from '../../type/services';
+import { StateService, LocalityService } from '../../../general/localization/services';
 import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
 import { TerminalDTO, TerminalCreateDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
@@ -115,7 +115,7 @@ const TerminalEdit = () => {
       // Load terminal first if editing
       let terminalData: TerminalDTO | null = null;
       if (isEditMode) {
-        terminalData = await terminalService.getById(Number(terminalId));
+        terminalData = await TerminalService.getById(Number(terminalId));
       }
       
       // Load all data from REST APIs in parallel
@@ -125,10 +125,10 @@ const TerminalEdit = () => {
         operationalStatusesData,
         statesData
       ] = await Promise.allSettled([
-        vendorService.getAll(),
-        terminalTypeService.getAll(),
-        operationalStatusService.getAll(),
-        stateService.getAll(),
+        VendorService.getAllNoPagination(),
+        TerminalTypeService.getAllNoPagination(),
+        OperationalStatusService.getAllNoPagination(),
+        StateService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -196,7 +196,7 @@ const TerminalEdit = () => {
   const loadLocalitiesByState = async (stateId: number) => {
     try {
       setLoadingLocalities(true);
-      const localitiesData = await localityService.getByStateId(stateId);
+      const localitiesData = await LocalityService.getByStateId(stateId);
       const localities = Array.isArray(localitiesData) 
         ? localitiesData 
         : (localitiesData?.data || localitiesData?.content || []);
@@ -304,9 +304,9 @@ const TerminalEdit = () => {
       };
 
       if (isEditMode) {
-        await terminalService.update(Number(terminalId), { id: Number(terminalId), ...terminalData });
+        await TerminalService.update(Number(terminalId), { id: Number(terminalId), ...terminalData });
       } else {
-        await terminalService.create(terminalData);
+        await TerminalService.create(terminalData);
       }
 
       navigate('/network/core/terminals');
