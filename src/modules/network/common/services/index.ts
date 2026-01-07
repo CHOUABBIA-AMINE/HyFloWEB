@@ -1,13 +1,12 @@
 /**
- * Common services barrel
+ * Network Common Services - Barrel Export
+ * 
+ * All services for the Network Common module.
+ * These services provide API communication for lookup/reference data.
  */
 
-export { alloyService } from './alloyService';
-export { operationalStatusService } from './operationalStatusService';
-export { productService } from './productService';
-export { vendorService } from './vendorService';
-export { regionService } from './regionService';
-export { zoneService } from './zoneService';
-export { activityService } from './activityService';
-export { locationService } from './locationService';
-export { partnerService } from './partnerService';
+export * from './AlloyService';
+export * from './OperationalStatusService';
+export * from './PartnerService';
+export * from './ProductService';
+export * from './VendorService';
