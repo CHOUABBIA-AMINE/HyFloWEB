@@ -2,7 +2,7 @@
  * Localization Mapper - Backend to Frontend DTO conversion
  * 
  * Handles transformation between backend JSON responses and frontend TypeScript interfaces
- * Updated: 01-07-2026 - Aligned with cleaned DTOs matching exact backend structure
+ * Updated: 01-07-2026 - Added sequence and infrastructureId mapping for Location
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
@@ -179,16 +179,19 @@ export class LocalizationMapper {
 
   /**
    * Maps backend Location response to frontend LocationDTO
+   * Backend Update (U-001, Jan 7 2026): Added sequence and infrastructureId fields
    * @param data - Raw backend response data
    * @returns Mapped LocationDTO
    */
   static mapToLocationDTO(data: any): LocationDTO {
     return {
       id: data.id,
+      sequence: data.sequence,
       code: data.code,
       latitude: data.latitude,
       longitude: data.longitude,
       elevation: data.elevation,
+      infrastructureId: data.infrastructureId,
       localityId: data.localityId,
       locality: data.locality ? this.mapToLocalityDTO(data.locality) : undefined,
     };
@@ -201,10 +204,12 @@ export class LocalizationMapper {
    */
   static mapFromLocationDTO(data: Partial<LocationDTO>): Record<string, any> {
     return {
+      sequence: data.sequence,
       code: data.code,
       latitude: data.latitude,
       longitude: data.longitude,
       elevation: data.elevation,
+      infrastructureId: data.infrastructureId,
       localityId: data.localityId,
     };
   }
