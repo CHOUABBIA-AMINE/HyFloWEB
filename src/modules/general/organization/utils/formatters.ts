@@ -6,7 +6,38 @@
  * @author CHOUABBIA Amine
  */
 
-import { toTitleCase, truncate, formatDate } from '../../common/utils/formatters';
+/**
+ * Convert string to title case
+ */
+export const toTitleCase = (str: string): string => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+/**
+ * Truncate string to specified length with ellipsis
+ */
+export const truncate = (str: string, maxLength: number = 50): string => {
+  if (!str || str.length <= maxLength) return str;
+  return str.substring(0, maxLength) + '...';
+};
+
+/**
+ * Format date to locale string
+ */
+export const formatDate = (date: string | Date | undefined | null, locale: string = 'fr-FR'): string => {
+  if (!date) return '-';
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString(locale);
+  } catch {
+    return '-';
+  }
+};
 
 /**
  * Format person full name (Latin characters)
@@ -128,6 +159,3 @@ export const formatStructurePath = (
   if (structures.length === 0) return '-';
   return structures.map(s => `${s.code}`).join(' > ');
 };
-
-// Re-export common formatters
-export { toTitleCase, truncate, formatDate };
