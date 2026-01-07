@@ -1,9 +1,16 @@
-export { stationService } from './stationService';
-export { terminalService } from './terminalService';
-export { hydrocarbonFieldService } from './hydrocarbonFieldService';
-export { pipelineSystemService } from './pipelineSystemService';
-export { pipelineService } from './pipelineService';
-export { facilityService } from './facilityService';
-export { equipmentService } from './equipmentService';
-export { pipelineSegmentService } from './pipelineSegmentService';
-export { infrastructureService } from './infrastructureService';
+/**
+ * Network Core Services - Barrel Export
+ * 
+ * All services for the Network Core module.
+ * These services provide API communication for core network entities.
+ */
+
+export * from './PipelineService';
+export * from './PipelineSystemService';
+export * from './PipelineSegmentService';
+export * from './EquipmentService';
+export * from './FacilityService';
+export * from './InfrastructureService';
+export * from './HydrocarbonFieldService';
+export * from './StationService';
+export * from './TerminalService';

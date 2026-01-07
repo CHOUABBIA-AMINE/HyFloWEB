@@ -4,7 +4,7 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.TerminalService
  * 
  * Provides CRUD operations and search functionality for terminals.
- * Terminals are endpoints for hydrocarbon delivery and consumption.
+ * Terminals are endpoints where hydrocarbons are received or dispatched.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
@@ -29,6 +29,14 @@ export class TerminalService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all terminals without pagination
+   */
+  static async getAllNoPagination(): Promise<TerminalDTO[]> {
+    const response = await apiClient.get<TerminalDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 

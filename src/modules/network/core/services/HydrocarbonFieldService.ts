@@ -4,7 +4,7 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.HydrocarbonFieldService
  * 
  * Provides CRUD operations and search functionality for hydrocarbon fields.
- * Hydrocarbon fields are the source/production sites for oil and gas.
+ * Hydrocarbon fields are geological formations where oil/gas is extracted.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
@@ -29,6 +29,14 @@ export class HydrocarbonFieldService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all hydrocarbon fields without pagination
+   */
+  static async getAllNoPagination(): Promise<HydrocarbonFieldDTO[]> {
+    const response = await apiClient.get<HydrocarbonFieldDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 

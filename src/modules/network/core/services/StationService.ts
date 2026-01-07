@@ -4,7 +4,7 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.StationService
  * 
  * Provides CRUD operations and search functionality for stations.
- * Stations are key facilities in the hydrocarbon network (pumping stations, compression stations, etc.).
+ * Stations are intermediate facilities along pipelines (compression, pumping, etc.).
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
@@ -29,6 +29,14 @@ export class StationService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all stations without pagination
+   */
+  static async getAllNoPagination(): Promise<StationDTO[]> {
+    const response = await apiClient.get<StationDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
