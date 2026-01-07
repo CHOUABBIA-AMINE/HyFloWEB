@@ -2,10 +2,12 @@
  * Employee DTO - Organization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.EmployeeDTO
- * Updated: 01-07-2026 - Synced with backend U-002 update
+ * Updated: 01-07-2026 - Synced with backend U-003 update
  * 
  * IMPORTANT: Backend uses FLAT structure (no inheritance from PersonDTO)
  * EmployeeDTO contains all Person fields + Employee-specific fields
+ * 
+ * UPDATE U-003: Arabic names are now OPTIONAL (same as PersonDTO)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -19,9 +21,9 @@ export interface EmployeeDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
-  // Name Fields (Arabic) - REQUIRED in Employee (unlike Person)
-  lastNameAr: string; // @NotBlank, max 100 chars
-  firstNameAr: string; // @NotBlank, max 100 chars
+  // Name Fields (Arabic) - OPTIONAL (U-003 update)
+  lastNameAr?: string; // max 100 chars
+  firstNameAr?: string; // max 100 chars
 
   // Name Fields (Latin) - Required
   lastNameLt: string; // @NotBlank, max 100 chars
@@ -56,25 +58,14 @@ export interface EmployeeDTO {
 
 /**
  * Validates EmployeeDTO according to backend constraints
+ * Note: U-003 update made Arabic names optional (same as PersonDTO)
  * @param data - Partial employee data to validate
  * @returns Array of validation error messages
  */
 export const validateEmployeeDTO = (data: Partial<EmployeeDTO>): string[] => {
   const errors: string[] = [];
   
-  // All names are required in Employee (Arabic AND Latin)
-  if (!data.lastNameAr) {
-    errors.push("Arabic last name is required");
-  } else if (data.lastNameAr.length > 100) {
-    errors.push("Arabic last name must not exceed 100 characters");
-  }
-  
-  if (!data.firstNameAr) {
-    errors.push("Arabic first name is required");
-  } else if (data.firstNameAr.length > 100) {
-    errors.push("Arabic first name must not exceed 100 characters");
-  }
-  
+  // Latin names are required
   if (!data.lastNameLt) {
     errors.push("Latin last name is required");
   } else if (data.lastNameLt.length > 100) {
@@ -85,6 +76,15 @@ export const validateEmployeeDTO = (data: Partial<EmployeeDTO>): string[] => {
     errors.push("Latin first name is required");
   } else if (data.firstNameLt.length > 100) {
     errors.push("Latin first name must not exceed 100 characters");
+  }
+  
+  // Arabic names are optional but have max length
+  if (data.lastNameAr && data.lastNameAr.length > 100) {
+    errors.push("Arabic last name must not exceed 100 characters");
+  }
+  
+  if (data.firstNameAr && data.firstNameAr.length > 100) {
+    errors.push("Arabic first name must not exceed 100 characters");
   }
   
   // Registration number validation
