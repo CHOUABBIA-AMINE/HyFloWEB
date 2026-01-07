@@ -2,7 +2,7 @@
  * Localization Mapper - Backend to Frontend DTO conversion
  * 
  * Handles transformation between backend JSON responses and frontend TypeScript interfaces
- * Ensures data consistency across the application
+ * Updated: 01-07-2026 - Aligned with cleaned DTOs matching exact backend structure
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
@@ -26,9 +26,6 @@ export class LocalizationMapper {
       designationAr: data.designationAr,
       designationEn: data.designationEn,
       designationFr: data.designationFr,
-      isActive: data.isActive ?? true,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
     };
   }
 
@@ -66,13 +63,9 @@ export class LocalizationMapper {
     return {
       id: data.id,
       code: data.code,
-      countryId: data.countryId,
       designationAr: data.designationAr,
       designationEn: data.designationEn,
       designationFr: data.designationFr,
-      isActive: data.isActive ?? true,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
     };
   }
 
@@ -84,7 +77,6 @@ export class LocalizationMapper {
   static mapFromStateDTO(data: Partial<StateDTO>): Record<string, any> {
     return {
       code: data.code,
-      countryId: data.countryId,
       designationAr: data.designationAr,
       designationEn: data.designationEn,
       designationFr: data.designationFr,
@@ -115,9 +107,7 @@ export class LocalizationMapper {
       designationAr: data.designationAr,
       designationEn: data.designationEn,
       designationFr: data.designationFr,
-      isActive: data.isActive ?? true,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      state: data.state ? this.mapToStateDTO(data.state) : undefined,
     };
   }
 
@@ -156,13 +146,9 @@ export class LocalizationMapper {
     return {
       id: data.id,
       code: data.code,
-      localityId: data.localityId,
       designationAr: data.designationAr,
       designationEn: data.designationEn,
       designationFr: data.designationFr,
-      isActive: data.isActive ?? true,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
     };
   }
 
@@ -174,7 +160,6 @@ export class LocalizationMapper {
   static mapFromZoneDTO(data: Partial<ZoneDTO>): Record<string, any> {
     return {
       code: data.code,
-      localityId: data.localityId,
       designationAr: data.designationAr,
       designationEn: data.designationEn,
       designationFr: data.designationFr,
@@ -201,14 +186,11 @@ export class LocalizationMapper {
     return {
       id: data.id,
       code: data.code,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      elevation: data.elevation,
       localityId: data.localityId,
-      zoneId: data.zoneId,
-      designationAr: data.designationAr,
-      designationEn: data.designationEn,
-      designationFr: data.designationFr,
-      isActive: data.isActive ?? true,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
+      locality: data.locality ? this.mapToLocalityDTO(data.locality) : undefined,
     };
   }
 
@@ -220,11 +202,10 @@ export class LocalizationMapper {
   static mapFromLocationDTO(data: Partial<LocationDTO>): Record<string, any> {
     return {
       code: data.code,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      elevation: data.elevation,
       localityId: data.localityId,
-      zoneId: data.zoneId,
-      designationAr: data.designationAr,
-      designationEn: data.designationEn,
-      designationFr: data.designationFr,
     };
   }
 
