@@ -8,6 +8,7 @@
  * @updated 01-03-2026 - Single multilingual designation column, removed ID column, fixed type filter
  * @updated 01-03-2026 - Use pageable requests instead of /all for better performance
  * @updated 01-03-2026 - Added translations for table headers and UI elements
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -51,8 +52,8 @@ import {
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 
 // Import from correct modules aligned with backend architecture
-import structureService from '../services/StructureService';
-import { structureTypeService } from '../../type/services';
+import { StructureService } from '../services';
+import { StructureTypeService } from '../../type/services';
 import { StructureDTO } from '../dto/StructureDTO';
 import { StructureTypeDTO } from '../../type/dto';
 
@@ -113,15 +114,7 @@ const StructureList = () => {
 
   const loadStructureTypes = async () => {
     try {
-      const typesData = await structureTypeService.getAll();
-      
-      let typesList: StructureTypeDTO[] = [];
-      if (Array.isArray(typesData)) {
-        typesList = typesData;
-      } else if (typesData && typeof typesData === 'object') {
-        typesList = (typesData as any).data || (typesData as any).content || [];
-      }
-      
+      const typesList = await StructureTypeService.getAllNoPagination();
       setStructureTypes(typesList);
     } catch (err: any) {
       console.error('Failed to load structure types:', err);
@@ -132,14 +125,31 @@ const StructureList = () => {
     try {
       setLoading(true);
       
-      const response = await structureService.getPageable({
+      const response = await StructureService.getAll({
         page: paginationModel.page,
         size: paginationModel.pageSize,
-        search: debouncedSearch || undefined,
-        structureTypeId: selectedTypeId ? Number(selectedTypeId) : undefined,
       });
       
-      setStructures(response.content || []);
+      let structuresList = response.content || [];
+      
+      // Apply client-side filtering if search or type filter is active
+      if (debouncedSearch) {
+        const searchLower = debouncedSearch.toLowerCase();
+        structuresList = structuresList.filter((s: StructureDTO) => 
+          s.code?.toLowerCase().includes(searchLower) ||
+          s.designationFr?.toLowerCase().includes(searchLower) ||
+          s.designationEn?.toLowerCase().includes(searchLower) ||
+          s.designationAr?.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      if (selectedTypeId) {
+        structuresList = structuresList.filter((s: StructureDTO) => 
+          s.structureTypeId === Number(selectedTypeId)
+        );
+      }
+      
+      setStructures(structuresList);
       setRowCount(response.totalElements || 0);
       setError('');
     } catch (err: any) {
@@ -264,7 +274,7 @@ const StructureList = () => {
   const handleDelete = async (structureId: number) => {
     if (window.confirm(t('structure.confirmDelete', 'Delete this structure?'))) {
       try {
-        await structureService.delete(structureId);
+        await StructureService.delete(structureId);
         setSuccess(t('structure.deleteSuccess', 'Structure deleted successfully'));
         loadData();
       } catch (err: any) {
