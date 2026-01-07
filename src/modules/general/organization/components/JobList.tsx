@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect } from 'react';
@@ -33,7 +34,7 @@ import {
   Work as JobIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import jobService from '../services/JobService';
+import { JobService } from '../services';
 import { JobDTO } from '../dto/JobDTO';
 
 interface JobListProps {
@@ -64,15 +65,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
 
     try {
       setLoading(true);
-      const data = await jobService.getByStructure(structureId);
-      
-      let jobsList: JobDTO[] = [];
-      if (Array.isArray(data)) {
-        jobsList = data;
-      } else if (data && typeof data === 'object') {
-        jobsList = (data as any).data || (data as any).content || [];
-      }
-      
+      const jobsList = await JobService.getByStructureId(structureId);
       setJobs(jobsList);
       setError('');
     } catch (err: any) {
@@ -87,7 +80,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
   const handleDelete = async (jobId: number) => {
     if (window.confirm('Delete this job?')) {
       try {
-        await jobService.delete(jobId);
+        await JobService.delete(jobId);
         setSuccess('Job deleted successfully');
         loadJobs();
         setTimeout(() => setSuccess(''), 3000);

@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
- * @updated 12-28-2025
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect } from 'react';
@@ -25,7 +25,7 @@ import {
   Close as CloseIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
-import jobService from '../services/JobService';
+import { JobService } from '../services';
 import { JobDTO } from '../dto/JobDTO';
 
 interface JobEditDialogProps {
@@ -107,9 +107,9 @@ const JobEditDialog = ({ open, onClose, onSave, structureId, job }: JobEditDialo
       };
 
       if (isEditMode) {
-        await jobService.update(job!.id, jobData);
+        await JobService.update(job!.id, jobData);
       } else {
-        await jobService.create(jobData);
+        await JobService.create(jobData);
       }
 
       onSave();
