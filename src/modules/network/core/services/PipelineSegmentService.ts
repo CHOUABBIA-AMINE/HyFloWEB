@@ -4,7 +4,7 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.PipelineSegmentService
  * 
  * Provides CRUD operations and search functionality for pipeline segments.
- * Pipeline segments are individual sections/portions of a pipeline.
+ * Pipeline segments are physical sections of a pipeline between two points.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
@@ -29,6 +29,14 @@ export class PipelineSegmentService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all pipeline segments without pagination
+   */
+  static async getAllNoPagination(): Promise<PipelineSegmentDTO[]> {
+    const response = await apiClient.get<PipelineSegmentDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -84,10 +92,12 @@ export class PipelineSegmentService {
   }
 
   /**
-   * Find pipeline segments by pipeline ID
+   * Find pipeline segments by pipeline
    */
   static async findByPipeline(pipelineId: number): Promise<PipelineSegmentDTO[]> {
-    const response = await apiClient.get<PipelineSegmentDTO[]>(`${BASE_URL}/by-pipeline/${pipelineId}`);
+    const response = await apiClient.get<PipelineSegmentDTO[]>(
+      `${BASE_URL}/by-pipeline/${pipelineId}`
+    );
     return response.data;
   }
 }

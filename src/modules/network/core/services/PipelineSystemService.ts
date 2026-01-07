@@ -92,26 +92,12 @@ export class PipelineSystemService {
   }
 
   /**
-   * Find pipeline systems by product ID
+   * Find pipeline systems by product
    */
   static async findByProduct(productId: number): Promise<PipelineSystemDTO[]> {
-    const response = await apiClient.get<PipelineSystemDTO[]>(`${BASE_URL}/by-product/${productId}`);
-    return response.data;
-  }
-
-  /**
-   * Find pipeline systems by operational status ID
-   */
-  static async findByOperationalStatus(operationalStatusId: number): Promise<PipelineSystemDTO[]> {
-    const response = await apiClient.get<PipelineSystemDTO[]>(`${BASE_URL}/by-operational-status/${operationalStatusId}`);
-    return response.data;
-  }
-
-  /**
-   * Find pipeline systems by structure ID
-   */
-  static async findByStructure(structureId: number): Promise<PipelineSystemDTO[]> {
-    const response = await apiClient.get<PipelineSystemDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
+    const response = await apiClient.get<PipelineSystemDTO[]>(
+      `${BASE_URL}/by-product/${productId}`
+    );
     return response.data;
   }
 }
