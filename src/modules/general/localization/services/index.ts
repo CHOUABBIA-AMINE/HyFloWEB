@@ -1,18 +1,17 @@
 /**
  * General Localization Services - Barrel Export
  * 
- * All services for the General Localization module.
- * These services provide API communication for geographic entities.
+ * Services aligned with DTOs in general/localization module.
+ * Each service corresponds to a DTO for API communication.
  * 
- * Geographic Hierarchy:
- * Country > State > Locality > Location
- * 
- * Also includes:
- * - Zone (administrative/geographic regions)
+ * @module General/Localization/Services
+ * @category Service
+ * @author CHOUABBIA Amine
  */
 
+// Export service classes (PascalCase files only)
 export * from './CountryService';
-export * from './StateService';
 export * from './LocalityService';
 export * from './LocationService';
+export * from './StateService';
 export * from './ZoneService';
