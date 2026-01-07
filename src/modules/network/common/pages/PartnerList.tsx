@@ -1,5 +1,9 @@
 /**
- * Partner List Page - SERVER-SIDE PAGINATION
+ * Partner List Page
+ * 
+ * @author CHOUABBIA Amine
+ * @created 12-28-2025
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -26,8 +30,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
-
-import { partnerService } from '../services/partnerService';
+import { PartnerService } from '../services';
 import { PartnerDTO } from '../dto/PartnerDTO';
 
 const PartnerList = () => {
@@ -67,11 +70,17 @@ const PartnerList = () => {
     try {
       setLoading(true);
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
-      const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
+      const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
+
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
 
       const pageResponse = searchText
-        ? await partnerService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
-        : await partnerService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        ? await PartnerService.globalSearch(searchText, pageable)
+        : await PartnerService.getAll(pageable);
 
       setRows(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
@@ -91,9 +100,10 @@ const PartnerList = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this partner?')) {
       try {
-        await partnerService.delete(id);
+        await PartnerService.delete(id);
         setSuccess('Deleted');
         loadData();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
         setError(err.message || 'Failed to delete partner');
       }
