@@ -7,8 +7,9 @@
  * @updated 12-28-2025
  * @updated 12-30-2025 - Added Employee routes
  * @updated 01-01-2026 - Added Product routes
- * @updated 01-01-2026 - Added Region/Partner/Vendor routes
+ * @updated 01-01-2026 - Added Partner/Vendor routes
  * @updated 01-06-2026 - Added Pipeline Map route
+ * @updated 01-07-2026 - Removed non-existent Region routes
  */
 
 import { useEffect, useMemo } from 'react';
@@ -47,8 +48,6 @@ import { StructureList, StructureEdit, EmployeeList, EmployeeEdit } from './modu
 // Network Common
 import ProductList from './modules/network/common/pages/ProductList';
 import ProductEdit from './modules/network/common/pages/ProductEdit';
-import RegionList from './modules/network/common/pages/RegionList';
-import RegionEdit from './modules/network/common/pages/RegionEdit';
 import PartnerList from './modules/network/common/pages/PartnerList';
 import PartnerEdit from './modules/network/common/pages/PartnerEdit';
 import VendorList from './modules/network/common/pages/VendorList';
@@ -258,8 +257,6 @@ function App() {
                   />
                 </Route>
 
-                
-
                 {/* Network Module - Protected */}
                 <Route path="network">
                   {/* Geovisualization Maps */}
@@ -318,32 +315,6 @@ function App() {
                       element={
                         <ProtectedRoute>
                           <ProductEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    {/* Regions */}
-                    <Route
-                      path="regions"
-                      element={
-                        <ProtectedRoute>
-                          <RegionList />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="regions/create"
-                      element={
-                        <ProtectedRoute>
-                          <RegionEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="regions/:regionId/edit"
-                      element={
-                        <ProtectedRoute>
-                          <RegionEdit />
                         </ProtectedRoute>
                       }
                     />
