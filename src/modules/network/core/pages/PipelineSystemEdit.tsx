@@ -2,6 +2,7 @@
  * Pipeline System Edit/Create Page
  *
  * Aligned with StructureEdit.tsx pattern (tabs)
+ * Aligned with PipelineSystemDTO schema
  *
  * @author CHOUABBIA Amine
  * @created 01-01-2026
@@ -41,7 +42,8 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 
 import { PipelineSystemService, PipelineService } from '../services';
-import { OperationalStatusService, ProductService, RegionService } from '../../common/services';
+import { OperationalStatusService, ProductService } from '../../common/services';
+import { StructureService } from '../../../general/organization/services';
 import { PipelineSystemDTO } from '../dto/PipelineSystemDTO';
 import { PipelineDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
@@ -79,19 +81,19 @@ const PipelineSystemEdit = () => {
   // Tabs
   const [activeTab, setActiveTab] = useState(0);
 
-  // Form state
+  // Form state - aligned with PipelineSystemDTO
   const [pipelineSystem, setPipelineSystem] = useState<Partial<PipelineSystemDTO>>({
     code: '',
     name: '',
     productId: 0,
     operationalStatusId: 0,
-    regionId: 0,
+    structureId: 0,
   });
 
   // Dropdown data
   const [products, setProducts] = useState<any[]>([]);
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
-  const [regions, setRegions] = useState<any[]>([]);
+  const [structures, setStructures] = useState<any[]>([]);
 
   // Pipelines tab data
   const [pipelines, setPipelines] = useState<PipelineDTO[]>([]);
@@ -123,7 +125,7 @@ const PipelineSystemEdit = () => {
     () => sortByLocalizedName(operationalStatuses, currentLanguage),
     [operationalStatuses, currentLanguage]
   );
-  const sortedRegions = useMemo(() => sortByLocalizedName(regions, currentLanguage), [regions, currentLanguage]);
+  const sortedStructures = useMemo(() => sortByLocalizedName(structures, currentLanguage), [structures, currentLanguage]);
 
   const loadData = async () => {
     try {
@@ -134,10 +136,10 @@ const PipelineSystemEdit = () => {
         systemData = await PipelineSystemService.getById(Number(pipelineSystemId));
       }
 
-      const [productsData, statusesData, regionsData] = await Promise.allSettled([
+      const [productsData, statusesData, structuresData] = await Promise.allSettled([
         ProductService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
-        RegionService.getAllNoPagination(),
+        StructureService.getAllNoPagination(),
       ]);
 
       if (productsData.status === 'fulfilled') {
@@ -154,11 +156,11 @@ const PipelineSystemEdit = () => {
         setOperationalStatuses(list);
       }
 
-      if (regionsData.status === 'fulfilled') {
-        const list = Array.isArray(regionsData.value)
-          ? regionsData.value
-          : regionsData.value?.data || regionsData.value?.content || [];
-        setRegions(list);
+      if (structuresData.status === 'fulfilled') {
+        const list = Array.isArray(structuresData.value)
+          ? structuresData.value
+          : structuresData.value?.data || structuresData.value?.content || [];
+        setStructures(list);
       }
 
       if (systemData) {
@@ -208,8 +210,8 @@ const PipelineSystemEdit = () => {
       errors.operationalStatusId = 'Operational status is required';
     }
 
-    if (!pipelineSystem.regionId) {
-      errors.regionId = 'Region is required';
+    if (!pipelineSystem.structureId) {
+      errors.structureId = 'Structure is required';
     }
 
     setValidationErrors(errors);
@@ -240,7 +242,7 @@ const PipelineSystemEdit = () => {
         name: String(pipelineSystem.name || ''),
         productId: Number(pipelineSystem.productId),
         operationalStatusId: Number(pipelineSystem.operationalStatusId),
-        regionId: Number(pipelineSystem.regionId),
+        structureId: Number(pipelineSystem.structureId),
       };
 
       if (isEditMode) {
@@ -434,21 +436,21 @@ const PipelineSystemEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Region"
-                          value={pipelineSystem.regionId || ''}
-                          onChange={handleChange('regionId')}
+                          label="Structure"
+                          value={pipelineSystem.structureId || ''}
+                          onChange={handleChange('structureId')}
                           required
-                          error={!!validationErrors.regionId}
-                          helperText={validationErrors.regionId}
+                          error={!!validationErrors.structureId}
+                          helperText={validationErrors.structureId}
                         >
-                          {sortedRegions.length > 0 ? (
-                            sortedRegions.map((region) => (
-                              <MenuItem key={region.id} value={region.id}>
-                                {getLocalizedName(region, currentLanguage)}
+                          {sortedStructures.length > 0 ? (
+                            sortedStructures.map((structure) => (
+                              <MenuItem key={structure.id} value={structure.id}>
+                                {getLocalizedName(structure, currentLanguage)}
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>Loading regions...</MenuItem>
+                            <MenuItem disabled>Loading structures...</MenuItem>
                           )}
                         </TextField>
                       </Grid>
