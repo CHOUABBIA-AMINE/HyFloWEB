@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 12-24-2025
+ * @updated 01-07-2026
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -29,11 +29,11 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { hydrocarbonFieldService } from '../services';
-import { vendorService, operationalStatusService } from '../../common/services';
-import { hydrocarbonFieldTypeService } from '../../type/services';
-import { stateService, localityService } from '../../../common/administration/services';
-import { getLocalizedName as getAdminLocalizedName } from '../../../common/administration/utils';
+import { HydrocarbonFieldService } from '../services';
+import { VendorService, OperationalStatusService } from '../../common/services';
+import { HydrocarbonFieldTypeService } from '../../type/services';
+import { StateService, LocalityService } from '../../../general/localization/services';
+import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
 import { HydrocarbonFieldDTO, HydrocarbonFieldCreateDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -115,7 +115,7 @@ const HydrocarbonFieldEdit = () => {
       // Load field first if editing
       let fieldData: HydrocarbonFieldDTO | null = null;
       if (isEditMode) {
-        fieldData = await hydrocarbonFieldService.getById(Number(fieldId));
+        fieldData = await HydrocarbonFieldService.getById(Number(fieldId));
       }
       
       // Load all data from REST APIs in parallel
@@ -125,10 +125,10 @@ const HydrocarbonFieldEdit = () => {
         operationalStatusesData,
         statesData
       ] = await Promise.allSettled([
-        vendorService.getAll(),
-        hydrocarbonFieldTypeService.getAll(),
-        operationalStatusService.getAll(),
-        stateService.getAll(),
+        VendorService.getAllNoPagination(),
+        HydrocarbonFieldTypeService.getAllNoPagination(),
+        OperationalStatusService.getAllNoPagination(),
+        StateService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -196,7 +196,7 @@ const HydrocarbonFieldEdit = () => {
   const loadLocalitiesByState = async (stateId: number) => {
     try {
       setLoadingLocalities(true);
-      const localitiesData = await localityService.getByStateId(stateId);
+      const localitiesData = await LocalityService.getByStateId(stateId);
       const localities = Array.isArray(localitiesData) 
         ? localitiesData 
         : (localitiesData?.data || localitiesData?.content || []);
@@ -304,9 +304,9 @@ const HydrocarbonFieldEdit = () => {
       };
 
       if (isEditMode) {
-        await hydrocarbonFieldService.update(Number(fieldId), { id: Number(fieldId), ...fieldData });
+        await HydrocarbonFieldService.update(Number(fieldId), { id: Number(fieldId), ...fieldData });
       } else {
-        await hydrocarbonFieldService.create(fieldData);
+        await HydrocarbonFieldService.create(fieldData);
       }
 
       navigate('/network/core/hydrocarbon-fields');
@@ -432,7 +432,7 @@ const HydrocarbonFieldEdit = () => {
                     {states.length > 0 ? (
                       states.map((state) => (
                         <MenuItem key={state.id} value={state.id}>
-                          {getAdminLocalizedName(state, currentLanguage)}
+                          {getLocalizationLocalizedName(state, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
@@ -464,7 +464,7 @@ const HydrocarbonFieldEdit = () => {
                     ) : localities.length > 0 ? (
                       localities.map((locality) => (
                         <MenuItem key={locality.id} value={locality.id}>
-                          {getAdminLocalizedName(locality, currentLanguage)}
+                          {getLocalizationLocalizedName(locality, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
