@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-30-2025
  * @updated 01-01-2026 - Align routes and translation keys
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect } from 'react';
@@ -37,7 +38,7 @@ import {
   Search as SearchIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { employeeService } from '../services';
+import { EmployeeService } from '../services';
 import { EmployeeDTO } from '../dto';
 import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 
@@ -68,7 +69,7 @@ const EmployeeList = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await employeeService.getAll(page, rowsPerPage);
+      const response = await EmployeeService.getAll({ page, size: rowsPerPage });
       setEmployees(response.content || []);
       setTotalElements(response.totalElements || 0);
     } catch (err) {
@@ -86,7 +87,7 @@ const EmployeeList = () => {
     }
     try {
       setLoading(true);
-      const response = await employeeService.search(searchQuery, page, rowsPerPage);
+      const response = await EmployeeService.globalSearch(searchQuery, { page, size: rowsPerPage });
       setEmployees(response.content || []);
       setTotalElements(response.totalElements || 0);
     } catch (err) {
@@ -100,7 +101,7 @@ const EmployeeList = () => {
   const handleDelete = async () => {
     if (!employeeToDelete) return;
     try {
-      await employeeService.delete(employeeToDelete);
+      await EmployeeService.delete(employeeToDelete);
       setDeleteDialogOpen(false);
       setEmployeeToDelete(null);
       fetchEmployees();
@@ -119,7 +120,7 @@ const EmployeeList = () => {
     setPage(0);
   };
 
-  const formatDate = (dateString: string | undefined): string => {
+  const formatDate = (dateString: string | Date | undefined): string => {
     if (!dateString) return '-';
     try {
       const date = new Date(dateString);
@@ -183,8 +184,8 @@ const EmployeeList = () => {
                 <TableRow>
                   <TableCell>ID</TableCell>
                   <TableCell>{t('employee.registrationNumber', 'Registration Number')}</TableCell>
-                  <TableCell>{t('employee.lastNameAr', 'Arabic Last Name')}</TableCell>
-                  <TableCell>{t('employee.firstNameAr', 'Arabic First Name')}</TableCell>
+                  <TableCell>{t('employee.lastNameLt', 'Last Name')}</TableCell>
+                  <TableCell>{t('employee.firstNameLt', 'First Name')}</TableCell>
                   <TableCell>{t('employee.birthDate', 'Birth Date')}</TableCell>
                   <TableCell align="right">{t('common.actions', 'Actions')}</TableCell>
                 </TableRow>
@@ -207,8 +208,8 @@ const EmployeeList = () => {
                     <TableRow key={employee.id} hover>
                       <TableCell>{employee.id}</TableCell>
                       <TableCell>{employee.registrationNumber || '-'}</TableCell>
-                      <TableCell>{employee.lastNameAr || '-'}</TableCell>
-                      <TableCell>{employee.firstNameAr || '-'}</TableCell>
+                      <TableCell>{employee.lastNameLt || '-'}</TableCell>
+                      <TableCell>{employee.firstNameLt || '-'}</TableCell>
                       <TableCell>{formatDate(employee.birthDate)}</TableCell>
                       <TableCell align="right">
                         <Tooltip title={t('common.edit', 'Edit')}>
