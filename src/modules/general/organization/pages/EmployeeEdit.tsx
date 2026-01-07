@@ -7,6 +7,7 @@
  * @updated 01-01-2026 - Align routes and translation keys
  * @updated 01-01-2026 - Dependent selects (Structure→Job)
  * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
+ * @updated 01-07-2026 - Fixed service imports and field mappings
  */
 
 import { useMemo, useState, useEffect } from 'react';
@@ -30,16 +31,17 @@ import {
 } from '@mui/material';
 import { Save as SaveIcon, ArrowBack as BackIcon } from '@mui/icons-material';
 import {
-  employeeService,
-  structureService,
-  countryService,
+  EmployeeService,
+  StructureService,
+  JobService,
 } from '../services';
+import { CountryService } from '../../localization/services';
 import {
   EmployeeDTO,
   JobDTO,
   StructureDTO,
-  CountryDTO,
 } from '../dto';
+import { CountryDTO } from '../../localization/dto';
 
 type HasDesignation = {
   designationAr?: string;
@@ -65,17 +67,17 @@ const EmployeeEdit = () => {
     lastNameLt: '',
     firstNameLt: '',
     birthDate: '',
-    birthPlace: '',
+    birthPlaceLt: '',
     registrationNumber: '',
     countryId: undefined,
     jobId: undefined,
-    structureId: undefined,
   });
 
   // Lookup data
   const [structures, setStructures] = useState<StructureDTO[]>([]);
   const [jobs, setJobs] = useState<JobDTO[]>([]);
   const [countries, setCountries] = useState<CountryDTO[]>([]);
+  const [selectedStructureId, setSelectedStructureId] = useState<number | undefined>(undefined);
 
   // Form validation
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -99,7 +101,7 @@ const EmployeeEdit = () => {
 
   // When structure changes, load jobs for that structure
   useEffect(() => {
-    if (!formData.structureId) {
+    if (!selectedStructureId) {
       setJobs([]);
       setFormData((prev) => ({ ...prev, jobId: undefined }));
       return;
@@ -107,29 +109,22 @@ const EmployeeEdit = () => {
 
     (async () => {
       try {
-        // Load jobs by structure - this would require jobService
-        // For now, we'll leave jobs empty until jobService is properly set up
-        setJobs([]);
+        const jobsList = await JobService.getByStructureId(selectedStructureId);
+        setJobs(jobsList);
       } catch (err) {
         console.error('Error loading jobs by structure:', err);
         setError(t('common.error', 'Error'));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.structureId]);
+  }, [selectedStructureId]);
 
   const loadInitialLookupData = async () => {
     try {
-      const [structuresData, countriesData] = await Promise.all([
-        structureService.getAll(),
-        countryService.getAll(),
+      const [structuresList, countriesList] = await Promise.all([
+        StructureService.getAllNoPagination(),
+        CountryService.getAllNoPagination(),
       ]);
-      
-      // Handle paginated responses
-      const structuresList = Array.isArray(structuresData) ? structuresData : 
-        (structuresData as any).data || (structuresData as any).content || [];
-      const countriesList = Array.isArray(countriesData) ? countriesData : 
-        (countriesData as any).data || (countriesData as any).content || [];
       
       setStructures(structuresList);
       setCountries(countriesList);
@@ -143,8 +138,13 @@ const EmployeeEdit = () => {
     if (!id) return;
     try {
       setLoading(true);
-      const data = await employeeService.getById(Number(id));
+      const data = await EmployeeService.getById(Number(id));
       setFormData(data);
+      
+      // If employee has a job, load the job's structure and jobs for that structure
+      if (data.job && data.job.structureId) {
+        setSelectedStructureId(data.job.structureId);
+      }
     } catch (err) {
       console.error('Error loading employee:', err);
       setError(t('common.error', 'Error'));
@@ -156,8 +156,6 @@ const EmployeeEdit = () => {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.lastNameAr?.trim()) newErrors.lastNameAr = t('common.required', 'Required');
-    if (!formData.firstNameAr?.trim()) newErrors.firstNameAr = t('common.required', 'Required');
     if (!formData.lastNameLt?.trim()) newErrors.lastNameLt = t('common.required', 'Required');
     if (!formData.firstNameLt?.trim()) newErrors.firstNameLt = t('common.required', 'Required');
 
@@ -169,7 +167,7 @@ const EmployeeEdit = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      setError(t('common.error', 'Error'));
+      setError(t('common.validationError', 'Please fix validation errors'));
       return;
     }
 
@@ -178,9 +176,9 @@ const EmployeeEdit = () => {
       setError(null);
 
       if (isEditMode && id) {
-        await employeeService.update(Number(id), formData);
+        await EmployeeService.update(Number(id), formData);
       } else {
-        await employeeService.create(formData);
+        await EmployeeService.create(formData);
       }
 
       setSuccess(true);
@@ -202,7 +200,7 @@ const EmployeeEdit = () => {
     }
   };
 
-  const formatDateForInput = (dateString: string | undefined): string => {
+  const formatDateForInput = (dateString: string | Date | undefined): string => {
     if (!dateString) return '';
     try {
       const date = new Date(dateString);
@@ -250,23 +248,17 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  required
                   label={t('employee.lastNameAr', 'Arabic Last Name')}
-                  value={formData.lastNameAr}
+                  value={formData.lastNameAr || ''}
                   onChange={(e) => handleChange('lastNameAr', e.target.value)}
-                  error={Boolean(fieldErrors.lastNameAr)}
-                  helperText={fieldErrors.lastNameAr}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  required
                   label={t('employee.firstNameAr', 'Arabic First Name')}
-                  value={formData.firstNameAr}
+                  value={formData.firstNameAr || ''}
                   onChange={(e) => handleChange('firstNameAr', e.target.value)}
-                  error={Boolean(fieldErrors.firstNameAr)}
-                  helperText={fieldErrors.firstNameAr}
                 />
               </Grid>
 
@@ -307,8 +299,8 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   label={t('employee.birthPlace', 'Birth Place')}
-                  value={formData.birthPlace || ''}
-                  onChange={(e) => handleChange('birthPlace', e.target.value)}
+                  value={formData.birthPlaceLt || ''}
+                  onChange={(e) => handleChange('birthPlaceLt', e.target.value)}
                 />
               </Grid>
 
@@ -347,11 +339,12 @@ const EmployeeEdit = () => {
                 <FormControl fullWidth>
                   <InputLabel>{t('employee.structure', 'Structure')}</InputLabel>
                   <Select
-                    value={formData.structureId || ''}
+                    value={selectedStructureId || ''}
                     onChange={(e) => {
-                      const newStructureId = e.target.value || undefined;
+                      const newStructureId = e.target.value ? Number(e.target.value) : undefined;
+                      setSelectedStructureId(newStructureId);
                       // reset job when structure changes
-                      setFormData((prev) => ({ ...prev, structureId: newStructureId as any, jobId: undefined }));
+                      setFormData((prev) => ({ ...prev, jobId: undefined }));
                     }}
                     label={t('employee.structure', 'Structure')}
                   >
@@ -368,7 +361,7 @@ const EmployeeEdit = () => {
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth disabled={!formData.structureId}>
+                <FormControl fullWidth disabled={!selectedStructureId}>
                   <InputLabel>{t('employee.job', 'Job')}</InputLabel>
                   <Select
                     value={formData.jobId || ''}
