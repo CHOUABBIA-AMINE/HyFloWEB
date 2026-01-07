@@ -1,25 +1,21 @@
 /**
  * Country DTO - Localization Module
- * Represents a country in the system
  * 
- * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.CountryDTO
- * Updated: 01-06-2026 - Fixed field naming to match Java backend (designation* instead of name*)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.CountryDTO
+ * Updated: 01-07-2026 - Cleaned extra fields not in backend
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 export interface CountryDTO {
+  // Identifier (from GenericDTO)
   id?: number;
+
+  // Core fields (from backend)
   code: string; // @NotBlank, max 3 chars
   designationAr?: string; // max 100 chars
   designationEn?: string; // max 100 chars
   designationFr: string; // @NotBlank, max 100 chars
-  
-  // UI metadata (optional)
-  flagUrl?: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 /**
