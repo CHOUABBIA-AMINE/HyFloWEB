@@ -1,23 +1,21 @@
 /**
  * State DTO - Localization Module
- * Represents a state/province in the system
  * 
- * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.StateDTO
- * Updated: 01-06-2026 - Fixed field naming to match Java backend (designation* instead of name*)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.StateDTO
+ * Updated: 01-07-2026 - Cleaned extra fields, fixed code constraint to max 10 chars
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 export interface StateDTO {
+  // Identifier (from GenericDTO)
   id?: number;
-  code: string; // @NotBlank, max 2 chars
-  countryId: number; // @NotBlank
+
+  // Core fields (from backend)
+  code: string; // @NotBlank, max 10 chars
   designationAr?: string; // max 100 chars
   designationEn?: string; // max 100 chars
   designationFr: string; // @NotBlank, max 100 chars
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 /**
@@ -30,12 +28,8 @@ export const validateStateDTO = (data: Partial<StateDTO>): string[] => {
   
   if (!data.code) {
     errors.push("Code is required");
-  } else if (data.code.length > 2) {
-    errors.push("Code must not exceed 2 characters");
-  }
-  
-  if (!data.countryId) {
-    errors.push("Country is required");
+  } else if (data.code.length > 10) {
+    errors.push("Code must not exceed 10 characters");
   }
   
   if (!data.designationFr) {
