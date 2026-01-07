@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-07-2026
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -28,8 +28,8 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { pipelineService, pipelineSystemService, facilityService } from '../services';
-import { vendorService, operationalStatusService, alloyService } from '../../common/services';
+import { PipelineService, PipelineSystemService, FacilityService } from '../services';
+import { VendorService, OperationalStatusService, AlloyService } from '../../common/services';
 import { PipelineDTO, PipelineCreateDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -104,7 +104,7 @@ const PipelineEdit = () => {
       // Load pipeline first if editing
       let pipelineData: PipelineDTO | null = null;
       if (isEditMode) {
-        pipelineData = await pipelineService.getById(Number(pipelineId));
+        pipelineData = await PipelineService.getById(Number(pipelineId));
       }
       
       // Load all data from REST APIs in parallel
@@ -115,11 +115,11 @@ const PipelineEdit = () => {
         alloysData,
         facilitiesData,
       ] = await Promise.allSettled([
-        vendorService.getAll(),
-        pipelineSystemService.getAll(),
-        operationalStatusService.getAll(),
-        alloyService.getAll(),
-        facilityService.getAll(),
+        VendorService.getAllNoPagination(),
+        PipelineSystemService.getAllNoPagination(),
+        OperationalStatusService.getAllNoPagination(),
+        AlloyService.getAllNoPagination(),
+        FacilityService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -258,9 +258,9 @@ const PipelineEdit = () => {
       };
 
       if (isEditMode) {
-        await pipelineService.update(Number(pipelineId), { id: Number(pipelineId), ...pipelineData });
+        await PipelineService.update(Number(pipelineId), { id: Number(pipelineId), ...pipelineData });
       } else {
-        await pipelineService.create(pipelineData);
+        await PipelineService.create(pipelineData);
       }
 
       navigate('/network/core/pipelines');
