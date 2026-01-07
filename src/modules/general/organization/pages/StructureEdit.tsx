@@ -6,6 +6,7 @@
  * @created 12-28-2025
  * @updated 01-03-2026 - Fixed imports to use relative paths
  * @updated 01-04-2026 - i18n: replaced hardcoded strings with translation keys
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect } from 'react';
@@ -37,8 +38,8 @@ import {
 } from '@mui/icons-material';
 
 // Import from correct modules aligned with backend architecture
-import structureService from '../services/StructureService';
-import { structureTypeService } from '../../type/services';
+import { StructureService } from '../services';
+import { StructureTypeService } from '../../type/services';
 import { StructureDTO } from '../dto/StructureDTO';
 import { StructureTypeDTO } from '../../type/dto';
 import { JobDTO } from '../dto/JobDTO';
@@ -110,18 +111,10 @@ const StructureEdit = () => {
 
   const loadDropdownData = async () => {
     try {
-      const [typesData, structuresData] = await Promise.all([
-        structureTypeService.getAll(),
-        structureService.getAll(),
+      const [typesList, structuresList] = await Promise.all([
+        StructureTypeService.getAllNoPagination(),
+        StructureService.getAllNoPagination(),
       ]);
-
-      const typesList: StructureTypeDTO[] = Array.isArray(typesData)
-        ? typesData
-        : (typesData as any).data || (typesData as any).content || [];
-
-      const structuresList: StructureDTO[] = Array.isArray(structuresData)
-        ? structuresData
-        : (structuresData as any).data || (structuresData as any).content || [];
 
       setStructureTypes(typesList);
       setParentStructures(structuresList);
@@ -136,7 +129,7 @@ const StructureEdit = () => {
 
     try {
       setLoading(true);
-      const data = await structureService.getById(parseInt(id));
+      const data = await StructureService.getById(parseInt(id));
       setFormData({
         code: data.code || '',
         designationFr: data.designationFr || '',
@@ -192,10 +185,10 @@ const StructureEdit = () => {
       };
 
       if (isEditMode) {
-        await structureService.update(parseInt(id!), structureData);
+        await StructureService.update(parseInt(id!), structureData);
         setSuccess(t('structure.updateSuccess'));
       } else {
-        const created = await structureService.create(structureData);
+        const created = await StructureService.create(structureData);
         setSuccess(t('structure.createSuccess'));
         // Redirect to edit mode after creation
         setTimeout(() => navigate(`/administration/structures/${created.id}/edit`), 1500);
