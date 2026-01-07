@@ -1,8 +1,9 @@
 /**
- * Product List Page - SERVER-SIDE PAGINATION
- *
+ * Product List Page
+ * 
  * @author CHOUABBIA Amine
  * @created 01-01-2026
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -13,13 +14,13 @@ import {
   Typography,
   Button,
   IconButton,
-  Chip,
   Alert,
   TextField,
   InputAdornment,
   Stack,
   Paper,
   Divider,
+  Chip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -29,17 +30,15 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
-
-import { productService } from '../services/productService';
+import { ProductService } from '../services';
 import { ProductDTO } from '../dto/ProductDTO';
 
 const ProductList = () => {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
-
   const currentLanguage = i18n.language || 'en';
 
-  const [products, setProducts] = useState<ProductDTO[]>([]);
+  const [rows, setRows] = useState<ProductDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -48,34 +47,39 @@ const ProductList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
-  const getDesignation = (obj: Partial<ProductDTO>): string => {
-    if (!obj) return '';
-    if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '';
-    if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '';
-    return obj.designationFr || obj.designationEn || obj.designationAr || '';
+  const getDesignation = (product: ProductDTO): string => {
+    if (currentLanguage === 'ar') return product.designationAr || product.designationFr || product.designationEn || '-';
+    if (currentLanguage === 'en') return product.designationEn || product.designationFr || product.designationAr || '-';
+    return product.designationFr || product.designationEn || product.designationAr || '-';
   };
 
   useEffect(() => {
-    loadProducts();
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paginationModel, sortModel, searchText]);
 
-  const loadProducts = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
-      const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
+      const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
+
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
 
       const pageResponse = searchText
-        ? await productService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
-        : await productService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        ? await ProductService.globalSearch(searchText, pageable)
+        : await ProductService.getAll(pageable);
 
-      setProducts(pageResponse.content);
+      setRows(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
       setError(err.message || 'Failed to load products');
-      setProducts([]);
+      setRows([]);
       setTotalRows(0);
     } finally {
       setLoading(false);
@@ -88,9 +92,10 @@ const ProductList = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this product?')) {
       try {
-        await productService.delete(id);
+        await ProductService.delete(id);
         setSuccess('Deleted');
-        loadProducts();
+        loadData();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
         setError(err.message || 'Failed to delete product');
       }
@@ -107,21 +112,23 @@ const ProductList = () => {
     {
       field: 'code',
       headerName: 'Code',
-      width: 130,
+      width: 140,
       renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
     },
     {
-      field: 'designationFr',
+      field: 'designation',
       headerName: 'Designation',
-      minWidth: 240,
+      minWidth: 220,
       flex: 1,
-      valueGetter: (params) => getDesignation(params.row as ProductDTO),
-      renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography>,
+      valueGetter: (p) => getDesignation(p.row),
     },
-    { field: 'density', headerName: 'Density', width: 120, align: 'right', headerAlign: 'right' },
-    { field: 'viscosity', headerName: 'Viscosity', width: 120, align: 'right', headerAlign: 'right' },
-    { field: 'flashPoint', headerName: 'Flash Point', width: 130, align: 'right', headerAlign: 'right' },
-    { field: 'sulfurContent', headerName: 'Sulfur', width: 120, align: 'right', headerAlign: 'right' },
+    {
+      field: 'density',
+      headerName: 'Density',
+      width: 100,
+      align: 'right',
+      headerAlign: 'right',
+    },
     {
       field: 'isHazardous',
       headerName: 'Hazardous',
@@ -130,10 +137,10 @@ const ProductList = () => {
       headerAlign: 'center',
       renderCell: (params) => (
         <Chip
-          size="small"
           label={params.value ? 'Yes' : 'No'}
-          color={params.value ? 'warning' : 'default'}
-          variant={params.value ? 'filled' : 'outlined'}
+          size="small"
+          color={params.value ? 'error' : 'success'}
+          variant="outlined"
         />
       ),
     },
@@ -147,7 +154,7 @@ const ProductList = () => {
       headerAlign: 'center',
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <IconButton size="small" color="primary" onClick={() => navigate(`/network/common/products/${params.row.id}`)}>
+          <IconButton size="small" color="primary" onClick={() => navigate(`/network/common/products/${params.row.id}/edit`)}>
             <EditIcon fontSize="small" />
           </IconButton>
           <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}>
@@ -198,19 +205,14 @@ const ProductList = () => {
               }}
             />
 
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={handleClear}
-              sx={{ whiteSpace: 'nowrap' }}
-            >
+            <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleClear} sx={{ whiteSpace: 'nowrap' }}>
               Clear
             </Button>
 
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => navigate('/network/common/products/new')}
+              onClick={() => navigate('/network/common/products/create')}
               sx={{ whiteSpace: 'nowrap' }}
             >
               Create
@@ -219,26 +221,22 @@ const ProductList = () => {
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ width: '100%' }}>
-            <DataGrid
-              rows={products}
-              columns={columns}
-              loading={loading}
-              rowCount={totalRows}
-              paginationMode="server"
-              sortingMode="server"
-              paginationModel={paginationModel}
-              onPaginationModelChange={handlePaginationChange}
-              sortModel={sortModel}
-              onSortModelChange={handleSortChange}
-              pageSizeOptions={[10, 25, 50, 100]}
-              disableRowSelectionOnClick
-              autoHeight
-              sx={{
-                '& .MuiDataGrid-columnHeaders': { bgcolor: 'grey.50' },
-              }}
-            />
-          </Box>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            loading={loading}
+            rowCount={totalRows}
+            paginationMode="server"
+            sortingMode="server"
+            paginationModel={paginationModel}
+            onPaginationModelChange={handlePaginationChange}
+            sortModel={sortModel}
+            onSortModelChange={handleSortChange}
+            pageSizeOptions={[10, 25, 50, 100]}
+            disableRowSelectionOnClick
+            autoHeight
+            sx={{ '& .MuiDataGrid-columnHeaders': { bgcolor: 'grey.50' } }}
+          />
         </Box>
       </Paper>
     </Box>

@@ -3,6 +3,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 01-01-2026
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useEffect, useState } from 'react';
@@ -23,8 +24,7 @@ import {
   Switch,
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon } from '@mui/icons-material';
-
-import { productService } from '../services/productService';
+import { ProductService } from '../services';
 import { ProductDTO } from '../dto/ProductDTO';
 
 const ProductEdit = () => {
@@ -61,7 +61,7 @@ const ProductEdit = () => {
   const loadProduct = async () => {
     try {
       setLoading(true);
-      const data = await productService.getById(Number(productId));
+      const data = await ProductService.getById(Number(productId));
       setProduct(data);
       setError('');
     } catch (err: any) {
@@ -124,9 +124,9 @@ const ProductEdit = () => {
       };
 
       if (isCreateMode) {
-        await productService.create(payload);
+        await ProductService.create(payload);
       } else {
-        await productService.update(Number(productId), payload);
+        await ProductService.update(Number(productId), payload);
       }
 
       navigate('/network/common/products');

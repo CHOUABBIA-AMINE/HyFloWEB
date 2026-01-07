@@ -1,5 +1,9 @@
 /**
  * Partner Edit/Create Page
+ * 
+ * @author CHOUABBIA Amine
+ * @created 12-28-2025
+ * @updated 01-07-2026 - Fixed service imports to use correct paths and UpperCase static methods
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -19,12 +23,10 @@ import {
   MenuItem,
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon } from '@mui/icons-material';
-
-import { partnerService } from '../services/partnerService';
+import { PartnerService } from '../services';
 import { PartnerDTO } from '../dto/PartnerDTO';
-import { partnerTypeService } from '../../type/services';
-import { countryService } from '../../../common/administration/services';
-import { getLocalizedName as getAdminLocalizedName } from '../../../common/administration/utils';
+import { PartnerTypeService } from '../../type/services';
+import { CountryService } from '../../../general/localization/services';
 
 const PartnerEdit = () => {
   const { t, i18n } = useTranslation();
@@ -49,7 +51,7 @@ const PartnerEdit = () => {
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const getPartnerTypeLabel = (obj: any): string => {
+  const getLocalizedLabel = (obj: any): string => {
     if (!obj) return '';
     if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '';
     if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '';
@@ -58,15 +60,14 @@ const PartnerEdit = () => {
 
   const sortedPartnerTypes = useMemo(() => {
     const copy = [...partnerTypes];
-    return copy.sort((a, b) => getPartnerTypeLabel(a).localeCompare(getPartnerTypeLabel(b)));
+    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [partnerTypes, currentLanguage]);
 
   const sortedCountries = useMemo(() => {
     const copy = [...countries];
-    return copy.sort((a, b) =>
-      getAdminLocalizedName(a, currentLanguage).localeCompare(getAdminLocalizedName(b, currentLanguage))
-    );
+    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countries, currentLanguage]);
 
   useEffect(() => {
@@ -80,24 +81,21 @@ const PartnerEdit = () => {
 
       let partnerData: PartnerDTO | null = null;
       if (isEditMode) {
-        partnerData = await partnerService.getById(Number(partnerId));
+        partnerData = await PartnerService.getById(Number(partnerId));
       }
 
+      // Load partner types and countries
       const [typesData, countriesData] = await Promise.allSettled([
-        partnerTypeService.getAll(),
-        countryService.getAllList(),
+        PartnerTypeService.getAllNoPagination(),
+        CountryService.getAllNoPagination(),
       ]);
 
       if (typesData.status === 'fulfilled') {
-        const types = Array.isArray(typesData.value) ? typesData.value : (typesData.value as any)?.data || [];
-        setPartnerTypes(types);
+        setPartnerTypes(Array.isArray(typesData.value) ? typesData.value : []);
       }
 
       if (countriesData.status === 'fulfilled') {
-        const items = Array.isArray(countriesData.value)
-          ? countriesData.value
-          : (countriesData.value as any)?.data || (countriesData.value as any)?.content || [];
-        setCountries(items);
+        setCountries(Array.isArray(countriesData.value) ? countriesData.value : []);
       }
 
       if (partnerData) setPartner(partnerData);
@@ -147,9 +145,9 @@ const PartnerEdit = () => {
       };
 
       if (isEditMode) {
-        await partnerService.update(Number(partnerId), payload);
+        await PartnerService.update(Number(partnerId), payload);
       } else {
-        await partnerService.create(payload);
+        await PartnerService.create(payload);
       }
 
       navigate('/network/common/partners');
@@ -230,7 +228,7 @@ const PartnerEdit = () => {
                   >
                     {sortedPartnerTypes.map((pt) => (
                       <MenuItem key={pt.id} value={pt.id}>
-                        {getPartnerTypeLabel(pt)}
+                        {getLocalizedLabel(pt)}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -249,7 +247,7 @@ const PartnerEdit = () => {
                   >
                     {sortedCountries.map((c) => (
                       <MenuItem key={c.id} value={c.id}>
-                        {getAdminLocalizedName(c, currentLanguage)}
+                        {getLocalizedLabel(c)}
                       </MenuItem>
                     ))}
                   </TextField>
