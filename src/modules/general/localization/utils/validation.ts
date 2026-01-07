@@ -6,7 +6,12 @@
  * @author CHOUABBIA Amine
  */
 
-import { isNotEmpty } from '../../common/utils/validation';
+/**
+ * Check if value is not empty
+ */
+export const isNotEmpty = (value: string | undefined | null): boolean => {
+  return value !== undefined && value !== null && value.trim().length > 0;
+};
 
 /**
  * Validate country code (ISO format: 2-3 uppercase letters)
@@ -86,6 +91,3 @@ export const isValidDesignation = (designation: string | undefined | null): bool
 export const isValidPlaceName = (placeName: string | undefined | null): boolean => {
   return isNotEmpty(placeName);
 };
-
-// Re-export common validations
-export { isNotEmpty };
