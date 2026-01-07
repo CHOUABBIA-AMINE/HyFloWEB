@@ -1,23 +1,23 @@
 /**
  * Zone DTO - Localization Module
- * Represents a zone or region in the system
  * 
- * Aligned with backend: dz.sh.trc.hyflo.general.localization.dto.ZoneDTO
- * Updated: 01-06-2026 - Fixed field naming to match Java backend (designation* instead of name*)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.ZoneDTO
+ * Updated: 01-07-2026 - Removed extra fields, fixed code constraint to max 10 chars
+ * 
+ * Note: Backend ZoneDTO does NOT have localityId field - removed from frontend
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 export interface ZoneDTO {
+  // Identifier (from GenericDTO)
   id?: number;
-  code: string; // @NotBlank, max 5 chars
-  localityId: number; // @NotBlank
+
+  // Core fields (from backend)
+  code: string; // @NotBlank, max 10 chars
   designationAr?: string; // max 100 chars
   designationEn?: string; // max 100 chars
   designationFr: string; // @NotBlank, max 100 chars
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 /**
@@ -30,12 +30,8 @@ export const validateZoneDTO = (data: Partial<ZoneDTO>): string[] => {
   
   if (!data.code) {
     errors.push("Code is required");
-  } else if (data.code.length > 5) {
-    errors.push("Code must not exceed 5 characters");
-  }
-  
-  if (!data.localityId) {
-    errors.push("Locality is required");
+  } else if (data.code.length > 10) {
+    errors.push("Code must not exceed 10 characters");
   }
   
   if (!data.designationFr) {
