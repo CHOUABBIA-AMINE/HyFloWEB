@@ -2,7 +2,7 @@
  * Station List Page - SERVER-SIDE PAGINATION
  * 
  * @author CHOUABBIA Amine
- * @updated 12-29-2025
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdornment, Stack, Paper, Divider, Tooltip, alpha } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, FilterList as FilterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
-import { stationService } from '../services';
+import { StationService } from '../services';
 import { StationDTO } from '../dto';
 
 const StationList = () => {
@@ -34,9 +34,17 @@ const StationList = () => {
       setLoading(true);
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
+      
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
+
       const pageResponse = searchText 
-        ? await stationService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
-        : await stationService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        ? await StationService.globalSearch(searchText, pageable)
+        : await StationService.getAll(pageable);
+        
       setStations(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
       setError('');
@@ -74,7 +82,7 @@ const StationList = () => {
 
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this station?')) {
-      try { await stationService.delete(id); setSuccess('Deleted'); loadStations(); } catch (err: any) { setError(err.message); }
+      try { await StationService.delete(id); setSuccess('Deleted'); loadStations(); } catch (err: any) { setError(err.message); }
     }
   };
 

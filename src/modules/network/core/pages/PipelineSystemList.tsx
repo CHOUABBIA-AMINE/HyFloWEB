@@ -3,6 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-01-2026
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,7 +13,7 @@ import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdorn
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, FilterList as FilterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
-import { pipelineSystemService } from '../services/pipelineSystemService';
+import { PipelineSystemService } from '../services';
 import { PipelineSystemDTO } from '../dto/PipelineSystemDTO';
 
 const PipelineSystemList = () => {
@@ -48,9 +49,15 @@ const PipelineSystemList = () => {
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
+
       const pageResponse = searchText
-        ? await pipelineSystemService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
-        : await pipelineSystemService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        ? await PipelineSystemService.globalSearch(searchText, pageable)
+        : await PipelineSystemService.getAll(pageable);
 
       setPipelineSystems(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
@@ -70,7 +77,7 @@ const PipelineSystemList = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Delete this pipeline system?')) {
       try {
-        await pipelineSystemService.delete(id);
+        await PipelineSystemService.delete(id);
         setSuccess('Deleted');
         loadPipelineSystems();
       } catch (err: any) {

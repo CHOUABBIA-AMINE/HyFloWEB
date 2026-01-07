@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 12-29-2025
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -47,7 +47,7 @@ import {
   Layers as FieldIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
-import { hydrocarbonFieldService } from '../services';
+import { HydrocarbonFieldService } from '../services';
 import { HydrocarbonFieldDTO } from '../dto';
 import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
 import { getLocalizedName } from '../utils/localizationUtils';
@@ -84,11 +84,17 @@ const HydrocarbonFieldList = () => {
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
+
       let pageResponse;
       if (searchText) {
-        pageResponse = await hydrocarbonFieldService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        pageResponse = await HydrocarbonFieldService.globalSearch(searchText, pageable);
       } else {
-        pageResponse = await hydrocarbonFieldService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+        pageResponse = await HydrocarbonFieldService.getAll(pageable);
       }
       
       let filteredContent = pageResponse.content;
@@ -250,7 +256,7 @@ const HydrocarbonFieldList = () => {
   const handleDelete = async (fieldId: number) => {
     if (window.confirm('Delete this hydrocarbon field?')) {
       try {
-        await hydrocarbonFieldService.delete(fieldId);
+        await HydrocarbonFieldService.delete(fieldId);
         setSuccess('Hydrocarbon field deleted successfully');
         loadFields();
       } catch (err: any) {
