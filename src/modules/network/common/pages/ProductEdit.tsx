@@ -3,7 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed null vs undefined types
+ * @updated 01-08-2026 - Fixed to match ProductDTO schema with all required fields
  */
 
 import { useState, useEffect } from 'react';
@@ -20,6 +20,8 @@ import {
   Paper,
   Divider,
   Stack,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -37,9 +39,14 @@ const ProductEdit = () => {
 
   const [product, setProduct] = useState<Partial<ProductDTO>>({
     code: '',
+    designationFr: '',
     designationAr: undefined,
     designationEn: undefined,
-    designationFr: undefined,
+    density: 0,
+    viscosity: 0,
+    flashPoint: 0,
+    sulfurContent: 0,
+    isHazardous: false,
   });
 
   const [loading, setLoading] = useState(false);
@@ -70,8 +77,24 @@ const ProductEdit = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!product.code || product.code.trim().length < 2) {
-      errors.code = 'Product code must be at least 2 characters';
+    if (!product.code || product.code.trim().length === 0) {
+      errors.code = 'Product code is required';
+    } else if (product.code.length > 10) {
+      errors.code = 'Product code must not exceed 10 characters';
+    }
+
+    if (!product.designationFr || product.designationFr.trim().length === 0) {
+      errors.designationFr = 'French designation is required';
+    } else if (product.designationFr.length > 100) {
+      errors.designationFr = 'French designation must not exceed 100 characters';
+    }
+
+    if (product.designationAr && product.designationAr.length > 100) {
+      errors.designationAr = 'Arabic designation must not exceed 100 characters';
+    }
+
+    if (product.designationEn && product.designationEn.length > 100) {
+      errors.designationEn = 'English designation must not exceed 100 characters';
     }
 
     setValidationErrors(errors);
@@ -79,7 +102,7 @@ const ProductEdit = () => {
   };
 
   const handleChange = (field: keyof ProductDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setProduct({ ...product, [field]: value || undefined });
     
     if (validationErrors[field]) {
@@ -101,9 +124,14 @@ const ProductEdit = () => {
       const productData: ProductDTO = {
         id: product.id,
         code: product.code!,
+        designationFr: product.designationFr!,
         designationEn: product.designationEn || undefined,
         designationAr: product.designationAr || undefined,
-        designationFr: product.designationFr || undefined,
+        density: Number(product.density),
+        viscosity: Number(product.viscosity),
+        flashPoint: Number(product.flashPoint),
+        sulfurContent: Number(product.sulfurContent),
+        isHazardous: Boolean(product.isHazardous),
       };
 
       if (isEditMode) {
@@ -175,7 +203,7 @@ const ProductEdit = () => {
                     onChange={handleChange('code')}
                     required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code || 'Unique product code'}
+                    helperText={validationErrors.code || 'Required unique code (max 10 characters)'}
                   />
                 </Grid>
               </Grid>
@@ -190,33 +218,108 @@ const ProductEdit = () => {
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Designation (Arabic)"
-                    value={product.designationAr || ''}
-                    onChange={handleChange('designationAr')}
-                    helperText="Optional Arabic designation"
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Designation (English)"
-                    value={product.designationEn || ''}
-                    onChange={handleChange('designationEn')}
-                    helperText="Optional English designation"
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     label="Designation (French)"
                     value={product.designationFr || ''}
                     onChange={handleChange('designationFr')}
-                    helperText="Optional French designation"
+                    required
+                    error={!!validationErrors.designationFr}
+                    helperText={validationErrors.designationFr || 'Required French designation'}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Designation (Arabic)"
+                    value={product.designationAr || ''}
+                    onChange={handleChange('designationAr')}
+                    error={!!validationErrors.designationAr}
+                    helperText={validationErrors.designationAr || 'Optional Arabic designation'}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Designation (English)"
+                    value={product.designationEn || ''}
+                    onChange={handleChange('designationEn')}
+                    error={!!validationErrors.designationEn}
+                    helperText={validationErrors.designationEn || 'Optional English designation'}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                Physical & Chemical Properties
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Density (kg/m³)"
+                    value={product.density ?? 0}
+                    onChange={handleChange('density')}
+                    required
+                    inputProps={{ step: 0.01 }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Viscosity (cP)"
+                    value={product.viscosity ?? 0}
+                    onChange={handleChange('viscosity')}
+                    required
+                    inputProps={{ step: 0.01 }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Flash Point (°C)"
+                    value={product.flashPoint ?? 0}
+                    onChange={handleChange('flashPoint')}
+                    required
+                    inputProps={{ step: 0.1 }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Sulfur Content (%)"
+                    value={product.sulfurContent ?? 0}
+                    onChange={handleChange('sulfurContent')}
+                    required
+                    inputProps={{ step: 0.001 }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={product.isHazardous || false}
+                        onChange={handleChange('isHazardous')}
+                      />
+                    }
+                    label="Hazardous Material"
                   />
                 </Grid>
               </Grid>

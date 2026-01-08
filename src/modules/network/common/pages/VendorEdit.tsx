@@ -3,7 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed null vs undefined types
+ * @updated 01-08-2026 - Fixed to match VendorDTO schema
  */
 
 import { useState, useEffect } from 'react';
@@ -20,6 +20,7 @@ import {
   Paper,
   Divider,
   Stack,
+  MenuItem,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -27,6 +28,8 @@ import {
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
 import { VendorService } from '../services';
+import { VendorTypeService } from '../../type/services';
+import { CountryService } from '../../../general/localization/services';
 import { VendorDTO } from '../dto';
 
 const VendorEdit = () => {
@@ -36,31 +39,50 @@ const VendorEdit = () => {
   const isEditMode = !!vendorId;
 
   const [vendor, setVendor] = useState<Partial<VendorDTO>>({
-    code: '',
     name: undefined,
     shortName: undefined,
+    vendorTypeId: 0,
+    countryId: 0,
   });
 
+  const [vendorTypes, setVendorTypes] = useState<any[]>([]);
+  const [countries, setCountries] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (isEditMode) {
-      loadVendor();
-    }
+    loadData();
   }, [vendorId]);
 
-  const loadVendor = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      const data = await VendorService.getById(Number(vendorId));
-      setVendor(data);
+      
+      // Load vendor if editing
+      let vendorData: VendorDTO | null = null;
+      if (isEditMode) {
+        vendorData = await VendorService.getById(Number(vendorId));
+      }
+      
+      // Load vendor types and countries
+      const [types, countriesData] = await Promise.all([
+        VendorTypeService.getAllNoPagination(),
+        CountryService.getAllNoPagination(),
+      ]);
+      
+      setVendorTypes(Array.isArray(types) ? types : []);
+      setCountries(Array.isArray(countriesData) ? countriesData : []);
+      
+      if (vendorData) {
+        setVendor(vendorData);
+      }
+      
       setError('');
     } catch (err: any) {
-      console.error('Failed to load vendor:', err);
-      setError(err.message || 'Failed to load vendor');
+      console.error('Failed to load data:', err);
+      setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
     }
@@ -69,8 +91,20 @@ const VendorEdit = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!vendor.code || vendor.code.trim().length < 2) {
-      errors.code = 'Vendor code must be at least 2 characters';
+    if (vendor.name && vendor.name.length > 100) {
+      errors.name = 'Name must not exceed 100 characters';
+    }
+
+    if (vendor.shortName && (vendor.shortName.length < 2 || vendor.shortName.length > 20)) {
+      errors.shortName = 'Short name must be between 2 and 20 characters';
+    }
+
+    if (!vendor.vendorTypeId) {
+      errors.vendorTypeId = 'Vendor type is required';
+    }
+
+    if (!vendor.countryId) {
+      errors.countryId = 'Country is required';
     }
 
     setValidationErrors(errors);
@@ -99,9 +133,10 @@ const VendorEdit = () => {
 
       const vendorData: VendorDTO = {
         id: vendor.id,
-        code: vendor.code!,
         name: vendor.name || undefined,
         shortName: vendor.shortName || undefined,
+        vendorTypeId: Number(vendor.vendorTypeId),
+        countryId: Number(vendor.countryId),
       };
 
       if (isEditMode) {
@@ -168,22 +203,11 @@ const VendorEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Vendor Code"
-                    value={vendor.code || ''}
-                    onChange={handleChange('code')}
-                    required
-                    error={!!validationErrors.code}
-                    helperText={validationErrors.code || 'Unique vendor code'}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
                     label="Vendor Name"
                     value={vendor.name || ''}
                     onChange={handleChange('name')}
-                    helperText="Optional vendor name"
+                    error={!!validationErrors.name}
+                    helperText={validationErrors.name || 'Optional vendor name (max 100 characters)'}
                   />
                 </Grid>
 
@@ -193,8 +217,47 @@ const VendorEdit = () => {
                     label="Short Name"
                     value={vendor.shortName || ''}
                     onChange={handleChange('shortName')}
-                    helperText="Optional short name (2-20 characters)"
+                    error={!!validationErrors.shortName}
+                    helperText={validationErrors.shortName || 'Optional short name (2-20 characters)'}
                   />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Vendor Type"
+                    value={vendor.vendorTypeId || ''}
+                    onChange={handleChange('vendorTypeId')}
+                    required
+                    error={!!validationErrors.vendorTypeId}
+                    helperText={validationErrors.vendorTypeId}
+                  >
+                    {vendorTypes.map((type) => (
+                      <MenuItem key={type.id} value={type.id}>
+                        {type.nameEn || type.nameAr || type.nameFr}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Country"
+                    value={vendor.countryId || ''}
+                    onChange={handleChange('countryId')}
+                    required
+                    error={!!validationErrors.countryId}
+                    helperText={validationErrors.countryId}
+                  >
+                    {countries.map((country) => (
+                      <MenuItem key={country.id} value={country.id}>
+                        {country.nameEn || country.nameAr || country.nameFr}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Grid>
               </Grid>
             </Box>
