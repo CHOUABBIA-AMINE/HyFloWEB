@@ -8,7 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
- * @updated 01-02-2026
+ * @updated 01-08-2026 - Added getAllNoPagination method
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -29,6 +29,14 @@ export class CompanyTypeService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all company types without pagination
+   */
+  static async getAllNoPagination(): Promise<CompanyTypeDTO[]> {
+    const response = await axiosInstance.get<CompanyTypeDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
