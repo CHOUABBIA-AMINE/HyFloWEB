@@ -1,8 +1,11 @@
-// Pages
-export * from './pages';
+/**
+ * Localization Module Barrel Export
+ * 
+ * @author CHOUABBIA Amine
+ * @created 01-05-2026
+ * @updated 01-08-2026 - Removed empty pages export
+ */
 
-// Services
-export * from './services';
-
-// DTOs
 export * from './dto';
+export * from './services';
+export * from './utils';
