@@ -1,10 +1,10 @@
 /**
  * Role List Page - Professional Version
- * Advanced DataGrid with server-side pagination, search, filters, export, and polished UI
+ * Advanced DataGrid with server-side pagination, search, filters, and polished UI
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 12-29-2025
+ * @updated 01-08-2026 - Removed export (requires role-specific utils)
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -23,10 +23,6 @@ import {
   Paper,
   Divider,
   Tooltip,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   alpha,
 } from '@mui/material';
 import {
@@ -35,16 +31,13 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   FilterList as FilterIcon,
-  FileDownload as ExportIcon,
   Refresh as RefreshIcon,
-  TableChart as CsvIcon,
-  Description as ExcelIcon,
-  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 import { roleService } from '../services';
 import { RoleDTO } from '../dto';
-import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
+// Note: Export functionality removed - requires role-specific export utils
+// import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
 
 const RoleList = () => {
   const { t } = useTranslation();
@@ -55,7 +48,6 @@ const RoleList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
@@ -182,11 +174,6 @@ const RoleList = () => {
   };
 
   const handleRefresh = () => { loadRoles(); setSuccess('Data refreshed'); };
-  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => setExportAnchorEl(event.currentTarget);
-  const handleExportMenuClose = () => setExportAnchorEl(null);
-  const handleExportCSV = () => { exportToCSV(roles, 'roles'); setSuccess('Exported to CSV'); handleExportMenuClose(); };
-  const handleExportExcel = () => { exportToExcel(roles, 'roles'); setSuccess('Exported to Excel'); handleExportMenuClose(); };
-  const handleExportPDF = () => { exportToPDF(roles, 'roles', t); setSuccess('Exported to PDF'); handleExportMenuClose(); };
 
   return (
     <Box>
@@ -195,18 +182,12 @@ const RoleList = () => {
           <Typography variant="h4" fontWeight={700} color="text.primary">{t('role.title')}</Typography>
           <Stack direction="row" spacing={1.5}>
             <Tooltip title="Refresh"><IconButton onClick={handleRefresh} size="medium" color="primary"><RefreshIcon /></IconButton></Tooltip>
-            <Button variant="outlined" startIcon={<ExportIcon />} onClick={handleExportMenuOpen} sx={{ borderRadius: 2 }}>{t('common.export')}</Button>
+            {/* Export functionality removed - requires role-specific export utils */}
             <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate} sx={{ borderRadius: 2, boxShadow: 2 }}>{t('role.createRole')}</Button>
           </Stack>
         </Box>
         <Typography variant="body2" color="text.secondary">Manage roles and permissions</Typography>
       </Box>
-
-      <Menu anchorEl={exportAnchorEl} open={Boolean(exportAnchorEl)} onClose={handleExportMenuClose} PaperProps={{ elevation: 3, sx: { minWidth: 200 } }}>
-        <MenuItem onClick={handleExportCSV}><ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon><ListItemText>{t('common.exportCSV')}</ListItemText></MenuItem>
-        <MenuItem onClick={handleExportExcel}><ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon><ListItemText>{t('common.exportExcel')}</ListItemText></MenuItem>
-        <MenuItem onClick={handleExportPDF}><ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon><ListItemText>{t('common.exportPDF')}</ListItemText></MenuItem>
-      </Menu>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
