@@ -1,30 +1,60 @@
 /**
  * Type declarations for stylis package
- * Provides type safety for stylis RTL support
+ * Provides type safety for stylis RTL support with Emotion
  * 
  * @author CHOUABBIA Amine
  * @created 01-08-2026
+ * @updated 01-08-2026 - Fixed signature to match @emotion/cache StylisPlugin
  */
 
 declare module 'stylis' {
-  export interface Prefixer {
-    (element: any, index: number, children: any[], callback: (element: any) => any): any;
+  /**
+   * Stylis plugin callback function
+   * Matches the signature expected by @emotion/cache
+   */
+  export type StylisPluginCallback = (
+    element: number,
+    index: number,
+    children: any[],
+    callback: StylisPluginCallback
+  ) => string | void;
+
+  /**
+   * Stylis plugin function signature
+   * Compatible with @emotion/cache StylisPlugin
+   */
+  export interface StylisPlugin {
+    (
+      element: number,
+      index: number,
+      children: any[],
+      callback: StylisPluginCallback
+    ): string | void;
   }
 
-  export const prefixer: Prefixer;
+  /**
+   * Prefixer plugin - adds vendor prefixes to CSS properties
+   */
+  export const prefixer: StylisPlugin;
 
-  export interface Middleware {
-    (element: any, index: number, children: any[], callback: (element: any) => any): any;
-  }
+  /**
+   * Middleware function type (alias for StylisPlugin)
+   */
+  export interface Middleware extends StylisPlugin {}
 
   export function middleware(collection: Middleware[]): Middleware;
   export function compile(value: string): any[];
-  export function serialize(children: any[], callback: (element: any) => any): string;
-  export function stringify(element: any, index: number, children: any[], callback?: (element: any) => any): string;
+  export function serialize(children: any[], callback: StylisPluginCallback): string;
+  export function stringify(element: any, index: number, children: any[], callback?: StylisPluginCallback): string;
 }
 
 declare module 'stylis-plugin-rtl' {
-  import { Middleware } from 'stylis';
-  const rtlPlugin: Middleware;
+  import { StylisPlugin } from 'stylis';
+  
+  /**
+   * RTL (Right-to-Left) plugin for Stylis
+   * Converts LTR CSS properties to RTL equivalents
+   */
+  const rtlPlugin: StylisPlugin;
   export default rtlPlugin;
 }
