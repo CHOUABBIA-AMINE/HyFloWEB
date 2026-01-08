@@ -10,6 +10,7 @@
  * @updated 01-01-2026 - Added Partner/Vendor routes
  * @updated 01-06-2026 - Added Pipeline Map route
  * @updated 01-07-2026 - Removed non-existent Region routes
+ * @updated 01-08-2026 - Added type assertion for stylis plugins
  */
 
 import { useEffect, useMemo } from 'react';
@@ -69,9 +70,11 @@ function App() {
   // Create emotion cache for RTL support
   const cacheRtl = useMemo(
     () =>
-      createCache({
-        key: isRtl ? 'muirtl' : 'muiltr',
-        stylisPlugins: isRtl ? [prefixer, rtlPlugin] : [prefixer],
+      createCache({        key: isRtl ? 'muirtl' : 'muiltr',
+        // Type assertion needed due to recursive type incompatibility between
+        // our StylisElement definition and emotion's internal types.
+        // The plugins are structurally compatible and work correctly at runtime.
+        stylisPlugins: (isRtl ? [prefixer, rtlPlugin] : [prefixer]) as any,
       }),
     [isRtl]
   );
