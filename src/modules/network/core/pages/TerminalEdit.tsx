@@ -1,11 +1,10 @@
 /**
- * Terminal Edit/Create Page - Professional Version
- * Comprehensive form for creating and editing terminals
- * State and Locality with localized names (Ar, En, Fr)
+ * Terminal Edit/Create Page - Updated for U-006 Schema
+ * Uses locationId while keeping legacy coordinate fields
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 01-07-2026
+ * @updated 01-08-2026 - Updated for U-006 schema (locationId + structureId)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,9 +31,10 @@ import {
 import { TerminalService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
 import { TerminalTypeService } from '../../type/services';
-import { StateService, LocalityService } from '../../../general/localization/services';
+import { LocationService } from '../../../general/localization/services';
+import { StructureService } from '../../../general/organization/services';
 import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
-import { TerminalDTO, TerminalCreateDTO } from '../dto';
+import { TerminalDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
 const TerminalEdit = () => {
@@ -46,7 +46,7 @@ const TerminalEdit = () => {
   // Get current language
   const currentLanguage = i18n.language || 'en';
 
-  // Form state with 0 as default for numeric fields
+  // Form state - aligned with TerminalDTO schema (keeps legacy fields)
   const [terminal, setTerminal] = useState<Partial<TerminalDTO>>({
     name: '',
     code: '',
@@ -58,21 +58,19 @@ const TerminalEdit = () => {
     commissioningDate: undefined,
     decommissioningDate: undefined,
     operationalStatusId: 0,
-    terminalTypeId: 0,
+    structureId: 0,
     vendorId: 0,
-    localityId: 0,
+    locationId: 0,
+    terminalTypeId: 0,
+    pipelineIds: [],
   });
 
-  // UI state for state selection (not in entity)
-  const [selectedStateId, setSelectedStateId] = useState<number>(0);
-
   // Available options
+  const [locations, setLocations] = useState<any[]>([]);
+  const [structures, setStructures] = useState<any[]>([]);
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
   const [terminalTypes, setTerminalTypes] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
-  const [states, setStates] = useState<any[]>([]);
-  const [localities, setLocalities] = useState<any[]>([]);
-  const [loadingLocalities, setLoadingLocalities] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -84,19 +82,6 @@ const TerminalEdit = () => {
     loadData();
   }, [terminalId]);
 
-  // Load localities when selected state changes
-  useEffect(() => {
-    if (selectedStateId && selectedStateId > 0) {
-      loadLocalitiesByState(selectedStateId);
-    } else {
-      setLocalities([]);
-      // Clear locality if state is cleared
-      if (terminal.localityId) {
-        setTerminal(prev => ({ ...prev, localityId: 0 }));
-      }
-    }
-  }, [selectedStateId]);
-
   // Sort options by localized name
   const sortedTerminalTypes = useMemo(
     () => sortByLocalizedName(terminalTypes, currentLanguage),
@@ -106,6 +91,16 @@ const TerminalEdit = () => {
   const sortedOperationalStatuses = useMemo(
     () => sortByLocalizedName(operationalStatuses, currentLanguage),
     [operationalStatuses, currentLanguage]
+  );
+
+  const sortedLocations = useMemo(
+    () => sortByLocalizedName(locations, currentLanguage),
+    [locations, currentLanguage]
+  );
+
+  const sortedStructures = useMemo(
+    () => sortByLocalizedName(structures, currentLanguage),
+    [structures, currentLanguage]
   );
 
   const loadData = async () => {
@@ -120,23 +115,45 @@ const TerminalEdit = () => {
       
       // Load all data from REST APIs in parallel
       const [
+        locationsData,
+        structuresData,
         vendorsData,
         terminalTypesData,
         operationalStatusesData,
-        statesData
       ] = await Promise.allSettled([
+        LocationService.getAllNoPagination(),
+        StructureService.getAllNoPagination(),
         VendorService.getAllNoPagination(),
         TerminalTypeService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
-        StateService.getAllNoPagination(),
       ]);
+
+      // Handle locations
+      if (locationsData.status === 'fulfilled') {
+        const locs = Array.isArray(locationsData.value) 
+          ? locationsData.value 
+          : [];
+        setLocations(locs);
+      } else {
+        console.error('Failed to load locations:', locationsData.reason);
+      }
+
+      // Handle structures
+      if (structuresData.status === 'fulfilled') {
+        const structs = Array.isArray(structuresData.value) 
+          ? structuresData.value 
+          : [];
+        setStructures(structs);
+      } else {
+        console.error('Failed to load structures:', structuresData.reason);
+      }
 
       // Handle vendors
       if (vendorsData.status === 'fulfilled') {
-        const vendors = Array.isArray(vendorsData.value) 
+        const vnds = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
-          : (vendorsData.value?.data || vendorsData.value?.content || []);
-        setVendors(vendors);
+          : [];
+        setVendors(vnds);
       } else {
         console.error('Failed to load vendors:', vendorsData.reason);
       }
@@ -145,7 +162,7 @@ const TerminalEdit = () => {
       if (terminalTypesData.status === 'fulfilled') {
         const types = Array.isArray(terminalTypesData.value) 
           ? terminalTypesData.value 
-          : (terminalTypesData.value?.data || terminalTypesData.value?.content || []);
+          : [];
         setTerminalTypes(types);
       } else {
         console.error('Failed to load terminal types:', terminalTypesData.reason);
@@ -155,33 +172,15 @@ const TerminalEdit = () => {
       if (operationalStatusesData.status === 'fulfilled') {
         const statuses = Array.isArray(operationalStatusesData.value) 
           ? operationalStatusesData.value 
-          : (operationalStatusesData.value?.data || operationalStatusesData.value?.content || []);
+          : [];
         setOperationalStatuses(statuses);
       } else {
         console.error('Failed to load operational statuses:', operationalStatusesData.reason);
       }
 
-      // Handle states
-      if (statesData.status === 'fulfilled') {
-        const states = Array.isArray(statesData.value) 
-          ? statesData.value 
-          : (statesData.value?.data || statesData.value?.content || []);
-        setStates(states);
-      } else {
-        console.error('Failed to load states:', statesData.reason);
-      }
-
       // Set terminal data if editing
       if (terminalData) {
         setTerminal(terminalData);
-        
-        // Extract state from locality if available
-        if (terminalData.locality?.state?.id) {
-          setSelectedStateId(terminalData.locality.state.id);
-        } else if (terminalData.locality?.stateId) {
-          setSelectedStateId(terminalData.locality.stateId);
-        }
-        // Localities will be loaded by useEffect when selectedStateId is set
       }
 
       setError('');
@@ -193,31 +192,15 @@ const TerminalEdit = () => {
     }
   };
 
-  const loadLocalitiesByState = async (stateId: number) => {
-    try {
-      setLoadingLocalities(true);
-      const localitiesData = await LocalityService.getByStateId(stateId);
-      const localities = Array.isArray(localitiesData) 
-        ? localitiesData 
-        : (localitiesData?.data || localitiesData?.content || []);
-      setLocalities(localities);
-    } catch (err: any) {
-      console.error('Failed to load localities:', err);
-      setLocalities([]);
-    } finally {
-      setLoadingLocalities(false);
-    }
-  };
-
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!terminal.name || terminal.name.trim().length < 2) {
-      errors.name = 'Terminal name must be at least 2 characters';
+    if (!terminal.name || terminal.name.trim().length < 3) {
+      errors.name = 'Terminal name must be at least 3 characters';
     }
 
     if (!terminal.code || terminal.code.trim().length < 2) {
-      errors.code = 'Terminal code is required';
+      errors.code = 'Terminal code must be at least 2 characters';
     }
 
     if (!terminal.placeName || terminal.placeName.trim().length < 2) {
@@ -236,20 +219,20 @@ const TerminalEdit = () => {
       errors.operationalStatusId = 'Operational status is required';
     }
 
-    if (!terminal.terminalTypeId) {
-      errors.terminalTypeId = 'Terminal type is required';
+    if (!terminal.structureId) {
+      errors.structureId = 'Structure is required';
     }
 
     if (!terminal.vendorId) {
       errors.vendorId = 'Vendor is required';
     }
 
-    if (!selectedStateId) {
-      errors.stateId = 'State is required';
+    if (!terminal.locationId) {
+      errors.locationId = 'Location is required';
     }
 
-    if (!terminal.localityId) {
-      errors.localityId = 'Locality is required';
+    if (!terminal.terminalTypeId) {
+      errors.terminalTypeId = 'Terminal type is required';
     }
 
     setValidationErrors(errors);
@@ -266,16 +249,6 @@ const TerminalEdit = () => {
     }
   };
 
-  const handleStateChange = (e: any) => {
-    const value = e.target.value;
-    setSelectedStateId(value);
-    
-    // Clear validation error
-    if (validationErrors.stateId) {
-      setValidationErrors({ ...validationErrors, stateId: '' });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -287,26 +260,37 @@ const TerminalEdit = () => {
       setSaving(true);
       setError('');
 
-      const terminalData: TerminalCreateDTO = {
-        name: terminal.name!,
-        code: terminal.code!,
-        placeName: terminal.placeName!,
+      const payload: TerminalDTO = {
+        id: isEditMode ? Number(terminalId) : undefined,
+        code: String(terminal.code || ''),
+        name: String(terminal.name || ''),
+        
+        // Legacy location fields (still required in TerminalDTO)
+        placeName: String(terminal.placeName || ''),
         latitude: Number(terminal.latitude),
         longitude: Number(terminal.longitude),
-        elevation: terminal.elevation !== undefined ? Number(terminal.elevation) : undefined,
+        elevation: Number(terminal.elevation || 0),
+        
+        // Dates
         installationDate: terminal.installationDate,
         commissioningDate: terminal.commissioningDate,
         decommissioningDate: terminal.decommissioningDate,
+        
+        // Required relationships
         operationalStatusId: Number(terminal.operationalStatusId),
-        terminalTypeId: Number(terminal.terminalTypeId),
+        structureId: Number(terminal.structureId),
         vendorId: Number(terminal.vendorId),
-        localityId: Number(terminal.localityId),
+        locationId: Number(terminal.locationId),
+        terminalTypeId: Number(terminal.terminalTypeId),
+        
+        // Collections
+        pipelineIds: terminal.pipelineIds || [],
       };
 
       if (isEditMode) {
-        await TerminalService.update(Number(terminalId), { id: Number(terminalId), ...terminalData });
+        await TerminalService.update(Number(terminalId), payload);
       } else {
-        await TerminalService.create(terminalData);
+        await TerminalService.create(payload);
       }
 
       navigate('/network/core/terminals');
@@ -371,24 +355,24 @@ const TerminalEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Terminal Name"
-                    value={terminal.name || ''}
-                    onChange={handleChange('name')}
+                    label="Terminal Code"
+                    value={terminal.code || ''}
+                    onChange={handleChange('code')}
                     required
-                    error={!!validationErrors.name}
-                    helperText={validationErrors.name}
+                    error={!!validationErrors.code}
+                    helperText={validationErrors.code || '2-20 characters'}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Terminal Code"
-                    value={terminal.code || ''}
-                    onChange={handleChange('code')}
+                    label="Terminal Name"
+                    value={terminal.name || ''}
+                    onChange={handleChange('name')}
                     required
-                    error={!!validationErrors.code}
-                    helperText={validationErrors.code}
+                    error={!!validationErrors.name}
+                    helperText={validationErrors.name || '3-100 characters'}
                   />
                 </Grid>
               </Grid>
@@ -404,8 +388,32 @@ const TerminalEdit = () => {
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                {/* Row 1: Place Name alone */}
-                <Grid item xs={12}>
+                {/* Location Reference */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Location"
+                    value={terminal.locationId || ''}
+                    onChange={handleChange('locationId')}
+                    required
+                    error={!!validationErrors.locationId}
+                    helperText={validationErrors.locationId || 'Select the physical location'}
+                  >
+                    {sortedLocations.length > 0 ? (
+                      sortedLocations.map((location) => (
+                        <MenuItem key={location.id} value={location.id}>
+                          {getLocalizationLocalizedName(location, currentLanguage)}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading locations...</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+
+                {/* Place Name - Legacy Field */}
+                <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Place Name"
@@ -413,67 +421,11 @@ const TerminalEdit = () => {
                     onChange={handleChange('placeName')}
                     required
                     error={!!validationErrors.placeName}
-                    helperText={validationErrors.placeName}
+                    helperText={validationErrors.placeName || 'Max 100 characters'}
                   />
                 </Grid>
 
-                {/* Row 2: State and Locality */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="State"
-                    value={selectedStateId || ''}
-                    onChange={handleStateChange}
-                    required
-                    error={!!validationErrors.stateId}
-                    helperText={validationErrors.stateId || 'Select state first to load localities'}
-                  >
-                    {states.length > 0 ? (
-                      states.map((state) => (
-                        <MenuItem key={state.id} value={state.id}>
-                          {getLocalizationLocalizedName(state, currentLanguage)}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>Loading states...</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Locality"
-                    value={terminal.localityId || ''}
-                    onChange={handleChange('localityId')}
-                    required
-                    disabled={!selectedStateId || loadingLocalities}
-                    error={!!validationErrors.localityId}
-                    helperText={
-                      !selectedStateId 
-                        ? 'Please select a state first' 
-                        : loadingLocalities 
-                        ? 'Loading localities...' 
-                        : validationErrors.localityId
-                    }
-                  >
-                    {loadingLocalities ? (
-                      <MenuItem disabled>Loading localities...</MenuItem>
-                    ) : localities.length > 0 ? (
-                      localities.map((locality) => (
-                        <MenuItem key={locality.id} value={locality.id}>
-                          {getLocalizationLocalizedName(locality, currentLanguage)}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No localities available</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-
-                {/* Row 3: Latitude, Longitude, Elevation */}
+                {/* Coordinates - Legacy Fields */}
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
@@ -509,6 +461,7 @@ const TerminalEdit = () => {
                     type="number"
                     value={terminal.elevation ?? 0}
                     onChange={handleChange('elevation')}
+                    required
                     inputProps={{ step: 0.1 }}
                   />
                 </Grid>
@@ -516,15 +469,38 @@ const TerminalEdit = () => {
             </Box>
           </Paper>
 
-          {/* Technical Details */}
+          {/* Organization & Technical Details */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Technical Details
+                Organization & Technical Details
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Structure"
+                    value={terminal.structureId || ''}
+                    onChange={handleChange('structureId')}
+                    required
+                    error={!!validationErrors.structureId}
+                    helperText={validationErrors.structureId || 'Organizational unit'}
+                  >
+                    {sortedStructures.length > 0 ? (
+                      sortedStructures.map((structure) => (
+                        <MenuItem key={structure.id} value={structure.id}>
+                          {getLocalizedName(structure, currentLanguage)}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading structures...</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -597,7 +573,7 @@ const TerminalEdit = () => {
             </Box>
           </Paper>
 
-          {/* Dates */}
+          {/* Important Dates */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
