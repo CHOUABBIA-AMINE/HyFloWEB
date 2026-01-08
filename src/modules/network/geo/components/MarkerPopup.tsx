@@ -1,15 +1,17 @@
 /**
  * Marker Popup Component
  * Displays detailed information in map marker popups with enhanced styling
+ * Updated for U-006 schema (location reference) and localized names
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-25-2025
+ * @updated 01-08-2026 - Updated for U-006 and localized designations
  */
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { StationDTO, TerminalDTO, HydrocarbonFieldDTO } from '../../core/dto';
+import { getLocalizedName } from '../../core/utils/localizationUtils';
 
 interface MarkerPopupProps {
   data: StationDTO | TerminalDTO | HydrocarbonFieldDTO;
@@ -36,7 +38,8 @@ const formatCoordinates = (lat: number, lng: number) => {
 };
 
 export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language || 'en';
 
   const getTypeConfig = () => {
     switch (type) {
@@ -66,21 +69,65 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
   const terminalData = type === 'terminal' ? (data as TerminalDTO) : null;
   const fieldData = type === 'hydrocarbonField' ? (data as HydrocarbonFieldDTO) : null;
 
-  // Get the specific type name
+  // Get the specific type name using localized designations
   const getTypeName = () => {
-    if (stationData?.stationType?.name) return stationData.stationType.name;
-    if (terminalData?.terminalType?.name) return terminalData.terminalType.name;
-    if (fieldData?.fieldType?.name) return fieldData.fieldType.name;
-    
-    // Fallback to legacy string fields
-    if ((data as any).stationTypeName) return (data as any).stationTypeName;
-    if ((data as any).terminalTypeName) return (data as any).terminalTypeName;
-    if ((data as any).fieldTypeName) return (data as any).fieldTypeName;
-    
+    if (stationData?.stationType) {
+      return getLocalizedName(stationData.stationType, currentLanguage);
+    }
+    if (terminalData?.terminalType) {
+      return getLocalizedName(terminalData.terminalType, currentLanguage);
+    }
+    if (fieldData?.hydrocarbonFieldType) {
+      return getLocalizedName(fieldData.hydrocarbonFieldType, currentLanguage);
+    }
     return null;
   };
 
   const typeName = getTypeName();
+
+  // Get coordinates based on entity type (U-006 schema)
+  const getCoordinates = () => {
+    if (stationData?.location) {
+      // Station: via location object
+      return {
+        latitude: stationData.location.latitude || 0,
+        longitude: stationData.location.longitude || 0,
+        placeName: stationData.location.placeName || 'N/A',
+        elevation: stationData.location.elevation
+      };
+    }
+    if (terminalData) {
+      // Terminal: direct access (legacy fields)
+      return {
+        latitude: terminalData.latitude || 0,
+        longitude: terminalData.longitude || 0,
+        placeName: terminalData.placeName || 'N/A',
+        elevation: terminalData.elevation
+      };
+    }
+    if (fieldData?.location) {
+      // Hydrocarbon Field: via location object
+      return {
+        latitude: fieldData.location.latitude || 0,
+        longitude: fieldData.location.longitude || 0,
+        placeName: fieldData.location.placeName || 'N/A',
+        elevation: fieldData.location.elevation
+      };
+    }
+    return { latitude: 0, longitude: 0, placeName: 'N/A', elevation: undefined };
+  };
+
+  const coordinates = getCoordinates();
+
+  // Get operational status name using localized designations
+  const getOperationalStatusName = () => {
+    if (data.operationalStatus) {
+      return getLocalizedName(data.operationalStatus, currentLanguage);
+    }
+    return null;
+  };
+
+  const operationalStatusName = getOperationalStatusName();
 
   return (
     <div style={{ 
@@ -141,107 +188,59 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
         </div>
       </div>
 
-      {/* Description */}
-      {data.description && (
-        <div style={{
-          fontSize: '13px',
-          color: '#555',
-          marginBottom: '12px',
-          lineHeight: '1.4',
-          fontStyle: 'italic'
-        }}>
-          {data.description}
-        </div>
-      )}
-
       {/* Location Info */}
       <div style={{ marginBottom: '12px' }}>
         <InfoRow 
           icon="📍" 
           label={t('map.location')}
-          value={data.placeName || 'N/A'} 
+          value={coordinates.placeName} 
         />
         <InfoRow 
           icon="🌐" 
           label={t('map.coordinates')}
-          value={formatCoordinates(data.latitude, data.longitude)} 
+          value={formatCoordinates(coordinates.latitude, coordinates.longitude)} 
         />
-        {data.elevation != null && (
+        {coordinates.elevation != null && (
           <InfoRow 
             icon="⛰️" 
             label={t('map.elevation')}
-            value={`${data.elevation} ${t('map.meters')}`}
+            value={`${coordinates.elevation} ${t('map.meters')}`}
           />
         )}
       </div>
 
-      {/* Type-specific information */}
+      {/* Installation/Commissioning Dates */}
       <div style={{
         borderTop: '1px solid #e0e0e0',
         paddingTop: '12px',
         marginTop: '12px'
       }}>
-        {stationData && (
-          <>
-            {stationData.capacity != null && (
-              <InfoRow 
-                icon="⚡" 
-                label={t('map.capacity')}
-                value={`${stationData.capacity.toLocaleString()} ${t('map.units')}`}
-              />
-            )}
-            {stationData.commissioningDate && (
-              <InfoRow 
-                icon="📅" 
-                label={t('map.commissioned')}
-                value={formatDate(stationData.commissioningDate)} 
-              />
-            )}
-          </>
+        {data.installationDate && (
+          <InfoRow 
+            icon="🔧" 
+            label={t('map.installed')}
+            value={formatDate(data.installationDate)} 
+          />
         )}
-
-        {terminalData && (
-          <>
-            {terminalData.storageCapacity != null && (
-              <InfoRow 
-                icon="📦" 
-                label={t('map.storage')}
-                value={`${terminalData.storageCapacity.toLocaleString()} ${t('map.cubicMeters')}`}
-              />
-            )}
-            {terminalData.commissioningDate && (
-              <InfoRow 
-                icon="📅" 
-                label={t('map.commissioned')}
-                value={formatDate(terminalData.commissioningDate)} 
-              />
-            )}
-          </>
+        {data.commissioningDate && (
+          <InfoRow 
+            icon="📅" 
+            label={t('map.commissioned')}
+            value={formatDate(data.commissioningDate)} 
+          />
         )}
-
-        {fieldData && (
-          <>
-            {fieldData.reserves != null && (
-              <InfoRow 
-                icon="💎" 
-                label={t('map.reserves')}
-                value={`${fieldData.reserves.toLocaleString()} ${t('map.units')}`}
-              />
-            )}
-            {fieldData.discoveryDate && (
-              <InfoRow 
-                icon="🔍" 
-                label={t('map.discovered')}
-                value={formatDate(fieldData.discoveryDate)} 
-              />
-            )}
-          </>
+        {data.decommissioningDate && (
+          <InfoRow 
+            icon="🚫" 
+            label={t('map.decommissioned')}
+            value={formatDate(data.decommissioningDate)} 
+          />
         )}
 
         {/* Operational Status */}
-        {data.operationalStatus && data.operationalStatus.name && (
+        {operationalStatusName && (
           <div style={{ marginTop: '8px' }}>
-            <StatusBadge status={data.operationalStatus.name} />
+            <StatusBadge status={operationalStatusName} />
           </div>
         )}
       </div>
@@ -289,13 +288,16 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
   const getStatusColor = () => {
     const statusLower = status.toLowerCase();
-    if (statusLower.includes('operational') || statusLower.includes('active')) {
+    if (statusLower.includes('operational') || statusLower.includes('active') || 
+        statusLower.includes('opérationnel') || statusLower.includes('actif')) {
       return { bg: '#e8f5e9', color: '#2e7d32', icon: '✓' };
     }
-    if (statusLower.includes('maintenance') || statusLower.includes('planned')) {
+    if (statusLower.includes('maintenance') || statusLower.includes('planned') ||
+        statusLower.includes('planifié')) {
       return { bg: '#fff3e0', color: '#e65100', icon: '⚠' };
     }
-    if (statusLower.includes('inactive') || statusLower.includes('closed')) {
+    if (statusLower.includes('inactive') || statusLower.includes('closed') ||
+        statusLower.includes('inactif') || statusLower.includes('fermé')) {
       return { bg: '#ffebee', color: '#c62828', icon: '✕' };
     }
     return { bg: '#f5f5f5', color: '#616161', icon: '•' };
