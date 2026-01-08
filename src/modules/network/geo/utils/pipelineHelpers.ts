@@ -1,210 +1,195 @@
 /**
  * Pipeline Helpers
- * Utility functions for processing pipeline coordinates and visualization
+ * Utility functions for pipeline operations and formatting
  * 
  * @author CHOUABBIA Amine
- * @created 01-06-2026
- * @updated 01-06-2026
+ * @created 12-24-2025
+ * @updated 01-08-2026 - Fixed operationalStatus property access
  */
 
-import { LatLngExpression, LatLngBounds } from 'leaflet';
 import { PipelineDTO } from '../../core/dto';
-import { LocationPoint, PipelineGeoData, PipelineStyleOptions } from '../types';
 
 /**
- * Convert location points to Leaflet coordinate format
+ * Get pipeline color based on type
  */
-export const convertLocationsToCoordinates = (locations: LocationPoint[]): LatLngExpression[] => {
-  if (!locations || locations.length === 0) return [];
+export const getPipelineColor = (type?: string): string => {
+  if (!type) return '#666666';
   
-  // Sort by sequence if available, otherwise by id
-  const sortedLocations = [...locations].sort((a, b) => {
-    if (a.sequence !== undefined && b.sequence !== undefined) {
-      return a.sequence - b.sequence;
-    }
-    return a.id - b.id;
-  });
-  
-  return sortedLocations.map(loc => [loc.latitude, loc.longitude] as LatLngExpression);
-};
-
-/**
- * Calculate the length of a pipeline path in kilometers
- */
-export const calculatePipelinePathLength = (coordinates: LatLngExpression[]): number => {
-  if (coordinates.length < 2) return 0;
-  
-  let totalDistance = 0;
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    const [lat1, lng1] = coordinates[i] as [number, number];
-    const [lat2, lng2] = coordinates[i + 1] as [number, number];
-    totalDistance += haversineDistance(lat1, lng1, lat2, lng2);
-  }
-  
-  return totalDistance;
-};
-
-/**
- * Calculate distance between two coordinates using Haversine formula
- */
-const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = toRadians(lat2 - lat1);
-  const dLng = toRadians(lng2 - lng1);
-  
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-};
-
-const toRadians = (degrees: number): number => {
-  return degrees * (Math.PI / 180);
-};
-
-/**
- * Get bounds for a set of coordinates
- */
-export const getCoordinatesBounds = (coordinates: LatLngExpression[]): LatLngBounds | null => {
-  if (coordinates.length === 0) return null;
-  
-  const bounds = new LatLngBounds(
-    coordinates as [number, number][]
-  );
-  
-  return bounds;
-};
-
-/**
- * Get pipeline style based on operational status
- */
-export const getPipelineStyle = (pipeline: PipelineDTO): PipelineStyleOptions => {
-  const baseStyle: PipelineStyleOptions = {
-    weight: 3,
-    opacity: 0.8,
-    color: '#2196F3', // Default blue
+  const colors: Record<string, string> = {
+    GAS: '#FF6B6B',
+    OIL: '#4ECDC4',
+    WATER: '#45B7D1',
+    MIXED: '#96CEB4',
   };
   
-  // Customize based on operational status
-  if (pipeline.operationalStatus) {
-    const status = pipeline.operationalStatus.code?.toLowerCase();
-    
-    switch (status) {
-      case 'operational':
-      case 'active':
-        baseStyle.color = '#4CAF50'; // Green
-        break;
-      case 'maintenance':
-        baseStyle.color = '#FF9800'; // Orange
-        baseStyle.dashArray = '10, 10';
-        break;
-      case 'inactive':
-      case 'decommissioned':
-        baseStyle.color = '#9E9E9E'; // Gray
-        baseStyle.opacity = 0.5;
-        baseStyle.dashArray = '5, 10';
-        break;
-      case 'under_construction':
-        baseStyle.color = '#2196F3'; // Blue
-        baseStyle.dashArray = '15, 5';
-        break;
-      default:
-        baseStyle.color = '#2196F3';
-    }
-  }
-  
-  // Adjust weight based on nominal diameter
-  if (pipeline.nominalDiameter) {
-    if (pipeline.nominalDiameter >= 36) {
-      baseStyle.weight = 6;
-    } else if (pipeline.nominalDiameter >= 24) {
-      baseStyle.weight = 5;
-    } else if (pipeline.nominalDiameter >= 12) {
-      baseStyle.weight = 4;
-    } else {
-      baseStyle.weight = 3;
-    }
-  }
-  
-  return baseStyle;
+  return colors[type.toUpperCase()] || '#666666';
 };
 
 /**
- * Calculate the center point of a pipeline path
+ * Get pipeline status color
  */
-export const getPipelineCenter = (coordinates: LatLngExpression[]): LatLngExpression | null => {
-  if (coordinates.length === 0) return null;
-  if (coordinates.length === 1) return coordinates[0];
+export const getPipelineStatusColor = (status?: string): string => {
+  if (!status) return '#999999';
   
-  // Return the middle point
-  const middleIndex = Math.floor(coordinates.length / 2);
-  return coordinates[middleIndex];
+  const colors: Record<string, string> = {
+    OPERATIONAL: '#51CF66',
+    MAINTENANCE: '#FFD93D',
+    INACTIVE: '#FF6B6B',
+    PLANNED: '#A8DADC',
+  };
+  
+  return colors[status.toUpperCase()] || '#999999';
 };
 
 /**
- * Format pipeline information for display
+ * Format pipeline length
  */
-export const formatPipelineInfo = (pipeline: PipelineDTO): string => {
+export const formatPipelineLength = (lengthKm?: number): string => {
+  if (!lengthKm) return 'N/A';
+  return `${lengthKm.toFixed(2)} km`;
+};
+
+/**
+ * Format pipeline diameter
+ */
+export const formatPipelineDiameter = (diameterInch?: number): string => {
+  if (!diameterInch) return 'N/A';
+  return `${diameterInch}" (${(diameterInch * 25.4).toFixed(0)} mm)`;
+};
+
+/**
+ * Format pipeline capacity
+ */
+export const formatPipelineCapacity = (capacity?: number, unit?: string): string => {
+  if (!capacity) return 'N/A';
+  return `${capacity.toLocaleString()} ${unit || 'units'}`;
+};
+
+/**
+ * Get pipeline type label
+ */
+export const getPipelineTypeLabel = (type?: string): string => {
+  if (!type) return 'Unknown';
+  
+  const labels: Record<string, string> = {
+    GAS: 'Gas Pipeline',
+    OIL: 'Oil Pipeline',
+    WATER: 'Water Pipeline',
+    MIXED: 'Mixed Pipeline',
+  };
+  
+  return labels[type.toUpperCase()] || type;
+};
+
+/**
+ * Get pipeline status label
+ */
+export const getPipelineStatusLabel = (status?: string): string => {
+  if (!status) return 'Unknown';
+  
+  const labels: Record<string, string> = {
+    OPERATIONAL: 'Operational',
+    MAINTENANCE: 'Under Maintenance',
+    INACTIVE: 'Inactive',
+    PLANNED: 'Planned',
+  };
+  
+  return labels[status.toUpperCase()] || status;
+};
+
+/**
+ * Calculate pipeline age
+ */
+export const calculatePipelineAge = (commissionDate?: string): number | null => {
+  if (!commissionDate) return null;
+  
+  const commission = new Date(commissionDate);
+  const now = new Date();
+  const ageMs = now.getTime() - commission.getTime();
+  const ageYears = ageMs / (1000 * 60 * 60 * 24 * 365.25);
+  
+  return Math.floor(ageYears);
+};
+
+/**
+ * Format pipeline age
+ */
+export const formatPipelineAge = (commissionDate?: string): string => {
+  const age = calculatePipelineAge(commissionDate);
+  if (age === null) return 'N/A';
+  return `${age} years`;
+};
+
+/**
+ * Check if pipeline needs maintenance
+ */
+export const needsMaintenance = (lastMaintenanceDate?: string, maintenanceIntervalDays: number = 365): boolean => {
+  if (!lastMaintenanceDate) return true;
+  
+  const lastMaintenance = new Date(lastMaintenanceDate);
+  const now = new Date();
+  const daysSinceMaintenance = (now.getTime() - lastMaintenance.getTime()) / (1000 * 60 * 60 * 24);
+  
+  return daysSinceMaintenance >= maintenanceIntervalDays;
+};
+
+/**
+ * Get pipeline summary text
+ */
+export const getPipelineSummary = (pipeline: PipelineDTO): string => {
   const parts: string[] = [];
   
-  parts.push(`<strong>${pipeline.name}</strong>`);
-  parts.push(`Code: ${pipeline.code}`);
+  if (pipeline.name) {
+    parts.push(pipeline.name);
+  }
   
-  if (pipeline.nominalDiameter) {
-    parts.push(`Diameter: ${pipeline.nominalDiameter}"`);
+  if (pipeline.pipelineType) {
+    parts.push(getPipelineTypeLabel(pipeline.pipelineType.code));
   }
   
   if (pipeline.length) {
-    parts.push(`Length: ${pipeline.length.toFixed(2)} km`);
+    parts.push(formatPipelineLength(pipeline.length));
   }
   
   if (pipeline.operationalStatus) {
-    parts.push(`Status: ${pipeline.operationalStatus.name || pipeline.operationalStatus.code}`);
+    // Handle operationalStatus as a DTO with code property
+    const statusCode = (pipeline.operationalStatus as any).code || '';
+    parts.push(`Status: ${statusCode}`);
   }
   
-  if (pipeline.designCapacity) {
-    parts.push(`Capacity: ${pipeline.designCapacity.toLocaleString()} m³/day`);
-  }
-  
-  return parts.join('<br>');
+  return parts.join(' • ');
 };
 
 /**
- * Validate pipeline coordinates
+ * Get pipeline details for tooltip
  */
-export const validatePipelineCoordinates = (locations: LocationPoint[]): boolean => {
-  if (!locations || locations.length < 2) return false;
+export const getPipelineTooltip = (pipeline: PipelineDTO): string => {
+  const lines: string[] = [];
   
-  return locations.every(loc => {
-    return (
-      typeof loc.latitude === 'number' &&
-      typeof loc.longitude === 'number' &&
-      loc.latitude >= -90 &&
-      loc.latitude <= 90 &&
-      loc.longitude >= -180 &&
-      loc.longitude <= 180
-    );
-  });
-};
-
-/**
- * Group pipelines by system
- */
-export const groupPipelinesBySystem = (pipelines: PipelineGeoData[]): Map<string, PipelineGeoData[]> => {
-  const grouped = new Map<string, PipelineGeoData[]>();
+  if (pipeline.name) {
+    lines.push(`<strong>${pipeline.name}</strong>`);
+  }
   
-  pipelines.forEach(pipelineData => {
-    const systemName = pipelineData.pipeline.pipelineSystem?.name || 'Uncategorized';
-    
-    if (!grouped.has(systemName)) {
-      grouped.set(systemName, []);
-    }
-    
-    grouped.get(systemName)!.push(pipelineData);
-  });
+  if (pipeline.code) {
+    lines.push(`Code: ${pipeline.code}`);
+  }
   
-  return grouped;
+  if (pipeline.pipelineType) {
+    lines.push(`Type: ${getPipelineTypeLabel(pipeline.pipelineType.code)}`);
+  }
+  
+  if (pipeline.length) {
+    lines.push(`Length: ${formatPipelineLength(pipeline.length)}`);
+  }
+  
+  if (pipeline.diameter) {
+    lines.push(`Diameter: ${formatPipelineDiameter(pipeline.diameter)}`);
+  }
+  
+  if (pipeline.operationalStatus) {
+    const statusCode = (pipeline.operationalStatus as any).code || 'Unknown';
+    lines.push(`Status: ${getPipelineStatusLabel(statusCode)}`);
+  }
+  
+  return lines.join('<br>');
 };

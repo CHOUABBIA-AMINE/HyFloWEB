@@ -5,8 +5,15 @@
  * Status: Using centralized utilities from @/shared/utils
  */
 
-// Re-export centralized utilities
-export * from '@/shared/utils';
+// Re-export centralized utilities (except duplicates)
+export {
+  formatDistance,
+  formatArea,
+  formatVolume,
+  validateCoordinate,
+  validateLatitude,
+  validateLongitude,
+} from '@/shared/utils';
 
 // Keep module-specific utilities
 export * from './iconFactory';

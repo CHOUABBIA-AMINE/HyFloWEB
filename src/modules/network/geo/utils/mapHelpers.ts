@@ -4,28 +4,39 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-08-2026 - Fixed type errors
  */
 
-import { LatLngExpression } from 'leaflet';
+import { LatLngExpression, LatLngTuple } from 'leaflet';
 import { StationDTO, TerminalDTO, HydrocarbonFieldDTO } from '../../core/dto';
 
 /**
  * Convert DTO to LatLngExpression
  */
 export const toLatLng = (item: StationDTO | TerminalDTO | HydrocarbonFieldDTO): LatLngExpression => {
-  return [item.latitude, item.longitude];
+  // Handle optional properties with defaults
+  const lat = (item as any).latitude ?? 0;
+  const lng = (item as any).longitude ?? 0;
+  return [lat, lng] as LatLngTuple;
 };
 
 /**
  * Calculate center point of multiple coordinates
  */
-export const calculateCenter = (coordinates: LatLngExpression[]): LatLngExpression => {
+export const calculateCenter = (coordinates: LatLngExpression[]): LatLngTuple => {
   if (coordinates.length === 0) return [36.7538, 3.0588]; // Default: Algiers
 
   const sum = coordinates.reduce(
     (acc, coord) => {
-      const [lat, lng] = Array.isArray(coord) ? coord : [coord.lat, coord.lng];
+      let lat: number, lng: number;
+      
+      if (Array.isArray(coord)) {
+        [lat, lng] = coord;
+      } else {
+        lat = (coord as any).lat;
+        lng = (coord as any).lng;
+      }
+      
       return { lat: acc.lat + lat, lng: acc.lng + lng };
     },
     { lat: 0, lng: 0 }
