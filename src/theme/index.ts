@@ -4,9 +4,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-08-2026 - Fixed shadows array type
  */
 
 import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { Shadows } from '@mui/material/styles/shadows';
 
 const getTheme = (direction: 'ltr' | 'rtl' = 'ltr') => {
   const themeOptions: ThemeOptions = {
@@ -69,6 +71,7 @@ const getTheme = (direction: 'ltr' | 'rtl' = 'ltr') => {
     shape: {
       borderRadius: 8,
     },
+    // MUI requires exactly 25 shadow definitions (indices 0-24)
     shadows: [
       'none',
       '0 1px 2px 0 rgb(0 0 0 / 0.05)',
@@ -95,8 +98,7 @@ const getTheme = (direction: 'ltr' | 'rtl' = 'ltr') => {
       '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
       '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
       '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-      '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-    ],
+    ] as Shadows,
     components: {
       MuiButton: {
         styleOverrides: {
