@@ -4,12 +4,13 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-08-2026
- * @updated 01-08-2026 - Define StylisElement independently to avoid import issues
+ * @updated 01-08-2026 - Complete StylisElement definition matching emotion
  */
 
 declare module 'stylis' {
   /**
    * Stylis element type matching @emotion/cache expectations
+   * Complete structure with all required properties
    */
   export interface StylisElement {
     type: string;
@@ -18,6 +19,10 @@ declare module 'stylis' {
     children: string | StylisElement[];
     line?: number;
     column?: number;
+    root?: StylisElement | null;
+    parent?: StylisElement | null;
+    length: number;
+    return?: string;
     [key: string]: any;
   }
 
