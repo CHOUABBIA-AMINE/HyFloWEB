@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Fixed operationalStatus property access
+ * @updated 01-08-2026 - Removed non-existent properties
  */
 
 import { PipelineDTO } from '../../core/dto';
@@ -143,18 +143,12 @@ export const getPipelineSummary = (pipeline: PipelineDTO): string => {
     parts.push(pipeline.name);
   }
   
-  if (pipeline.pipelineType) {
-    parts.push(getPipelineTypeLabel(pipeline.pipelineType.code));
-  }
-  
   if (pipeline.length) {
     parts.push(formatPipelineLength(pipeline.length));
   }
   
   if (pipeline.operationalStatus) {
-    // Handle operationalStatus as a DTO with code property
-    const statusCode = (pipeline.operationalStatus as any).code || '';
-    parts.push(`Status: ${statusCode}`);
+    parts.push(`Status: ${pipeline.operationalStatus.code}`);
   }
   
   return parts.join(' • ');
@@ -174,22 +168,54 @@ export const getPipelineTooltip = (pipeline: PipelineDTO): string => {
     lines.push(`Code: ${pipeline.code}`);
   }
   
-  if (pipeline.pipelineType) {
-    lines.push(`Type: ${getPipelineTypeLabel(pipeline.pipelineType.code)}`);
-  }
-  
   if (pipeline.length) {
     lines.push(`Length: ${formatPipelineLength(pipeline.length)}`);
   }
   
-  if (pipeline.diameter) {
-    lines.push(`Diameter: ${formatPipelineDiameter(pipeline.diameter)}`);
+  if (pipeline.nominalDiameter) {
+    lines.push(`Diameter: ${formatPipelineDiameter(pipeline.nominalDiameter)}`);
   }
   
   if (pipeline.operationalStatus) {
-    const statusCode = (pipeline.operationalStatus as any).code || 'Unknown';
-    lines.push(`Status: ${getPipelineStatusLabel(statusCode)}`);
+    lines.push(`Status: ${getPipelineStatusLabel(pipeline.operationalStatus.code)}`);
   }
   
   return lines.join('<br>');
+};
+
+/**
+ * Get pipeline style for map display
+ */
+export const getPipelineStyle = (pipeline: PipelineDTO) => {
+  // Get color from product if available
+  let color = '#2196F3'; // Default blue
+  
+  if (pipeline.pipelineSystem?.product) {
+    const productCode = pipeline.pipelineSystem.product.code;
+    color = getPipelineColor(productCode);
+  }
+  
+  // Get weight based on diameter
+  let weight = 3;
+  if (pipeline.nominalDiameter) {
+    // Larger diameter = thicker line
+    weight = Math.min(Math.max(pipeline.nominalDiameter / 10, 2), 8);
+  }
+  
+  // Adjust opacity based on status
+  let opacity = 0.8;
+  if (pipeline.operationalStatus) {
+    const statusCode = pipeline.operationalStatus.code.toUpperCase();
+    if (statusCode.includes('INACTIVE')) {
+      opacity = 0.4;
+    } else if (statusCode.includes('MAINTENANCE')) {
+      opacity = 0.6;
+    }
+  }
+  
+  return {
+    color,
+    weight,
+    opacity,
+  };
 };
