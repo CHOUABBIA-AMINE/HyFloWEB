@@ -2,11 +2,11 @@
  * Partner Edit/Create Page
  * 
  * @author CHOUABBIA Amine
- * @created 12-28-2025
- * @updated 01-07-2026 - Fixed service imports to use correct paths and UpperCase static methods
+ * @created 01-06-2026
+ * @updated 01-08-2026 - Fixed null vs undefined types
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,145 +20,108 @@ import {
   Paper,
   Divider,
   Stack,
-  MenuItem,
 } from '@mui/material';
-import { Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon } from '@mui/icons-material';
+import {
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  ArrowBack as BackIcon,
+} from '@mui/icons-material';
 import { PartnerService } from '../services';
-import { PartnerDTO } from '../dto/PartnerDTO';
-import { PartnerTypeService } from '../../type/services';
-import { CountryService } from '../../../general/localization/services';
+import { PartnerDTO } from '../dto';
 
 const PartnerEdit = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { partnerId } = useParams<{ partnerId: string }>();
-
   const isEditMode = !!partnerId;
-  const currentLanguage = i18n.language || 'en';
 
   const [partner, setPartner] = useState<Partial<PartnerDTO>>({
-    name: '',
-    shortName: '',
-    partnerTypeId: 0,
-    countryId: 0,
+    code: '',
+    name: undefined,
+    shortName: undefined,
   });
-
-  const [partnerTypes, setPartnerTypes] = useState<any[]>([]);
-  const [countries, setCountries] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const getLocalizedLabel = (obj: any): string => {
-    if (!obj) return '';
-    if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '';
-    if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '';
-    return obj.designationFr || obj.designationEn || obj.designationAr || '';
-  };
-
-  const sortedPartnerTypes = useMemo(() => {
-    const copy = [...partnerTypes];
-    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [partnerTypes, currentLanguage]);
-
-  const sortedCountries = useMemo(() => {
-    const copy = [...countries];
-    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countries, currentLanguage]);
-
   useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isEditMode) {
+      loadPartner();
+    }
   }, [partnerId]);
 
-  const loadData = async () => {
+  const loadPartner = async () => {
     try {
       setLoading(true);
-
-      let partnerData: PartnerDTO | null = null;
-      if (isEditMode) {
-        partnerData = await PartnerService.getById(Number(partnerId));
-      }
-
-      // Load partner types and countries
-      const [typesData, countriesData] = await Promise.allSettled([
-        PartnerTypeService.getAllNoPagination(),
-        CountryService.getAllNoPagination(),
-      ]);
-
-      if (typesData.status === 'fulfilled') {
-        setPartnerTypes(Array.isArray(typesData.value) ? typesData.value : []);
-      }
-
-      if (countriesData.status === 'fulfilled') {
-        setCountries(Array.isArray(countriesData.value) ? countriesData.value : []);
-      }
-
-      if (partnerData) setPartner(partnerData);
-
+      const data = await PartnerService.getById(Number(partnerId));
+      setPartner(data);
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to load data');
+      console.error('Failed to load partner:', err);
+      setError(err.message || 'Failed to load partner');
     } finally {
       setLoading(false);
     }
   };
 
-  const validate = (): boolean => {
+  const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!partner.shortName || partner.shortName.trim().length < 2) errors.shortName = 'Short name is required';
-    if (!partner.partnerTypeId) errors.partnerTypeId = 'Partner type is required';
-    if (!partner.countryId) errors.countryId = 'Country is required';
+    if (!partner.code || partner.code.trim().length < 2) {
+      errors.code = 'Partner code must be at least 2 characters';
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (field: keyof PartnerDTO) => (e: any) => {
+  const handleChange = (field: keyof PartnerDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setPartner((prev) => ({ ...prev, [field]: value }));
-
+    setPartner({ ...partner, [field]: value || undefined });
+    
     if (validationErrors[field]) {
-      setValidationErrors((prev) => ({ ...prev, [field]: '' }));
+      setValidationErrors({ ...validationErrors, [field]: '' });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       setSaving(true);
       setError('');
 
-      const payload: PartnerDTO = {
-        id: isEditMode ? Number(partnerId) : 0,
-        name: partner.name || null,
-        shortName: String(partner.shortName || ''),
-        partnerTypeId: Number(partner.partnerTypeId || 0),
-        countryId: Number(partner.countryId || 0),
+      const partnerData: PartnerDTO = {
+        id: partner.id,
+        code: partner.code!,
+        name: partner.name || undefined,
+        shortName: partner.shortName || undefined,
       };
 
       if (isEditMode) {
-        await PartnerService.update(Number(partnerId), payload);
+        await PartnerService.update(Number(partnerId), partnerData);
       } else {
-        await PartnerService.create(payload);
+        await PartnerService.create(partnerData);
       }
 
       navigate('/network/common/partners');
     } catch (err: any) {
+      console.error('Failed to save partner:', err);
       setError(err.response?.data?.message || err.message || 'Failed to save partner');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCancel = () => navigate('/network/common/partners');
+  const handleCancel = () => {
+    navigate('/network/common/partners');
+  };
 
   if (loading) {
     return (
@@ -171,10 +134,13 @@ const PartnerEdit = () => {
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Button startIcon={<BackIcon />} onClick={handleCancel} sx={{ mb: 2 }}>
+        <Button
+          startIcon={<BackIcon />}
+          onClick={handleCancel}
+          sx={{ mb: 2 }}
+        >
           {t('common.back')}
         </Button>
-
         <Typography variant="h4" fontWeight={700} color="text.primary">
           {isEditMode ? 'Edit Partner' : 'Create Partner'}
         </Typography>
@@ -197,60 +163,38 @@ const PartnerEdit = () => {
                 Basic Information
               </Typography>
               <Divider sx={{ mb: 3 }} />
-
+              
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Short name"
-                    value={partner.shortName || ''}
-                    onChange={handleChange('shortName')}
+                    label="Partner Code"
+                    value={partner.code || ''}
+                    onChange={handleChange('code')}
                     required
-                    error={!!validationErrors.shortName}
-                    helperText={validationErrors.shortName}
+                    error={!!validationErrors.code}
+                    helperText={validationErrors.code || 'Unique partner code'}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Name" value={partner.name || ''} onChange={handleChange('name')} />
+                  <TextField
+                    fullWidth
+                    label="Partner Name"
+                    value={partner.name || ''}
+                    onChange={handleChange('name')}
+                    helperText="Optional partner name"
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    select
-                    label="Partner type"
-                    value={partner.partnerTypeId || ''}
-                    onChange={handleChange('partnerTypeId')}
-                    required
-                    error={!!validationErrors.partnerTypeId}
-                    helperText={validationErrors.partnerTypeId}
-                  >
-                    {sortedPartnerTypes.map((pt) => (
-                      <MenuItem key={pt.id} value={pt.id}>
-                        {getLocalizedLabel(pt)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Country"
-                    value={partner.countryId || ''}
-                    onChange={handleChange('countryId')}
-                    required
-                    error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId}
-                  >
-                    {sortedCountries.map((c) => (
-                      <MenuItem key={c.id} value={c.id}>
-                        {getLocalizedLabel(c)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    label="Short Name"
+                    value={partner.shortName || ''}
+                    onChange={handleChange('shortName')}
+                    helperText="Optional short name (2-20 characters)"
+                  />
                 </Grid>
               </Grid>
             </Box>
@@ -258,7 +202,13 @@ const PartnerEdit = () => {
 
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
             <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button variant="outlined" startIcon={<CancelIcon />} onClick={handleCancel} disabled={saving} size="large">
+              <Button
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={handleCancel}
+                disabled={saving}
+                size="large"
+              >
                 {t('common.cancel')}
               </Button>
               <Button

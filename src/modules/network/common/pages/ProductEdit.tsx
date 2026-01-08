@@ -1,12 +1,12 @@
 /**
  * Product Edit/Create Page
- *
+ * 
  * @author CHOUABBIA Amine
- * @created 01-01-2026
- * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @created 01-06-2026
+ * @updated 01-08-2026 - Fixed null vs undefined types
  */
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,30 +20,26 @@ import {
   Paper,
   Divider,
   Stack,
-  FormControlLabel,
-  Switch,
 } from '@mui/material';
-import { Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon } from '@mui/icons-material';
+import {
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  ArrowBack as BackIcon,
+} from '@mui/icons-material';
 import { ProductService } from '../services';
-import { ProductDTO } from '../dto/ProductDTO';
+import { ProductDTO } from '../dto';
 
 const ProductEdit = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { productId } = useParams<{ productId: string }>();
-
-  const isCreateMode = productId === 'new' || !productId;
+  const isEditMode = !!productId;
 
   const [product, setProduct] = useState<Partial<ProductDTO>>({
     code: '',
-    designationFr: '',
-    designationEn: '',
-    designationAr: '',
-    density: 0,
-    viscosity: 0,
-    flashPoint: 0,
-    sulfurContent: 0,
-    isHazardous: false,
+    designationAr: undefined,
+    designationEn: undefined,
+    designationFr: undefined,
   });
 
   const [loading, setLoading] = useState(false);
@@ -52,10 +48,9 @@ const ProductEdit = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!isCreateMode) {
+    if (isEditMode) {
       loadProduct();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
   const loadProduct = async () => {
@@ -65,72 +60,61 @@ const ProductEdit = () => {
       setProduct(data);
       setError('');
     } catch (err: any) {
+      console.error('Failed to load product:', err);
       setError(err.message || 'Failed to load product');
     } finally {
       setLoading(false);
     }
   };
 
-  const validate = (): boolean => {
+  const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!product.code || product.code.trim().length < 2) errors.code = 'Code is required';
-    if (!product.designationFr || product.designationFr.trim().length < 2) errors.designationFr = 'French designation is required';
-
-    const numericFields: Array<keyof ProductDTO> = ['density', 'viscosity', 'flashPoint', 'sulfurContent'];
-    numericFields.forEach((f) => {
-      const v: any = (product as any)[f];
-      if (v === undefined || v === null || Number.isNaN(Number(v))) {
-        errors[f as string] = 'Required';
-      }
-    });
+    if (!product.code || product.code.trim().length < 2) {
+      errors.code = 'Product code must be at least 2 characters';
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (field: keyof ProductDTO) => (e: any) => {
+  const handleChange = (field: keyof ProductDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setProduct((prev) => ({ ...prev, [field]: value }));
-
+    setProduct({ ...product, [field]: value || undefined });
+    
     if (validationErrors[field]) {
-      setValidationErrors((prev) => ({ ...prev, [field]: '' }));
+      setValidationErrors({ ...validationErrors, [field]: '' });
     }
-  };
-
-  const handleSwitch = (field: keyof ProductDTO) => (_e: any, checked: boolean) => {
-    setProduct((prev) => ({ ...prev, [field]: checked }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       setSaving(true);
       setError('');
 
-      const payload: ProductDTO = {
-        id: isCreateMode ? 0 : Number(productId),
-        code: String(product.code || ''),
-        designationFr: String(product.designationFr || ''),
-        designationEn: product.designationEn || null,
-        designationAr: product.designationAr || null,
-        density: Number(product.density || 0),
-        viscosity: Number(product.viscosity || 0),
-        flashPoint: Number(product.flashPoint || 0),
-        sulfurContent: Number(product.sulfurContent || 0),
-        isHazardous: Boolean(product.isHazardous),
+      const productData: ProductDTO = {
+        id: product.id,
+        code: product.code!,
+        designationEn: product.designationEn || undefined,
+        designationAr: product.designationAr || undefined,
+        designationFr: product.designationFr || undefined,
       };
 
-      if (isCreateMode) {
-        await ProductService.create(payload);
+      if (isEditMode) {
+        await ProductService.update(Number(productId), productData);
       } else {
-        await ProductService.update(Number(productId), payload);
+        await ProductService.create(productData);
       }
 
       navigate('/network/common/products');
     } catch (err: any) {
+      console.error('Failed to save product:', err);
       setError(err.response?.data?.message || err.message || 'Failed to save product');
     } finally {
       setSaving(false);
@@ -152,15 +136,18 @@ const ProductEdit = () => {
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Button startIcon={<BackIcon />} onClick={handleCancel} sx={{ mb: 2 }}>
+        <Button
+          startIcon={<BackIcon />}
+          onClick={handleCancel}
+          sx={{ mb: 2 }}
+        >
           {t('common.back')}
         </Button>
-
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isCreateMode ? 'Create Product' : 'Edit Product'}
+          {isEditMode ? 'Edit Product' : 'Create Product'}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isCreateMode ? 'Create a new product' : 'Update product information'}
+          {isEditMode ? 'Update product information' : 'Create a new product'}
         </Typography>
       </Box>
 
@@ -178,106 +165,58 @@ const ProductEdit = () => {
                 Basic Information
               </Typography>
               <Divider sx={{ mb: 3 }} />
-
+              
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Code"
+                    label="Product Code"
                     value={product.code || ''}
                     onChange={handleChange('code')}
                     required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code}
+                    helperText={validationErrors.code || 'Unique product code'}
                   />
                 </Grid>
+              </Grid>
+            </Box>
+          </Paper>
 
-                <Grid item xs={12} md={6}>
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                Multilingual Designations
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="French designation"
-                    value={product.designationFr || ''}
-                    onChange={handleChange('designationFr')}
-                    required
-                    error={!!validationErrors.designationFr}
-                    helperText={validationErrors.designationFr}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="English designation"
-                    value={product.designationEn || ''}
-                    onChange={handleChange('designationEn')}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Arabic designation"
+                    label="Designation (Arabic)"
                     value={product.designationAr || ''}
                     onChange={handleChange('designationAr')}
+                    helperText="Optional Arabic designation"
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Density"
-                    type="number"
-                    value={product.density ?? 0}
-                    onChange={handleChange('density')}
-                    error={!!validationErrors.density}
-                    helperText={validationErrors.density}
-                    inputProps={{ step: 0.0001 }}
+                    label="Designation (English)"
+                    value={product.designationEn || ''}
+                    onChange={handleChange('designationEn')}
+                    helperText="Optional English designation"
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Viscosity"
-                    type="number"
-                    value={product.viscosity ?? 0}
-                    onChange={handleChange('viscosity')}
-                    error={!!validationErrors.viscosity}
-                    helperText={validationErrors.viscosity}
-                    inputProps={{ step: 0.0001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Flash point"
-                    type="number"
-                    value={product.flashPoint ?? 0}
-                    onChange={handleChange('flashPoint')}
-                    error={!!validationErrors.flashPoint}
-                    helperText={validationErrors.flashPoint}
-                    inputProps={{ step: 0.01 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Sulfur content"
-                    type="number"
-                    value={product.sulfurContent ?? 0}
-                    onChange={handleChange('sulfurContent')}
-                    error={!!validationErrors.sulfurContent}
-                    helperText={validationErrors.sulfurContent}
-                    inputProps={{ step: 0.0001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={<Switch checked={!!product.isHazardous} onChange={handleSwitch('isHazardous')} />}
-                    label="Hazardous"
+                    label="Designation (French)"
+                    value={product.designationFr || ''}
+                    onChange={handleChange('designationFr')}
+                    helperText="Optional French designation"
                   />
                 </Grid>
               </Grid>
@@ -286,7 +225,13 @@ const ProductEdit = () => {
 
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
             <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button variant="outlined" startIcon={<CancelIcon />} onClick={handleCancel} disabled={saving} size="large">
+              <Button
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={handleCancel}
+                disabled={saving}
+                size="large"
+              >
                 {t('common.cancel')}
               </Button>
               <Button

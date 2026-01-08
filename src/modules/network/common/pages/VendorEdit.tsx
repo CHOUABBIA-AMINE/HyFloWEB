@@ -2,11 +2,11 @@
  * Vendor Edit/Create Page
  * 
  * @author CHOUABBIA Amine
- * @created 12-28-2025
- * @updated 01-07-2026 - Fixed service imports to use correct paths and UpperCase static methods
+ * @created 01-06-2026
+ * @updated 01-08-2026 - Fixed null vs undefined types
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,143 +20,108 @@ import {
   Paper,
   Divider,
   Stack,
-  MenuItem,
 } from '@mui/material';
-import { Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon } from '@mui/icons-material';
+import {
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  ArrowBack as BackIcon,
+} from '@mui/icons-material';
 import { VendorService } from '../services';
-import { VendorDTO } from '../dto/VendorDTO';
-import { VendorTypeService } from '../../type/services';
-import { CountryService } from '../../../general/localization/services';
+import { VendorDTO } from '../dto';
 
 const VendorEdit = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { vendorId } = useParams<{ vendorId: string }>();
-
   const isEditMode = !!vendorId;
-  const currentLanguage = i18n.language || 'en';
 
   const [vendor, setVendor] = useState<Partial<VendorDTO>>({
-    name: '',
-    shortName: '',
-    vendorTypeId: 0,
-    countryId: 0,
+    code: '',
+    name: undefined,
+    shortName: undefined,
   });
-
-  const [vendorTypes, setVendorTypes] = useState<any[]>([]);
-  const [countries, setCountries] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const getLocalizedLabel = (obj: any): string => {
-    if (!obj) return '';
-    if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '';
-    if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '';
-    return obj.designationFr || obj.designationEn || obj.designationAr || '';
-  };
-
-  const sortedVendorTypes = useMemo(() => {
-    const copy = [...vendorTypes];
-    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vendorTypes, currentLanguage]);
-
-  const sortedCountries = useMemo(() => {
-    const copy = [...countries];
-    return copy.sort((a, b) => getLocalizedLabel(a).localeCompare(getLocalizedLabel(b)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countries, currentLanguage]);
-
   useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (isEditMode) {
+      loadVendor();
+    }
   }, [vendorId]);
 
-  const loadData = async () => {
+  const loadVendor = async () => {
     try {
       setLoading(true);
-
-      let vendorData: VendorDTO | null = null;
-      if (isEditMode) {
-        vendorData = await VendorService.getById(Number(vendorId));
-      }
-
-      const [typesData, countriesData] = await Promise.allSettled([
-        VendorTypeService.getAllNoPagination(),
-        CountryService.getAllNoPagination(),
-      ]);
-
-      if (typesData.status === 'fulfilled') {
-        setVendorTypes(Array.isArray(typesData.value) ? typesData.value : []);
-      }
-
-      if (countriesData.status === 'fulfilled') {
-        setCountries(Array.isArray(countriesData.value) ? countriesData.value : []);
-      }
-
-      if (vendorData) setVendor(vendorData);
-
+      const data = await VendorService.getById(Number(vendorId));
+      setVendor(data);
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to load data');
+      console.error('Failed to load vendor:', err);
+      setError(err.message || 'Failed to load vendor');
     } finally {
       setLoading(false);
     }
   };
 
-  const validate = (): boolean => {
+  const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!vendor.vendorTypeId) errors.vendorTypeId = 'Vendor type is required';
-    if (!vendor.countryId) errors.countryId = 'Country is required';
+    if (!vendor.code || vendor.code.trim().length < 2) {
+      errors.code = 'Vendor code must be at least 2 characters';
+    }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (field: keyof VendorDTO) => (e: any) => {
+  const handleChange = (field: keyof VendorDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setVendor((prev) => ({ ...prev, [field]: value }));
-
+    setVendor({ ...vendor, [field]: value || undefined });
+    
     if (validationErrors[field]) {
-      setValidationErrors((prev) => ({ ...prev, [field]: '' }));
+      setValidationErrors({ ...validationErrors, [field]: '' });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       setSaving(true);
       setError('');
 
-      const payload: VendorDTO = {
-        id: isEditMode ? Number(vendorId) : 0,
-        name: vendor.name || null,
-        shortName: vendor.shortName || null,
-        vendorTypeId: Number(vendor.vendorTypeId || 0),
-        countryId: Number(vendor.countryId || 0),
+      const vendorData: VendorDTO = {
+        id: vendor.id,
+        code: vendor.code!,
+        name: vendor.name || undefined,
+        shortName: vendor.shortName || undefined,
       };
 
       if (isEditMode) {
-        await VendorService.update(Number(vendorId), payload);
+        await VendorService.update(Number(vendorId), vendorData);
       } else {
-        await VendorService.create(payload);
+        await VendorService.create(vendorData);
       }
 
       navigate('/network/common/vendors');
     } catch (err: any) {
+      console.error('Failed to save vendor:', err);
       setError(err.response?.data?.message || err.message || 'Failed to save vendor');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCancel = () => navigate('/network/common/vendors');
+  const handleCancel = () => {
+    navigate('/network/common/vendors');
+  };
 
   if (loading) {
     return (
@@ -169,10 +134,13 @@ const VendorEdit = () => {
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Button startIcon={<BackIcon />} onClick={handleCancel} sx={{ mb: 2 }}>
+        <Button
+          startIcon={<BackIcon />}
+          onClick={handleCancel}
+          sx={{ mb: 2 }}
+        >
           {t('common.back')}
         </Button>
-
         <Typography variant="h4" fontWeight={700} color="text.primary">
           {isEditMode ? 'Edit Vendor' : 'Create Vendor'}
         </Typography>
@@ -195,52 +163,38 @@ const VendorEdit = () => {
                 Basic Information
               </Typography>
               <Divider sx={{ mb: 3 }} />
-
+              
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Short name" value={vendor.shortName || ''} onChange={handleChange('shortName')} />
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="Name" value={vendor.name || ''} onChange={handleChange('name')} />
+                  <TextField
+                    fullWidth
+                    label="Vendor Code"
+                    value={vendor.code || ''}
+                    onChange={handleChange('code')}
+                    required
+                    error={!!validationErrors.code}
+                    helperText={validationErrors.code || 'Unique vendor code'}
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    select
-                    label="Vendor type"
-                    value={vendor.vendorTypeId || ''}
-                    onChange={handleChange('vendorTypeId')}
-                    required
-                    error={!!validationErrors.vendorTypeId}
-                    helperText={validationErrors.vendorTypeId}
-                  >
-                    {sortedVendorTypes.map((vt) => (
-                      <MenuItem key={vt.id} value={vt.id}>
-                        {getLocalizedLabel(vt)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    label="Vendor Name"
+                    value={vendor.name || ''}
+                    onChange={handleChange('name')}
+                    helperText="Optional vendor name"
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    select
-                    label="Country"
-                    value={vendor.countryId || ''}
-                    onChange={handleChange('countryId')}
-                    required
-                    error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId}
-                  >
-                    {sortedCountries.map((c) => (
-                      <MenuItem key={c.id} value={c.id}>
-                        {getLocalizedLabel(c)}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                    label="Short Name"
+                    value={vendor.shortName || ''}
+                    onChange={handleChange('shortName')}
+                    helperText="Optional short name (2-20 characters)"
+                  />
                 </Grid>
               </Grid>
             </Box>
@@ -248,7 +202,13 @@ const VendorEdit = () => {
 
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
             <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button variant="outlined" startIcon={<CancelIcon />} onClick={handleCancel} disabled={saving} size="large">
+              <Button
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={handleCancel}
+                disabled={saving}
+                size="large"
+              >
                 {t('common.cancel')}
               </Button>
               <Button
