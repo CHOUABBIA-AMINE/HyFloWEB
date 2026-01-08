@@ -1,9 +1,10 @@
 /**
  * Job List Component
+ * Can be used standalone or embedded in Structure pages with structureId filter
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed type safety for delete operation
+ * @updated 01-08-2026 - Added structureId filter support for embedding
  */
 
 import { useState, useEffect } from 'react';
@@ -29,9 +30,15 @@ import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import { JobDTO, StructureDTO } from '../dto';
 import { JobService, StructureService } from '../services';
 import { Page } from '@/types/pagination';
-import JobEditDialog from './JobEditDialog';
 
-const JobList = () => {
+interface JobListProps {
+  structureId?: number;  // Optional: filter by structure
+  onEdit?: (job: JobDTO) => void;  // Optional: external edit handler
+  onAdd?: () => void;  // Optional: external add handler
+  refreshTrigger?: number;  // Optional: trigger to refresh list
+}
+
+const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) => {
   const { t } = useTranslation();
   const [jobs, setJobs] = useState<JobDTO[]>([]);
   const [structures, setStructures] = useState<StructureDTO[]>([]);
@@ -43,16 +50,16 @@ const JobList = () => {
   });
   const [totalElements, setTotalElements] = useState(0);
   
-  // Dialog states
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<JobDTO | null>(null);
+  // Dialog states (only used if no external handlers provided)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     loadJobs();
-    loadStructures();
-  }, [paginationModel]);
+    if (!structureId) {
+      loadStructures();
+    }
+  }, [paginationModel, structureId, refreshTrigger]);
 
   const loadJobs = async () => {
     try {
@@ -61,8 +68,15 @@ const JobList = () => {
         page: paginationModel.page,
         size: paginationModel.pageSize,
       });
-      setJobs(response.content);
-      setTotalElements(response.totalElements);
+      
+      // Filter by structureId if provided
+      let filteredJobs = response.content;
+      if (structureId) {
+        filteredJobs = response.content.filter(job => job.structureId === structureId);
+      }
+      
+      setJobs(filteredJobs);
+      setTotalElements(structureId ? filteredJobs.length : response.totalElements);
       setError('');
     } catch (err: any) {
       console.error('Failed to load jobs:', err);
@@ -82,13 +96,15 @@ const JobList = () => {
   };
 
   const handleCreate = () => {
-    setSelectedJob(null);
-    setEditDialogOpen(true);
+    if (onAdd) {
+      onAdd();
+    }
   };
 
   const handleEdit = (job: JobDTO) => {
-    setSelectedJob(job);
-    setEditDialogOpen(true);
+    if (onEdit) {
+      onEdit(job);
+    }
   };
 
   const handleDeleteClick = (id: number) => {
@@ -113,10 +129,6 @@ const JobList = () => {
     }
   };
 
-  const handleSave = async () => {
-    await loadJobs();
-  };
-
   const columns: GridColDef<JobDTO>[] = [
     {
       field: 'code',
@@ -130,16 +142,16 @@ const JobList = () => {
       flex: 2,
       minWidth: 200,
     },
-    {
-      field: 'structureId',
+    ...(!structureId ? [{
+      field: 'structureId' as const,
       headerName: 'Structure',
       flex: 1.5,
       minWidth: 150,
-      valueGetter: (params) => {
+      valueGetter: (params: any) => {
         const structure = structures.find(s => s.id === params.row.structureId);
         return structure?.designationFr || params.row.structureId;
       },
-    },
+    }] : []),
     {
       field: 'actions',
       headerName: 'Actions',
@@ -171,21 +183,23 @@ const JobList = () => {
     <Box>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <Typography variant="h4" fontWeight={700} color="text.primary">
-            Jobs
+          <Typography variant="h6" fontWeight={600} color="text.primary">
+            {structureId ? 'Jobs in this Structure' : 'Jobs'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Manage job positions
+            {structureId ? 'Manage job positions for this structure' : 'Manage job positions'}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreate}
-          size="large"
-        >
-          {t('common.create')}
-        </Button>
+        {onAdd && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreate}
+            size="medium"
+          >
+            {t('common.create')}
+          </Button>
+        )}
       </Box>
 
       {error && (
@@ -194,7 +208,7 @@ const JobList = () => {
         </Alert>
       )}
 
-      <Box sx={{ height: 600, width: '100%' }}>
+      <Box sx={{ height: 500, width: '100%' }}>
         <DataGrid
           rows={jobs}
           columns={columns}
@@ -203,7 +217,7 @@ const JobList = () => {
           onPaginationModelChange={setPaginationModel}
           pageSizeOptions={[5, 10, 25, 50]}
           rowCount={totalElements}
-          paginationMode="server"
+          paginationMode={structureId ? 'client' : 'server'}
           disableRowSelectionOnClick
           sx={{
             border: 1,
@@ -214,14 +228,6 @@ const JobList = () => {
           }}
         />
       </Box>
-
-      <JobEditDialog
-        open={editDialogOpen}
-        job={selectedJob}
-        structures={structures}
-        onClose={() => setEditDialogOpen(false)}
-        onSave={handleSave}
-      />
 
       <Dialog
         open={deleteDialogOpen}

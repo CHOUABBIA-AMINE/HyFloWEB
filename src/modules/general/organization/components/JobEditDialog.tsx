@@ -3,7 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed type safety for id fields
+ * @updated 01-08-2026 - Added structureId prop for pre-setting structure
  */
 
 import { useState, useEffect } from 'react';
@@ -21,25 +21,27 @@ import {
 } from '@mui/material';
 import { JobDTO } from '../dto';
 import { StructureDTO } from '../dto';
-import { JobService } from '../services';
+import { JobService, StructureService } from '../services';
 
 interface JobEditDialogProps {
   open: boolean;
   job?: JobDTO | null;
-  structures: StructureDTO[];
+  structureId?: number;  // Optional: pre-set structure for new jobs
+  structures?: StructureDTO[];  // Optional: provide structures list
   onClose: () => void;
   onSave: () => void;
 }
 
-const JobEditDialog = ({ open, job, structures, onClose, onSave }: JobEditDialogProps) => {
+const JobEditDialog = ({ open, job, structureId, structures: providedStructures, onClose, onSave }: JobEditDialogProps) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<Partial<JobDTO>>({
     code: '',
     designationFr: '',
     designationAr: '',
     designationEn: '',
-    structureId: undefined,
+    structureId: structureId || undefined,
   });
+  const [structures, setStructures] = useState<StructureDTO[]>(providedStructures || []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,10 +60,25 @@ const JobEditDialog = ({ open, job, structures, onClose, onSave }: JobEditDialog
         designationFr: '',
         designationAr: '',
         designationEn: '',
-        structureId: undefined,
+        structureId: structureId || undefined,
       });
     }
-  }, [job, open]);
+  }, [job, open, structureId]);
+
+  useEffect(() => {
+    if (!providedStructures && open) {
+      loadStructures();
+    }
+  }, [open, providedStructures]);
+
+  const loadStructures = async () => {
+    try {
+      const response = await StructureService.getAllNoPagination();
+      setStructures(response);
+    } catch (err: any) {
+      console.error('Failed to load structures:', err);
+    }
+  };
 
   const handleChange = (field: keyof JobDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -161,6 +178,7 @@ const JobEditDialog = ({ open, job, structures, onClose, onSave }: JobEditDialog
             value={formData.structureId || ''}
             onChange={handleChange('structureId')}
             required
+            disabled={!!structureId}  // Disable if pre-set by parent
             sx={{ mb: 2 }}
           >
             {structures.map((structure) => (
