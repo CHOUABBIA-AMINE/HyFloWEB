@@ -1,40 +1,67 @@
 /**
- * Structure DTO
- * Data Transfer Object for Structure entity
- * Aligned with Backend: dz.sh.trc.hyflo.general.organization.dto.StructureDTO
+ * Structure DTO - Organization Module
+ * 
+ * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.StructureDTO
+ * Updated: 01-08-2026 - Fixed StructureTypeDTO import path
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @created 12-23-2025
- * @updated 01-03-2026
- * @package common/administration
  */
 
-import { StructureTypeDTO } from './StructureTypeDTO';
+import { StructureTypeDTO } from '../../type/dto/StructureTypeDTO';
 
 export interface StructureDTO {
-  // Identifier
+  // Identifier (from GenericDTO)
   id?: number;
 
-  // Code (unique identifier)
-  code: string;
+  // Core fields
+  code: string; // @NotBlank, max 20 chars
+  designationAr?: string; // max 100 chars
+  designationEn?: string; // max 100 chars
+  designationFr: string; // @NotBlank, max 100 chars
+  shortName?: string; // max 50 chars
 
-  // Designations (multilingual)
-  designationAr?: string;
-  designationEn?: string;
-  designationFr: string;
+  // Relationship IDs
+  structureTypeId: number; // @NotNull
+  parentStructureId?: number; // Optional (for hierarchy)
 
-  // Structure Type relationship (required)
-  structureTypeId: number;
+  // Nested Objects (populated in responses)
   structureType?: StructureTypeDTO;
-
-  // Parent Structure (self-referencing hierarchy)
-  parentStructureId?: number;
-  parentStructure?: StructureDTO;
-
-  // Child Structures (inverse relationship)
-  sources?: StructureDTO[];
-
-  // Timestamps
-  createdAt?: string;
-  updatedAt?: string;
+  parentStructure?: StructureDTO; // Self-reference for hierarchy
 }
+
+/**
+ * Validates StructureDTO according to backend constraints
+ */
+export const validateStructureDTO = (data: Partial<StructureDTO>): string[] => {
+  const errors: string[] = [];
+  
+  if (!data.code) {
+    errors.push("Code is required");
+  } else if (data.code.length > 20) {
+    errors.push("Code must not exceed 20 characters");
+  }
+  
+  if (!data.designationFr) {
+    errors.push("French designation is required");
+  } else if (data.designationFr.length > 100) {
+    errors.push("French designation must not exceed 100 characters");
+  }
+  
+  if (data.designationAr && data.designationAr.length > 100) {
+    errors.push("Arabic designation must not exceed 100 characters");
+  }
+  
+  if (data.designationEn && data.designationEn.length > 100) {
+    errors.push("English designation must not exceed 100 characters");
+  }
+  
+  if (data.shortName && data.shortName.length > 50) {
+    errors.push("Short name must not exceed 50 characters");
+  }
+  
+  if (!data.structureTypeId) {
+    errors.push("Structure type is required");
+  }
+  
+  return errors;
+};

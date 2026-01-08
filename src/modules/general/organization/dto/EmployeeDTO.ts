@@ -2,7 +2,7 @@
  * Employee DTO - Organization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.EmployeeDTO
- * Updated: 01-07-2026 - Synced with backend U-003 update
+ * Updated: 01-08-2026 - Fixed FileDTO import path
  * 
  * IMPORTANT: Backend uses FLAT structure (no inheritance from PersonDTO)
  * EmployeeDTO contains all Person fields + Employee-specific fields
@@ -15,7 +15,7 @@
 import { StateDTO } from '../../localization/dto/StateDTO';
 import { CountryDTO } from '../../localization/dto/CountryDTO';
 import { JobDTO } from './JobDTO';
-import { FileDTO } from '../../../system/dto/FileDTO';
+import { FileDTO } from '../../../system/utility/dto/FileDTO';
 
 export interface EmployeeDTO {
   // Identifier (from GenericDTO)

@@ -2,22 +2,24 @@
  * Person DTO - Organization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.PersonDTO
- * Updated: 01-07-2026 - Synced with backend U-002 update
+ * Updated: 01-08-2026 - Fixed FileDTO import path
+ * 
+ * UPDATE U-003: Arabic names are now OPTIONAL (not required)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 import { StateDTO } from '../../localization/dto/StateDTO';
 import { CountryDTO } from '../../localization/dto/CountryDTO';
-import { FileDTO } from '../../../system/dto/FileDTO';
+import { FileDTO } from '../../../system/utility/dto/FileDTO';
 
 export interface PersonDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
-  // Name Fields (Arabic) - Optional in Person
-  lastNameAr?: string; // max 100 chars
-  firstNameAr?: string; // max 100 chars
+  // Name Fields (Arabic) - OPTIONAL (U-003 update)
+  lastNameAr?: string; // max 100 chars (optional)
+  firstNameAr?: string; // max 100 chars (optional)
 
   // Name Fields (Latin) - Required
   lastNameLt: string; // @NotBlank, max 100 chars
@@ -47,6 +49,7 @@ export interface PersonDTO {
 
 /**
  * Validates PersonDTO according to backend constraints
+ * Note: U-003 update made Arabic names optional
  * @param data - Partial person data to validate
  * @returns Array of validation error messages
  */
