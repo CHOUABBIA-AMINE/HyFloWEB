@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed property access errors
+ * @updated 01-08-2026 - Fixed coordinate type handling
  */
 
 import React, { useState, useMemo } from 'react';
@@ -15,6 +15,7 @@ import { usePipelineFilters } from '../hooks/usePipelineFilters';
 import { PipelineFilterPanel } from './PipelineFilterPanel';
 import { getPipelineStyle } from '../utils/pipelineHelpers';
 import { useNavigate } from 'react-router-dom';
+import { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet default icon issue
@@ -32,7 +33,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 interface PipelineMapViewProps {
-  pipelines: PipelineGeoData[];
+  pipelines?: PipelineGeoData[];
   onPipelineClick?: (pipelineId: number) => void;
 }
 
@@ -54,7 +55,7 @@ const MapBoundsUpdater: React.FC<{ pipelines: PipelineGeoData[] }> = ({ pipeline
 };
 
 export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
-  pipelines,
+  pipelines = [],
   onPipelineClick,
 }) => {
   const navigate = useNavigate();
@@ -80,8 +81,19 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     const allCoordinates = pipelines.flatMap(p => p.coordinates);
     if (allCoordinates.length === 0) return [36.7538, 3.0588] as [number, number];
 
-    const avgLat = allCoordinates.reduce((sum, coord) => sum + coord[0], 0) / allCoordinates.length;
-    const avgLng = allCoordinates.reduce((sum, coord) => sum + coord[1], 0) / allCoordinates.length;
+    // Convert to tuples for calculation
+    const tuples = allCoordinates.map(coord => {
+      if (Array.isArray(coord)) {
+        return coord as LatLngTuple;
+      }
+      if (typeof coord === 'object' && 'lat' in coord && 'lng' in coord) {
+        return [coord.lat, coord.lng] as LatLngTuple;
+      }
+      return [0, 0] as LatLngTuple;
+    });
+
+    const avgLat = tuples.reduce((sum, coord) => sum + coord[0], 0) / tuples.length;
+    const avgLng = tuples.reduce((sum, coord) => sum + coord[1], 0) / tuples.length;
 
     return [avgLat, avgLng] as [number, number];
   }, [pipelines]);

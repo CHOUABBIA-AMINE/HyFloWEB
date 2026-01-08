@@ -2,7 +2,7 @@
  * Network Geo Utils - Barrel Export
  * 
  * Migration Date: 2026-01-08
- * Updated: 2026-01-08 - Fixed import names
+ * Updated: 2026-01-08 - Fixed import names and added explicit exports
  * Status: Using centralized utilities from @/shared/utils
  */
 
@@ -20,3 +20,6 @@ export {
 export * from './iconFactory';
 export * from './mapHelpers';
 export * from './pipelineHelpers';
+
+// Explicitly export commonly used functions to avoid confusion
+export { getPipelineStyle } from './pipelineHelpers';
