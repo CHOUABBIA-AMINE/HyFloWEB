@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 12-23-2025
+ * @updated 01-08-2026 - Fixed type inference for roles/groups
  */
 
 import { useState, useEffect } from 'react';
@@ -79,18 +79,15 @@ const UserEdit = () => {
     try {
       setLoading(true);
       
-      // Load roles and groups
+      // Load roles and groups with explicit types
       const [rolesData, groupsData] = await Promise.all([
-        roleService.getAll().catch(() => []),
-        groupService.getAll().catch(() => []),
+        roleService.getAll().catch(() => [] as RoleDTO[]),
+        groupService.getAll().catch(() => [] as GroupDTO[]),
       ]);
 
-      // Handle different response formats
-      const roles = Array.isArray(rolesData) ? rolesData : (rolesData?.data || rolesData?.content || []);
-      const groups = Array.isArray(groupsData) ? groupsData : (groupsData?.data || groupsData?.content || []);
-
-      setAvailableRoles(roles);
-      setAvailableGroups(groups);
+      // rolesData and groupsData are already properly typed as RoleDTO[] and GroupDTO[]
+      setAvailableRoles(rolesData);
+      setAvailableGroups(groupsData);
 
       // Load user if editing
       if (isEditMode) {
