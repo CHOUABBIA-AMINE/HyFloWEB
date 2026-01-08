@@ -7,3 +7,6 @@
 
 // Export all context providers and hooks
 // Add exports here as context providers are created
+
+// Empty export to make this a valid module
+export {};
