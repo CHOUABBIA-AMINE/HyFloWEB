@@ -11,6 +11,7 @@
  * @updated 01-06-2026 - Added Pipeline Map route
  * @updated 01-07-2026 - Removed non-existent Region routes
  * @updated 01-08-2026 - Added type assertion for stylis plugins
+ * @updated 01-08-2026 - Fixed Product edit route to include /edit suffix
  */
 
 import { useEffect, useMemo } from 'react';
@@ -314,7 +315,15 @@ function App() {
                       }
                     />
                     <Route
-                      path="products/:productId"
+                      path="products/create"
+                      element={
+                        <ProtectedRoute>
+                          <ProductEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="products/:productId/edit"
                       element={
                         <ProtectedRoute>
                           <ProductEdit />
