@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
+ * @updated 01-08-2026 - Fixed type inference for permissions
  */
 
 import { useState, useEffect } from 'react';
@@ -67,15 +68,11 @@ const RoleEdit = () => {
     try {
       setLoading(true);
       
-      // Load permissions
-      const permissionsData = await permissionService.getAll().catch(() => []);
+      // Load permissions with explicit type
+      const permissionsData = await permissionService.getAll().catch(() => [] as PermissionDTO[]);
 
-      // Handle different response formats
-      const permissions = Array.isArray(permissionsData) 
-        ? permissionsData 
-        : (permissionsData?.data || permissionsData?.content || []);
-
-      setAvailablePermissions(permissions);
+      // permissionsData is already properly typed as PermissionDTO[]
+      setAvailablePermissions(permissionsData);
 
       // Load role if editing
       if (isEditMode) {
