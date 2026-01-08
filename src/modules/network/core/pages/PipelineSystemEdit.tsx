@@ -6,7 +6,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 01-01-2026
- * @updated 01-07-2026
+ * @updated 01-08-2026
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -297,7 +297,6 @@ const PipelineSystemEdit = () => {
       renderCell: (params) => {
         const row = params.row as PipelineDTO;
         if (row.operationalStatus) return <>{getLocalizedName(row.operationalStatus as any, currentLanguage)}</>;
-        if (row.operationalStatusName) return <>{row.operationalStatusName}</>;
         return <>{row.operationalStatusId}</>;
       },
     },
@@ -309,7 +308,6 @@ const PipelineSystemEdit = () => {
       renderCell: (params) => {
         const row = params.row as PipelineDTO;
         if (row.vendor?.name) return <>{row.vendor.name}</>;
-        if (row.vendorName) return <>{row.vendorName}</>;
         return <>{row.vendorId}</>;
       },
     },
