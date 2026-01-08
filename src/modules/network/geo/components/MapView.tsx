@@ -6,7 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Updated for U-006 location schema
+ * @updated 01-08-2026 - Fixed coordinate conversion
  */
 
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
@@ -106,15 +106,17 @@ export const MapView: React.FC<MapViewProps> = ({
   // TerminalDTO keeps legacy latitude/longitude fields
   const allCoordinates = [
     // Stations: access via location object
-    ...(data.stations || []).filter(s => s.location?.latitude && s.location?.longitude).map(s => 
-      toLatLng({ latitude: s.location!.latitude!, longitude: s.location!.longitude! })
-    ),
+    ...(data.stations || [])
+      .filter(s => s.location?.latitude && s.location?.longitude)
+      .map(s => toLatLng({ location: { latitude: s.location!.latitude!, longitude: s.location!.longitude! } })),
     // Terminals: direct access (legacy fields)
-    ...(data.terminals || []).filter(t => t.latitude && t.longitude).map(toLatLng),
+    ...(data.terminals || [])
+      .filter(t => t.latitude && t.longitude)
+      .map(t => toLatLng({ latitude: t.latitude!, longitude: t.longitude! })),
     // Hydrocarbon Fields: access via location object
-    ...(data.hydrocarbonFields || []).filter(f => f.location?.latitude && f.location?.longitude).map(f => 
-      toLatLng({ latitude: f.location!.latitude!, longitude: f.location!.longitude! })
-    ),
+    ...(data.hydrocarbonFields || [])
+      .filter(f => f.location?.latitude && f.location?.longitude)
+      .map(f => toLatLng({ location: { latitude: f.location!.latitude!, longitude: f.location!.longitude! } })),
     // Add pipeline coordinates for center calculation
     ...(data.pipelines || []).flatMap(p => p.coordinates)
   ];
