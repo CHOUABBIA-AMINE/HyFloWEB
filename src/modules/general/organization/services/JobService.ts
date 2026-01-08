@@ -95,7 +95,7 @@ export class JobService {
    * Get jobs by structure ID
    */
   static async getByStructureId(structureId: number): Promise<JobDTO[]> {
-    const response = await axiosInstance.get<JobDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
+    const response = await axiosInstance.get<JobDTO[]>(`${BASE_URL}/structure/${structureId}`);
     return response.data;
   }
 }
