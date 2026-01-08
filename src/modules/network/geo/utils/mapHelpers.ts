@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Added toLatLng helper function
+ * @updated 01-08-2026 - Fixed optional location handling
  */
 
 import { LatLngExpression, LatLngTuple } from 'leaflet';
@@ -18,18 +18,18 @@ const toRadians = (degrees: number): number => {
 
 /**
  * Convert an object with latitude/longitude to LatLngTuple
- * Supports both direct properties and nested location object
+ * Supports both direct properties and nested location object (optional)
  */
 export const toLatLng = (
-  obj: { latitude: number; longitude: number } | { location: { latitude: number; longitude: number } }
+  obj: { latitude: number; longitude: number } | { location?: { latitude?: number; longitude?: number } }
 ): LatLngTuple => {
   // Check if it has location property
-  if ('location' in obj && obj.location) {
+  if ('location' in obj && obj.location && obj.location.latitude !== undefined && obj.location.longitude !== undefined) {
     return [obj.location.latitude, obj.location.longitude];
   }
   
   // Direct latitude/longitude properties
-  if ('latitude' in obj && 'longitude' in obj) {
+  if ('latitude' in obj && 'longitude' in obj && obj.latitude !== undefined && obj.longitude !== undefined) {
     return [obj.latitude, obj.longitude];
   }
   
