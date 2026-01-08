@@ -5,9 +5,10 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Added structureId filter support for embedding
+ * @updated 01-08-2026 - Added multilanguage support for designations
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -39,7 +40,9 @@ interface JobListProps {
 }
 
 const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language || 'en';
+  
   const [jobs, setJobs] = useState<JobDTO[]>([]);
   const [structures, setStructures] = useState<StructureDTO[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +56,23 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
   // Dialog states (only used if no external handlers provided)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<number | null>(null);
+
+  /**
+   * Get localized designation based on current language
+   * Falls back to French -> English -> Arabic if current language not available
+   */
+  const getLocalizedDesignation = (item: JobDTO | StructureDTO): string => {
+    if (!item) return '';
+    
+    if (currentLanguage === 'ar') {
+      return item.designationAr || item.designationFr || item.designationEn || '-';
+    }
+    if (currentLanguage === 'en') {
+      return item.designationEn || item.designationFr || item.designationAr || '-';
+    }
+    // Default to French
+    return item.designationFr || item.designationEn || item.designationAr || '-';
+  };
 
   useEffect(() => {
     loadJobs();
@@ -80,7 +100,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
       setError('');
     } catch (err: any) {
       console.error('Failed to load jobs:', err);
-      setError(err.message || 'Failed to load jobs');
+      setError(err.message || t('job.errorLoading', 'Failed to load jobs'));
     } finally {
       setLoading(false);
     }
@@ -123,7 +143,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
       await loadJobs();
     } catch (err: any) {
       console.error('Failed to delete job:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to delete job');
+      setError(err.response?.data?.message || err.message || t('job.deleteError', 'Failed to delete job'));
     } finally {
       setLoading(false);
     }
@@ -132,30 +152,43 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
   const columns: GridColDef<JobDTO>[] = [
     {
       field: 'code',
-      headerName: 'Code',
+      headerName: t('job.code', 'Code'),
       flex: 1,
       minWidth: 120,
     },
     {
-      field: 'designationFr',
-      headerName: 'Designation',
+      field: 'designation',
+      headerName: t('job.designation', 'Designation'),
       flex: 2,
       minWidth: 200,
+      valueGetter: (params: any) => getLocalizedDesignation(params.row),
+      renderCell: (params) => (
+        <Typography variant="body2">
+          {params.value}
+        </Typography>
+      ),
     },
     ...(!structureId ? [{
       field: 'structureId' as const,
-      headerName: 'Structure',
+      headerName: t('job.structure', 'Structure'),
       flex: 1.5,
       minWidth: 150,
       valueGetter: (params: any) => {
         const structure = structures.find(s => s.id === params.row.structureId);
-        return structure?.designationFr || params.row.structureId;
+        return structure ? getLocalizedDesignation(structure) : params.row.structureId;
       },
+      renderCell: (params: any) => (
+        <Typography variant="body2" noWrap>
+          {params.value}
+        </Typography>
+      ),
     }] : []),
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('common.actions', 'Actions'),
       width: 120,
+      align: 'center',
+      headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box>
@@ -163,6 +196,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
             size="small"
             color="primary"
             onClick={() => handleEdit(params.row)}
+            title={t('common.edit', 'Edit')}
           >
             <EditIcon fontSize="small" />
           </IconButton>
@@ -171,6 +205,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
             color="error"
             onClick={() => params.row.id && handleDeleteClick(params.row.id)}
             disabled={!params.row.id}
+            title={t('common.delete', 'Delete')}
           >
             <DeleteIcon fontSize="small" />
           </IconButton>
@@ -184,10 +219,14 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h6" fontWeight={600} color="text.primary">
-            {structureId ? 'Jobs in this Structure' : 'Jobs'}
+            {structureId 
+              ? t('job.titleInStructure', 'Jobs in this Structure') 
+              : t('job.title', 'Jobs')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {structureId ? 'Manage job positions for this structure' : 'Manage job positions'}
+            {structureId 
+              ? t('job.subtitleInStructure', 'Manage job positions for this structure') 
+              : t('job.subtitle', 'Manage job positions')}
           </Typography>
         </Box>
         {onAdd && (
@@ -197,7 +236,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
             onClick={handleCreate}
             size="medium"
           >
-            {t('common.create')}
+            {t('common.create', 'Create')}
           </Button>
         )}
       </Box>
@@ -233,18 +272,18 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>{t('job.confirmDelete', 'Confirm Delete')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this job? This action cannot be undone.
+            {t('job.confirmDeleteMessage', 'Are you sure you want to delete this job? This action cannot be undone.')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>
-            {t('common.cancel')}
+            {t('common.cancel', 'Cancel')}
           </Button>
           <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-            {t('common.delete')}
+            {t('common.delete', 'Delete')}
           </Button>
         </DialogActions>
       </Dialog>
