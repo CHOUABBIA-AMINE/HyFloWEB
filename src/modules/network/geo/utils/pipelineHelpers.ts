@@ -4,10 +4,12 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Removed non-existent properties
+ * @updated 01-08-2026 - Added coordinate conversion functions
  */
 
 import { PipelineDTO } from '../../core/dto';
+import { LocationPoint } from '../types/geo.types';
+import { LatLngExpression, LatLngTuple } from 'leaflet';
 
 /**
  * Get pipeline color based on type
@@ -131,6 +133,53 @@ export const needsMaintenance = (lastMaintenanceDate?: string, maintenanceInterv
   const daysSinceMaintenance = (now.getTime() - lastMaintenance.getTime()) / (1000 * 60 * 60 * 24);
   
   return daysSinceMaintenance >= maintenanceIntervalDays;
+};
+
+/**
+ * Convert LocationPoint array to Leaflet LatLngExpression array
+ * Sorts locations by sequence if available
+ */
+export const convertLocationsToCoordinates = (locations: LocationPoint[]): LatLngExpression[] => {
+  if (!locations || locations.length === 0) {
+    return [];
+  }
+  
+  // Sort by sequence if available, otherwise maintain original order
+  const sortedLocations = [...locations].sort((a, b) => {
+    if (a.sequence !== undefined && b.sequence !== undefined) {
+      return a.sequence - b.sequence;
+    }
+    return 0;
+  });
+  
+  // Convert to LatLngTuple format [lat, lng]
+  return sortedLocations.map(loc => [loc.latitude, loc.longitude] as LatLngTuple);
+};
+
+/**
+ * Validate pipeline coordinates
+ * Checks if coordinates are valid for rendering a pipeline
+ */
+export const validatePipelineCoordinates = (locations: LocationPoint[]): boolean => {
+  if (!locations || locations.length < 2) {
+    return false;
+  }
+  
+  // Check if all locations have valid latitude/longitude
+  return locations.every(loc => {
+    return (
+      loc.latitude !== undefined &&
+      loc.latitude !== null &&
+      loc.longitude !== undefined &&
+      loc.longitude !== null &&
+      !isNaN(loc.latitude) &&
+      !isNaN(loc.longitude) &&
+      loc.latitude >= -90 &&
+      loc.latitude <= 90 &&
+      loc.longitude >= -180 &&
+      loc.longitude <= 180
+    );
+  });
 };
 
 /**
