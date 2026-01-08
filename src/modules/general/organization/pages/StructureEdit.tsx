@@ -7,6 +7,7 @@
  * @updated 01-03-2026 - Fixed imports to use relative paths
  * @updated 01-04-2026 - i18n: replaced hardcoded strings with translation keys
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @updated 01-08-2026 - Added multilanguage support for select fields
  */
 
 import { useState, useEffect } from 'react';
@@ -69,10 +70,11 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const StructureEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
+  const currentLanguage = i18n.language || 'en';
 
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
@@ -101,6 +103,21 @@ const StructureEdit = () => {
   const [jobDialogOpen, setJobDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobDTO | null>(null);
   const [jobRefreshTrigger, setJobRefreshTrigger] = useState(0);
+
+  /**
+   * Get localized designation based on current language
+   * Falls back to French -> English -> Arabic if current language not available
+   */
+  const getLocalizedDesignation = (item: StructureDTO | StructureTypeDTO): string => {
+    if (currentLanguage === 'ar') {
+      return item.designationAr || item.designationFr || item.designationEn || '-';
+    }
+    if (currentLanguage === 'en') {
+      return item.designationEn || item.designationFr || item.designationAr || '-';
+    }
+    // Default to French
+    return item.designationFr || item.designationEn || item.designationAr || '-';
+  };
 
   useEffect(() => {
     loadDropdownData();
@@ -331,7 +348,7 @@ const StructureEdit = () => {
                       </MenuItem>
                       {structureTypes.map((type) => (
                         <MenuItem key={type.id} value={type.id}>
-                          {type.designationFr || type.designationEn}
+                          {getLocalizedDesignation(type)}
                         </MenuItem>
                       ))}
                     </Select>
@@ -423,8 +440,7 @@ const StructureEdit = () => {
                         .filter((s) => !isEditMode || s.id !== parseInt(id!))
                         .map((structure) => (
                           <MenuItem key={structure.id} value={structure.id}>
-                            {structure.code} -
-                            {structure.designationFr || structure.designationEn}
+                            {structure.code} - {getLocalizedDesignation(structure)}
                           </MenuItem>
                         ))}
                     </Select>
