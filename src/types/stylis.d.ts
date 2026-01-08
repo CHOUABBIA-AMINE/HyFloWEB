@@ -4,8 +4,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-08-2026
- * @updated 01-08-2026 - Fixed signature to match @emotion/cache StylisPlugin
+ * @updated 01-08-2026 - Use StylisElement to match @emotion/cache types
  */
+
+// Import emotion's StylisElement type for compatibility
+import type { StylisElement } from '@emotion/cache/dist/declarations/src/types';
 
 declare module 'stylis' {
   /**
@@ -13,9 +16,9 @@ declare module 'stylis' {
    * Matches the signature expected by @emotion/cache
    */
   export type StylisPluginCallback = (
-    element: number,
+    element: StylisElement,
     index: number,
-    children: any[],
+    children: StylisElement[],
     callback: StylisPluginCallback
   ) => string | void;
 
@@ -25,9 +28,9 @@ declare module 'stylis' {
    */
   export interface StylisPlugin {
     (
-      element: number,
+      element: StylisElement,
       index: number,
-      children: any[],
+      children: StylisElement[],
       callback: StylisPluginCallback
     ): string | void;
   }
@@ -43,9 +46,9 @@ declare module 'stylis' {
   export interface Middleware extends StylisPlugin {}
 
   export function middleware(collection: Middleware[]): Middleware;
-  export function compile(value: string): any[];
-  export function serialize(children: any[], callback: StylisPluginCallback): string;
-  export function stringify(element: any, index: number, children: any[], callback?: StylisPluginCallback): string;
+  export function compile(value: string): StylisElement[];
+  export function serialize(children: StylisElement[], callback: StylisPluginCallback): string;
+  export function stringify(element: StylisElement, index: number, children: StylisElement[], callback?: StylisPluginCallback): string;
 }
 
 declare module 'stylis-plugin-rtl' {
