@@ -4,11 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
- * @updated 01-03-2026 - Fixed imports to use relative paths
- * @updated 01-03-2026 - Single multilingual designation column, removed ID column, fixed type filter
- * @updated 01-03-2026 - Use pageable requests instead of /all for better performance
- * @updated 01-03-2026 - Added translations for table headers and UI elements
- * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @updated 01-08-2026 - Fixed type guard for MenuItem
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -431,11 +427,13 @@ const StructureList = () => {
                   <MenuItem value="">
                     {t('structure.allTypes', 'All Types')}
                   </MenuItem>
-                  {structureTypes.map((type) => (
-                    <MenuItem key={type.id} value={type.id.toString()}>
-                      {getDesignation(type)}
-                    </MenuItem>
-                  ))}
+                  {structureTypes
+                    .filter(type => type.id !== undefined)
+                    .map((type) => (
+                      <MenuItem key={type.id} value={type.id!.toString()}>
+                        {getDesignation(type)}
+                      </MenuItem>
+                    ))}
                 </Select>
               </FormControl>
 
