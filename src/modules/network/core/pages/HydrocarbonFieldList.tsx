@@ -1,9 +1,9 @@
 /**
- * HydrocarbonField List Page with DataGrid Pro
+ * HydrocarbonField List Page with DataGrid
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Removed deprecated field name properties
+ * @updated 01-08-2026 - Fixed to use DataGrid Community Edition
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -13,10 +13,14 @@ import {
   Box,
   Button,
   Typography,
-  IconButton,
   Chip,
   Alert,
-  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -25,7 +29,7 @@ import {
   Visibility as ViewIcon,
 } from '@mui/icons-material';
 import {
-  DataGridPro,
+  DataGrid,
   GridColDef,
   GridRowParams,
   GridActionsCellItem,
@@ -34,11 +38,11 @@ import {
   GridToolbarFilterButton,
   GridToolbarDensitySelector,
   GridToolbarExport,
-} from '@mui/x-data-grid-pro';
+  GridRenderCellParams,
+} from '@mui/x-data-grid';
 import { HydrocarbonFieldService } from '../services';
 import { HydrocarbonFieldDTO } from '../dto';
 import { getLocalizedName } from '../utils/localizationUtils';
-import { DeleteConfirmationDialog } from '@/shared/components';
 
 const HydrocarbonFieldList = () => {
   const { t, i18n } = useTranslation();
@@ -182,8 +186,8 @@ const HydrocarbonFieldList = () => {
       sortable: true,
       type: 'singleSelect',
       valueOptions: typeOptions,
-      valueGetter: (params: any, row: HydrocarbonFieldDTO) => {
-        return field.hydrocarbonFieldType ? getLocalizedName(row.hydrocarbonFieldType, currentLanguage) : 'N/A';
+      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
+        return row.hydrocarbonFieldType ? getLocalizedName(row.hydrocarbonFieldType, currentLanguage) : 'N/A';
       },
     },
     {
@@ -192,7 +196,7 @@ const HydrocarbonFieldList = () => {
       width: 200,
       filterable: false,
       sortable: false,
-      valueGetter: (params: any, row: HydrocarbonFieldDTO) => {
+      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
         if (row.location?.placeName) {
           return row.location.placeName;
         }
@@ -210,7 +214,7 @@ const HydrocarbonFieldList = () => {
       sortable: true,
       type: 'singleSelect',
       valueOptions: vendorOptions,
-      valueGetter: (params: any, row: HydrocarbonFieldDTO) => {
+      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
         return row.vendor?.name || '-';
       },
     },
@@ -222,10 +226,10 @@ const HydrocarbonFieldList = () => {
       sortable: true,
       type: 'singleSelect',
       valueOptions: statusOptions,
-      valueGetter: (params: any, row: HydrocarbonFieldDTO) => {
+      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
         return row.operationalStatus ? getLocalizedName(row.operationalStatus, currentLanguage) : 'Unknown';
       },
-      renderCell: (params) => {
+      renderCell: (params: GridRenderCellParams<HydrocarbonFieldDTO>) => {
         const status = params.row.operationalStatus;
         if (!status) return null;
         
@@ -244,7 +248,7 @@ const HydrocarbonFieldList = () => {
       headerName: 'Installation Date',
       width: 150,
       type: 'date',
-      valueGetter: (params: any, row: HydrocarbonFieldDTO) => {
+      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
         return row.installationDate ? new Date(row.installationDate) : null;
       },
     },
@@ -300,7 +304,7 @@ const HydrocarbonFieldList = () => {
 
       {/* DataGrid */}
       <Box sx={{ height: 600, width: '100%' }}>
-        <DataGridPro
+        <DataGrid
           rows={fields}
           columns={columns}
           loading={loading}
@@ -320,19 +324,36 @@ const HydrocarbonFieldList = () => {
               cursor: 'pointer',
             },
           }}
-          onRowClick={(params) => handleView(params.row.id!)}
+          onRowClick={(params: GridRowParams<HydrocarbonFieldDTO>) => handleView(params.row.id!)}
         />
       </Box>
 
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
+      <Dialog
         open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Hydrocarbon Field"
-        content="Are you sure you want to delete this hydrocarbon field? This action cannot be undone."
-        loading={deleting}
-      />
+        onClose={() => !deleting && setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Delete Hydrocarbon Field</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this hydrocarbon field? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+            disabled={deleting}
+            startIcon={deleting ? <CircularProgress size={20} /> : <DeleteIcon />}
+          >
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
