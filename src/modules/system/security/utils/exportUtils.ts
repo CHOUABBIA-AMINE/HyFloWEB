@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-08-2026 - Removed createdAt (not in UserDTO)
  */
 
 import { UserDTO } from '../dto';
@@ -13,7 +14,7 @@ import { UserDTO } from '../dto';
  */
 export const exportToCSV = (users: UserDTO[], filename: string = 'users') => {
   // Transform users to CSV-friendly format
-  const headers = ['ID', 'Username', 'Email', 'First Name', 'Last Name', 'Status', 'Roles', 'Created At'];
+  const headers = ['ID', 'Username', 'Email', 'First Name', 'Last Name', 'Status', 'Roles'];
   
   const csvContent = [
     headers.join(','),
@@ -25,7 +26,6 @@ export const exportToCSV = (users: UserDTO[], filename: string = 'users') => {
       `"${user.lastName || ''}"`,
       user.enabled ? 'Enabled' : 'Disabled',
       `"${user.roles?.map(r => r.name).join(', ') || ''}"`,
-      user.createdAt || '',
     ].join(','))
   ].join('\n');
 
@@ -58,7 +58,6 @@ export const exportToExcel = async (users: UserDTO[], filename: string = 'users'
       'Last Name': user.lastName || '',
       Status: user.enabled ? 'Enabled' : 'Disabled',
       Roles: user.roles?.map(r => r.name).join(', ') || '',
-      'Created At': user.createdAt || '',
     }));
 
     // Create worksheet
@@ -73,7 +72,6 @@ export const exportToExcel = async (users: UserDTO[], filename: string = 'users'
       { wch: 20 },  // Last Name
       { wch: 12 },  // Status
       { wch: 30 },  // Roles
-      { wch: 20 },  // Created At
     ];
     worksheet['!cols'] = columnWidths;
 
