@@ -3,7 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-01-2026
- * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @updated 01-08-2026 - Fixed region column (replaced with structure)
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -96,13 +96,13 @@ const PipelineSystemList = () => {
     { field: 'name', headerName: 'System Name', minWidth: 220, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
     { field: 'code', headerName: 'Code', width: 130, renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> },
     {
-      field: 'regionId',
-      headerName: 'Region',
+      field: 'structureId',
+      headerName: 'Structure',
       minWidth: 180,
       flex: 1,
       renderCell: (params) => {
         const row = params.row as PipelineSystemDTO;
-        return <>{row.region ? getDesignation(row.region) : row.regionId ?? ''}</>;
+        return <>{row.structure ? getDesignation(row.structure) : row.structureId ?? ''}</>;
       },
     },
     {
