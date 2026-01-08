@@ -1,11 +1,10 @@
 /**
- * Station Edit/Create Page - Professional Version
- * Comprehensive form for creating and editing stations
- * State and Locality with localized names (Ar, En, Fr)
+ * Station Edit/Create Page - Updated for U-006 Schema
+ * Refactored to use locationId instead of inline coordinates
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 01-07-2026
+ * @updated 01-08-2026 - Refactored for U-006 schema (locationId)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,10 +31,11 @@ import {
 import { StationService, PipelineSystemService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
 import { StationTypeService } from '../../type/services';
-import { StateService, LocalityService } from '../../../general/localization/services';
-import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
-import { StationDTO, StationCreateDTO } from '../dto';
+import { LocationService } from '../../../general/localization/services';
+import { StructureService } from '../../../general/organization/services';
+import { StationDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
+import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
 
 const StationEdit = () => {
   const { t, i18n } = useTranslation();
@@ -46,36 +46,29 @@ const StationEdit = () => {
   // Get current language
   const currentLanguage = i18n.language || 'en';
 
-  // Form state with 0 as default for numeric fields
+  // Form state - aligned with StationDTO schema
   const [station, setStation] = useState<Partial<StationDTO>>({
     name: '',
     code: '',
-    description: '',
-    placeName: '',
-    latitude: 0,
-    longitude: 0,
-    elevation: 0,
     installationDate: undefined,
     commissioningDate: undefined,
     decommissioningDate: undefined,
     operationalStatusId: 0,
+    structureId: 0,
+    vendorId: 0,
+    locationId: 0,
     stationTypeId: 0,
     pipelineSystemId: undefined,
-    vendorId: 0,
-    localityId: 0,
+    pipelineIds: [],
   });
 
-  // UI state for state selection (not in entity)
-  const [selectedStateId, setSelectedStateId] = useState<number>(0);
-
   // Available options
+  const [locations, setLocations] = useState<any[]>([]);
+  const [structures, setStructures] = useState<any[]>([]);
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
   const [stationTypes, setStationTypes] = useState<any[]>([]);
   const [pipelineSystems, setPipelineSystems] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
-  const [states, setStates] = useState<any[]>([]);
-  const [localities, setLocalities] = useState<any[]>([]);
-  const [loadingLocalities, setLoadingLocalities] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -87,19 +80,6 @@ const StationEdit = () => {
     loadData();
   }, [stationId]);
 
-  // Load localities when selected state changes
-  useEffect(() => {
-    if (selectedStateId && selectedStateId > 0) {
-      loadLocalitiesByState(selectedStateId);
-    } else {
-      setLocalities([]);
-      // Clear locality if state is cleared
-      if (station.localityId) {
-        setStation(prev => ({ ...prev, localityId: 0 }));
-      }
-    }
-  }, [selectedStateId]);
-
   // Sort options by localized name
   const sortedStationTypes = useMemo(
     () => sortByLocalizedName(stationTypes, currentLanguage),
@@ -109,6 +89,16 @@ const StationEdit = () => {
   const sortedOperationalStatuses = useMemo(
     () => sortByLocalizedName(operationalStatuses, currentLanguage),
     [operationalStatuses, currentLanguage]
+  );
+
+  const sortedLocations = useMemo(
+    () => sortByLocalizedName(locations, currentLanguage),
+    [locations, currentLanguage]
+  );
+
+  const sortedStructures = useMemo(
+    () => sortByLocalizedName(structures, currentLanguage),
+    [structures, currentLanguage]
   );
 
   const loadData = async () => {
@@ -123,25 +113,47 @@ const StationEdit = () => {
       
       // Load all data from REST APIs in parallel
       const [
+        locationsData,
+        structuresData,
         vendorsData,
         pipelineSystemsData,
         stationTypesData,
         operationalStatusesData,
-        statesData
       ] = await Promise.allSettled([
+        LocationService.getAllNoPagination(),
+        StructureService.getAllNoPagination(),
         VendorService.getAllNoPagination(),
         PipelineSystemService.getAllNoPagination(),
         StationTypeService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
-        StateService.getAllNoPagination(),
       ]);
+
+      // Handle locations
+      if (locationsData.status === 'fulfilled') {
+        const locs = Array.isArray(locationsData.value) 
+          ? locationsData.value 
+          : [];
+        setLocations(locs);
+      } else {
+        console.error('Failed to load locations:', locationsData.reason);
+      }
+
+      // Handle structures
+      if (structuresData.status === 'fulfilled') {
+        const structs = Array.isArray(structuresData.value) 
+          ? structuresData.value 
+          : [];
+        setStructures(structs);
+      } else {
+        console.error('Failed to load structures:', structuresData.reason);
+      }
 
       // Handle vendors
       if (vendorsData.status === 'fulfilled') {
-        const vendors = Array.isArray(vendorsData.value) 
+        const vnds = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
-          : (vendorsData.value?.data || vendorsData.value?.content || []);
-        setVendors(vendors);
+          : [];
+        setVendors(vnds);
       } else {
         console.error('Failed to load vendors:', vendorsData.reason);
       }
@@ -150,7 +162,7 @@ const StationEdit = () => {
       if (pipelineSystemsData.status === 'fulfilled') {
         const systems = Array.isArray(pipelineSystemsData.value) 
           ? pipelineSystemsData.value 
-          : (pipelineSystemsData.value?.data || pipelineSystemsData.value?.content || []);
+          : [];
         setPipelineSystems(systems);
       } else {
         console.error('Failed to load pipeline systems:', pipelineSystemsData.reason);
@@ -160,7 +172,7 @@ const StationEdit = () => {
       if (stationTypesData.status === 'fulfilled') {
         const types = Array.isArray(stationTypesData.value) 
           ? stationTypesData.value 
-          : (stationTypesData.value?.data || stationTypesData.value?.content || []);
+          : [];
         setStationTypes(types);
       } else {
         console.error('Failed to load station types:', stationTypesData.reason);
@@ -170,33 +182,15 @@ const StationEdit = () => {
       if (operationalStatusesData.status === 'fulfilled') {
         const statuses = Array.isArray(operationalStatusesData.value) 
           ? operationalStatusesData.value 
-          : (operationalStatusesData.value?.data || operationalStatusesData.value?.content || []);
+          : [];
         setOperationalStatuses(statuses);
       } else {
         console.error('Failed to load operational statuses:', operationalStatusesData.reason);
       }
 
-      // Handle states
-      if (statesData.status === 'fulfilled') {
-        const states = Array.isArray(statesData.value) 
-          ? statesData.value 
-          : (statesData.value?.data || statesData.value?.content || []);
-        setStates(states);
-      } else {
-        console.error('Failed to load states:', statesData.reason);
-      }
-
       // Set station data if editing
       if (stationData) {
         setStation(stationData);
-        
-        // Extract state from locality if available
-        if (stationData.locality?.state?.id) {
-          setSelectedStateId(stationData.locality.state.id);
-        } else if (stationData.locality?.stateId) {
-          setSelectedStateId(stationData.locality.stateId);
-        }
-        // Localities will be loaded by useEffect when selectedStateId is set
       }
 
       setError('');
@@ -208,63 +202,39 @@ const StationEdit = () => {
     }
   };
 
-  const loadLocalitiesByState = async (stateId: number) => {
-    try {
-      setLoadingLocalities(true);
-      const localitiesData = await LocalityService.getByStateId(stateId);
-      const localities = Array.isArray(localitiesData) 
-        ? localitiesData 
-        : (localitiesData?.data || localitiesData?.content || []);
-      setLocalities(localities);
-    } catch (err: any) {
-      console.error('Failed to load localities:', err);
-      setLocalities([]);
-    } finally {
-      setLoadingLocalities(false);
-    }
-  };
-
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!station.name || station.name.trim().length < 2) {
-      errors.name = 'Station name must be at least 2 characters';
+    if (!station.name || station.name.trim().length < 3) {
+      errors.name = 'Station name must be at least 3 characters';
     }
 
     if (!station.code || station.code.trim().length < 2) {
-      errors.code = 'Station code is required';
-    }
-
-    if (!station.placeName || station.placeName.trim().length < 2) {
-      errors.placeName = 'Place name is required';
-    }
-
-    if (!station.latitude || station.latitude === 0) {
-      errors.latitude = 'Latitude is required';
-    }
-
-    if (!station.longitude || station.longitude === 0) {
-      errors.longitude = 'Longitude is required';
+      errors.code = 'Station code must be at least 2 characters';
     }
 
     if (!station.operationalStatusId) {
       errors.operationalStatusId = 'Operational status is required';
     }
 
-    if (!station.stationTypeId) {
-      errors.stationTypeId = 'Station type is required';
+    if (!station.structureId) {
+      errors.structureId = 'Structure is required';
     }
 
     if (!station.vendorId) {
       errors.vendorId = 'Vendor is required';
     }
 
-    if (!selectedStateId) {
-      errors.stateId = 'State is required';
+    if (!station.locationId) {
+      errors.locationId = 'Location is required';
     }
 
-    if (!station.localityId) {
-      errors.localityId = 'Locality is required';
+    if (!station.stationTypeId) {
+      errors.stationTypeId = 'Station type is required';
+    }
+
+    if (!station.pipelineSystemId) {
+      errors.pipelineSystemId = 'Pipeline system is required';
     }
 
     setValidationErrors(errors);
@@ -281,16 +251,6 @@ const StationEdit = () => {
     }
   };
 
-  const handleStateChange = (e: any) => {
-    const value = e.target.value;
-    setSelectedStateId(value);
-    
-    // Clear validation error
-    if (validationErrors.stateId) {
-      setValidationErrors({ ...validationErrors, stateId: '' });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -302,28 +262,32 @@ const StationEdit = () => {
       setSaving(true);
       setError('');
 
-      const stationData: StationCreateDTO = {
-        name: station.name!,
-        code: station.code!,
-        description: station.description,
-        placeName: station.placeName!,
-        latitude: Number(station.latitude),
-        longitude: Number(station.longitude),
-        elevation: station.elevation !== undefined ? Number(station.elevation) : undefined,
+      const payload: StationDTO = {
+        id: isEditMode ? Number(stationId) : undefined,
+        code: String(station.code || ''),
+        name: String(station.name || ''),
+        
+        // Dates
         installationDate: station.installationDate,
         commissioningDate: station.commissioningDate,
         decommissioningDate: station.decommissioningDate,
+        
+        // Required relationships
         operationalStatusId: Number(station.operationalStatusId),
-        stationTypeId: Number(station.stationTypeId),
-        pipelineSystemId: station.pipelineSystemId ? Number(station.pipelineSystemId) : undefined,
+        structureId: Number(station.structureId),
         vendorId: Number(station.vendorId),
-        localityId: Number(station.localityId),
+        locationId: Number(station.locationId),
+        stationTypeId: Number(station.stationTypeId),
+        pipelineSystemId: Number(station.pipelineSystemId),
+        
+        // Collections
+        pipelineIds: station.pipelineIds || [],
       };
 
       if (isEditMode) {
-        await StationService.update(Number(stationId), { id: Number(stationId), ...stationData });
+        await StationService.update(Number(stationId), payload);
       } else {
-        await StationService.create(stationData);
+        await StationService.create(payload);
       }
 
       navigate('/network/core/stations');
@@ -388,84 +352,58 @@ const StationEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Station Name"
-                    value={station.name || ''}
-                    onChange={handleChange('name')}
+                    label="Station Code"
+                    value={station.code || ''}
+                    onChange={handleChange('code')}
                     required
-                    error={!!validationErrors.name}
-                    helperText={validationErrors.name}
+                    error={!!validationErrors.code}
+                    helperText={validationErrors.code || '2-20 characters'}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Station Code"
-                    value={station.code || ''}
-                    onChange={handleChange('code')}
+                    label="Station Name"
+                    value={station.name || ''}
+                    onChange={handleChange('name')}
                     required
-                    error={!!validationErrors.code}
-                    helperText={validationErrors.code}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Description"
-                    value={station.description || ''}
-                    onChange={handleChange('description')}
-                    multiline
-                    rows={3}
-                    placeholder="Describe the station"
+                    error={!!validationErrors.name}
+                    helperText={validationErrors.name || '3-100 characters'}
                   />
                 </Grid>
               </Grid>
             </Box>
           </Paper>
 
-          {/* Location Information */}
+          {/* Location & Organization */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Location Information
+                Location & Organization
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                {/* Row 1: Place Name alone */}
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Place Name"
-                    value={station.placeName || ''}
-                    onChange={handleChange('placeName')}
-                    required
-                    error={!!validationErrors.placeName}
-                    helperText={validationErrors.placeName}
-                  />
-                </Grid>
-
-                {/* Row 2: State and Locality */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     select
-                    label="State"
-                    value={selectedStateId || ''}
-                    onChange={handleStateChange}
+                    label="Location"
+                    value={station.locationId || ''}
+                    onChange={handleChange('locationId')}
                     required
-                    error={!!validationErrors.stateId}
-                    helperText={validationErrors.stateId || 'Select state first to load localities'}
+                    error={!!validationErrors.locationId}
+                    helperText={validationErrors.locationId || 'Select the physical location'}
                   >
-                    {states.length > 0 ? (
-                      states.map((state) => (
-                        <MenuItem key={state.id} value={state.id}>
-                          {getLocalizationLocalizedName(state, currentLanguage)}
+                    {sortedLocations.length > 0 ? (
+                      sortedLocations.map((location) => (
+                        <MenuItem key={location.id} value={location.id}>
+                          {getLocalizationLocalizedName(location, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading states...</MenuItem>
+                      <MenuItem disabled>Loading locations...</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -474,72 +412,23 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Locality"
-                    value={station.localityId || ''}
-                    onChange={handleChange('localityId')}
+                    label="Structure"
+                    value={station.structureId || ''}
+                    onChange={handleChange('structureId')}
                     required
-                    disabled={!selectedStateId || loadingLocalities}
-                    error={!!validationErrors.localityId}
-                    helperText={
-                      !selectedStateId 
-                        ? 'Please select a state first' 
-                        : loadingLocalities 
-                        ? 'Loading localities...' 
-                        : validationErrors.localityId
-                    }
+                    error={!!validationErrors.structureId}
+                    helperText={validationErrors.structureId || 'Organizational unit'}
                   >
-                    {loadingLocalities ? (
-                      <MenuItem disabled>Loading localities...</MenuItem>
-                    ) : localities.length > 0 ? (
-                      localities.map((locality) => (
-                        <MenuItem key={locality.id} value={locality.id}>
-                          {getLocalizationLocalizedName(locality, currentLanguage)}
+                    {sortedStructures.length > 0 ? (
+                      sortedStructures.map((structure) => (
+                        <MenuItem key={structure.id} value={structure.id}>
+                          {getLocalizedName(structure, currentLanguage)}
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>No localities available</MenuItem>
+                      <MenuItem disabled>Loading structures...</MenuItem>
                     )}
                   </TextField>
-                </Grid>
-
-                {/* Row 3: Latitude, Longitude, Elevation */}
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Latitude"
-                    type="number"
-                    value={station.latitude ?? 0}
-                    onChange={handleChange('latitude')}
-                    required
-                    error={!!validationErrors.latitude}
-                    helperText={validationErrors.latitude}
-                    inputProps={{ step: 0.000001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Longitude"
-                    type="number"
-                    value={station.longitude ?? 0}
-                    onChange={handleChange('longitude')}
-                    required
-                    error={!!validationErrors.longitude}
-                    helperText={validationErrors.longitude}
-                    inputProps={{ step: 0.000001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Elevation (m)"
-                    type="number"
-                    value={station.elevation ?? 0}
-                    onChange={handleChange('elevation')}
-                    inputProps={{ step: 0.1 }}
-                  />
                 </Grid>
               </Grid>
             </Box>
@@ -627,16 +516,22 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Pipeline System (Optional)"
+                    label="Pipeline System"
                     value={station.pipelineSystemId || ''}
                     onChange={handleChange('pipelineSystemId')}
+                    required
+                    error={!!validationErrors.pipelineSystemId}
+                    helperText={validationErrors.pipelineSystemId}
                   >
-                    <MenuItem value="">None</MenuItem>
-                    {pipelineSystems.map((system) => (
-                      <MenuItem key={system.id} value={system.id}>
-                        {system.name}
-                      </MenuItem>
-                    ))}
+                    {pipelineSystems.length > 0 ? (
+                      pipelineSystems.map((system) => (
+                        <MenuItem key={system.id} value={system.id}>
+                          {system.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading systems...</MenuItem>
+                    )}
                   </TextField>
                 </Grid>
               </Grid>
