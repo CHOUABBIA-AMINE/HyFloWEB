@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-08-2026
- * @updated 01-08-2026 - Complete StylisElement definition matching emotion
+ * @updated 01-08-2026 - Exact types matching emotion (no undefined)
  */
 
 declare module 'stylis' {
@@ -19,8 +19,8 @@ declare module 'stylis' {
     children: string | StylisElement[];
     line?: number;
     column?: number;
-    root?: StylisElement | null;
-    parent?: StylisElement | null;
+    root: StylisElement | null;      // Must be StylisElement or null (not undefined)
+    parent: StylisElement | null;    // Must be StylisElement or null (not undefined)
     length: number;
     return?: string;
     [key: string]: any;
