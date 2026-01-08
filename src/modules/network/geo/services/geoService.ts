@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-06-2026 - Fixed to check pipelineSystem.product
+ * @updated 01-08-2026 - Fixed type errors for optional properties
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -167,7 +167,6 @@ class GeoService {
         pipelineSystemName: samplePipeline.pipelineSystem?.name,
         hasProduct: !!samplePipeline.pipelineSystem?.product,
         productCode: samplePipeline.pipelineSystem?.product?.code,
-        productName: samplePipeline.pipelineSystem?.product?.name,
       });
       
       // Fetch locations for each pipeline that has locationIds
@@ -183,10 +182,10 @@ class GeoService {
 
           // Check if pipeline has locationIds
           if (pipeline.locationIds && pipeline.locationIds.length > 0) {
-            // Convert Set to Array if needed
-            const locationIdArray = Array.isArray(pipeline.locationIds) 
-              ? pipeline.locationIds 
-              : Array.from(pipeline.locationIds);
+            // Convert Set to Array if needed, and ensure it's number[]
+            const locationIdArray: number[] = Array.isArray(pipeline.locationIds) 
+              ? pipeline.locationIds as number[]
+              : Array.from(pipeline.locationIds) as number[];
             
             // Fetch the actual location data (with coordinate correction)
             const locations = await this.getLocationsByIds(locationIdArray);
@@ -289,16 +288,24 @@ class GeoService {
       );
     });
     
+    // Helper function to safely check coordinates
+    const hasValidCoordinates = (item: any): item is { latitude: number; longitude: number } => {
+      return typeof item.latitude === 'number' && typeof item.longitude === 'number';
+    };
+    
     return {
       stations: data.stations.filter(s => 
+        hasValidCoordinates(s) &&
         s.latitude >= bounds.south && s.latitude <= bounds.north &&
         s.longitude >= bounds.west && s.longitude <= bounds.east
       ),
       terminals: data.terminals.filter(t => 
+        hasValidCoordinates(t) &&
         t.latitude >= bounds.south && t.latitude <= bounds.north &&
         t.longitude >= bounds.west && t.longitude <= bounds.east
       ),
       hydrocarbonFields: data.hydrocarbonFields.filter(f => 
+        hasValidCoordinates(f) &&
         f.latitude >= bounds.south && f.latitude <= bounds.north &&
         f.longitude >= bounds.west && f.longitude <= bounds.east
       ),
