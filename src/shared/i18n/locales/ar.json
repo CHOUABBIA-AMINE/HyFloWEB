@@ -186,6 +186,49 @@
       "designationMaxLength": "يجب ألا تتجاوز التسمية 100 حرف"
     }
   },
+  "job": {
+    "title": "الوظائف",
+    "titleInStructure": "الوظائف في هذا الهيكل",
+    "subtitle": "إدارة المناصب الوظيفية",
+    "subtitleInStructure": "إدارة المناصب الوظيفية لهذا الهيكل",
+    "code": "الرمز",
+    "designation": "التسمية",
+    "structure": "الهيكل",
+    "dialog": {
+      "createTitle": "إنشاء وظيفة",
+      "createSubtitle": "إضافة منصب وظيفي جديد",
+      "editTitle": "تعديل الوظيفة",
+      "editSubtitle": "تحديث تفاصيل المنصب الوظيفي"
+    },
+    "sections": {
+      "designations": "تسميات الوظيفة",
+      "assignment": "التعيين"
+    },
+    "fields": {
+      "code": "الرمز",
+      "codeHelper": "رمز الوظيفة الفريد",
+      "designationFr": "التسمية (فرنسي)",
+      "designationFrHelper": "إلزامي",
+      "designationAr": "التسمية (عربي)",
+      "designationArHelper": "اختياري",
+      "designationEn": "التسمية (إنجليزي)",
+      "designationEnHelper": "اختياري",
+      "structure": "الهيكل",
+      "structureHelper": "اختر الهيكل التنظيمي",
+      "structureLocked": "الهيكل محدد من قبل الأب"
+    },
+    "validation": {
+      "codeRequired": "الرمز إلزامي",
+      "designationFrRequired": "التسمية الفرنسية إلزامية",
+      "structureRequired": "الهيكل إلزامي",
+      "formInvalid": "يرجى ملء جميع الحقول الإلزامية"
+    },
+    "confirmDelete": "تأكيد الحذف",
+    "confirmDeleteMessage": "هل أنت متأكد من حذف هذه الوظيفة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "errorLoading": "فشل تحميل الوظائف",
+    "deleteError": "فشل حذف الوظيفة",
+    "saveError": "فشل حفظ الوظيفة"
+  },
   "employee": {
     "title": "الموظفين",
     "create": "إنشاء موظف",
