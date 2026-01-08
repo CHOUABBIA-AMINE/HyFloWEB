@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-28-2025
  * @updated 01-08-2026 - Fixed type guard for MenuItem
+ * @updated 01-08-2026 - Changed default pageSize to 10, added 5 to options
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -67,7 +68,7 @@ const StructureList = () => {
   // Pagination state
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
-    pageSize: 25,
+    pageSize: 10,
   });
   const [rowCount, setRowCount] = useState(0);
   
@@ -464,7 +465,7 @@ const StructureList = () => {
           columns={columns}
           loading={loading}
           rowCount={rowCount}
-          pageSizeOptions={[10, 25, 50, 100]}
+          pageSizeOptions={[5, 10, 25, 50, 100]}
           paginationModel={paginationModel}
           paginationMode="server"
           onPaginationModelChange={handlePaginationModelChange}
