@@ -1,10 +1,9 @@
 /**
- * Job Edit Dialog Component (Nested)
- * Create/Edit job within a structure
+ * Job Edit Dialog Component
  * 
  * @author CHOUABBIA Amine
- * @created 12-28-2025
- * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @created 01-06-2026
+ * @updated 01-08-2026 - Fixed type safety for id fields
  */
 
 import { useState, useEffect } from 'react';
@@ -14,82 +13,65 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
   TextField,
-  Grid,
+  Button,
+  CircularProgress,
   Alert,
-  Box,
-  IconButton,
+  MenuItem,
 } from '@mui/material';
-import {
-  Close as CloseIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
+import { JobDTO } from '../dto';
+import { StructureDTO } from '../dto';
 import { JobService } from '../services';
-import { JobDTO } from '../dto/JobDTO';
 
 interface JobEditDialogProps {
   open: boolean;
+  job?: JobDTO | null;
+  structures: StructureDTO[];
   onClose: () => void;
   onSave: () => void;
-  structureId: number;
-  job?: JobDTO | null;
 }
 
-const JobEditDialog = ({ open, onClose, onSave, structureId, job }: JobEditDialogProps) => {
+const JobEditDialog = ({ open, job, structures, onClose, onSave }: JobEditDialogProps) => {
   const { t } = useTranslation();
-  const isEditMode = Boolean(job);
-
   const [formData, setFormData] = useState<Partial<JobDTO>>({
     code: '',
     designationFr: '',
-    designationEn: '',
     designationAr: '',
-    structureId: structureId,
+    designationEn: '',
+    structureId: undefined,
   });
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (job) {
       setFormData({
-        code: job.code || '',
-        designationFr: job.designationFr || '',
-        designationEn: job.designationEn || '',
+        code: job.code,
+        designationFr: job.designationFr,
         designationAr: job.designationAr || '',
+        designationEn: job.designationEn || '',
         structureId: job.structureId,
       });
     } else {
       setFormData({
         code: '',
         designationFr: '',
-        designationEn: '',
         designationAr: '',
-        structureId: structureId,
+        designationEn: '',
+        structureId: undefined,
       });
     }
-    setError('');
-    setValidationErrors({});
-  }, [job, structureId, open]);
+  }, [job, open]);
 
-  const validateForm = (): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (!formData.code?.trim()) {
-      errors.code = 'Code is required';
-    }
-    if (!formData.designationFr?.trim()) {
-      errors.designationFr = 'French designation is required';
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
+  const handleChange = (field: keyof JobDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData({ ...formData, [field]: field === 'structureId' ? Number(value) : value });
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.code || !formData.designationFr || !formData.structureId) {
       setError('Please fill in all required fields');
       return;
     }
@@ -99,16 +81,18 @@ const JobEditDialog = ({ open, onClose, onSave, structureId, job }: JobEditDialo
       setError('');
 
       const jobData: JobDTO = {
-        ...formData,
-        id: job?.id || 0,
-        code: formData.code!,
-        designationFr: formData.designationFr!,
-        structureId: structureId,
+        code: formData.code,
+        designationFr: formData.designationFr,
+        designationAr: formData.designationAr || undefined,
+        designationEn: formData.designationEn || undefined,
+        structureId: formData.structureId,
       };
 
-      if (isEditMode) {
-        await JobService.update(job!.id, jobData);
+      if (job?.id) {
+        // Edit mode - id is guaranteed to exist
+        await JobService.update(job.id, jobData);
       } else {
+        // Create mode
         await JobService.create(jobData);
       }
 
@@ -116,122 +100,91 @@ const JobEditDialog = ({ open, onClose, onSave, structureId, job }: JobEditDialo
       onClose();
     } catch (err: any) {
       console.error('Failed to save job:', err);
-      setError(err.message || 'Failed to save job');
+      setError(err.response?.data?.message || err.message || 'Failed to save job');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (field: keyof JobDTO) => (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const value = event.target.value;
-    setFormData(prev => ({ ...prev, [field]: value }));
-
-    // Clear validation error for this field
-    if (validationErrors[field]) {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
-
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{
-        sx: { borderRadius: 2 }
-      }}
-    >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        <Box>
-          {isEditMode ? 'Edit Job' : 'Create Job'}
-        </Box>
-        <IconButton size="small" onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <form onSubmit={handleSubmit}>
+        <DialogTitle>
+          {job ? t('common.edit') : t('common.create')} Job
+        </DialogTitle>
+        
+        <DialogContent>
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+              {error}
+            </Alert>
+          )}
 
-      <DialogContent dividers>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-            {error}
-          </Alert>
-        )}
+          <TextField
+            fullWidth
+            label="Code"
+            value={formData.code || ''}
+            onChange={handleChange('code')}
+            required
+            sx={{ mb: 2, mt: 1 }}
+          />
 
-        <Grid container spacing={2.5}>
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              required
-              label="Code"
-              value={formData.code || ''}
-              onChange={handleChange('code')}
-              error={Boolean(validationErrors.code)}
-              helperText={validationErrors.code}
-              disabled={loading}
-            />
-          </Grid>
+          <TextField
+            fullWidth
+            label="Designation (French)"
+            value={formData.designationFr || ''}
+            onChange={handleChange('designationFr')}
+            required
+            sx={{ mb: 2 }}
+          />
 
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              required
-              label="Designation (French)"
-              value={formData.designationFr || ''}
-              onChange={handleChange('designationFr')}
-              error={Boolean(validationErrors.designationFr)}
-              helperText={validationErrors.designationFr}
-              disabled={loading}
-            />
-          </Grid>
+          <TextField
+            fullWidth
+            label="Designation (Arabic)"
+            value={formData.designationAr || ''}
+            onChange={handleChange('designationAr')}
+            sx={{ mb: 2 }}
+          />
 
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Designation (English)"
-              value={formData.designationEn || ''}
-              onChange={handleChange('designationEn')}
-              disabled={loading}
-            />
-          </Grid>
+          <TextField
+            fullWidth
+            label="Designation (English)"
+            value={formData.designationEn || ''}
+            onChange={handleChange('designationEn')}
+            sx={{ mb: 2 }}
+          />
 
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Designation (Arabic)"
-              value={formData.designationAr || ''}
-              onChange={handleChange('designationAr')}
-              disabled={loading}
-              dir="rtl"
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
+          <TextField
+            fullWidth
+            select
+            label="Structure"
+            value={formData.structureId || ''}
+            onChange={handleChange('structureId')}
+            required
+            sx={{ mb: 2 }}
+          >
+            {structures.map((structure) => (
+              <MenuItem key={structure.id} value={structure.id}>
+                {structure.designationFr}
+              </MenuItem>
+            ))}
+          </TextField>
+        </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button
-          onClick={onClose}
-          disabled={loading}
-          variant="outlined"
-        >
-          {t('common.cancel')}
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          variant="contained"
-          startIcon={<SaveIcon />}
-          sx={{ boxShadow: 2 }}
-        >
-          {loading ? 'Saving...' : t('common.save')}
-        </Button>
-      </DialogActions>
+        <DialogActions>
+          <Button onClick={onClose} disabled={loading}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={loading}
+            startIcon={loading && <CircularProgress size={20} />}
+          >
+            {loading ? t('common.loading') : t('common.save')}
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 };

@@ -5,9 +5,11 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 12-28-2025
- * @updated 01-06-2026 - Added validation function
+ * @updated 01-08-2026 - Added structure nested object
  * @package common/administration
  */
+
+import { StructureDTO } from './StructureDTO';
 
 export interface JobDTO {
   // Identifier
@@ -23,6 +25,9 @@ export interface JobDTO {
 
   // Structure relationship (required)
   structureId: number; // @NotBlank
+  
+  // Nested structure object (populated in responses)
+  structure?: StructureDTO;
 
   // Timestamps
   createdAt?: string;

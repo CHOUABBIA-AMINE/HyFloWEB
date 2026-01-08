@@ -1,10 +1,9 @@
 /**
- * Job List Component (Nested)
- * Display and manage jobs within a structure
+ * Job List Component
  * 
  * @author CHOUABBIA Amine
- * @created 12-28-2025
- * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @created 01-06-2026
+ * @updated 01-08-2026 - Fixed type safety for delete operation
  */
 
 import { useState, useEffect } from 'react';
@@ -14,207 +13,235 @@ import {
   Typography,
   Button,
   IconButton,
-  Paper,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  Stack,
-  Tooltip,
-  alpha,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Work as JobIcon,
-  Refresh as RefreshIcon,
 } from '@mui/icons-material';
-import { JobService } from '../services';
-import { JobDTO } from '../dto/JobDTO';
+import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import { JobDTO, StructureDTO } from '../dto';
+import { JobService, StructureService } from '../services';
+import { Page } from '@/types/pagination';
+import JobEditDialog from './JobEditDialog';
 
-interface JobListProps {
-  structureId: number;
-  onEdit: (job: JobDTO) => void;
-  onAdd: () => void;
-  refreshTrigger?: number;
-}
-
-const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) => {
+const JobList = () => {
   const { t } = useTranslation();
-  
   const [jobs, setJobs] = useState<JobDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [structures, setStructures] = useState<StructureDTO[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 10,
+  });
+  const [totalElements, setTotalElements] = useState(0);
+  
+  // Dialog states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<JobDTO | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<number | null>(null);
 
   useEffect(() => {
     loadJobs();
-  }, [structureId, refreshTrigger]);
+    loadStructures();
+  }, [paginationModel]);
 
   const loadJobs = async () => {
-    if (!structureId) {
-      setJobs([]);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
-      const jobsList = await JobService.getByStructureId(structureId);
-      setJobs(jobsList);
+      const response: Page<JobDTO> = await JobService.getAll({
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+      });
+      setJobs(response.content);
+      setTotalElements(response.totalElements);
       setError('');
     } catch (err: any) {
       console.error('Failed to load jobs:', err);
       setError(err.message || 'Failed to load jobs');
-      setJobs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (jobId: number) => {
-    if (window.confirm('Delete this job?')) {
-      try {
-        await JobService.delete(jobId);
-        setSuccess('Job deleted successfully');
-        loadJobs();
-        setTimeout(() => setSuccess(''), 3000);
-      } catch (err: any) {
-        setError(err.message || 'Failed to delete job');
-      }
+  const loadStructures = async () => {
+    try {
+      const response = await StructureService.getAllNoPagination();
+      setStructures(response);
+    } catch (err: any) {
+      console.error('Failed to load structures:', err);
     }
   };
 
-  if (!structureId) {
-    return (
-      <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider', textAlign: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
-          Please save the structure first to add jobs
-        </Typography>
-      </Paper>
-    );
-  }
+  const handleCreate = () => {
+    setSelectedJob(null);
+    setEditDialogOpen(true);
+  };
+
+  const handleEdit = (job: JobDTO) => {
+    setSelectedJob(job);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (id: number) => {
+    setJobToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!jobToDelete) return;
+
+    try {
+      setLoading(true);
+      await JobService.delete(jobToDelete);
+      setDeleteDialogOpen(false);
+      setJobToDelete(null);
+      await loadJobs();
+    } catch (err: any) {
+      console.error('Failed to delete job:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to delete job');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    await loadJobs();
+  };
+
+  const columns: GridColDef<JobDTO>[] = [
+    {
+      field: 'code',
+      headerName: 'Code',
+      flex: 1,
+      minWidth: 120,
+    },
+    {
+      field: 'designationFr',
+      headerName: 'Designation',
+      flex: 2,
+      minWidth: 200,
+    },
+    {
+      field: 'structureId',
+      headerName: 'Structure',
+      flex: 1.5,
+      minWidth: 150,
+      valueGetter: (params) => {
+        const structure = structures.find(s => s.id === params.row.structureId);
+        return structure?.designationFr || params.row.structureId;
+      },
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      sortable: false,
+      renderCell: (params) => (
+        <Box>
+          <IconButton
+            size="small"
+            color="primary"
+            onClick={() => handleEdit(params.row)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => params.row.id && handleDeleteClick(params.row.id)}
+            disabled={!params.row.id}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ),
+    },
+  ];
 
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <JobIcon color="primary" />
-          <Typography variant="h6" fontWeight={600}>
-            Jobs ({jobs.length})
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h4" fontWeight={700} color="text.primary">
+            Jobs
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Manage job positions
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
-          <Tooltip title="Refresh">
-            <IconButton size="small" onClick={loadJobs} color="primary">
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={onAdd}
-            sx={{ boxShadow: 1 }}
-          >
-            Add Job
-          </Button>
-        </Stack>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleCreate}
+          size="large"
+        >
+          {t('common.create')}
+        </Button>
       </Box>
 
-      {/* Alerts */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
           {error}
         </Alert>
       )}
-      {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
-          {success}
-        </Alert>
-      )}
 
-      {/* Jobs Table */}
-      {loading ? (
-        <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider', textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Loading jobs...
-          </Typography>
-        </Paper>
-      ) : jobs.length === 0 ? (
-        <Paper elevation={0} sx={{ p: 3, border: 1, borderColor: 'divider', textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            No jobs found. Click "Add Job" to create one.
-          </Typography>
-        </Paper>
-      ) : (
-        <TableContainer component={Paper} elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ bgcolor: alpha('#2563eb', 0.05) }}>
-                <TableCell sx={{ fontWeight: 600 }}>Code</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Designation (FR)</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Designation (EN)</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Designation (AR)</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 600 }}>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {jobs.map((job) => (
-                <TableRow
-                  key={job.id}
-                  sx={{
-                    '&:hover': {
-                      bgcolor: alpha('#2563eb', 0.04),
-                    },
-                  }}
-                >
-                  <TableCell>
-                    <Chip label={job.code} size="small" variant="outlined" />
-                  </TableCell>
-                  <TableCell>{job.designationFr}</TableCell>
-                  <TableCell>{job.designationEn || '-'}</TableCell>
-                  <TableCell dir="rtl">{job.designationAr || '-'}</TableCell>
-                  <TableCell align="center">
-                    <Stack direction="row" spacing={0.5} justifyContent="center">
-                      <Tooltip title="Edit">
-                        <IconButton
-                          size="small"
-                          onClick={() => onEdit(job)}
-                          sx={{
-                            color: 'primary.main',
-                            '&:hover': { bgcolor: alpha('#2563eb', 0.1) }
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(job.id)}
-                          sx={{
-                            color: 'error.main',
-                            '&:hover': { bgcolor: alpha('#dc2626', 0.1) }
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+      <Box sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={jobs}
+          columns={columns}
+          loading={loading}
+          paginationModel={paginationModel}
+          onPaginationModelChange={setPaginationModel}
+          pageSizeOptions={[5, 10, 25, 50]}
+          rowCount={totalElements}
+          paginationMode="server"
+          disableRowSelectionOnClick
+          sx={{
+            border: 1,
+            borderColor: 'divider',
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none',
+            },
+          }}
+        />
+      </Box>
+
+      <JobEditDialog
+        open={editDialogOpen}
+        job={selectedJob}
+        structures={structures}
+        onClose={() => setEditDialogOpen(false)}
+        onSave={handleSave}
+      />
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this job? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+            {t('common.delete')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
