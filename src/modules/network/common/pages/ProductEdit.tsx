@@ -4,6 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed to match ProductDTO schema with all required fields
+ * @updated 01-08-2026 - Display multilingual designations in one row
  */
 
 import { useState, useEffect } from 'react';
@@ -218,7 +219,7 @@ const ProductEdit = () => {
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     label="Designation (French)"
@@ -226,29 +227,30 @@ const ProductEdit = () => {
                     onChange={handleChange('designationFr')}
                     required
                     error={!!validationErrors.designationFr}
-                    helperText={validationErrors.designationFr || 'Required French designation'}
+                    helperText={validationErrors.designationFr || 'Required'}
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     label="Designation (Arabic)"
                     value={product.designationAr || ''}
                     onChange={handleChange('designationAr')}
                     error={!!validationErrors.designationAr}
-                    helperText={validationErrors.designationAr || 'Optional Arabic designation'}
+                    helperText={validationErrors.designationAr || 'Optional'}
+                    inputProps={{ dir: 'rtl' }}
                   />
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     label="Designation (English)"
                     value={product.designationEn || ''}
                     onChange={handleChange('designationEn')}
                     error={!!validationErrors.designationEn}
-                    helperText={validationErrors.designationEn || 'Optional English designation'}
+                    helperText={validationErrors.designationEn || 'Optional'}
                   />
                 </Grid>
               </Grid>
