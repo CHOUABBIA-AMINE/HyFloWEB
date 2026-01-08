@@ -1,10 +1,14 @@
 /**
  * Network Core Utils - Barrel Export
  * 
- * All utility functions and helpers for the Network Core module.
+ * Migration Date: 2026-01-08
+ * Status: Using centralized utilities from @/shared/utils
  */
 
-export * from './validation';
-export * from './formatters';
-export * from './helpers';
+// Re-export centralized utilities
+export * from '@/shared/utils';
+
+// Keep module-specific utilities
 export * from './constants';
+export * from './exportUtils';
+export * from './localizationUtils';
