@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Redesigned as hover-expandable compact panel
+ * @updated 01-08-2026 - Fixed type errors for color lookups
  */
 
 import React, { useState } from 'react';
@@ -21,7 +21,6 @@ import {
   Chip,
   IconButton,
   InputAdornment,
-  Tooltip,
   Collapse,
 } from '@mui/material';
 import {
@@ -73,6 +72,15 @@ export const PipelineFilterPanel: React.FC<PipelineFilterPanelProps> = ({
     filters.products.length + filters.statuses.length + (filters.searchCode ? 1 : 0);
 
   const isExpanded = isHovered;
+
+  // Helper function to get color with type safety
+  const getStatusColor = (status: string): string => {
+    return (DEFAULT_STATUS_COLORS as Record<string, string>)[status] || '#95A5A6';
+  };
+
+  const getProductColor = (product: string): string => {
+    return (DEFAULT_PRODUCT_COLORS as Record<string, string>)[product] || '#95A5A6';
+  };
 
   return (
     <Paper
@@ -259,7 +267,7 @@ export const PipelineFilterPanel: React.FC<PipelineFilterPanelProps> = ({
                               sx={{
                                 width: 16,
                                 height: 3,
-                                bgcolor: DEFAULT_PRODUCT_COLORS[product] || '#95A5A6',
+                                bgcolor: getProductColor(product),
                                 borderRadius: 1,
                               }}
                             />
@@ -323,7 +331,7 @@ export const PipelineFilterPanel: React.FC<PipelineFilterPanelProps> = ({
                               sx={{
                                 width: 10,
                                 height: 10,
-                                bgcolor: DEFAULT_STATUS_COLORS[status] || '#95A5A6',
+                                bgcolor: getStatusColor(status),
                                 borderRadius: '50%',
                               }}
                             />

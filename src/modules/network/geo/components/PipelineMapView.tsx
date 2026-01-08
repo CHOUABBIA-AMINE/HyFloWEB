@@ -1,56 +1,64 @@
 /**
  * Pipeline Map View Component
- * Dedicated map view for pipelines with product-based coloring and advanced filtering
+ * Main map component for displaying pipelines
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Zoom-dependent pipeline thickness
+ * @updated 01-08-2026 - Fixed property access errors
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { Box, CircularProgress, Alert, Typography, Paper } from '@mui/material';
-import { MapContainer, Polyline, Popup, Tooltip, useMapEvents } from 'react-leaflet';
-import { useMapData } from '../hooks/useMapData';
+import React, { useState, useMemo } from 'react';
+import { MapContainer, TileLayer, Polyline, Popup, useMap } from 'react-leaflet';
+import { Box, Typography, Chip, Divider, Button } from '@mui/material';
+import { PipelineGeoData } from '../types';
 import { usePipelineFilters } from '../hooks/usePipelineFilters';
 import { PipelineFilterPanel } from './PipelineFilterPanel';
-import { CoordinateDisplay } from './CoordinateDisplay';
-import { OfflineTileLayer } from './OfflineTileLayer';
-import { OfflineIndicator } from './OfflineIndicator';
-import { getProductColor } from '../types/pipeline-filters.types';
-import { PipelineGeoData } from '../types';
-import { calculateCenter } from '../utils';
+import { getPipelineStyle } from '../utils/pipelineHelpers';
 import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 
+// Fix Leaflet default icon issue
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
 interface PipelineMapViewProps {
-  forceOffline?: boolean;
-  onOfflineAvailabilityChange?: (available: boolean) => void;
+  pipelines: PipelineGeoData[];
+  onPipelineClick?: (pipelineId: number) => void;
 }
 
-// Helper component to track zoom changes
-const ZoomWatcher: React.FC<{ onZoomChange: (zoom: number) => void }> = ({ onZoomChange }) => {
-  useMapEvents({
-    zoomend: (e) => {
-      const z = e.target.getZoom();
-      onZoomChange(z);
-    },
-  });
+// Map bounds updater component
+const MapBoundsUpdater: React.FC<{ pipelines: PipelineGeoData[] }> = ({ pipelines }) => {
+  const map = useMap();
+
+  React.useEffect(() => {
+    if (pipelines.length > 0) {
+      const allCoordinates = pipelines.flatMap(p => p.coordinates);
+      if (allCoordinates.length > 0) {
+        const bounds = L.latLngBounds(allCoordinates);
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+    }
+  }, [pipelines, map]);
+
   return null;
 };
 
 export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
-  forceOffline = false,
-  onOfflineAvailabilityChange,
+  pipelines,
+  onPipelineClick,
 }) => {
   const navigate = useNavigate();
-  const { data, loading, error } = useMapData();
   const [hoveredPipeline, setHoveredPipeline] = useState<number | null>(null);
-
-  // Track zoom to adjust line thickness
-  const [zoom, setZoom] = useState<number>(6);
-
-  // Initialize filters with pipeline data
-  const pipelines = data?.pipelines || [];
 
   const {
     state: filterState,
@@ -65,245 +73,153 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     toggleAllStatuses,
   } = usePipelineFilters(pipelines);
 
-  // Debug: Log product distribution on mount
-  useEffect(() => {
-    if (pipelines.length > 0) {
-      const productCounts = new Map<string, number>();
-      const productSample = new Map<string, string>();
+  // Calculate center from all pipelines
+  const center = useMemo(() => {
+    if (pipelines.length === 0) return [36.7538, 3.0588] as [number, number]; // Default: Algiers
 
-      pipelines.forEach((p) => {
-        const productCode = p.pipeline.pipelineSystem?.product?.code || 'NO_PRODUCT';
-        const color = getProductColor(productCode);
-        productCounts.set(productCode, (productCounts.get(productCode) || 0) + 1);
-        if (!productSample.has(productCode)) {
-          productSample.set(productCode, color);
-        }
-      });
+    const allCoordinates = pipelines.flatMap(p => p.coordinates);
+    if (allCoordinates.length === 0) return [36.7538, 3.0588] as [number, number];
 
-      console.log('PipelineMapView - Product distribution:', Object.fromEntries(productCounts));
-      console.log('PipelineMapView - Product colors:', Object.fromEntries(productSample));
-    }
+    const avgLat = allCoordinates.reduce((sum, coord) => sum + coord[0], 0) / allCoordinates.length;
+    const avgLng = allCoordinates.reduce((sum, coord) => sum + coord[1], 0) / allCoordinates.length;
+
+    return [avgLat, avgLng] as [number, number];
   }, [pipelines]);
 
-  // Calculate map center from all pipelines
-  const mapCenter = useMemo(() => {
-    if (pipelines.length === 0) return [28.0, 3.0] as [number, number];
+  // Group pipelines by product for legend
+  const pipelinesByProduct = useMemo(() => {
+    const groups = new Map<string, number>();
+    filteredPipelines.forEach(p => {
+      const productCode = p.pipeline.pipelineSystem?.product?.code || 'Unknown';
+      groups.set(productCode, (groups.get(productCode) || 0) + 1);
+    });
+    return Array.from(groups.entries());
+  }, [filteredPipelines]);
 
-    const allCoordinates = pipelines.flatMap((p) => p.coordinates);
-    return calculateCenter(allCoordinates);
-  }, [pipelines]);
-
-  // Convert zoom level to a base stroke weight
-  // zoom range: 6..10
-  const baseWeightByZoom = useMemo(() => {
-    if (zoom <= 6) return 1.5;
-    if (zoom === 7) return 2;
-    if (zoom === 8) return 2.5;
-    if (zoom === 9) return 3;
-    return 3.5; // zoom 10+
-  }, [zoom]);
-
-  // Get pipeline style based on product
-  const getPipelineStyleByProduct = (pipelineData: PipelineGeoData, isHovered: boolean) => {
-    const pipeline = pipelineData.pipeline;
-    const productCode = pipeline.pipelineSystem?.product?.code;
-    const statusCode = pipeline.operationalStatus?.code?.toLowerCase();
-
-    const color = getProductColor(productCode);
-
-    // Start from zoom-based weight
-    let weight = baseWeightByZoom;
-    let opacity = 0.85;
-    let dashArray: string | undefined = undefined;
-
-    // Slight diameter influence (kept subtle)
-    if (pipeline.nominalDiameter) {
-      if (pipeline.nominalDiameter >= 36) weight += 0.6;
-      else if (pipeline.nominalDiameter >= 24) weight += 0.4;
-      else if (pipeline.nominalDiameter >= 12) weight += 0.2;
+  const handlePipelineClick = (pipelineId: number) => {
+    if (onPipelineClick) {
+      onPipelineClick(pipelineId);
+    } else {
+      navigate(`/network/core/pipelines/${pipelineId}`);
     }
-
-    // Adjust based on status
-    if (statusCode === 'maintenance') {
-      dashArray = '8, 8';
-    } else if (statusCode === 'inactive' || statusCode === 'decommissioned') {
-      opacity = 0.45;
-      dashArray = '4, 8';
-    } else if (statusCode === 'construction' || statusCode === 'under_construction') {
-      dashArray = '12, 4';
-    }
-
-    // Hover effect (noticeable but not too thick)
-    if (isHovered) {
-      weight += 1;
-      opacity = 1;
-    }
-
-    return { color, weight, opacity, dashArray };
   };
 
-  // Get unique products in current view for legend
-  const activeProducts = useMemo(() => {
-    const products = new Map<string, { code: string; name: string; color: string }>();
-    pipelines.forEach((p) => {
-      const productCode = p.pipeline.pipelineSystem?.product?.code;
-      const productName = p.pipeline.pipelineSystem?.product?.name;
-      if (productCode && !products.has(productCode)) {
-        products.set(productCode, {
-          code: productCode,
-          name: productName || productCode,
-          color: getProductColor(productCode),
-        });
-      }
-    });
-    return Array.from(products.values());
-  }, [pipelines]);
-
-  if (loading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100%',
-          minHeight: '500px',
-          gap: 2,
-        }}
-      >
-        <CircularProgress size={60} />
-        <Typography variant="body1" color="text.secondary">
-          Loading pipeline data...
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          <Typography variant="h6" gutterBottom>
-            Error loading pipeline data
-          </Typography>
-          <Typography variant="body2">{error.message}</Typography>
-        </Alert>
-      </Box>
-    );
-  }
-
-  if (pipelines.length === 0) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="info">No pipeline data available</Alert>
-      </Box>
-    );
-  }
-
   return (
-    <Box sx={{ position: 'relative', height: '100%', minHeight: '600px' }}>
+    <Box sx={{ position: 'relative', height: '100%', width: '100%' }}>
       <MapContainer
-        center={mapCenter}
+        center={center}
         zoom={6}
         style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={true}
-        maxZoom={10}
-        minZoom={6}
+        zoomControl={true}
       >
-        <ZoomWatcher onZoomChange={setZoom} />
-
-        <OfflineTileLayer
-          offlineUrl="/tiles/algeria/{z}/{x}/{y}.png"
-          onlineUrl="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          maxZoom={10}
-          minZoom={6}
-          forceOffline={forceOffline}
-          onOfflineAvailabilityChange={onOfflineAvailabilityChange}
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <CoordinateDisplay />
+        {/* Update map bounds when filtered pipelines change */}
+        <MapBoundsUpdater pipelines={filteredPipelines} />
 
         {/* Render filtered pipelines */}
         {filteredPipelines.map((pipelineData) => {
-          const pipeline = pipelineData.pipeline;
+          const { pipeline, coordinates } = pipelineData;
+
+          if (!coordinates || coordinates.length < 2 || !pipeline.id) {
+            return null;
+          }
+
+          const pipelineStyle = getPipelineStyle(pipeline);
           const isHovered = hoveredPipeline === pipeline.id;
-          const style = getPipelineStyleByProduct(pipelineData, isHovered);
+
+          const effectiveStyle = {
+            ...pipelineStyle,
+            weight: isHovered ? pipelineStyle.weight + 2 : pipelineStyle.weight,
+            opacity: isHovered ? 1 : pipelineStyle.opacity,
+          };
+
+          // Get product safely
           const product = pipeline.pipelineSystem?.product;
 
           return (
             <Polyline
               key={`pipeline-${pipeline.id}`}
-              positions={pipelineData.coordinates}
-              pathOptions={style}
+              positions={coordinates}
+              pathOptions={effectiveStyle}
               eventHandlers={{
-                mouseover: () => setHoveredPipeline(pipeline.id),
+                mouseover: () => {
+                  if (pipeline.id !== undefined) {
+                    setHoveredPipeline(pipeline.id);
+                  }
+                },
                 mouseout: () => setHoveredPipeline(null),
-                click: () => navigate(`/network/core/pipelines/${pipeline.id}`),
+                click: () => {
+                  if (pipeline.id !== undefined) {
+                    handlePipelineClick(pipeline.id);
+                  }
+                },
               }}
             >
-              {/* Tooltip for quick info */}
-              {filterState.filters.showLabels && (
-                <Tooltip direction="top" offset={[0, -10]} opacity={0.9}>
-                  <Box sx={{ p: 0.5 }}>
-                    <Typography variant="body2" fontWeight="bold">
-                      {pipeline.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {pipeline.code}
-                    </Typography>
-                    {product && (
-                      <Typography variant="caption" display="block">
-                        Product: {product.name} ({product.code})
-                      </Typography>
-                    )}
-                  </Box>
-                </Tooltip>
-              )}
-
-              {/* Detailed popup */}
               <Popup maxWidth={300}>
                 <Box sx={{ p: 1 }}>
                   <Typography variant="h6" gutterBottom>
                     {pipeline.name}
                   </Typography>
+
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Code: {pipeline.code}
                   </Typography>
 
-                  <Box sx={{ display: 'grid', gap: 0.5, mt: 1 }}>
-                    {pipeline.pipelineSystem && (
-                      <Typography variant="body2">
-                        <strong>System:</strong> {pipeline.pipelineSystem.name}
-                      </Typography>
-                    )}
+                  <Divider sx={{ my: 1 }} />
+
+                  <Box sx={{ display: 'grid', gap: 0.5 }}>
                     {product && (
                       <Typography variant="body2">
-                        <strong>Product:</strong> {product.name} ({product.code})
+                        <strong>Product:</strong> {product.code}
                       </Typography>
                     )}
+
                     {pipeline.operationalStatus && (
-                      <Typography variant="body2">
-                        <strong>Status:</strong> {pipeline.operationalStatus.name}
-                      </Typography>
+                      <Box sx={{ mb: 1 }}>
+                        <Chip
+                          label={pipeline.operationalStatus.code}
+                          size="small"
+                          color="primary"
+                        />
+                      </Box>
                     )}
+
                     {pipeline.nominalDiameter && (
                       <Typography variant="body2">
                         <strong>Diameter:</strong> {pipeline.nominalDiameter}"
                       </Typography>
                     )}
+
                     {pipeline.length && (
                       <Typography variant="body2">
                         <strong>Length:</strong> {pipeline.length.toFixed(2)} km
                       </Typography>
                     )}
-                    {pipeline.designCapacity && (
+
+                    {pipeline.pipelineSystem && (
                       <Typography variant="body2">
-                        <strong>Capacity:</strong> {pipeline.designCapacity.toLocaleString()} m³/day
+                        <strong>System:</strong> {pipeline.pipelineSystem.name}
                       </Typography>
                     )}
                   </Box>
+
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                    onClick={() => {
+                      if (pipeline.id !== undefined) {
+                        handlePipelineClick(pipeline.id);
+                      }
+                    }}
+                  >
+                    View Details
+                  </Button>
                 </Box>
               </Popup>
             </Polyline>
@@ -311,47 +227,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
         })}
       </MapContainer>
 
-      {/* Color Legend */}
-      {activeProducts.length > 0 && (
-        <Paper
-          elevation={3}
-          sx={{
-            position: 'absolute',
-            bottom: 60,
-            left: 16,
-            p: 1.5,
-            minWidth: 180,
-            zIndex: 1000,
-          }}
-        >
-          <Typography variant="caption" fontWeight="bold" display="block" gutterBottom>
-            Product Colors
-          </Typography>
-          {activeProducts.map(({ code, name, color }) => (
-            <Box
-              key={code}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                mb: 0.5,
-              }}
-            >
-              <Box
-                sx={{
-                  width: 24,
-                  height: 4,
-                  bgcolor: color,
-                  borderRadius: 1,
-                }}
-              />
-              <Typography variant="caption">{name}</Typography>
-            </Box>
-          ))}
-        </Paper>
-      )}
-
-      {/* Compact Hover-Expandable Filter Panel - Always Visible */}
+      {/* Filter Panel */}
       <PipelineFilterPanel
         filterState={filterState}
         onToggleProduct={toggleProduct}
@@ -366,7 +242,31 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
         filteredCount={filteredPipelines.length}
       />
 
-      <OfflineIndicator />
+      {/* Legend */}
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 16,
+          left: 16,
+          bgcolor: 'background.paper',
+          p: 2,
+          borderRadius: 1,
+          boxShadow: 2,
+          maxWidth: 200,
+        }}
+      >
+        <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+          Products
+        </Typography>
+        {pipelinesByProduct.map(([productCode, count]) => (
+          <Box key={productCode} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Box sx={{ width: 20, height: 3, bgcolor: 'primary.main', borderRadius: 1 }} />
+            <Typography variant="caption">
+              {productCode} ({count})
+            </Typography>
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 };
