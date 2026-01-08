@@ -8,7 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
- * @updated 01-02-2026
+ * @updated 01-08-2026 - Added getAllNoPagination method
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -29,6 +29,14 @@ export class VendorTypeService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all vendor types without pagination
+   */
+  static async getAllNoPagination(): Promise<VendorTypeDTO[]> {
+    const response = await axiosInstance.get<VendorTypeDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
