@@ -1,75 +1,66 @@
 /**
- * Structure Type Edit/Create Page
- * Form for creating and editing structure type records
+ * StructureType Edit/Create Page
  * 
  * @author CHOUABBIA Amine
- * @created 01-03-2026
+ * @created 01-02-2026
+ * @updated 01-08-2026 - Fixed service import
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
-  Button,
   TextField,
-  Stack,
-  Alert,
+  Button,
   CircularProgress,
+  Alert,
   Grid,
-  FormControlLabel,
-  Switch,
+  Paper,
+  Divider,
+  Stack,
 } from '@mui/material';
-import { Save as SaveIcon, ArrowBack as BackIcon } from '@mui/icons-material';
-import { structureTypeService } from '../services';
+import {
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  ArrowBack as BackIcon,
+} from '@mui/icons-material';
+import { StructureTypeService } from '../services';
 import { StructureTypeDTO } from '../dto';
 
 const StructureTypeEdit = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams();
-  const isEditMode = Boolean(id);
+  const { structureTypeId } = useParams<{ structureTypeId: string }>();
+  const isEditMode = !!structureTypeId;
+
+  const [structureType, setStructureType] = useState<Partial<StructureTypeDTO>>({
+    code: '',
+    designationFr: '',
+    designationAr: undefined,
+    designationEn: undefined,
+  });
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  // Form data
-  const [formData, setFormData] = useState<Partial<StructureTypeDTO>>({
-    code: '',
-    designationAr: '',
-    designationFr: '',
-    designationEn: '',
-    shortName: '',
-    description: '',
-    displayOrder: undefined,
-    active: true,
-  });
-
-  // Form validation
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-
-  const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
+  const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (isEditMode) {
       loadStructureType();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [structureTypeId]);
 
   const loadStructureType = async () => {
-    if (!id) return;
     try {
       setLoading(true);
-      const data = await structureTypeService.getById(Number(id));
-      setFormData(data);
+      const data = await StructureTypeService.getById(Number(structureTypeId));
+      setStructureType(data);
+      setError('');
     } catch (err: any) {
-      console.error('Error loading structure type:', err);
+      console.error('Failed to load structure type:', err);
       setError(err.message || 'Failed to load structure type');
     } finally {
       setLoading(false);
@@ -77,211 +68,206 @@ const StructureTypeEdit = () => {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    const errors: Record<string, string> = {};
 
-    if (!formData.code?.trim()) newErrors.code = t('common.required', 'Required');
-    if (!formData.designationFr?.trim()) newErrors.designationFr = t('common.required', 'Required');
+    if (!structureType.code || structureType.code.trim().length === 0) {
+      errors.code = 'Code is required';
+    } else if (structureType.code.length > 10) {
+      errors.code = 'Code must not exceed 10 characters';
+    }
 
-    setFieldErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    if (!structureType.designationFr || structureType.designationFr.trim().length === 0) {
+      errors.designationFr = 'French designation is required';
+    } else if (structureType.designationFr.length > 100) {
+      errors.designationFr = 'French designation must not exceed 100 characters';
+    }
+
+    if (structureType.designationAr && structureType.designationAr.length > 100) {
+      errors.designationAr = 'Arabic designation must not exceed 100 characters';
+    }
+
+    if (structureType.designationEn && structureType.designationEn.length > 100) {
+      errors.designationEn = 'English designation must not exceed 100 characters';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleChange = (field: keyof StructureTypeDTO) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setStructureType({ ...structureType, [field]: value || undefined });
+    
+    if (validationErrors[field]) {
+      setValidationErrors({ ...validationErrors, [field]: '' });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!validateForm()) {
-      setError('Please fill in all required fields');
       return;
     }
 
     try {
       setSaving(true);
-      setError(null);
+      setError('');
 
-      if (isEditMode && id) {
-        await structureTypeService.update(Number(id), formData);
+      const structureTypeData: StructureTypeDTO = {
+        id: structureType.id,
+        code: structureType.code!,
+        designationFr: structureType.designationFr!,
+        designationEn: structureType.designationEn || undefined,
+        designationAr: structureType.designationAr || undefined,
+      };
+
+      if (isEditMode) {
+        await StructureTypeService.update(Number(structureTypeId), structureTypeData);
       } else {
-        await structureTypeService.create(formData as Omit<StructureTypeDTO, 'id'>);
+        await StructureTypeService.create(structureTypeData);
       }
 
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/administration/structure-types');
-      }, 800);
+      navigate('/general/type/structure-types');
     } catch (err: any) {
-      console.error('Error saving structure type:', err);
-      setError(err.message || 'Failed to save structure type');
+      console.error('Failed to save structure type:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to save structure type');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleChange = (field: keyof StructureTypeDTO, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (fieldErrors[field as string]) {
-      setFieldErrors((prev) => ({ ...prev, [field]: '' }));
-    }
+  const handleCancel = () => {
+    navigate('/general/type/structure-types');
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Card>
-        <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h5" component="h1">
-              {isEditMode ? 'Edit Structure Type' : 'Create Structure Type'}
-            </Typography>
-            <Button startIcon={<BackIcon />} onClick={() => navigate('/administration/structure-types')}>
-              {t('common.back', 'Back')}
-            </Button>
-          </Stack>
+    <Box>
+      <Box sx={{ mb: 3 }}>
+        <Button
+          startIcon={<BackIcon />}
+          onClick={handleCancel}
+          sx={{ mb: 2 }}
+        >
+          {t('common.back')}
+        </Button>
+        <Typography variant="h4" fontWeight={700} color="text.primary">
+          {isEditMode ? 'Edit Structure Type' : 'Create Structure Type'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          {isEditMode ? 'Update structure type information' : 'Create a new structure type'}
+        </Typography>
+      </Box>
 
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {t('common.success', 'Success')}
-            </Alert>
-          )}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-              {error}
-            </Alert>
-          )}
-
-          <Box component="form" onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
-              {/* Basic Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  Basic Information
-                </Typography>
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={3}>
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                Basic Information
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Code"
+                    value={structureType.code || ''}
+                    onChange={handleChange('code')}
+                    required
+                    error={!!validationErrors.code}
+                    helperText={validationErrors.code || 'Required unique code (max 10 characters)'}
+                  />
+                </Grid>
               </Grid>
+            </Box>
+          </Paper>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Code"
-                  value={formData.code || ''}
-                  onChange={(e) => handleChange('code', e.target.value)}
-                  error={Boolean(fieldErrors.code)}
-                  helperText={fieldErrors.code}
-                />
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                Multilingual Designations
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Designation (French)"
+                    value={structureType.designationFr || ''}
+                    onChange={handleChange('designationFr')}
+                    required
+                    error={!!validationErrors.designationFr}
+                    helperText={validationErrors.designationFr || 'Required French designation'}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Designation (Arabic)"
+                    value={structureType.designationAr || ''}
+                    onChange={handleChange('designationAr')}
+                    error={!!validationErrors.designationAr}
+                    helperText={validationErrors.designationAr || 'Optional Arabic designation'}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Designation (English)"
+                    value={structureType.designationEn || ''}
+                    onChange={handleChange('designationEn')}
+                    error={!!validationErrors.designationEn}
+                    helperText={validationErrors.designationEn || 'Optional English designation'}
+                  />
+                </Grid>
               </Grid>
+            </Box>
+          </Paper>
 
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Short Name"
-                  value={formData.shortName || ''}
-                  onChange={(e) => handleChange('shortName', e.target.value)}
-                />
-              </Grid>
-
-              {/* Designations */}
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Designations
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Designation (French)"
-                  value={formData.designationFr || ''}
-                  onChange={(e) => handleChange('designationFr', e.target.value)}
-                  error={Boolean(fieldErrors.designationFr)}
-                  helperText={fieldErrors.designationFr}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Designation (English)"
-                  value={formData.designationEn || ''}
-                  onChange={(e) => handleChange('designationEn', e.target.value)}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Designation (Arabic)"
-                  value={formData.designationAr || ''}
-                  onChange={(e) => handleChange('designationAr', e.target.value)}
-                  dir="rtl"
-                />
-              </Grid>
-
-              {/* Additional Information */}
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Additional Information
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Description"
-                  value={formData.description || ''}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Display Order"
-                  value={formData.displayOrder || ''}
-                  onChange={(e) => handleChange('displayOrder', e.target.value ? Number(e.target.value) : undefined)}
-                  helperText="Order in which this type appears in lists"
-                />
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={formData.active ?? true}
-                      onChange={(e) => handleChange('active', e.target.checked)}
-                    />
-                  }
-                  label="Active"
-                />
-              </Grid>
-            </Grid>
-
-            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={4}>
-              <Button variant="outlined" onClick={() => navigate('/administration/structure-types')} disabled={saving}>
-                {t('common.cancel', 'Cancel')}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
+            <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Button
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={handleCancel}
+                disabled={saving}
+                size="large"
+              >
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
                 variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                 disabled={saving}
+                size="large"
+                sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading', 'Loading...') : t('common.save', 'Save')}
+                {saving ? t('common.loading') : t('common.save')}
               </Button>
-            </Stack>
-          </Box>
-        </CardContent>
-      </Card>
+            </Box>
+          </Paper>
+        </Stack>
+      </form>
     </Box>
   );
 };
