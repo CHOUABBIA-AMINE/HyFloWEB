@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { CompanyTypeDTO } from '../dto/CompanyTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/type/company-types';
+const BASE_URL = '/network/type/company';
 
 export class CompanyTypeService {
   /**

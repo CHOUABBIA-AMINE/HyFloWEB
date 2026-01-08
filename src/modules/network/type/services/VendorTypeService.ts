@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { VendorTypeDTO } from '../dto/VendorTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/type/vendor-types';
+const BASE_URL = '/network/type/vendor';
 
 export class VendorTypeService {
   /**

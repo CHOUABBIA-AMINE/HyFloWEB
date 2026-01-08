@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { PartnerDTO } from '../dto/PartnerDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/common/partners';
+const BASE_URL = '/network/common/partner';
 
 export class PartnerService {
   /**

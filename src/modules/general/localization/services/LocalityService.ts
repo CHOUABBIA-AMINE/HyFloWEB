@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { LocalityDTO } from '../dto/LocalityDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/localization/localities';
+const BASE_URL = '/general/localization/locality';
 
 export class LocalityService {
   /**

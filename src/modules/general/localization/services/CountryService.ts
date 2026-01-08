@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { CountryDTO } from '../dto/CountryDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/localization/countries';
+const BASE_URL = '/general/localization/country';
 
 export class CountryService {
   /**

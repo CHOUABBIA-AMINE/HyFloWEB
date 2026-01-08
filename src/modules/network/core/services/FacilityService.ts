@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { FacilityDTO } from '../dto/FacilityDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/core/facilities';
+const BASE_URL = '/network/core/facility';
 
 export class FacilityService {
   /**

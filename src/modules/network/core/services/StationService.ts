@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { StationDTO } from '../dto/StationDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/core/stations';
+const BASE_URL = '/network/core/station';
 
 export class StationService {
   /**

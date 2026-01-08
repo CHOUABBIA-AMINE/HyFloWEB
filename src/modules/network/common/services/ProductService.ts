@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { ProductDTO } from '../dto/ProductDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/common/products';
+const BASE_URL = '/network/common/product';
 
 export class ProductService {
   /**

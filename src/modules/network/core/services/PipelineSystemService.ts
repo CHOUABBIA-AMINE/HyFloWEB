@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { PipelineSystemDTO } from '../dto/PipelineSystemDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/core/pipeline-systems';
+const BASE_URL = '/network/core/pipelineSystem';
 
 export class PipelineSystemService {
   /**

@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { StructureDTO } from '../dto/StructureDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/organization/structures';
+const BASE_URL = '/general/organization/structure';
 
 export class StructureService {
   /**

@@ -19,7 +19,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { ZoneDTO } from '../dto/ZoneDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/localization/zones';
+const BASE_URL = '/general/localization/zone';
 
 export class ZoneService {
   /**

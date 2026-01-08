@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { InfrastructureDTO } from '../dto/InfrastructureDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/core/infrastructures';
+const BASE_URL = '/network/core/infrastructure';
 
 export class InfrastructureService {
   /**

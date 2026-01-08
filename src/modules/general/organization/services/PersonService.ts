@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { PersonDTO } from '../dto/PersonDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/organization/persons';
+const BASE_URL = '/general/organization/person';
 
 export class PersonService {
   /**

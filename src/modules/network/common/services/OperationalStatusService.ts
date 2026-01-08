@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { OperationalStatusDTO } from '../dto/OperationalStatusDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/common/operational-statuses';
+const BASE_URL = '/network/common/operationalStatus';
 
 export class OperationalStatusService {
   /**

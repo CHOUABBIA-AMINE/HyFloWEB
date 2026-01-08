@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { TerminalDTO } from '../dto/TerminalDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/core/terminals';
+const BASE_URL = '/network/core/terminal';
 
 export class TerminalService {
   /**

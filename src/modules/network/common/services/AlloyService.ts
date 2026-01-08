@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { AlloyDTO } from '../dto/AlloyDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/common/alloys';
+const BASE_URL = '/network/common/alloy';
 
 export class AlloyService {
   /**

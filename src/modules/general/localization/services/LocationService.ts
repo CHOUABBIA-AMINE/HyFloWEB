@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { LocationDTO } from '../dto/LocationDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/localization/locations';
+const BASE_URL = '/general/localization/location';
 
 export class LocationService {
   /**

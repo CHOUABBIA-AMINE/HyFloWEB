@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { EmployeeDTO } from '../dto/EmployeeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/general/organization/employees';
+const BASE_URL = '/general/organization/employee';
 
 export class EmployeeService {
   /**

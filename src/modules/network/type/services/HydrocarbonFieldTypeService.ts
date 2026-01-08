@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { HydrocarbonFieldTypeDTO } from '../dto/HydrocarbonFieldTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/type/hydrocarbon-field-types';
+const BASE_URL = '/network/type/hydrocarbonField';
 
 export class HydrocarbonFieldTypeService {
   /**
