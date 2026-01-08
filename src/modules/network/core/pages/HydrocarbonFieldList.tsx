@@ -3,7 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Fixed to use DataGrid Community Edition
+ * @updated 01-08-2026 - Fixed valueGetter signatures
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -39,6 +39,7 @@ import {
   GridToolbarDensitySelector,
   GridToolbarExport,
   GridRenderCellParams,
+  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { HydrocarbonFieldService } from '../services';
 import { HydrocarbonFieldDTO } from '../dto';
@@ -186,8 +187,8 @@ const HydrocarbonFieldList = () => {
       sortable: true,
       type: 'singleSelect',
       valueOptions: typeOptions,
-      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
-        return row.hydrocarbonFieldType ? getLocalizedName(row.hydrocarbonFieldType, currentLanguage) : 'N/A';
+      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
+        return params.row.hydrocarbonFieldType ? getLocalizedName(params.row.hydrocarbonFieldType, currentLanguage) : 'N/A';
       },
     },
     {
@@ -196,12 +197,12 @@ const HydrocarbonFieldList = () => {
       width: 200,
       filterable: false,
       sortable: false,
-      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
-        if (row.location?.placeName) {
-          return row.location.placeName;
+      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
+        if (params.row.location?.placeName) {
+          return params.row.location.placeName;
         }
-        if (row.location?.latitude && row.location?.longitude) {
-          return `${row.location.latitude.toFixed(4)}, ${row.location.longitude.toFixed(4)}`;
+        if (params.row.location?.latitude && params.row.location?.longitude) {
+          return `${params.row.location.latitude.toFixed(4)}, ${params.row.location.longitude.toFixed(4)}`;
         }
         return '-';
       },
@@ -214,8 +215,8 @@ const HydrocarbonFieldList = () => {
       sortable: true,
       type: 'singleSelect',
       valueOptions: vendorOptions,
-      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
-        return row.vendor?.name || '-';
+      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
+        return params.row.vendor?.name || '-';
       },
     },
     {
@@ -226,8 +227,8 @@ const HydrocarbonFieldList = () => {
       sortable: true,
       type: 'singleSelect',
       valueOptions: statusOptions,
-      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
-        return row.operationalStatus ? getLocalizedName(row.operationalStatus, currentLanguage) : 'Unknown';
+      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
+        return params.row.operationalStatus ? getLocalizedName(params.row.operationalStatus, currentLanguage) : 'Unknown';
       },
       renderCell: (params: GridRenderCellParams<HydrocarbonFieldDTO>) => {
         const status = params.row.operationalStatus;
@@ -248,8 +249,8 @@ const HydrocarbonFieldList = () => {
       headerName: 'Installation Date',
       width: 150,
       type: 'date',
-      valueGetter: (value: any, row: HydrocarbonFieldDTO) => {
-        return row.installationDate ? new Date(row.installationDate) : null;
+      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
+        return params.row.installationDate ? new Date(params.row.installationDate) : null;
       },
     },
     {
