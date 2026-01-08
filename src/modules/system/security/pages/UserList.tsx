@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 12-29-2025
+ * @updated 01-08-2026 - Fixed implicit any types
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -92,15 +92,15 @@ const UserList = () => {
       let filteredContent = pageResponse.content;
       
       if (statusFilter !== 'all') {
-        filteredContent = filteredContent.filter(user => 
+        filteredContent = filteredContent.filter((user: UserDTO) => 
           (statusFilter === 'enabled' && user.enabled) ||
           (statusFilter === 'disabled' && !user.enabled)
         );
       }
       
       if (roleFilter !== 'all') {
-        filteredContent = filteredContent.filter(user =>
-          user.roles && user.roles.some(role => role.name === roleFilter)
+        filteredContent = filteredContent.filter((user: UserDTO) =>
+          user.roles && user.roles.some((role: { id: number; name: string }) => role.name === roleFilter)
         );
       }
       
@@ -108,9 +108,9 @@ const UserList = () => {
       setTotalRows(pageResponse.totalElements);
       
       const roles = new Set<string>();
-      pageResponse.content.forEach(user => {
+      pageResponse.content.forEach((user: UserDTO) => {
         if (user.roles && Array.isArray(user.roles)) {
-          user.roles.forEach(role => roles.add(role.name));
+          user.roles.forEach((role: { id: number; name: string }) => roles.add(role.name));
         }
       });
       setAllRoles(Array.from(roles).sort());
