@@ -1,11 +1,11 @@
 /**
  * HydrocarbonField Edit/Create Page - Professional Version
  * Comprehensive form for creating and editing hydrocarbon fields
- * State and Locality with localized names (Ar, En, Fr)
+ * Updated for U-006 schema (locationId reference)
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 01-07-2026
+ * @updated 01-08-2026 - Updated for U-006 location schema
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,9 +32,8 @@ import {
 import { HydrocarbonFieldService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
 import { HydrocarbonFieldTypeService } from '../../type/services';
-import { StateService, LocalityService } from '../../../general/localization/services';
-import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
-import { HydrocarbonFieldDTO, HydrocarbonFieldCreateDTO } from '../dto';
+import { LocationService } from '../../../general/localization/services';
+import { HydrocarbonFieldDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
 const HydrocarbonFieldEdit = () => {
@@ -50,29 +49,21 @@ const HydrocarbonFieldEdit = () => {
   const [field, setField] = useState<Partial<HydrocarbonFieldDTO>>({
     name: '',
     code: '',
-    placeName: '',
-    latitude: 0,
-    longitude: 0,
-    elevation: 0,
     installationDate: undefined,
     commissioningDate: undefined,
     decommissioningDate: undefined,
     operationalStatusId: 0,
     hydrocarbonFieldTypeId: 0,
     vendorId: 0,
-    localityId: 0,
+    locationId: 0,
+    structureId: 0,
   });
-
-  // UI state for state selection (not in entity)
-  const [selectedStateId, setSelectedStateId] = useState<number>(0);
 
   // Available options
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
   const [fieldTypes, setFieldTypes] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
-  const [states, setStates] = useState<any[]>([]);
-  const [localities, setLocalities] = useState<any[]>([]);
-  const [loadingLocalities, setLoadingLocalities] = useState(false);
+  const [locations, setLocations] = useState<any[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -83,19 +74,6 @@ const HydrocarbonFieldEdit = () => {
   useEffect(() => {
     loadData();
   }, [fieldId]);
-
-  // Load localities when selected state changes
-  useEffect(() => {
-    if (selectedStateId && selectedStateId > 0) {
-      loadLocalitiesByState(selectedStateId);
-    } else {
-      setLocalities([]);
-      // Clear locality if state is cleared
-      if (field.localityId) {
-        setField(prev => ({ ...prev, localityId: 0 }));
-      }
-    }
-  }, [selectedStateId]);
 
   // Sort options by localized name
   const sortedFieldTypes = useMemo(
@@ -123,19 +101,20 @@ const HydrocarbonFieldEdit = () => {
         vendorsData,
         fieldTypesData,
         operationalStatusesData,
-        statesData
+        locationsData
       ] = await Promise.allSettled([
         VendorService.getAllNoPagination(),
         HydrocarbonFieldTypeService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
-        StateService.getAllNoPagination(),
+        LocationService.getAllNoPagination(),
       ]);
 
       // Handle vendors
       if (vendorsData.status === 'fulfilled') {
         const vendors = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
-          : (vendorsData.value?.data || vendorsData.value?.content || []);
+          : (Array.isArray((vendorsData.value as any)?.data) ? (vendorsData.value as any).data 
+            : Array.isArray((vendorsData.value as any)?.content) ? (vendorsData.value as any).content : []);
         setVendors(vendors);
       } else {
         console.error('Failed to load vendors:', vendorsData.reason);
@@ -145,7 +124,8 @@ const HydrocarbonFieldEdit = () => {
       if (fieldTypesData.status === 'fulfilled') {
         const types = Array.isArray(fieldTypesData.value) 
           ? fieldTypesData.value 
-          : (fieldTypesData.value?.data || fieldTypesData.value?.content || []);
+          : (Array.isArray((fieldTypesData.value as any)?.data) ? (fieldTypesData.value as any).data 
+            : Array.isArray((fieldTypesData.value as any)?.content) ? (fieldTypesData.value as any).content : []);
         setFieldTypes(types);
       } else {
         console.error('Failed to load field types:', fieldTypesData.reason);
@@ -155,33 +135,27 @@ const HydrocarbonFieldEdit = () => {
       if (operationalStatusesData.status === 'fulfilled') {
         const statuses = Array.isArray(operationalStatusesData.value) 
           ? operationalStatusesData.value 
-          : (operationalStatusesData.value?.data || operationalStatusesData.value?.content || []);
+          : (Array.isArray((operationalStatusesData.value as any)?.data) ? (operationalStatusesData.value as any).data 
+            : Array.isArray((operationalStatusesData.value as any)?.content) ? (operationalStatusesData.value as any).content : []);
         setOperationalStatuses(statuses);
       } else {
         console.error('Failed to load operational statuses:', operationalStatusesData.reason);
       }
 
-      // Handle states
-      if (statesData.status === 'fulfilled') {
-        const states = Array.isArray(statesData.value) 
-          ? statesData.value 
-          : (statesData.value?.data || statesData.value?.content || []);
-        setStates(states);
+      // Handle locations
+      if (locationsData.status === 'fulfilled') {
+        const locations = Array.isArray(locationsData.value) 
+          ? locationsData.value 
+          : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data 
+            : Array.isArray((locationsData.value as any)?.content) ? (locationsData.value as any).content : []);
+        setLocations(locations);
       } else {
-        console.error('Failed to load states:', statesData.reason);
+        console.error('Failed to load locations:', locationsData.reason);
       }
 
       // Set field data if editing
       if (fieldData) {
         setField(fieldData);
-        
-        // Extract state from locality if available
-        if (fieldData.locality?.state?.id) {
-          setSelectedStateId(fieldData.locality.state.id);
-        } else if (fieldData.locality?.stateId) {
-          setSelectedStateId(fieldData.locality.stateId);
-        }
-        // Localities will be loaded by useEffect when selectedStateId is set
       }
 
       setError('');
@@ -190,22 +164,6 @@ const HydrocarbonFieldEdit = () => {
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadLocalitiesByState = async (stateId: number) => {
-    try {
-      setLoadingLocalities(true);
-      const localitiesData = await LocalityService.getByStateId(stateId);
-      const localities = Array.isArray(localitiesData) 
-        ? localitiesData 
-        : (localitiesData?.data || localitiesData?.content || []);
-      setLocalities(localities);
-    } catch (err: any) {
-      console.error('Failed to load localities:', err);
-      setLocalities([]);
-    } finally {
-      setLoadingLocalities(false);
     }
   };
 
@@ -220,18 +178,6 @@ const HydrocarbonFieldEdit = () => {
       errors.code = 'Field code is required';
     }
 
-    if (!field.placeName || field.placeName.trim().length < 2) {
-      errors.placeName = 'Place name is required';
-    }
-
-    if (!field.latitude || field.latitude === 0) {
-      errors.latitude = 'Latitude is required';
-    }
-
-    if (!field.longitude || field.longitude === 0) {
-      errors.longitude = 'Longitude is required';
-    }
-
     if (!field.operationalStatusId) {
       errors.operationalStatusId = 'Operational status is required';
     }
@@ -244,12 +190,8 @@ const HydrocarbonFieldEdit = () => {
       errors.vendorId = 'Vendor is required';
     }
 
-    if (!selectedStateId) {
-      errors.stateId = 'State is required';
-    }
-
-    if (!field.localityId) {
-      errors.localityId = 'Locality is required';
+    if (!field.locationId) {
+      errors.locationId = 'Location is required';
     }
 
     setValidationErrors(errors);
@@ -266,16 +208,6 @@ const HydrocarbonFieldEdit = () => {
     }
   };
 
-  const handleStateChange = (e: any) => {
-    const value = e.target.value;
-    setSelectedStateId(value);
-    
-    // Clear validation error
-    if (validationErrors.stateId) {
-      setValidationErrors({ ...validationErrors, stateId: '' });
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -287,26 +219,23 @@ const HydrocarbonFieldEdit = () => {
       setSaving(true);
       setError('');
 
-      const fieldData: HydrocarbonFieldCreateDTO = {
+      const fieldData: Partial<HydrocarbonFieldDTO> = {
         name: field.name!,
         code: field.code!,
-        placeName: field.placeName!,
-        latitude: Number(field.latitude),
-        longitude: Number(field.longitude),
-        elevation: field.elevation !== undefined ? Number(field.elevation) : undefined,
         installationDate: field.installationDate,
         commissioningDate: field.commissioningDate,
         decommissioningDate: field.decommissioningDate,
         operationalStatusId: Number(field.operationalStatusId),
         hydrocarbonFieldTypeId: Number(field.hydrocarbonFieldTypeId),
         vendorId: Number(field.vendorId),
-        localityId: Number(field.localityId),
+        locationId: Number(field.locationId),
+        structureId: field.structureId ? Number(field.structureId) : 0,
       };
 
       if (isEditMode) {
-        await HydrocarbonFieldService.update(Number(fieldId), { id: Number(fieldId), ...fieldData });
+        await HydrocarbonFieldService.update(Number(fieldId), { id: Number(fieldId), ...fieldData } as HydrocarbonFieldDTO);
       } else {
-        await HydrocarbonFieldService.create(fieldData);
+        await HydrocarbonFieldService.create(fieldData as HydrocarbonFieldDTO);
       }
 
       navigate('/network/core/hydrocarbon-fields');
@@ -404,113 +333,27 @@ const HydrocarbonFieldEdit = () => {
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                {/* Row 1: Place Name alone */}
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Place Name"
-                    value={field.placeName || ''}
-                    onChange={handleChange('placeName')}
-                    required
-                    error={!!validationErrors.placeName}
-                    helperText={validationErrors.placeName}
-                  />
-                </Grid>
-
-                {/* Row 2: State and Locality */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
                     select
-                    label="State"
-                    value={selectedStateId || ''}
-                    onChange={handleStateChange}
+                    label="Location"
+                    value={field.locationId || ''}
+                    onChange={handleChange('locationId')}
                     required
-                    error={!!validationErrors.stateId}
-                    helperText={validationErrors.stateId || 'Select state first to load localities'}
+                    error={!!validationErrors.locationId}
+                    helperText={validationErrors.locationId || 'Select the geographic location'}
                   >
-                    {states.length > 0 ? (
-                      states.map((state) => (
-                        <MenuItem key={state.id} value={state.id}>
-                          {getLocalizationLocalizedName(state, currentLanguage)}
+                    {locations.length > 0 ? (
+                      locations.map((location) => (
+                        <MenuItem key={location.id} value={location.id}>
+                          {location.placeName || location.name} ({location.latitude?.toFixed(4)}, {location.longitude?.toFixed(4)})
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading states...</MenuItem>
+                      <MenuItem disabled>Loading locations...</MenuItem>
                     )}
                   </TextField>
-                </Grid>
-
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Locality"
-                    value={field.localityId || ''}
-                    onChange={handleChange('localityId')}
-                    required
-                    disabled={!selectedStateId || loadingLocalities}
-                    error={!!validationErrors.localityId}
-                    helperText={
-                      !selectedStateId 
-                        ? 'Please select a state first' 
-                        : loadingLocalities 
-                        ? 'Loading localities...' 
-                        : validationErrors.localityId
-                    }
-                  >
-                    {loadingLocalities ? (
-                      <MenuItem disabled>Loading localities...</MenuItem>
-                    ) : localities.length > 0 ? (
-                      localities.map((locality) => (
-                        <MenuItem key={locality.id} value={locality.id}>
-                          {getLocalizationLocalizedName(locality, currentLanguage)}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No localities available</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-
-                {/* Row 3: Latitude, Longitude, Elevation */}
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Latitude"
-                    type="number"
-                    value={field.latitude ?? 0}
-                    onChange={handleChange('latitude')}
-                    required
-                    error={!!validationErrors.latitude}
-                    helperText={validationErrors.latitude}
-                    inputProps={{ step: 0.000001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Longitude"
-                    type="number"
-                    value={field.longitude ?? 0}
-                    onChange={handleChange('longitude')}
-                    required
-                    error={!!validationErrors.longitude}
-                    helperText={validationErrors.longitude}
-                    inputProps={{ step: 0.000001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Elevation (m)"
-                    type="number"
-                    value={field.elevation ?? 0}
-                    onChange={handleChange('elevation')}
-                    inputProps={{ step: 0.1 }}
-                  />
                 </Grid>
               </Grid>
             </Box>
