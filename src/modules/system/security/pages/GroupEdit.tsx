@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
+ * @updated 01-08-2026 - Fixed type inference for users
  */
 
 import { useState, useEffect } from 'react';
@@ -66,16 +67,11 @@ const GroupEdit = () => {
     try {
       setLoading(true);
       
-      // Load users
-      const usersData = await userService.getAll().catch(() => []);
-
-      // Handle different response formats
-      const users = Array.isArray(usersData) 
-        ? usersData 
-        : (usersData?.data || usersData?.content || []);
+      // Load users with explicit type
+      const usersData = await userService.getAll().catch(() => [] as UserDTO[]);
 
       // Map to UserOption format
-      const userOptions = users.map((user: UserDTO) => ({
+      const userOptions = usersData.map((user: UserDTO) => ({
         id: user.id,
         username: user.username,
       }));
