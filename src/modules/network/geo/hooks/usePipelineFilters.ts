@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026 - Fixed to get product from pipelineSystem
+ * @updated 01-08-2026 - Fixed operationalStatusName property access
  */
 
 import { useState, useCallback, useMemo } from 'react';
@@ -38,9 +38,6 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
       // Add status code if available
       if (pipeline.operationalStatus?.code) {
         statuses.add(pipeline.operationalStatus.code);
-      } else if (pipeline.operationalStatusName) {
-        // Fallback to status name
-        statuses.add(pipeline.operationalStatusName);
       }
     });
 
@@ -123,9 +120,9 @@ export const usePipelineFilters = (pipelines: PipelineGeoData[]) => {
         }
       }
 
-      // Status filter
+      // Status filter - only use operationalStatus.code
       if (filters.statuses.length > 0) {
-        const statusCode = pipeline.operationalStatus?.code || pipeline.operationalStatusName;
+        const statusCode = pipeline.operationalStatus?.code;
         if (!statusCode || !filters.statuses.includes(statusCode)) {
           return false;
         }
