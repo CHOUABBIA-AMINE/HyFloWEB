@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-07-2026
- * @updated 01-07-2026 - Created from component, fixed service imports
+ * @updated 01-08-2026 - Fixed structure nested object handling
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -66,6 +66,21 @@ const JobList = () => {
     if (lang === 'ar') return job.designationAr || job.designationFr || job.designationEn || '';
     if (lang === 'en') return job.designationEn || job.designationFr || job.designationAr || '';
     return job.designationFr || job.designationEn || job.designationAr || '';
+  };
+
+  /**
+   * Get localized structure designation
+   */
+  const getStructureDesignation = (job: JobDTO): string => {
+    if (!job.structure) return '-';
+    
+    if (lang === 'ar') {
+      return job.structure.designationAr || job.structure.designationFr || job.structure.designationEn || '-';
+    }
+    if (lang === 'en') {
+      return job.structure.designationEn || job.structure.designationFr || job.structure.designationAr || '-';
+    }
+    return job.structure.designationFr || job.structure.designationEn || job.structure.designationAr || '-';
   };
 
   useEffect(() => {
@@ -208,13 +223,7 @@ const JobList = () => {
                         <Chip label={job.code} size="small" variant="outlined" />
                       </TableCell>
                       <TableCell>{getDesignation(job)}</TableCell>
-                      <TableCell>
-                        {job.structure ? (
-                          lang === 'ar' ? job.structure.designationAr || job.structure.designationFr :
-                          lang === 'en' ? job.structure.designationEn || job.structure.designationFr :
-                          job.structure.designationFr
-                        ) : '-'}
-                      </TableCell>
+                      <TableCell>{getStructureDesignation(job)}</TableCell>
                       <TableCell align="right">
                         <Tooltip title={t('common.edit', 'Edit')}>
                           <IconButton
@@ -229,9 +238,12 @@ const JobList = () => {
                             size="small"
                             color="error"
                             onClick={() => {
-                              setJobToDelete(job.id!);
-                              setDeleteDialogOpen(true);
+                              if (job.id) {
+                                setJobToDelete(job.id);
+                                setDeleteDialogOpen(true);
+                              }
                             }}
+                            disabled={!job.id}
                           >
                             <DeleteIcon fontSize="small" />
                           </IconButton>
