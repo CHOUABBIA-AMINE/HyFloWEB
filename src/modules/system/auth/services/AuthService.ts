@@ -5,11 +5,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 12-27-2025
+ * @updated 01-08-2026 - Fixed DTO import names
  */
 
 import axiosInstance from '../../../../shared/config/axios';
-import { LoginRequestDTO, LoginResponseDTO } from '../dto';
+import { LoginRequest, LoginResponse } from '../dto';
 import { userService } from '../../security/services';
 import { UserDTO } from '../../security/dto';
 
@@ -26,9 +26,9 @@ class AuthService {
    * Login user with username and password
    * After authentication, fetches user details from /system/security/user/username/{username}
    */
-  async login(credentials: LoginRequestDTO): Promise<LoginResult> {
+  async login(credentials: LoginRequest): Promise<LoginResult> {
     // Step 1: Authenticate and get token
-    const authResponse = await axiosInstance.post<LoginResponseDTO>(
+    const authResponse = await axiosInstance.post<LoginResponse>(
       `${this.BASE_URL}/login`,
       credentials
     );
@@ -107,14 +107,14 @@ class AuthService {
   /**
    * Refresh access token
    */
-  async refreshToken(): Promise<LoginResponseDTO> {
+  async refreshToken(): Promise<LoginResponse> {
     const refreshToken = localStorage.getItem('refresh_token');
 
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
 
-    const response = await axiosInstance.post<LoginResponseDTO>(
+    const response = await axiosInstance.post<LoginResponse>(
       `${this.BASE_URL}/refresh`,
       { refreshToken }
     );
