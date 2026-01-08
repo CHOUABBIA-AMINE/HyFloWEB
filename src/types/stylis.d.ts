@@ -4,13 +4,23 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-08-2026
- * @updated 01-08-2026 - Use StylisElement to match @emotion/cache types
+ * @updated 01-08-2026 - Define StylisElement independently to avoid import issues
  */
 
-// Import emotion's StylisElement type for compatibility
-import type { StylisElement } from '@emotion/cache/dist/declarations/src/types';
-
 declare module 'stylis' {
+  /**
+   * Stylis element type matching @emotion/cache expectations
+   */
+  export interface StylisElement {
+    type: string;
+    value: string;
+    props: string | string[];
+    children: string | StylisElement[];
+    line?: number;
+    column?: number;
+    [key: string]: any;
+  }
+
   /**
    * Stylis plugin callback function
    * Matches the signature expected by @emotion/cache
