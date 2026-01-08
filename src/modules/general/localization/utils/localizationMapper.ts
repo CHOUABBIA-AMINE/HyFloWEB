@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-05-2026
- * @updated 01-08-2026 - Fixed LocationDTO mapping per U-005 schema
+ * @updated 01-08-2026 - Fixed to use designationXX and actual DTO schemas
  */
 
 import {
@@ -24,14 +24,9 @@ export const mapToCountryDTO = (data: any): CountryDTO => {
   return {
     id: data.id,
     code: data.code,
-    nameAr: data.nameAr,
-    nameEn: data.nameEn,
-    nameFr: data.nameFr,
-    capital: data.capital,
-    currency: data.currency,
-    dialCode: data.dialCode,
-    isoCode2: data.isoCode2,
-    isoCode3: data.isoCode3,
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
   };
 };
 
@@ -42,14 +37,9 @@ export const mapFromCountryDTO = (data: Partial<CountryDTO>): any => {
   return {
     id: data.id,
     code: data.code,
-    nameAr: data.nameAr,
-    nameEn: data.nameEn,
-    nameFr: data.nameFr,
-    capital: data.capital,
-    currency: data.currency,
-    dialCode: data.dialCode,
-    isoCode2: data.isoCode2,
-    isoCode3: data.isoCode3,
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
   };
 };
 
@@ -62,11 +52,9 @@ export const mapToStateDTO = (data: any): StateDTO => {
   return {
     id: data.id,
     code: data.code,
-    nameAr: data.nameAr,
-    nameEn: data.nameEn,
-    nameFr: data.nameFr,
-    countryId: data.countryId,
-    country: data.country ? mapToCountryDTO(data.country) : undefined,
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
   };
 };
 
@@ -77,10 +65,9 @@ export const mapFromStateDTO = (data: Partial<StateDTO>): any => {
   return {
     id: data.id,
     code: data.code,
-    nameAr: data.nameAr,
-    nameEn: data.nameEn,
-    nameFr: data.nameFr,
-    countryId: data.countryId,
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
   };
 };
 
@@ -93,12 +80,9 @@ export const mapToLocalityDTO = (data: any): LocalityDTO => {
   return {
     id: data.id,
     code: data.code,
-    nameAr: data.nameAr,
-    nameEn: data.nameEn,
-    nameFr: data.nameFr,
-    latitude: data.latitude,
-    longitude: data.longitude,
-    elevation: data.elevation,
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
     stateId: data.stateId,
     state: data.state ? mapToStateDTO(data.state) : undefined,
   };
@@ -111,12 +95,9 @@ export const mapFromLocalityDTO = (data: Partial<LocalityDTO>): any => {
   return {
     id: data.id,
     code: data.code,
-    nameAr: data.nameAr,
-    nameEn: data.nameEn,
-    nameFr: data.nameFr,
-    latitude: data.latitude,
-    longitude: data.longitude,
-    elevation: data.elevation,
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
     stateId: data.stateId,
   };
 };
@@ -162,34 +143,8 @@ export const mapFromLocationDTO = (data: Partial<LocationDTO>): any => {
 };
 
 /**
- * Validates if a country code exists in a list of countries
- */
-export const isValidCountryCode = (code: string, countries: CountryDTO[]): boolean => {
-  return countries.some(country => country.code === code);
-};
-
-/**
  * Finds a country by code
  */
 export const findCountryByCode = (code: string, countries: CountryDTO[]): CountryDTO | undefined => {
   return countries.find(country => country.code === code);
-};
-
-/**
- * Gets localized name based on current language
- */
-export const getLocalizedName = (
-  entity: { nameAr?: string; nameEn?: string; nameFr?: string },
-  language: 'ar' | 'en' | 'fr'
-): string => {
-  switch (language) {
-    case 'ar':
-      return entity.nameAr || entity.nameEn || entity.nameFr || '';
-    case 'en':
-      return entity.nameEn || entity.nameFr || entity.nameAr || '';
-    case 'fr':
-      return entity.nameFr || entity.nameEn || entity.nameAr || '';
-    default:
-      return entity.nameEn || entity.nameFr || entity.nameAr || '';
-  }
 };
