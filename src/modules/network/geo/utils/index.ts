@@ -2,17 +2,18 @@
  * Network Geo Utils - Barrel Export
  * 
  * Migration Date: 2026-01-08
+ * Updated: 2026-01-08 - Fixed import names
  * Status: Using centralized utilities from @/shared/utils
  */
 
-// Re-export centralized utilities (except duplicates)
+// Re-export centralized utilities with correct names
 export {
   formatDistance,
   formatArea,
   formatVolume,
-  validateCoordinate,
-  validateLatitude,
-  validateLongitude,
+  isValidCoordinates as validateCoordinate,
+  isValidLatitude as validateLatitude,
+  isValidLongitude as validateLongitude,
 } from '@/shared/utils';
 
 // Keep module-specific utilities
