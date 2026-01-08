@@ -5,6 +5,7 @@
  * Used across General, Network, and System modules.
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-08-2026 - Added missing formatters for geo module
  */
 
 /**
@@ -69,6 +70,49 @@ export const formatDateTime = (date: string | Date | undefined | null, locale: s
   } catch {
     return '-';
   }
+};
+
+/**
+ * Geo/Measurement formatters
+ */
+
+/**
+ * Format distance in kilometers
+ */
+export const formatDistance = (distance: number | undefined | null, unit: 'km' | 'm' = 'km'): string => {
+  if (distance === undefined || distance === null) return '-';
+  
+  if (unit === 'm') {
+    return `${distance.toFixed(0)} m`;
+  }
+  
+  return `${distance.toFixed(2)} km`;
+};
+
+/**
+ * Format area in square meters or hectares
+ */
+export const formatArea = (area: number | undefined | null, unit: 'm²' | 'ha' = 'm²'): string => {
+  if (area === undefined || area === null) return '-';
+  
+  if (unit === 'ha') {
+    return `${(area / 10000).toFixed(2)} ha`;
+  }
+  
+  return `${area.toFixed(2)} m²`;
+};
+
+/**
+ * Format volume in cubic meters
+ */
+export const formatVolume = (volume: number | undefined | null, unit: 'm³' | 'L' = 'm³'): string => {
+  if (volume === undefined || volume === null) return '-';
+  
+  if (unit === 'L') {
+    return `${(volume * 1000).toFixed(0)} L`;
+  }
+  
+  return `${volume.toFixed(2)} m³`;
 };
 
 /**
