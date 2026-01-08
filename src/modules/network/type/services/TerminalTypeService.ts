@@ -8,7 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
- * @updated 01-02-2026
+ * @updated 01-08-2026 - Added getAllNoPagination method
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -29,6 +29,14 @@ export class TerminalTypeService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Get all terminal types without pagination
+   */
+  static async getAllNoPagination(): Promise<TerminalTypeDTO[]> {
+    const response = await axiosInstance.get<TerminalTypeDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
