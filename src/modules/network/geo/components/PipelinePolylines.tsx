@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-06-2026
+ * @updated 01-08-2026 - Fixed type errors for optional properties
  */
 
 import React, { useMemo, useState } from 'react';
@@ -47,6 +47,11 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
         return null;
       }
       
+      // Skip if pipeline doesn't have an ID
+      if (!pipeline.id) {
+        return null;
+      }
+      
       // Get dynamic style based on pipeline properties
       const pipelineStyle = getPipelineStyle(pipeline);
       const isHovered = hoveredPipeline === pipeline.id;
@@ -59,9 +64,9 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
       };
       
       const handleClick = () => {
-        if (onPipelineClick) {
+        if (onPipelineClick && pipeline.id !== undefined) {
           onPipelineClick(pipeline.id);
-        } else {
+        } else if (pipeline.id !== undefined) {
           navigate(`/network/core/pipelines/${pipeline.id}`);
         }
       };
@@ -73,7 +78,7 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
           pathOptions={effectiveStyle}
           eventHandlers={{
             mouseover: () => {
-              if (options.highlightOnHover) {
+              if (options.highlightOnHover && pipeline.id !== undefined) {
                 setHoveredPipeline(pipeline.id);
               }
             },
@@ -115,7 +120,7 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
               {pipeline.operationalStatus && (
                 <Box sx={{ mb: 1 }}>
                   <Chip
-                    label={pipeline.operationalStatus.name || pipeline.operationalStatus.code}
+                    label={pipeline.operationalStatus.code}
                     size="small"
                     color={getStatusColor(pipeline.operationalStatus.code)}
                   />
