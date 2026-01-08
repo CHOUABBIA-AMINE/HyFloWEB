@@ -186,6 +186,49 @@
       "designationMaxLength": "La désignation ne doit pas dépasser 100 caractères"
     }
   },
+  "job": {
+    "title": "Postes",
+    "titleInStructure": "Postes dans cette structure",
+    "subtitle": "Gérer les postes de travail",
+    "subtitleInStructure": "Gérer les postes pour cette structure",
+    "code": "Code",
+    "designation": "Désignation",
+    "structure": "Structure",
+    "dialog": {
+      "createTitle": "Créer un Poste",
+      "createSubtitle": "Ajouter un nouveau poste",
+      "editTitle": "Modifier le Poste",
+      "editSubtitle": "Mettre à jour les détails du poste"
+    },
+    "sections": {
+      "designations": "Désignations du Poste",
+      "assignment": "Affectation"
+    },
+    "fields": {
+      "code": "Code",
+      "codeHelper": "Code unique du poste",
+      "designationFr": "Désignation (Français)",
+      "designationFrHelper": "Obligatoire",
+      "designationAr": "Désignation (Arabe)",
+      "designationArHelper": "Optionnel",
+      "designationEn": "Désignation (Anglais)",
+      "designationEnHelper": "Optionnel",
+      "structure": "Structure",
+      "structureHelper": "Sélectionner la structure organisationnelle",
+      "structureLocked": "Structure définie par le parent"
+    },
+    "validation": {
+      "codeRequired": "Le code est obligatoire",
+      "designationFrRequired": "La désignation française est obligatoire",
+      "structureRequired": "La structure est obligatoire",
+      "formInvalid": "Veuillez remplir tous les champs obligatoires"
+    },
+    "confirmDelete": "Confirmer la suppression",
+    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer ce poste ? Cette action est irréversible.",
+    "errorLoading": "Échec du chargement des postes",
+    "deleteError": "Échec de la suppression du poste",
+    "saveError": "Échec de l'enregistrement du poste"
+  },
   "employee": {
     "title": "Employés",
     "create": "Créer un Employé",
