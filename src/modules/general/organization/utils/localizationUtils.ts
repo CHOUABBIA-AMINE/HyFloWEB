@@ -5,10 +5,10 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 12-23-2025
+ * @updated 01-08-2026 - Fixed imports from localization module
  */
 
-import { StateDTO, LocalityDTO } from '../dto';
+import { StateDTO, LocalityDTO } from '../../localization/dto';
 
 /**
  * Get localized designation from State or Locality based on current language
