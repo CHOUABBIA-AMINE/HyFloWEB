@@ -2,10 +2,11 @@
  * Map View Component
  * Main map container with Leaflet integration
  * Legend now integrated in MapControls hover panel
+ * Updated for U-006 schema (location reference)
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-06-2026
+ * @updated 01-08-2026 - Updated for U-006 location schema
  */
 
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
@@ -101,10 +102,19 @@ export const MapView: React.FC<MapViewProps> = ({
   }
 
   // Calculate map center based on all infrastructure
+  // U-006 Update: StationDTO and HydrocarbonFieldDTO now use location.latitude/longitude
+  // TerminalDTO keeps legacy latitude/longitude fields
   const allCoordinates = [
-    ...(data.stations || []).filter(s => s.latitude && s.longitude).map(toLatLng),
+    // Stations: access via location object
+    ...(data.stations || []).filter(s => s.location?.latitude && s.location?.longitude).map(s => 
+      toLatLng({ latitude: s.location!.latitude!, longitude: s.location!.longitude! })
+    ),
+    // Terminals: direct access (legacy fields)
     ...(data.terminals || []).filter(t => t.latitude && t.longitude).map(toLatLng),
-    ...(data.hydrocarbonFields || []).filter(f => f.latitude && f.longitude).map(toLatLng),
+    // Hydrocarbon Fields: access via location object
+    ...(data.hydrocarbonFields || []).filter(f => f.location?.latitude && f.location?.longitude).map(f => 
+      toLatLng({ latitude: f.location!.latitude!, longitude: f.location!.longitude! })
+    ),
     // Add pipeline coordinates for center calculation
     ...(data.pipelines || []).flatMap(p => p.coordinates)
   ];
@@ -137,7 +147,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
         {/* Pipeline polylines - render first so markers appear on top */}
         {filters.showPipelines && hasPipelines && (
-          <PipelinePolylines pipelines={data.pipelines} />
+          <PipelinePolylines pipelines={data.pipelines || []} />
         )}
 
         {/* Infrastructure markers with custom SVG icons */}
