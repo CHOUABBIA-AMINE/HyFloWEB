@@ -6,13 +6,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-03-2026
+ * @updated 01-08-2026 - Made id optional for create operations
  */
 
 export interface StructureTypeDTO {
   /**
-   * Unique identifier
+   * Unique identifier (optional for create)
    */
-  id: number;
+  id?: number;
 
   /**
    * Type code (unique identifier)
@@ -25,9 +26,9 @@ export interface StructureTypeDTO {
   designationAr?: string;
 
   /**
-   * Designation in French
+   * Designation in French (required)
    */
-  designationFr?: string;
+  designationFr: string;
 
   /**
    * Designation in English

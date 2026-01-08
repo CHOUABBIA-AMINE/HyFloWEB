@@ -3,7 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-02-2026
- * @updated 01-08-2026 - Fixed service import
+ * @updated 01-08-2026 - Fixed imports and localization
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -16,17 +16,15 @@ import {
   Alert,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridPaginationModel, GridValueGetterParams } from '@mui/x-data-grid';
 import { StructureTypeService } from '../services';
 import { StructureTypeDTO } from '../dto';
 import { Page } from '@/types/pagination';
-import { getLocalizedName } from '@/shared/utils';
-import { useLanguage } from '@/shared/hooks';
 
 const StructureTypeList = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { currentLanguage } = useLanguage();
+  const currentLanguage = i18n.language;
 
   const [structureTypes, setStructureTypes] = useState<StructureTypeDTO[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,6 +65,23 @@ const StructureTypeList = () => {
     navigate(`/general/type/structure-types/${id}/edit`);
   };
 
+  /**
+   * Get localized designation based on current language
+   */
+  const getLocalizedDesignation = (structureType: StructureTypeDTO): string => {
+    const lang = currentLanguage.substring(0, 2).toLowerCase();
+    
+    switch (lang) {
+      case 'ar':
+        return structureType.designationAr || structureType.designationEn || structureType.designationFr || structureType.code;
+      case 'en':
+        return structureType.designationEn || structureType.designationFr || structureType.designationAr || structureType.code;
+      case 'fr':
+      default:
+        return structureType.designationFr || structureType.designationEn || structureType.designationAr || structureType.code;
+    }
+  };
+
   const columns: GridColDef<StructureTypeDTO>[] = [
     {
       field: 'code',
@@ -79,8 +94,8 @@ const StructureTypeList = () => {
       headerName: 'Designation',
       flex: 2,
       minWidth: 200,
-      valueGetter: (params) => {
-        return getLocalizedName(params.row, currentLanguage);
+      valueGetter: (params: GridValueGetterParams<StructureTypeDTO>) => {
+        return getLocalizedDesignation(params.row);
       },
     },
     {
