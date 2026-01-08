@@ -142,25 +142,19 @@ const PipelineSystemEdit = () => {
         StructureService.getAllNoPagination(),
       ]);
 
+      // Products: getAllNoPagination returns array directly
       if (productsData.status === 'fulfilled') {
-        const list = Array.isArray(productsData.value)
-          ? productsData.value
-          : productsData.value?.data || productsData.value?.content || [];
-        setProducts(list);
+        setProducts(Array.isArray(productsData.value) ? productsData.value : []);
       }
 
+      // Operational Statuses: getAllNoPagination returns array directly
       if (statusesData.status === 'fulfilled') {
-        const list = Array.isArray(statusesData.value)
-          ? statusesData.value
-          : statusesData.value?.data || statusesData.value?.content || [];
-        setOperationalStatuses(list);
+        setOperationalStatuses(Array.isArray(statusesData.value) ? statusesData.value : []);
       }
 
+      // Structures: getAllNoPagination returns array directly
       if (structuresData.status === 'fulfilled') {
-        const list = Array.isArray(structuresData.value)
-          ? structuresData.value
-          : structuresData.value?.data || structuresData.value?.content || [];
-        setStructures(list);
+        setStructures(Array.isArray(structuresData.value) ? structuresData.value : []);
       }
 
       if (systemData) {
@@ -181,7 +175,7 @@ const PipelineSystemEdit = () => {
     try {
       setPipelinesLoading(true);
       setPipelinesError('');
-      const list = await PipelineService.getBySystem(Number(pipelineSystemId));
+      const list = await PipelineService.findByPipelineSystem(Number(pipelineSystemId));
       setPipelines(Array.isArray(list) ? list : []);
     } catch (err: any) {
       setPipelinesError(err.message || 'Failed to load pipelines');
