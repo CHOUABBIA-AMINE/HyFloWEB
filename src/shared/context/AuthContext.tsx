@@ -5,12 +5,12 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 12-27-2025
+ * @updated 01-08-2026 - Fixed LoginRequest import name
  */
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../../modules/system/auth/services';
-import { LoginRequestDTO } from '../../modules/system/auth/dto';
+import { LoginRequest } from '../../modules/system/auth/dto';
 import { UserDTO } from '../../modules/system/security/dto';
 
 interface User {
@@ -27,7 +27,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginRequestDTO) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
 }
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     initializeAuth();
   }, []);
 
-  const login = async (credentials: LoginRequestDTO) => {
+  const login = async (credentials: LoginRequest) => {
     try {
       // authService.login returns { token, refreshToken, user }
       const { token: receivedToken, user: userDTO } = await authService.login(credentials);
