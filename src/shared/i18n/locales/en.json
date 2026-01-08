@@ -186,6 +186,49 @@
       "designationMaxLength": "Designation must not exceed 100 characters"
     }
   },
+  "job": {
+    "title": "Jobs",
+    "titleInStructure": "Jobs in this Structure",
+    "subtitle": "Manage job positions",
+    "subtitleInStructure": "Manage job positions for this structure",
+    "code": "Code",
+    "designation": "Designation",
+    "structure": "Structure",
+    "dialog": {
+      "createTitle": "Create Job",
+      "createSubtitle": "Add a new job position",
+      "editTitle": "Edit Job",
+      "editSubtitle": "Update job position details"
+    },
+    "sections": {
+      "designations": "Job Designations",
+      "assignment": "Assignment"
+    },
+    "fields": {
+      "code": "Code",
+      "codeHelper": "Unique job code",
+      "designationFr": "Designation (French)",
+      "designationFrHelper": "Required",
+      "designationAr": "Designation (Arabic)",
+      "designationArHelper": "Optional",
+      "designationEn": "Designation (English)",
+      "designationEnHelper": "Optional",
+      "structure": "Structure",
+      "structureHelper": "Select the organizational structure",
+      "structureLocked": "Structure is set by parent"
+    },
+    "validation": {
+      "codeRequired": "Code is required",
+      "designationFrRequired": "French designation is required",
+      "structureRequired": "Structure is required",
+      "formInvalid": "Please fill in all required fields"
+    },
+    "confirmDelete": "Confirm Delete",
+    "confirmDeleteMessage": "Are you sure you want to delete this job? This action cannot be undone.",
+    "errorLoading": "Failed to load jobs",
+    "deleteError": "Failed to delete job",
+    "saveError": "Failed to save job"
+  },
   "employee": {
     "title": "Employees",
     "create": "Create Employee",
