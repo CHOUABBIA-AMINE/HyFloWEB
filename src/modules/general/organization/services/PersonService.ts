@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { PersonDTO } from '../dto/PersonDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/organization/persons';
+const BASE_URL = '/general/organization/persons';
 
 export class PersonService {
   /**
    * Get all persons with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<PersonDTO>> {
-    const response = await apiClient.get<Page<PersonDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<PersonDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class PersonService {
    * Get all persons without pagination
    */
   static async getAllNoPagination(): Promise<PersonDTO[]> {
-    const response = await apiClient.get<PersonDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<PersonDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class PersonService {
    * Get person by ID
    */
   static async getById(id: number): Promise<PersonDTO> {
-    const response = await apiClient.get<PersonDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<PersonDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class PersonService {
    * Backend logs: "Creating person: lastNameLt={lastNameLt}, firstNameLt={firstNameLt}"
    */
   static async create(dto: PersonDTO): Promise<PersonDTO> {
-    const response = await apiClient.post<PersonDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<PersonDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class PersonService {
    * Backend logs: "Updating person with ID: {id}"
    */
   static async update(id: number, dto: PersonDTO): Promise<PersonDTO> {
-    const response = await apiClient.put<PersonDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<PersonDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class PersonService {
    * Delete person by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class PersonService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<PersonDTO>> {
-    const response = await apiClient.get<Page<PersonDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<PersonDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

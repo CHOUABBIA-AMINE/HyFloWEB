@@ -15,18 +15,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { ZoneDTO } from '../dto/ZoneDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/localization/zones';
+const BASE_URL = '/general/localization/zones';
 
 export class ZoneService {
   /**
    * Get all zones with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<ZoneDTO>> {
-    const response = await apiClient.get<Page<ZoneDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<ZoneDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -40,7 +40,7 @@ export class ZoneService {
    * Get all zones without pagination
    */
   static async getAllNoPagination(): Promise<ZoneDTO[]> {
-    const response = await apiClient.get<ZoneDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<ZoneDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -48,7 +48,7 @@ export class ZoneService {
    * Get zone by ID
    */
   static async getById(id: number): Promise<ZoneDTO> {
-    const response = await apiClient.get<ZoneDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<ZoneDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class ZoneService {
    * - Throws BusinessValidationException if duplicates found
    */
   static async create(dto: ZoneDTO): Promise<ZoneDTO> {
-    const response = await apiClient.post<ZoneDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<ZoneDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -76,7 +76,7 @@ export class ZoneService {
    * - Throws BusinessValidationException if duplicates found
    */
   static async update(id: number, dto: ZoneDTO): Promise<ZoneDTO> {
-    const response = await apiClient.put<ZoneDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<ZoneDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -84,7 +84,7 @@ export class ZoneService {
    * Delete zone by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -94,7 +94,7 @@ export class ZoneService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<ZoneDTO>> {
-    const response = await apiClient.get<Page<ZoneDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<ZoneDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

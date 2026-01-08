@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { TerminalTypeDTO } from '../dto/TerminalTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/type/terminal-types';
+const BASE_URL = '/network/type/terminal-types';
 
 export class TerminalTypeService {
   /**
    * Get all terminal types with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<TerminalTypeDTO>> {
-    const response = await apiClient.get<Page<TerminalTypeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<TerminalTypeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class TerminalTypeService {
    * Get terminal type by ID
    */
   static async getById(id: number): Promise<TerminalTypeDTO> {
-    const response = await apiClient.get<TerminalTypeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<TerminalTypeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class TerminalTypeService {
    * Create new terminal type
    */
   static async create(dto: TerminalTypeDTO): Promise<TerminalTypeDTO> {
-    const response = await apiClient.post<TerminalTypeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<TerminalTypeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class TerminalTypeService {
    * Update existing terminal type
    */
   static async update(id: number, dto: TerminalTypeDTO): Promise<TerminalTypeDTO> {
-    const response = await apiClient.put<TerminalTypeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<TerminalTypeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class TerminalTypeService {
    * Delete terminal type by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -70,7 +70,7 @@ export class TerminalTypeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<TerminalTypeDTO>> {
-    const response = await apiClient.get<Page<TerminalTypeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<TerminalTypeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

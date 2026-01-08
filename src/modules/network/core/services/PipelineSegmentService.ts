@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { PipelineSegmentDTO } from '../dto/PipelineSegmentDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/core/pipeline-segments';
+const BASE_URL = '/network/core/pipeline-segments';
 
 export class PipelineSegmentService {
   /**
    * Get all pipeline segments with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<PipelineSegmentDTO>> {
-    const response = await apiClient.get<Page<PipelineSegmentDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<PipelineSegmentDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class PipelineSegmentService {
    * Get all pipeline segments without pagination
    */
   static async getAllNoPagination(): Promise<PipelineSegmentDTO[]> {
-    const response = await apiClient.get<PipelineSegmentDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<PipelineSegmentDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class PipelineSegmentService {
    * Get pipeline segment by ID
    */
   static async getById(id: number): Promise<PipelineSegmentDTO> {
-    const response = await apiClient.get<PipelineSegmentDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<PipelineSegmentDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class PipelineSegmentService {
    * Validates that code doesn't already exist
    */
   static async create(dto: PipelineSegmentDTO): Promise<PipelineSegmentDTO> {
-    const response = await apiClient.post<PipelineSegmentDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<PipelineSegmentDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class PipelineSegmentService {
    * Validates that code doesn't exist for other records
    */
   static async update(id: number, dto: PipelineSegmentDTO): Promise<PipelineSegmentDTO> {
-    const response = await apiClient.put<PipelineSegmentDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<PipelineSegmentDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class PipelineSegmentService {
    * Delete pipeline segment by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class PipelineSegmentService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<PipelineSegmentDTO>> {
-    const response = await apiClient.get<Page<PipelineSegmentDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<PipelineSegmentDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -95,7 +95,7 @@ export class PipelineSegmentService {
    * Find pipeline segments by pipeline
    */
   static async findByPipeline(pipelineId: number): Promise<PipelineSegmentDTO[]> {
-    const response = await apiClient.get<PipelineSegmentDTO[]>(
+    const response = await axiosInstance.get<PipelineSegmentDTO[]>(
       `${BASE_URL}/by-pipeline/${pipelineId}`
     );
     return response.data;

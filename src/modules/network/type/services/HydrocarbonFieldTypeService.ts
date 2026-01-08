@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { HydrocarbonFieldTypeDTO } from '../dto/HydrocarbonFieldTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/type/hydrocarbon-field-types';
+const BASE_URL = '/network/type/hydrocarbon-field-types';
 
 export class HydrocarbonFieldTypeService {
   /**
    * Get all hydrocarbon field types with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<HydrocarbonFieldTypeDTO>> {
-    const response = await apiClient.get<Page<HydrocarbonFieldTypeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<HydrocarbonFieldTypeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class HydrocarbonFieldTypeService {
    * Get hydrocarbon field type by ID
    */
   static async getById(id: number): Promise<HydrocarbonFieldTypeDTO> {
-    const response = await apiClient.get<HydrocarbonFieldTypeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<HydrocarbonFieldTypeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class HydrocarbonFieldTypeService {
    * Create new hydrocarbon field type
    */
   static async create(dto: HydrocarbonFieldTypeDTO): Promise<HydrocarbonFieldTypeDTO> {
-    const response = await apiClient.post<HydrocarbonFieldTypeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<HydrocarbonFieldTypeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class HydrocarbonFieldTypeService {
    * Update existing hydrocarbon field type
    */
   static async update(id: number, dto: HydrocarbonFieldTypeDTO): Promise<HydrocarbonFieldTypeDTO> {
-    const response = await apiClient.put<HydrocarbonFieldTypeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<HydrocarbonFieldTypeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class HydrocarbonFieldTypeService {
    * Delete hydrocarbon field type by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -70,7 +70,7 @@ export class HydrocarbonFieldTypeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<HydrocarbonFieldTypeDTO>> {
-    const response = await apiClient.get<Page<HydrocarbonFieldTypeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<HydrocarbonFieldTypeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

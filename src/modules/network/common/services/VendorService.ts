@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { VendorDTO } from '../dto/VendorDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/common/vendors';
+const BASE_URL = '/network/common/vendors';
 
 export class VendorService {
   /**
    * Get all vendors with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<VendorDTO>> {
-    const response = await apiClient.get<Page<VendorDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<VendorDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class VendorService {
    * Get vendor by ID
    */
   static async getById(id: number): Promise<VendorDTO> {
-    const response = await apiClient.get<VendorDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<VendorDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class VendorService {
    * Create new vendor
    */
   static async create(dto: VendorDTO): Promise<VendorDTO> {
-    const response = await apiClient.post<VendorDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<VendorDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class VendorService {
    * Update existing vendor
    */
   static async update(id: number, dto: VendorDTO): Promise<VendorDTO> {
-    const response = await apiClient.put<VendorDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<VendorDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class VendorService {
    * Delete vendor by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -70,7 +70,7 @@ export class VendorService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<VendorDTO>> {
-    const response = await apiClient.get<Page<VendorDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<VendorDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

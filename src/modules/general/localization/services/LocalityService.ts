@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { LocalityDTO } from '../dto/LocalityDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/localization/localities';
+const BASE_URL = '/general/localization/localities';
 
 export class LocalityService {
   /**
    * Get all localities with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<LocalityDTO>> {
-    const response = await apiClient.get<Page<LocalityDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<LocalityDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class LocalityService {
    * Get all localities without pagination
    */
   static async getAllNoPagination(): Promise<LocalityDTO[]> {
-    const response = await apiClient.get<LocalityDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<LocalityDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class LocalityService {
    * Get locality by ID
    */
   static async getById(id: number): Promise<LocalityDTO> {
-    const response = await apiClient.get<LocalityDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<LocalityDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class LocalityService {
    * Backend logs: "Creating locality: code={code}, designationFr={designationFr}, stateId={stateId}"
    */
   static async create(dto: LocalityDTO): Promise<LocalityDTO> {
-    const response = await apiClient.post<LocalityDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<LocalityDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class LocalityService {
    * Backend logs: "Updating locality with ID: {id}"
    */
   static async update(id: number, dto: LocalityDTO): Promise<LocalityDTO> {
-    const response = await apiClient.put<LocalityDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<LocalityDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class LocalityService {
    * Delete locality by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class LocalityService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<LocalityDTO>> {
-    const response = await apiClient.get<Page<LocalityDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<LocalityDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -95,7 +95,7 @@ export class LocalityService {
    * Get localities by state ID
    */
   static async getByStateId(stateId: number): Promise<LocalityDTO[]> {
-    const response = await apiClient.get<LocalityDTO[]>(`${BASE_URL}/by-state/${stateId}`);
+    const response = await axiosInstance.get<LocalityDTO[]>(`${BASE_URL}/by-state/${stateId}`);
     return response.data;
   }
 }

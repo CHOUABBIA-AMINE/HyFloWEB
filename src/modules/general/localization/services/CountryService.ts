@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { CountryDTO } from '../dto/CountryDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/localization/countries';
+const BASE_URL = '/general/localization/countries';
 
 export class CountryService {
   /**
    * Get all countries with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<CountryDTO>> {
-    const response = await apiClient.get<Page<CountryDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<CountryDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class CountryService {
    * Get all countries without pagination
    */
   static async getAllNoPagination(): Promise<CountryDTO[]> {
-    const response = await apiClient.get<CountryDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<CountryDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class CountryService {
    * Get country by ID
    */
   static async getById(id: number): Promise<CountryDTO> {
-    const response = await apiClient.get<CountryDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<CountryDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class CountryService {
    * Backend logs: "Creating country: code={code}, designationFr={designationFr}"
    */
   static async create(dto: CountryDTO): Promise<CountryDTO> {
-    const response = await apiClient.post<CountryDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<CountryDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class CountryService {
    * Backend logs: "Updating country with ID: {id}"
    */
   static async update(id: number, dto: CountryDTO): Promise<CountryDTO> {
-    const response = await apiClient.put<CountryDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<CountryDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class CountryService {
    * Delete country by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class CountryService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<CountryDTO>> {
-    const response = await apiClient.get<Page<CountryDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<CountryDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

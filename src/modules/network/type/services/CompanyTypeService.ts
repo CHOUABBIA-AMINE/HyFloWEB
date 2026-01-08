@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { CompanyTypeDTO } from '../dto/CompanyTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/type/company-types';
+const BASE_URL = '/network/type/company-types';
 
 export class CompanyTypeService {
   /**
    * Get all company types with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<CompanyTypeDTO>> {
-    const response = await apiClient.get<Page<CompanyTypeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<CompanyTypeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class CompanyTypeService {
    * Get company type by ID
    */
   static async getById(id: number): Promise<CompanyTypeDTO> {
-    const response = await apiClient.get<CompanyTypeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<CompanyTypeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class CompanyTypeService {
    * Create new company type
    */
   static async create(dto: CompanyTypeDTO): Promise<CompanyTypeDTO> {
-    const response = await apiClient.post<CompanyTypeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<CompanyTypeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class CompanyTypeService {
    * Update existing company type
    */
   static async update(id: number, dto: CompanyTypeDTO): Promise<CompanyTypeDTO> {
-    const response = await apiClient.put<CompanyTypeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<CompanyTypeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class CompanyTypeService {
    * Delete company type by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -70,7 +70,7 @@ export class CompanyTypeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<CompanyTypeDTO>> {
-    const response = await apiClient.get<Page<CompanyTypeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<CompanyTypeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

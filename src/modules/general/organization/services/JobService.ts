@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { JobDTO } from '../dto/JobDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/organization/jobs';
+const BASE_URL = '/general/organization/jobs';
 
 export class JobService {
   /**
    * Get all jobs with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<JobDTO>> {
-    const response = await apiClient.get<Page<JobDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<JobDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class JobService {
    * Get all jobs without pagination
    */
   static async getAllNoPagination(): Promise<JobDTO[]> {
-    const response = await apiClient.get<JobDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<JobDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class JobService {
    * Get job by ID
    */
   static async getById(id: number): Promise<JobDTO> {
-    const response = await apiClient.get<JobDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<JobDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class JobService {
    * Backend logs: "Creating job: code={code}, designationFr={designationFr}"
    */
   static async create(dto: JobDTO): Promise<JobDTO> {
-    const response = await apiClient.post<JobDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<JobDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class JobService {
    * Backend logs: "Updating job with ID: {id}"
    */
   static async update(id: number, dto: JobDTO): Promise<JobDTO> {
-    const response = await apiClient.put<JobDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<JobDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class JobService {
    * Delete job by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class JobService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<JobDTO>> {
-    const response = await apiClient.get<Page<JobDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<JobDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -95,7 +95,7 @@ export class JobService {
    * Get jobs by structure ID
    */
   static async getByStructureId(structureId: number): Promise<JobDTO[]> {
-    const response = await apiClient.get<JobDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
+    const response = await axiosInstance.get<JobDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
     return response.data;
   }
 }

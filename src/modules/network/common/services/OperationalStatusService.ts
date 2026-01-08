@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { OperationalStatusDTO } from '../dto/OperationalStatusDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/common/operational-statuses';
+const BASE_URL = '/network/common/operational-statuses';
 
 export class OperationalStatusService {
   /**
    * Get all operational statuses with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<OperationalStatusDTO>> {
-    const response = await apiClient.get<Page<OperationalStatusDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<OperationalStatusDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class OperationalStatusService {
    * Get all operational statuses without pagination
    */
   static async getAllNoPagination(): Promise<OperationalStatusDTO[]> {
-    const response = await apiClient.get<OperationalStatusDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<OperationalStatusDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class OperationalStatusService {
    * Get operational status by ID
    */
   static async getById(id: number): Promise<OperationalStatusDTO> {
-    const response = await apiClient.get<OperationalStatusDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<OperationalStatusDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class OperationalStatusService {
    * Validates that code and designationFr don't already exist
    */
   static async create(dto: OperationalStatusDTO): Promise<OperationalStatusDTO> {
-    const response = await apiClient.post<OperationalStatusDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<OperationalStatusDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class OperationalStatusService {
    * Validates that code and designationFr don't exist for other records
    */
   static async update(id: number, dto: OperationalStatusDTO): Promise<OperationalStatusDTO> {
-    const response = await apiClient.put<OperationalStatusDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<OperationalStatusDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class OperationalStatusService {
    * Delete operational status by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class OperationalStatusService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<OperationalStatusDTO>> {
-    const response = await apiClient.get<Page<OperationalStatusDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<OperationalStatusDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

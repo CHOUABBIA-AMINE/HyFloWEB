@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { PartnerDTO } from '../dto/PartnerDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/common/partners';
+const BASE_URL = '/network/common/partners';
 
 export class PartnerService {
   /**
    * Get all partners with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<PartnerDTO>> {
-    const response = await apiClient.get<Page<PartnerDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<PartnerDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class PartnerService {
    * Get partner by ID
    */
   static async getById(id: number): Promise<PartnerDTO> {
-    const response = await apiClient.get<PartnerDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<PartnerDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -45,7 +45,7 @@ export class PartnerService {
    * Validates that shortName doesn't already exist
    */
   static async create(dto: PartnerDTO): Promise<PartnerDTO> {
-    const response = await apiClient.post<PartnerDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<PartnerDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -54,7 +54,7 @@ export class PartnerService {
    * Validates that shortName doesn't exist for other records
    */
   static async update(id: number, dto: PartnerDTO): Promise<PartnerDTO> {
-    const response = await apiClient.put<PartnerDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<PartnerDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class PartnerService {
    * Delete partner by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -72,7 +72,7 @@ export class PartnerService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<PartnerDTO>> {
-    const response = await apiClient.get<Page<PartnerDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<PartnerDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

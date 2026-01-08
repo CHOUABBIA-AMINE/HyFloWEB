@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { LocationDTO } from '../dto/LocationDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/localization/locations';
+const BASE_URL = '/general/localization/locations';
 
 export class LocationService {
   /**
    * Get all locations with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<LocationDTO>> {
-    const response = await apiClient.get<Page<LocationDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<LocationDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class LocationService {
    * Get all locations without pagination
    */
   static async getAllNoPagination(): Promise<LocationDTO[]> {
-    const response = await apiClient.get<LocationDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<LocationDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class LocationService {
    * Get location by ID
    */
   static async getById(id: number): Promise<LocationDTO> {
-    const response = await apiClient.get<LocationDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<LocationDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class LocationService {
    * Backend logs: "Creating location: code={placeName}"
    */
   static async create(dto: LocationDTO): Promise<LocationDTO> {
-    const response = await apiClient.post<LocationDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<LocationDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class LocationService {
    * Backend logs: "Updating location with ID: {id}"
    */
   static async update(id: number, dto: LocationDTO): Promise<LocationDTO> {
-    const response = await apiClient.put<LocationDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<LocationDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class LocationService {
    * Delete location by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class LocationService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<LocationDTO>> {
-    const response = await apiClient.get<Page<LocationDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<LocationDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -95,7 +95,7 @@ export class LocationService {
    * Find locations by locality ID
    */
   static async findByLocality(localityId: number): Promise<LocationDTO[]> {
-    const response = await apiClient.get<LocationDTO[]>(`${BASE_URL}/by-locality/${localityId}`);
+    const response = await axiosInstance.get<LocationDTO[]>(`${BASE_URL}/by-locality/${localityId}`);
     return response.data;
   }
 }

@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { StructureTypeDTO } from '../dto/StructureTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/type/structure-types';
+const BASE_URL = '/general/type/structure-types';
 
 export class StructureTypeService {
   /**
    * Get all structure types with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<StructureTypeDTO>> {
-    const response = await apiClient.get<Page<StructureTypeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<StructureTypeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class StructureTypeService {
    * Get all structure types without pagination
    */
   static async getAllNoPagination(): Promise<StructureTypeDTO[]> {
-    const response = await apiClient.get<StructureTypeDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<StructureTypeDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class StructureTypeService {
    * Get structure type by ID
    */
   static async getById(id: number): Promise<StructureTypeDTO> {
-    const response = await apiClient.get<StructureTypeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<StructureTypeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class StructureTypeService {
    * Create new structure type
    */
   static async create(dto: StructureTypeDTO): Promise<StructureTypeDTO> {
-    const response = await apiClient.post<StructureTypeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<StructureTypeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class StructureTypeService {
    * Update existing structure type
    */
   static async update(id: number, dto: StructureTypeDTO): Promise<StructureTypeDTO> {
-    const response = await apiClient.put<StructureTypeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<StructureTypeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -68,7 +68,7 @@ export class StructureTypeService {
    * Delete structure type by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -78,7 +78,7 @@ export class StructureTypeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<StructureTypeDTO>> {
-    const response = await apiClient.get<Page<StructureTypeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<StructureTypeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

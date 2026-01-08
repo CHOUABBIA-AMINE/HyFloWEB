@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { InfrastructureDTO } from '../dto/InfrastructureDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/core/infrastructures';
+const BASE_URL = '/network/core/infrastructures';
 
 export class InfrastructureService {
   /**
    * Get all infrastructures with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<InfrastructureDTO>> {
-    const response = await apiClient.get<Page<InfrastructureDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<InfrastructureDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class InfrastructureService {
    * Get all infrastructures without pagination
    */
   static async getAllNoPagination(): Promise<InfrastructureDTO[]> {
-    const response = await apiClient.get<InfrastructureDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<InfrastructureDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class InfrastructureService {
    * Get infrastructure by ID
    */
   static async getById(id: number): Promise<InfrastructureDTO> {
-    const response = await apiClient.get<InfrastructureDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<InfrastructureDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class InfrastructureService {
    * Validates that code doesn't already exist
    */
   static async create(dto: InfrastructureDTO): Promise<InfrastructureDTO> {
-    const response = await apiClient.post<InfrastructureDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<InfrastructureDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class InfrastructureService {
    * Validates that code doesn't exist for other records
    */
   static async update(id: number, dto: InfrastructureDTO): Promise<InfrastructureDTO> {
-    const response = await apiClient.put<InfrastructureDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<InfrastructureDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class InfrastructureService {
    * Delete infrastructure by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class InfrastructureService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<InfrastructureDTO>> {
-    const response = await apiClient.get<Page<InfrastructureDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<InfrastructureDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

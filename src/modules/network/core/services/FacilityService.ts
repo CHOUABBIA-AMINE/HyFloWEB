@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { FacilityDTO } from '../dto/FacilityDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/core/facilities';
+const BASE_URL = '/network/core/facilities';
 
 export class FacilityService {
   /**
    * Get all facilities with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<FacilityDTO>> {
-    const response = await apiClient.get<Page<FacilityDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<FacilityDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class FacilityService {
    * Get all facilities without pagination
    */
   static async getAllNoPagination(): Promise<FacilityDTO[]> {
-    const response = await apiClient.get<FacilityDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<FacilityDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class FacilityService {
    * Get facility by ID
    */
   static async getById(id: number): Promise<FacilityDTO> {
-    const response = await apiClient.get<FacilityDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<FacilityDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class FacilityService {
    * Validates that code doesn't already exist
    */
   static async create(dto: FacilityDTO): Promise<FacilityDTO> {
-    const response = await apiClient.post<FacilityDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<FacilityDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class FacilityService {
    * Validates that code doesn't exist for other records
    */
   static async update(id: number, dto: FacilityDTO): Promise<FacilityDTO> {
-    const response = await apiClient.put<FacilityDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<FacilityDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class FacilityService {
    * Delete facility by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class FacilityService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<FacilityDTO>> {
-    const response = await apiClient.get<Page<FacilityDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<FacilityDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -95,7 +95,7 @@ export class FacilityService {
    * Find facilities by infrastructure
    */
   static async findByInfrastructure(infrastructureId: number): Promise<FacilityDTO[]> {
-    const response = await apiClient.get<FacilityDTO[]>(
+    const response = await axiosInstance.get<FacilityDTO[]>(
       `${BASE_URL}/by-infrastructure/${infrastructureId}`
     );
     return response.data;

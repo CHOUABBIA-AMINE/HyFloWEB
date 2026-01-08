@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { TerminalDTO } from '../dto/TerminalDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/core/terminals';
+const BASE_URL = '/network/core/terminals';
 
 export class TerminalService {
   /**
    * Get all terminals with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<TerminalDTO>> {
-    const response = await apiClient.get<Page<TerminalDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<TerminalDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class TerminalService {
    * Get all terminals without pagination
    */
   static async getAllNoPagination(): Promise<TerminalDTO[]> {
-    const response = await apiClient.get<TerminalDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<TerminalDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class TerminalService {
    * Get terminal by ID
    */
   static async getById(id: number): Promise<TerminalDTO> {
-    const response = await apiClient.get<TerminalDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<TerminalDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class TerminalService {
    * Validates that code doesn't already exist
    */
   static async create(dto: TerminalDTO): Promise<TerminalDTO> {
-    const response = await apiClient.post<TerminalDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<TerminalDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class TerminalService {
    * Validates that code doesn't exist for other records
    */
   static async update(id: number, dto: TerminalDTO): Promise<TerminalDTO> {
-    const response = await apiClient.put<TerminalDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<TerminalDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class TerminalService {
    * Delete terminal by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class TerminalService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<TerminalDTO>> {
-    const response = await apiClient.get<Page<TerminalDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<TerminalDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

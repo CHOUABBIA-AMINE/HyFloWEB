@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { StationTypeDTO } from '../dto/StationTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/type/station-types';
+const BASE_URL = '/network/type/station-types';
 
 export class StationTypeService {
   /**
    * Get all station types with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<StationTypeDTO>> {
-    const response = await apiClient.get<Page<StationTypeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<StationTypeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class StationTypeService {
    * Get station type by ID
    */
   static async getById(id: number): Promise<StationTypeDTO> {
-    const response = await apiClient.get<StationTypeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<StationTypeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class StationTypeService {
    * Create new station type
    */
   static async create(dto: StationTypeDTO): Promise<StationTypeDTO> {
-    const response = await apiClient.post<StationTypeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<StationTypeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class StationTypeService {
    * Update existing station type
    */
   static async update(id: number, dto: StationTypeDTO): Promise<StationTypeDTO> {
-    const response = await apiClient.put<StationTypeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<StationTypeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class StationTypeService {
    * Delete station type by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -70,7 +70,7 @@ export class StationTypeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<StationTypeDTO>> {
-    const response = await apiClient.get<Page<StationTypeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<StationTypeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

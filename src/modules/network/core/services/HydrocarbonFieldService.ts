@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { HydrocarbonFieldDTO } from '../dto/HydrocarbonFieldDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/core/hydrocarbon-fields';
+const BASE_URL = '/network/core/hydrocarbon-fields';
 
 export class HydrocarbonFieldService {
   /**
    * Get all hydrocarbon fields with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<HydrocarbonFieldDTO>> {
-    const response = await apiClient.get<Page<HydrocarbonFieldDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<HydrocarbonFieldDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class HydrocarbonFieldService {
    * Get all hydrocarbon fields without pagination
    */
   static async getAllNoPagination(): Promise<HydrocarbonFieldDTO[]> {
-    const response = await apiClient.get<HydrocarbonFieldDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<HydrocarbonFieldDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class HydrocarbonFieldService {
    * Get hydrocarbon field by ID
    */
   static async getById(id: number): Promise<HydrocarbonFieldDTO> {
-    const response = await apiClient.get<HydrocarbonFieldDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<HydrocarbonFieldDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class HydrocarbonFieldService {
    * Validates that code doesn't already exist
    */
   static async create(dto: HydrocarbonFieldDTO): Promise<HydrocarbonFieldDTO> {
-    const response = await apiClient.post<HydrocarbonFieldDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<HydrocarbonFieldDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class HydrocarbonFieldService {
    * Validates that code doesn't exist for other records
    */
   static async update(id: number, dto: HydrocarbonFieldDTO): Promise<HydrocarbonFieldDTO> {
-    const response = await apiClient.put<HydrocarbonFieldDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<HydrocarbonFieldDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class HydrocarbonFieldService {
    * Delete hydrocarbon field by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class HydrocarbonFieldService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<HydrocarbonFieldDTO>> {
-    const response = await apiClient.get<Page<HydrocarbonFieldDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<HydrocarbonFieldDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,

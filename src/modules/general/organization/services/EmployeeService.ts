@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { EmployeeDTO } from '../dto/EmployeeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/general/organization/employees';
+const BASE_URL = '/general/organization/employees';
 
 export class EmployeeService {
   /**
    * Get all employees with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<EmployeeDTO>> {
-    const response = await apiClient.get<Page<EmployeeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<EmployeeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class EmployeeService {
    * Get all employees without pagination
    */
   static async getAllNoPagination(): Promise<EmployeeDTO[]> {
-    const response = await apiClient.get<EmployeeDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<EmployeeDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class EmployeeService {
    * Get employee by ID
    */
   static async getById(id: number): Promise<EmployeeDTO> {
-    const response = await apiClient.get<EmployeeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<EmployeeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class EmployeeService {
    * Backend logs: "Creating employee: registrationNumber={registrationNumber}"
    */
   static async create(dto: EmployeeDTO): Promise<EmployeeDTO> {
-    const response = await apiClient.post<EmployeeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<EmployeeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class EmployeeService {
    * Backend logs: "Updating employee with ID: {id}"
    */
   static async update(id: number, dto: EmployeeDTO): Promise<EmployeeDTO> {
-    const response = await apiClient.put<EmployeeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<EmployeeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class EmployeeService {
    * Delete employee by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class EmployeeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<EmployeeDTO>> {
-    const response = await apiClient.get<Page<EmployeeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<EmployeeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -96,7 +96,7 @@ export class EmployeeService {
    * Finds employees whose job belongs to the specified structure
    */
   static async getByStructureId(structureId: number): Promise<EmployeeDTO[]> {
-    const response = await apiClient.get<EmployeeDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
+    const response = await axiosInstance.get<EmployeeDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
     return response.data;
   }
 }

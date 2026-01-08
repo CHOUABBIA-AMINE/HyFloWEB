@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { EquipmentDTO } from '../dto/EquipmentDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/core/equipment';
+const BASE_URL = '/network/core/equipment';
 
 export class EquipmentService {
   /**
    * Get all equipment with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<EquipmentDTO>> {
-    const response = await apiClient.get<Page<EquipmentDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<EquipmentDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class EquipmentService {
    * Get all equipment without pagination
    */
   static async getAllNoPagination(): Promise<EquipmentDTO[]> {
-    const response = await apiClient.get<EquipmentDTO[]>(`${BASE_URL}/all`);
+    const response = await axiosInstance.get<EquipmentDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class EquipmentService {
    * Get equipment by ID
    */
   static async getById(id: number): Promise<EquipmentDTO> {
-    const response = await apiClient.get<EquipmentDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<EquipmentDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -53,7 +53,7 @@ export class EquipmentService {
    * Validates that code and serialNumber don't already exist
    */
   static async create(dto: EquipmentDTO): Promise<EquipmentDTO> {
-    const response = await apiClient.post<EquipmentDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<EquipmentDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -62,7 +62,7 @@ export class EquipmentService {
    * Validates that code and serialNumber don't exist for other records
    */
   static async update(id: number, dto: EquipmentDTO): Promise<EquipmentDTO> {
-    const response = await apiClient.put<EquipmentDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<EquipmentDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -70,7 +70,7 @@ export class EquipmentService {
    * Delete equipment by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -80,7 +80,7 @@ export class EquipmentService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<EquipmentDTO>> {
-    const response = await apiClient.get<Page<EquipmentDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<EquipmentDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
@@ -95,7 +95,7 @@ export class EquipmentService {
    * Find equipment by facility
    */
   static async findByFacility(facilityId: number): Promise<EquipmentDTO[]> {
-    const response = await apiClient.get<EquipmentDTO[]>(
+    const response = await axiosInstance.get<EquipmentDTO[]>(
       `${BASE_URL}/by-facility/${facilityId}`
     );
     return response.data;
@@ -105,7 +105,7 @@ export class EquipmentService {
    * Find equipment by equipment type
    */
   static async findByEquipmentType(typeId: number): Promise<EquipmentDTO[]> {
-    const response = await apiClient.get<EquipmentDTO[]>(
+    const response = await axiosInstance.get<EquipmentDTO[]>(
       `${BASE_URL}/by-equipment-type/${typeId}`
     );
     return response.data;

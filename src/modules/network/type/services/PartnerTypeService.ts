@@ -11,18 +11,18 @@
  * @updated 01-02-2026
  */
 
-import { apiClient } from '@/lib/api-client';
+import axiosInstance from '@/shared/config/axios';
 import type { PartnerTypeDTO } from '../dto/PartnerTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/api/network/type/partner-types';
+const BASE_URL = '/network/type/partner-types';
 
 export class PartnerTypeService {
   /**
    * Get all partner types with pagination
    */
   static async getAll(pageable: Pageable): Promise<Page<PartnerTypeDTO>> {
-    const response = await apiClient.get<Page<PartnerTypeDTO>>(BASE_URL, {
+    const response = await axiosInstance.get<Page<PartnerTypeDTO>>(BASE_URL, {
       params: {
         page: pageable.page,
         size: pageable.size,
@@ -36,7 +36,7 @@ export class PartnerTypeService {
    * Get partner type by ID
    */
   static async getById(id: number): Promise<PartnerTypeDTO> {
-    const response = await apiClient.get<PartnerTypeDTO>(`${BASE_URL}/${id}`);
+    const response = await axiosInstance.get<PartnerTypeDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -44,7 +44,7 @@ export class PartnerTypeService {
    * Create new partner type
    */
   static async create(dto: PartnerTypeDTO): Promise<PartnerTypeDTO> {
-    const response = await apiClient.post<PartnerTypeDTO>(BASE_URL, dto);
+    const response = await axiosInstance.post<PartnerTypeDTO>(BASE_URL, dto);
     return response.data;
   }
 
@@ -52,7 +52,7 @@ export class PartnerTypeService {
    * Update existing partner type
    */
   static async update(id: number, dto: PartnerTypeDTO): Promise<PartnerTypeDTO> {
-    const response = await apiClient.put<PartnerTypeDTO>(`${BASE_URL}/${id}`, dto);
+    const response = await axiosInstance.put<PartnerTypeDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
 
@@ -60,7 +60,7 @@ export class PartnerTypeService {
    * Delete partner type by ID
    */
   static async delete(id: number): Promise<void> {
-    await apiClient.delete(`${BASE_URL}/${id}`);
+    await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
 
   /**
@@ -70,7 +70,7 @@ export class PartnerTypeService {
     searchTerm: string,
     pageable: Pageable
   ): Promise<Page<PartnerTypeDTO>> {
-    const response = await apiClient.get<Page<PartnerTypeDTO>>(`${BASE_URL}/search`, {
+    const response = await axiosInstance.get<Page<PartnerTypeDTO>>(`${BASE_URL}/search`, {
       params: {
         q: searchTerm,
         page: pageable.page,
