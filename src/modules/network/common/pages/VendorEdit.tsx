@@ -4,6 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed to match VendorDTO schema
+ * @updated 01-09-2026 - Fixed DTO field names in select fields
  */
 
 import { useState, useEffect } from 'react';
@@ -235,7 +236,7 @@ const VendorEdit = () => {
                   >
                     {vendorTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
-                        {type.nameEn || type.nameAr || type.nameFr}
+                        {type.designationEn || type.designationAr || type.designationFr}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -254,7 +255,7 @@ const VendorEdit = () => {
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
-                        {country.nameEn || country.nameAr || country.nameFr}
+                        {country.designationEn || country.designationAr || country.designationFr}
                       </MenuItem>
                     ))}
                   </TextField>
