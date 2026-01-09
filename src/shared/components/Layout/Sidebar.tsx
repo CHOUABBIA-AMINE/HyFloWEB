@@ -11,6 +11,7 @@
  * @updated 01-01-2026 - Added Workspace + Home translations
  * @updated 01-01-2026 - Moved Dashboard/Map under Workspace
  * @updated 01-06-2026 - Added Pipeline Map entry under Workspace
+ * @updated 01-09-2026 - Restructured menu: Created General section, moved Organization & Localization from Network
  */
 
 import {
@@ -41,15 +42,7 @@ import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FactoryIcon from '@mui/icons-material/Factory';
 import OilBarrelIcon from '@mui/icons-material/OilBarrel';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
-import ViewListIcon from '@mui/icons-material/ViewList';
-import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
-import ApartmentIcon from '@mui/icons-material/Apartment';
-import NatureIcon from '@mui/icons-material/Nature';
-import MailIcon from '@mui/icons-material/Mail';
-import ContactMailIcon from '@mui/icons-material/ContactMail';
-import LayersIcon from '@mui/icons-material/Layers';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import BadgeIcon from '@mui/icons-material/Badge';
 import HomeIcon from '@mui/icons-material/Home';
@@ -57,6 +50,7 @@ import WorkspacesIcon from '@mui/icons-material/Workspaces';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import MapIcon from '@mui/icons-material/Map';
 import TimelineIcon from '@mui/icons-material/Timeline';
+import AppsIcon from '@mui/icons-material/Apps';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -83,10 +77,9 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Top-level order: Home page, Workspace, Common, Business, Network, System
-  // Workspace: Network Dashboard + Infrastructure Map + Pipeline Map (product-based visualization)
-  // Network/Common: keep Product, Region, Partner, Vendor
-  // Network/Core: keep PipelineSystem, Pipeline, HydrocarbonField, Station, Terminal
+  // Top-level order: Home, Workspace, General, Network, System
+  // General: Organization (Structures, Employees) + Localization (Locations)
+  // Network: Common (Products, Regions, Partners, Vendors) + Core (Pipeline systems, infrastructure)
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -115,10 +108,10 @@ const Sidebar = ({ open }: SidebarProps) => {
       ],
     },
     {
-      titleKey: 'nav.network',
-      icon: <NetworkCheckIcon />,
+      titleKey: 'nav.general',
+      icon: <AppsIcon />,
       children: [
-		{
+        {
           titleKey: 'nav.organization',
           icon: <AdminPanelSettingsIcon />,
           children: [
@@ -134,17 +127,23 @@ const Sidebar = ({ open }: SidebarProps) => {
             },
           ],
         },
-		{
+        {
           titleKey: 'nav.localization',
-          icon: <AdminPanelSettingsIcon />,
+          icon: <LocationOnIcon />,
           children: [
             {
               titleKey: 'nav.locations',
-              icon: <CorporateFareIcon />,
+              icon: <LocationOnIcon />,
               path: '/localization/locations',
-            }
+            },
           ],
         },
+      ],
+    },
+    {
+      titleKey: 'nav.network',
+      icon: <NetworkCheckIcon />,
+      children: [
         {
           titleKey: 'nav.common',
           icon: <PublicIcon />,
