@@ -7,6 +7,7 @@
  * @updated 01-08-2026 - Added structureId filter support for embedding
  * @updated 01-08-2026 - Added multilanguage support for designations
  * @updated 01-09-2026 - Aligned header styling with StructureList
+ * @updated 01-09-2026 - Matched DataGrid column header styling with StructureList
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -22,6 +23,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -269,6 +271,17 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
             borderColor: 'divider',
             '& .MuiDataGrid-cell:focus': {
               outline: 'none',
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: alpha('#2563eb', 0.04),
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: alpha('#2563eb', 0.05),
+              borderBottom: 2,
+              borderColor: 'divider',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 600,
             },
           }}
         />
