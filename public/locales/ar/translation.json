@@ -45,5 +45,19 @@
     "createError": "فشل إنشاء الهيكل",
     "updateSuccess": "تم تحديث الهيكل بنجاح",
     "updateError": "فشل تحديث الهيكل"
+  },
+  "employee": {
+    "title": "الموظفون",
+    "subtitle": "إدارة سجلات ومعلومات الموظفين",
+    "searchPlaceholder": "البحث برقم التسجيل أو الاسم...",
+    "registrationNumber": "رقم التسجيل",
+    "lastNameLt": "اللقب",
+    "firstNameLt": "الاسم الأول",
+    "birthDate": "تاريخ الميلاد",
+    "create": "إنشاء موظف",
+    "confirmDelete": "حذف هذا الموظف؟",
+    "deleteSuccess": "تم حذف الموظف بنجاح",
+    "deleteError": "فشل حذف الموظف",
+    "errorLoading": "فشل تحميل الموظفين"
   }
 }
