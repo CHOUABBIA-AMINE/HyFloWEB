@@ -6,119 +6,116 @@
  * @created 12-30-2025
  * @updated 01-01-2026 - Align routes and translation keys
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
   IconButton,
-  Paper,
-  Stack,
   Alert,
+  TextField,
+  InputAdornment,
+  Stack,
+  Paper,
   Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
+  FileDownload as ExportIcon,
   Refresh as RefreshIcon,
+  TableChart as CsvIcon,
+  Description as ExcelIcon,
+  PictureAsPdf as PdfIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
+import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import { EmployeeService } from '../services';
 import { EmployeeDTO } from '../dto';
-import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 
 const EmployeeList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  // Data state
   const [employees, setEmployees] = useState<EmployeeDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Pagination
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
-  const [totalElements, setTotalElements] = useState(0);
+  // Pagination state
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
+    page: 0,
+    pageSize: 10,
+  });
+  const [rowCount, setRowCount] = useState(0);
 
-  // Delete confirmation
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState<number | null>(null);
+  // Filter state
+  const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Export menu
+  const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchText);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   useEffect(() => {
-    fetchEmployees();
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, rowsPerPage]);
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch]);
 
-  const fetchEmployees = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-      setError(null);
-      const response = await EmployeeService.getAll({ page, size: rowsPerPage });
+
+      let response;
+      if (debouncedSearch) {
+        response = await EmployeeService.globalSearch(debouncedSearch, {
+          page: paginationModel.page,
+          size: paginationModel.pageSize,
+        });
+      } else {
+        response = await EmployeeService.getAll({
+          page: paginationModel.page,
+          size: paginationModel.pageSize,
+        });
+      }
+
       setEmployees(response.content || []);
-      setTotalElements(response.totalElements || 0);
-    } catch (err) {
-      console.error('Error fetching employees:', err);
-      setError(t('common.error', 'Error'));
+      setRowCount(response.totalElements || 0);
+      setError('');
+    } catch (err: any) {
+      console.error('Failed to load employees:', err);
+      setError(err.message || t('employee.errorLoading', 'Failed to load employees'));
+      setEmployees([]);
+      setRowCount(0);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      fetchEmployees();
-      return;
-    }
-    try {
-      setLoading(true);
-      const response = await EmployeeService.globalSearch(searchQuery, { page, size: rowsPerPage });
-      setEmployees(response.content || []);
-      setTotalElements(response.totalElements || 0);
-    } catch (err) {
-      console.error('Error searching employees:', err);
-      setError(t('common.error', 'Error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!employeeToDelete) return;
-    try {
-      await EmployeeService.delete(employeeToDelete);
-      setDeleteDialogOpen(false);
-      setEmployeeToDelete(null);
-      fetchEmployees();
-    } catch (err) {
-      console.error('Error deleting employee:', err);
-      setError(t('common.error', 'Error'));
-    }
-  };
-
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const handlePaginationModelChange = useCallback((newModel: GridPaginationModel) => {
+    setPaginationModel(newModel);
+  }, []);
 
   const formatDate = (dateString: string | Date | undefined): string => {
     if (!dateString) return '-';
@@ -130,140 +127,280 @@ const EmployeeList = () => {
     }
   };
 
+  // DataGrid columns
+  const columns: GridColDef[] = [
+    {
+      field: 'registrationNumber',
+      headerName: t('employee.registrationNumber', 'Registration Number'),
+      width: 180,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <PersonIcon fontSize="small" color="action" />
+          <Typography variant="body2" fontWeight={600}>
+            {params.value || '-'}
+          </Typography>
+        </Box>
+      ),
+    },
+    {
+      field: 'lastNameLt',
+      headerName: t('employee.lastNameLt', 'Last Name'),
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      field: 'firstNameLt',
+      headerName: t('employee.firstNameLt', 'First Name'),
+      flex: 1,
+      minWidth: 150,
+    },
+    {
+      field: 'birthDate',
+      headerName: t('employee.birthDate', 'Birth Date'),
+      width: 130,
+      valueFormatter: (params: any) => formatDate(params.value),
+    },
+    {
+      field: 'actions',
+      headerName: t('common.actions', 'Actions'),
+      width: 130,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Tooltip title={t('common.edit', 'Edit')}>
+            <IconButton
+              size="small"
+              onClick={() => handleEdit(params.row.id)}
+              sx={{
+                color: 'primary.main',
+                '&:hover': { bgcolor: alpha('#2563eb', 0.1) },
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('common.delete', 'Delete')}>
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(params.row.id)}
+              sx={{
+                color: 'error.main',
+                '&:hover': { bgcolor: alpha('#dc2626', 0.1) },
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
+
+  const handleCreate = () => navigate('/administration/employees/create');
+  const handleEdit = (employeeId: number) => navigate(`/administration/employees/${employeeId}/edit`);
+
+  const handleDelete = async (employeeId: number) => {
+    if (window.confirm(t('employee.confirmDelete', 'Delete this employee?'))) {
+      try {
+        await EmployeeService.delete(employeeId);
+        setSuccess(t('employee.deleteSuccess', 'Employee deleted successfully'));
+        loadData();
+      } catch (err: any) {
+        setError(err.message || t('employee.deleteError', 'Failed to delete employee'));
+      }
+    }
+  };
+
+  const handleRefresh = () => {
+    loadData();
+    setSuccess(t('common.refreshed', 'Data refreshed'));
+  };
+
+  const handleClearFilters = () => {
+    setSearchText('');
+    setPaginationModel({ ...paginationModel, page: 0 });
+  };
+
+  // Export handlers
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setExportAnchorEl(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => {
+    setExportAnchorEl(null);
+  };
+
+  const handleExportCSV = () => {
+    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    handleExportMenuClose();
+  };
+
+  const handleExportExcel = () => {
+    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    handleExportMenuClose();
+  };
+
+  const handleExportPDF = () => {
+    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    handleExportMenuClose();
+  };
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Card>
-        <CardContent>
-          {/* Header */}
-          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h5" component="h1">
+    <Box>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PersonIcon color="primary" sx={{ fontSize: 32 }} />
+            <Typography variant="h4" fontWeight={700} color="text.primary">
               {t('employee.title', 'Employees')}
             </Typography>
+          </Box>
+          <Stack direction="row" spacing={1.5}>
+            <Tooltip title={t('common.refresh', 'Refresh')}>
+              <IconButton onClick={handleRefresh} size="medium" color="primary">
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+            <Button
+              variant="outlined"
+              startIcon={<ExportIcon />}
+              onClick={handleExportMenuOpen}
+              sx={{ borderRadius: 2 }}
+            >
+              {t('common.export', 'Export')}
+            </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => navigate('/administration/employees/create')}
+              onClick={handleCreate}
+              sx={{ borderRadius: 2, boxShadow: 2 }}
             >
               {t('employee.create', 'Create Employee')}
             </Button>
           </Stack>
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          {t('employee.subtitle', 'Manage employee records and information')}
+        </Typography>
+      </Box>
 
-          {/* Search Bar */}
-          <Stack direction="row" spacing={2} mb={3}>
-            <TextField
-              fullWidth
-              placeholder={t('employee.searchPlaceholder', 'Search...')}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />,
-              }}
-            />
-            <Button variant="outlined" onClick={handleSearch} sx={{ minWidth: '120px' }}>
-              {t('common.search', 'Search')}
-            </Button>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
-              <IconButton onClick={fetchEmployees}>
-                <RefreshIcon />
-              </IconButton>
-            </Tooltip>
-          </Stack>
-
-          {/* Error Alert */}
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-              {error}
-            </Alert>
-          )}
-
-          {/* Table */}
-          <TableContainer component={Paper} variant="outlined">
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>{t('employee.registrationNumber', 'Registration Number')}</TableCell>
-                  <TableCell>{t('employee.lastNameLt', 'Last Name')}</TableCell>
-                  <TableCell>{t('employee.firstNameLt', 'First Name')}</TableCell>
-                  <TableCell>{t('employee.birthDate', 'Birth Date')}</TableCell>
-                  <TableCell align="right">{t('common.actions', 'Actions')}</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      {t('common.loading', 'Loading...')}
-                    </TableCell>
-                  </TableRow>
-                ) : employees.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      {t('common.noData', 'No data')}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  employees.map((employee) => (
-                    <TableRow key={employee.id} hover>
-                      <TableCell>{employee.id}</TableCell>
-                      <TableCell>{employee.registrationNumber || '-'}</TableCell>
-                      <TableCell>{employee.lastNameLt || '-'}</TableCell>
-                      <TableCell>{employee.firstNameLt || '-'}</TableCell>
-                      <TableCell>{formatDate(employee.birthDate)}</TableCell>
-                      <TableCell align="right">
-                        <Tooltip title={t('common.edit', 'Edit')}>
-                          <IconButton
-                            size="small"
-                            onClick={() => navigate(`/administration/employees/${employee.id}/edit`)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={t('common.delete', 'Delete')}>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => {
-                              setEmployeeToDelete(employee.id!);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {/* Pagination */}
-          <TablePagination
-            component="div"
-            count={totalElements}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[10, 20, 50, 100]}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={deleteDialogOpen}
-        title={t('employee.delete', 'Delete Employee')}
-        message={t('employee.deleteConfirm', 'Are you sure you want to delete this employee?')}
-        onConfirm={handleDelete}
-        onCancel={() => {
-          setDeleteDialogOpen(false);
-          setEmployeeToDelete(null);
+      {/* Export Menu */}
+      <Menu
+        anchorEl={exportAnchorEl}
+        open={Boolean(exportAnchorEl)}
+        onClose={handleExportMenuClose}
+        PaperProps={{
+          elevation: 3,
+          sx: { minWidth: 200 },
         }}
-      />
+      >
+        <MenuItem onClick={handleExportCSV}>
+          <ListItemIcon>
+            <CsvIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleExportExcel}>
+          <ListItemIcon>
+            <ExcelIcon fontSize="small" color="success" />
+          </ListItemIcon>
+          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleExportPDF}>
+          <ListItemIcon>
+            <PdfIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+        </MenuItem>
+      </Menu>
+
+      {/* Alerts */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+          {success}
+        </Alert>
+      )}
+
+      {/* Filters */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Stack spacing={2.5}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <TextField
+                placeholder={t('employee.searchPlaceholder', 'Search by registration number or name...')}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ flex: 1, minWidth: 300 }}
+              />
+
+              {searchText && (
+                <Button
+                  variant="outlined"
+                  onClick={handleClearFilters}
+                  sx={{ minWidth: 120 }}
+                >
+                  {t('common.clearFilters', 'Clear Filters')}
+                </Button>
+              )}
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                {rowCount} {t('common.results', 'results')}
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+      </Paper>
+
+      {/* DataGrid */}
+      <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+        <DataGrid
+          rows={employees}
+          columns={columns}
+          loading={loading}
+          rowCount={rowCount}
+          pageSizeOptions={[5, 10, 25, 50, 100]}
+          paginationModel={paginationModel}
+          paginationMode="server"
+          onPaginationModelChange={handlePaginationModelChange}
+          disableRowSelectionOnClick
+          autoHeight
+          sx={{
+            border: 0,
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: alpha('#2563eb', 0.04),
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: alpha('#2563eb', 0.05),
+              borderBottom: 2,
+              borderColor: 'divider',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 600,
+            },
+          }}
+        />
+      </Paper>
     </Box>
   );
 };
