@@ -4,6 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 12-28-2025
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @updated 01-10-2026 - Aligned table header design with StructureList
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -21,6 +22,8 @@ import {
   Paper,
   Divider,
   Chip,
+  Tooltip,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -153,14 +156,32 @@ const VendorList = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          <IconButton size="small" color="primary" onClick={() => navigate(`/network/common/vendors/${params.row.id}/edit`)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Stack>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Tooltip title="Edit">
+            <IconButton
+              size="small"
+              onClick={() => navigate(`/network/common/vendors/${params.row.id}/edit`)}
+              sx={{
+                color: 'primary.main',
+                '&:hover': { bgcolor: alpha('#2563eb', 0.1) }
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(params.row.id)}
+              sx={{
+                color: 'error.main',
+                '&:hover': { bgcolor: alpha('#dc2626', 0.1) }
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
       ),
     },
   ];
@@ -235,7 +256,23 @@ const VendorList = () => {
             pageSizeOptions={[10, 25, 50, 100]}
             disableRowSelectionOnClick
             autoHeight
-            sx={{ '& .MuiDataGrid-columnHeaders': { bgcolor: 'grey.50' } }}
+            sx={{
+              border: 0,
+              '& .MuiDataGrid-cell:focus': {
+                outline: 'none',
+              },
+              '& .MuiDataGrid-row:hover': {
+                backgroundColor: alpha('#2563eb', 0.04),
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: alpha('#2563eb', 0.05),
+                borderBottom: 2,
+                borderColor: 'divider',
+              },
+              '& .MuiDataGrid-columnHeaderTitle': {
+                fontWeight: 600,
+              },
+            }}
           />
         </Box>
       </Paper>
