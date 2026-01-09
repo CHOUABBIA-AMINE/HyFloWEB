@@ -22,7 +22,8 @@
     "loading": "Loading...",
     "noData": "No data available",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "back": "Back"
   },
   "structure": {
     "title": "Organizational Structures",
@@ -59,5 +60,55 @@
     "deleteSuccess": "Employee deleted successfully",
     "deleteError": "Failed to delete employee",
     "errorLoading": "Failed to load employees"
+  },
+  "product": {
+    "title": "Products",
+    "subtitle": "Manage products with server-side pagination",
+    "id": "ID",
+    "code": "Code",
+    "designation": "Designation",
+    "density": "Density",
+    "isHazardous": "Hazardous",
+    "yes": "Yes",
+    "no": "No",
+    "searchPlaceholder": "Search products...",
+    "clear": "Clear",
+    "create": "Create Product",
+    "confirmDelete": "Delete this product?",
+    "deleteSuccess": "Product deleted successfully",
+    "deleteError": "Failed to delete product",
+    "errorLoading": "Failed to load products"
+  },
+  "partner": {
+    "title": "Partners",
+    "subtitle": "Manage partners with server-side pagination",
+    "id": "ID",
+    "shortName": "Short Name",
+    "name": "Name",
+    "type": "Type",
+    "country": "Country",
+    "searchPlaceholder": "Search partners...",
+    "clear": "Clear",
+    "create": "Create Partner",
+    "confirmDelete": "Delete this partner?",
+    "deleteSuccess": "Partner deleted successfully",
+    "deleteError": "Failed to delete partner",
+    "errorLoading": "Failed to load partners"
+  },
+  "vendor": {
+    "title": "Vendors",
+    "subtitle": "Manage vendors with server-side pagination",
+    "id": "ID",
+    "shortName": "Short Name",
+    "name": "Name",
+    "type": "Type",
+    "country": "Country",
+    "searchPlaceholder": "Search vendors...",
+    "clear": "Clear",
+    "create": "Create Vendor",
+    "confirmDelete": "Delete this vendor?",
+    "deleteSuccess": "Vendor deleted successfully",
+    "deleteError": "Failed to delete vendor",
+    "errorLoading": "Failed to load vendors"
   }
 }

@@ -22,7 +22,8 @@
     "loading": "Chargement...",
     "noData": "Aucune donnée disponible",
     "error": "Erreur",
-    "success": "Succès"
+    "success": "Succès",
+    "back": "Retour"
   },
   "structure": {
     "title": "Structures Organisationnelles",
@@ -59,5 +60,55 @@
     "deleteSuccess": "Employé supprimé avec succès",
     "deleteError": "Échec de la suppression de l'employé",
     "errorLoading": "Échec du chargement des employés"
+  },
+  "product": {
+    "title": "Produits",
+    "subtitle": "Gérer les produits avec pagination côté serveur",
+    "id": "ID",
+    "code": "Code",
+    "designation": "Désignation",
+    "density": "Densité",
+    "isHazardous": "Dangereux",
+    "yes": "Oui",
+    "no": "Non",
+    "searchPlaceholder": "Rechercher des produits...",
+    "clear": "Effacer",
+    "create": "Créer un Produit",
+    "confirmDelete": "Supprimer ce produit ?",
+    "deleteSuccess": "Produit supprimé avec succès",
+    "deleteError": "Échec de la suppression du produit",
+    "errorLoading": "Échec du chargement des produits"
+  },
+  "partner": {
+    "title": "Partenaires",
+    "subtitle": "Gérer les partenaires avec pagination côté serveur",
+    "id": "ID",
+    "shortName": "Nom Court",
+    "name": "Nom",
+    "type": "Type",
+    "country": "Pays",
+    "searchPlaceholder": "Rechercher des partenaires...",
+    "clear": "Effacer",
+    "create": "Créer un Partenaire",
+    "confirmDelete": "Supprimer ce partenaire ?",
+    "deleteSuccess": "Partenaire supprimé avec succès",
+    "deleteError": "Échec de la suppression du partenaire",
+    "errorLoading": "Échec du chargement des partenaires"
+  },
+  "vendor": {
+    "title": "Fournisseurs",
+    "subtitle": "Gérer les fournisseurs avec pagination côté serveur",
+    "id": "ID",
+    "shortName": "Nom Court",
+    "name": "Nom",
+    "type": "Type",
+    "country": "Pays",
+    "searchPlaceholder": "Rechercher des fournisseurs...",
+    "clear": "Effacer",
+    "create": "Créer un Fournisseur",
+    "confirmDelete": "Supprimer ce fournisseur ?",
+    "deleteSuccess": "Fournisseur supprimé avec succès",
+    "deleteError": "Échec de la suppression du fournisseur",
+    "errorLoading": "Échec du chargement des fournisseurs"
   }
 }

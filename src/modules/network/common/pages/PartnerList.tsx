@@ -5,7 +5,7 @@
  * @created 12-28-2025
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Removed ID column and added i18n translations
+ * @updated 01-10-2026 - Added i18n translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -48,7 +48,7 @@ const PartnerList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getTypeLabel = (obj: any): string => {
@@ -73,7 +73,7 @@ const PartnerList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'shortName';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
       const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
 
       const pageable = {
@@ -102,7 +102,7 @@ const PartnerList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('partner.deleteConfirm'))) {
+    if (window.confirm(t('partner.confirmDelete'))) {
       try {
         await PartnerService.delete(id);
         setSuccess(t('partner.deleteSuccess'));
@@ -120,6 +120,7 @@ const PartnerList = () => {
   };
 
   const columns: GridColDef[] = [
+    { field: 'id', headerName: t('partner.id'), width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'shortName',
       headerName: t('partner.shortName'),
@@ -227,7 +228,7 @@ const PartnerList = () => {
             />
 
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleClear} sx={{ whiteSpace: 'nowrap' }}>
-              {t('common.clearFilters')}
+              {t('partner.clear')}
             </Button>
 
             <Button

@@ -5,7 +5,7 @@
  * @created 01-01-2026
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Removed ID column and added i18n translations
+ * @updated 01-10-2026 - Added i18n translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -48,7 +48,7 @@ const ProductList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getDesignation = (product: ProductDTO): string => {
@@ -65,7 +65,7 @@ const ProductList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'code';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
       const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
 
       const pageable = {
@@ -94,7 +94,7 @@ const ProductList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('product.deleteConfirm'))) {
+    if (window.confirm(t('product.confirmDelete'))) {
       try {
         await ProductService.delete(id);
         setSuccess(t('product.deleteSuccess'));
@@ -112,6 +112,7 @@ const ProductList = () => {
   };
 
   const columns: GridColDef[] = [
+    { field: 'id', headerName: t('product.id'), width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'code',
       headerName: t('product.code'),
@@ -128,19 +129,19 @@ const ProductList = () => {
     {
       field: 'density',
       headerName: t('product.density'),
-      width: 120,
+      width: 100,
       align: 'right',
       headerAlign: 'right',
     },
     {
       field: 'isHazardous',
-      headerName: t('product.hazardous'),
-      width: 130,
+      headerName: t('product.isHazardous'),
+      width: 120,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <Chip
-          label={params.value ? t('common.yes') : t('common.no')}
+          label={params.value ? t('product.yes') : t('product.no')}
           size="small"
           color={params.value ? 'error' : 'success'}
           variant="outlined"
@@ -227,7 +228,7 @@ const ProductList = () => {
             />
 
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleClear} sx={{ whiteSpace: 'nowrap' }}>
-              {t('common.clearFilters')}
+              {t('product.clear')}
             </Button>
 
             <Button

@@ -22,7 +22,8 @@
     "loading": "جاري التحميل...",
     "noData": "لا توجد بيانات متاحة",
     "error": "خطأ",
-    "success": "نجاح"
+    "success": "نجاح",
+    "back": "رجوع"
   },
   "structure": {
     "title": "الهياكل التنظيمية",
@@ -59,5 +60,55 @@
     "deleteSuccess": "تم حذف الموظف بنجاح",
     "deleteError": "فشل حذف الموظف",
     "errorLoading": "فشل تحميل الموظفين"
+  },
+  "product": {
+    "title": "المنتجات",
+    "subtitle": "إدارة المنتجات مع الترقيم من جانب الخادم",
+    "id": "المعرف",
+    "code": "الرمز",
+    "designation": "التسمية",
+    "density": "الكثافة",
+    "isHazardous": "خطير",
+    "yes": "نعم",
+    "no": "لا",
+    "searchPlaceholder": "البحث عن منتجات...",
+    "clear": "مسح",
+    "create": "إنشاء منتج",
+    "confirmDelete": "حذف هذا المنتج؟",
+    "deleteSuccess": "تم حذف المنتج بنجاح",
+    "deleteError": "فشل حذف المنتج",
+    "errorLoading": "فشل تحميل المنتجات"
+  },
+  "partner": {
+    "title": "الشركاء",
+    "subtitle": "إدارة الشركاء مع الترقيم من جانب الخادم",
+    "id": "المعرف",
+    "shortName": "الاسم المختصر",
+    "name": "الاسم",
+    "type": "النوع",
+    "country": "البلد",
+    "searchPlaceholder": "البحث عن شركاء...",
+    "clear": "مسح",
+    "create": "إنشاء شريك",
+    "confirmDelete": "حذف هذا الشريك؟",
+    "deleteSuccess": "تم حذف الشريك بنجاح",
+    "deleteError": "فشل حذف الشريك",
+    "errorLoading": "فشل تحميل الشركاء"
+  },
+  "vendor": {
+    "title": "الموردون",
+    "subtitle": "إدارة الموردين مع الترقيم من جانب الخادم",
+    "id": "المعرف",
+    "shortName": "الاسم المختصر",
+    "name": "الاسم",
+    "type": "النوع",
+    "country": "البلد",
+    "searchPlaceholder": "البحث عن موردين...",
+    "clear": "مسح",
+    "create": "إنشاء مورد",
+    "confirmDelete": "حذف هذا المورد؟",
+    "deleteSuccess": "تم حذف المورد بنجاح",
+    "deleteError": "فشل حذف المورد",
+    "errorLoading": "فشل تحميل الموردين"
   }
 }
