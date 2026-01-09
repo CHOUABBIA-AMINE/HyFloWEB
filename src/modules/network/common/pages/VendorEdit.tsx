@@ -4,7 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed to match VendorDTO schema
- * @updated 01-09-2026 - Fixed DTO field names in select fields
+ * @updated 01-09-2026 - Fixed DTO field names and added multilingual support
  */
 
 import { useState, useEffect } from 'react';
@@ -34,7 +34,7 @@ import { CountryService } from '../../../general/localization/services';
 import { VendorDTO } from '../dto';
 
 const VendorEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { vendorId } = useParams<{ vendorId: string }>();
   const isEditMode = !!vendorId;
@@ -87,6 +87,24 @@ const VendorEdit = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Get designation based on current language
+   * Fallback to French if preferred language not available
+   */
+  const getDesignation = (item: any): string => {
+    const lang = i18n.language;
+    
+    if (lang === 'ar' && item.designationAr) {
+      return item.designationAr;
+    }
+    if (lang === 'en' && item.designationEn) {
+      return item.designationEn;
+    }
+    
+    // Fallback to French (required field)
+    return item.designationFr || '';
   };
 
   const validateForm = (): boolean => {
@@ -236,7 +254,7 @@ const VendorEdit = () => {
                   >
                     {vendorTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
-                        {type.designationEn || type.designationAr || type.designationFr}
+                        {getDesignation(type)}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -255,7 +273,7 @@ const VendorEdit = () => {
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
-                        {country.designationEn || country.designationAr || country.designationFr}
+                        {getDesignation(country)}
                       </MenuItem>
                     ))}
                   </TextField>
