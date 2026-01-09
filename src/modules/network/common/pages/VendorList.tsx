@@ -5,6 +5,7 @@
  * @created 12-28-2025
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
+ * @updated 01-10-2026 - Removed ID column and added i18n translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -37,7 +38,7 @@ import { VendorService } from '../services';
 import { VendorDTO } from '../dto/VendorDTO';
 
 const VendorList = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const currentLanguage = i18n.language || 'en';
 
@@ -47,7 +48,7 @@ const VendorList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getTypeLabel = (obj: any): string => {
@@ -72,7 +73,7 @@ const VendorList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'shortName';
       const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
 
       const pageable = {
@@ -89,7 +90,7 @@ const VendorList = () => {
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to load vendors');
+      setError(err.message || t('vendor.errorLoading'));
       setRows([]);
       setTotalRows(0);
     } finally {
@@ -101,14 +102,14 @@ const VendorList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Delete this vendor?')) {
+    if (window.confirm(t('vendor.deleteConfirm'))) {
       try {
         await VendorService.delete(id);
-        setSuccess('Deleted');
+        setSuccess(t('vendor.deleteSuccess'));
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
-        setError(err.message || 'Failed to delete vendor');
+        setError(err.message || t('vendor.deleteError'));
       }
     }
   };
@@ -119,37 +120,36 @@ const VendorList = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'shortName',
-      headerName: 'Short name',
+      headerName: t('vendor.shortName'),
       width: 140,
       renderCell: (params) => <Chip label={params.value || '-'} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
     },
     {
       field: 'name',
-      headerName: 'Name',
+      headerName: t('vendor.name'),
       minWidth: 220,
       flex: 1,
       valueGetter: (p) => p.row.name || '-',
     },
     {
       field: 'vendorType',
-      headerName: 'Type',
+      headerName: t('vendor.type'),
       minWidth: 180,
       flex: 1,
       valueGetter: (p) => getTypeLabel(p.row.vendorType),
     },
     {
       field: 'country',
-      headerName: 'Country',
+      headerName: t('vendor.country'),
       minWidth: 180,
       flex: 1,
       valueGetter: (p) => getCountryLabel(p.row.country),
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('common.actions'),
       width: 130,
       sortable: false,
       filterable: false,
@@ -157,7 +157,7 @@ const VendorList = () => {
       headerAlign: 'center',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title="Edit">
+          <Tooltip title={t('common.edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/common/vendors/${params.row.id}/edit`)}
@@ -169,7 +169,7 @@ const VendorList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title={t('common.delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -190,10 +190,10 @@ const VendorList = () => {
     <Box>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          Vendors
+          {t('vendor.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Manage vendors (server-side pagination).
+          {t('vendor.subtitle')}
         </Typography>
       </Box>
 
@@ -216,7 +216,7 @@ const VendorList = () => {
               fullWidth
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search..."
+              placeholder={t('vendor.searchPlaceholder')}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -227,7 +227,7 @@ const VendorList = () => {
             />
 
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleClear} sx={{ whiteSpace: 'nowrap' }}>
-              Clear
+              {t('common.clearFilters')}
             </Button>
 
             <Button
@@ -236,7 +236,7 @@ const VendorList = () => {
               onClick={() => navigate('/network/common/vendors/create')}
               sx={{ whiteSpace: 'nowrap' }}
             >
-              Create
+              {t('vendor.create')}
             </Button>
           </Stack>
 

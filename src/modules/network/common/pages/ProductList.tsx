@@ -5,6 +5,7 @@
  * @created 01-01-2026
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
+ * @updated 01-10-2026 - Removed ID column and added i18n translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -37,7 +38,7 @@ import { ProductService } from '../services';
 import { ProductDTO } from '../dto/ProductDTO';
 
 const ProductList = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const currentLanguage = i18n.language || 'en';
 
@@ -47,7 +48,7 @@ const ProductList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getDesignation = (product: ProductDTO): string => {
@@ -64,7 +65,7 @@ const ProductList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'code';
       const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
 
       const pageable = {
@@ -81,7 +82,7 @@ const ProductList = () => {
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to load products');
+      setError(err.message || t('product.errorLoading'));
       setRows([]);
       setTotalRows(0);
     } finally {
@@ -93,14 +94,14 @@ const ProductList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Delete this product?')) {
+    if (window.confirm(t('product.deleteConfirm'))) {
       try {
         await ProductService.delete(id);
-        setSuccess('Deleted');
+        setSuccess(t('product.deleteSuccess'));
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
-        setError(err.message || 'Failed to delete product');
+        setError(err.message || t('product.deleteError'));
       }
     }
   };
@@ -111,36 +112,35 @@ const ProductList = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'code',
-      headerName: 'Code',
+      headerName: t('product.code'),
       width: 140,
       renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
     },
     {
       field: 'designation',
-      headerName: 'Designation',
+      headerName: t('product.designation'),
       minWidth: 220,
       flex: 1,
       valueGetter: (p) => getDesignation(p.row),
     },
     {
       field: 'density',
-      headerName: 'Density',
-      width: 100,
+      headerName: t('product.density'),
+      width: 120,
       align: 'right',
       headerAlign: 'right',
     },
     {
       field: 'isHazardous',
-      headerName: 'Hazardous',
-      width: 120,
+      headerName: t('product.hazardous'),
+      width: 130,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <Chip
-          label={params.value ? 'Yes' : 'No'}
+          label={params.value ? t('common.yes') : t('common.no')}
           size="small"
           color={params.value ? 'error' : 'success'}
           variant="outlined"
@@ -149,7 +149,7 @@ const ProductList = () => {
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('common.actions'),
       width: 130,
       sortable: false,
       filterable: false,
@@ -157,7 +157,7 @@ const ProductList = () => {
       headerAlign: 'center',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title="Edit">
+          <Tooltip title={t('common.edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/common/products/${params.row.id}/edit`)}
@@ -169,7 +169,7 @@ const ProductList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Delete">
+          <Tooltip title={t('common.delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -190,10 +190,10 @@ const ProductList = () => {
     <Box>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          Products
+          {t('product.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Manage products (server-side pagination).
+          {t('product.subtitle')}
         </Typography>
       </Box>
 
@@ -216,7 +216,7 @@ const ProductList = () => {
               fullWidth
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              placeholder="Search..."
+              placeholder={t('product.searchPlaceholder')}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -227,7 +227,7 @@ const ProductList = () => {
             />
 
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleClear} sx={{ whiteSpace: 'nowrap' }}>
-              Clear
+              {t('common.clearFilters')}
             </Button>
 
             <Button
@@ -236,7 +236,7 @@ const ProductList = () => {
               onClick={() => navigate('/network/common/products/create')}
               sx={{ whiteSpace: 'nowrap' }}
             >
-              Create
+              {t('product.create')}
             </Button>
           </Stack>
 
