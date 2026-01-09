@@ -4,6 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed to match PartnerDTO schema
+ * @updated 01-10-2026 - Fixed DTO field names and added multilingual support
  */
 
 import { useState, useEffect } from 'react';
@@ -33,7 +34,7 @@ import { CountryService } from '../../../general/localization/services';
 import { PartnerDTO } from '../dto';
 
 const PartnerEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { partnerId } = useParams<{ partnerId: string }>();
   const isEditMode = !!partnerId;
@@ -86,6 +87,24 @@ const PartnerEdit = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Get designation based on current language
+   * Fallback to French if preferred language not available
+   */
+  const getDesignation = (item: any): string => {
+    const lang = i18n.language;
+    
+    if (lang === 'ar' && item.designationAr) {
+      return item.designationAr;
+    }
+    if (lang === 'en' && item.designationEn) {
+      return item.designationEn;
+    }
+    
+    // Fallback to French (required field)
+    return item.designationFr || '';
   };
 
   const validateForm = (): boolean => {
@@ -235,7 +254,7 @@ const PartnerEdit = () => {
                   >
                     {partnerTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
-                        {type.nameEn || type.nameAr || type.nameFr}
+                        {getDesignation(type)}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -254,7 +273,7 @@ const PartnerEdit = () => {
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
-                        {country.nameEn || country.nameAr || country.nameFr}
+                        {getDesignation(country)}
                       </MenuItem>
                     ))}
                   </TextField>
