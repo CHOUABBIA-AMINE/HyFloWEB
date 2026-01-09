@@ -231,6 +231,7 @@
   },
   "employee": {
     "title": "Employees",
+    "subtitle": "Manage employee records and information",
     "subtitle": "Manage organizational structures and hierarchies",
     "create": "Create Employee",
     "edit": "Edit Employee",

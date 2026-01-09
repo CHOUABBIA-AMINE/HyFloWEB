@@ -231,6 +231,7 @@
   },
   "employee": {
     "title": "Employés",
+    "subtitle": "Gérer les dossiers et informations des employés",
     "create": "Créer un Employé",
     "edit": "Modifier l'Employé",
     "delete": "Supprimer l'Employé",
