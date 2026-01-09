@@ -6,6 +6,7 @@
  * @created 01-06-2026
  * @updated 01-08-2026 - Added structureId filter support for embedding
  * @updated 01-08-2026 - Added multilanguage support for designations
+ * @updated 01-09-2026 - Aligned header styling with StructureList
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -26,6 +27,7 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Work as JobIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import { JobDTO, StructureDTO } from '../dto';
@@ -216,29 +218,33 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
 
   return (
     <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h6" fontWeight={600} color="text.primary">
-            {structureId 
-              ? t('job.titleInStructure', 'Jobs in this Structure') 
-              : t('job.title', 'Jobs')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {structureId 
-              ? t('job.subtitleInStructure', 'Manage job positions for this structure') 
-              : t('job.subtitle', 'Manage job positions')}
-          </Typography>
+      {/* Header - Aligned with StructureList styling */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <JobIcon color="primary" sx={{ fontSize: 32 }} />
+            <Typography variant="h4" fontWeight={700} color="text.primary">
+              {structureId 
+                ? t('job.titleInStructure', 'Jobs in this Structure') 
+                : t('job.title', 'Jobs')}
+            </Typography>
+          </Box>
+          {onAdd && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreate}
+              sx={{ borderRadius: 2, boxShadow: 2 }}
+            >
+              {t('common.create', 'Create')}
+            </Button>
+          )}
         </Box>
-        {onAdd && (
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreate}
-            size="medium"
-          >
-            {t('common.create', 'Create')}
-          </Button>
-        )}
+        <Typography variant="body2" color="text.secondary">
+          {structureId 
+            ? t('job.subtitleInStructure', 'Manage job positions for this structure') 
+            : t('job.subtitle', 'Manage job positions')}
+        </Typography>
       </Box>
 
       {error && (
