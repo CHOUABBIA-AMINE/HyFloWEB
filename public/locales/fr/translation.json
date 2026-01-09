@@ -64,7 +64,6 @@
   "product": {
     "title": "Produits",
     "subtitle": "Gérer les produits avec pagination côté serveur",
-    "id": "ID",
     "code": "Code",
     "designation": "Désignation",
     "density": "Densité",
@@ -82,7 +81,6 @@
   "partner": {
     "title": "Partenaires",
     "subtitle": "Gérer les partenaires avec pagination côté serveur",
-    "id": "ID",
     "shortName": "Nom Court",
     "name": "Nom",
     "type": "Type",
@@ -98,7 +96,6 @@
   "vendor": {
     "title": "Fournisseurs",
     "subtitle": "Gérer les fournisseurs avec pagination côté serveur",
-    "id": "ID",
     "shortName": "Nom Court",
     "name": "Nom",
     "type": "Type",

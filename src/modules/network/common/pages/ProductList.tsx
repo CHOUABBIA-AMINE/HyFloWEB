@@ -5,7 +5,7 @@
  * @created 01-01-2026
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Added i18n translations
+ * @updated 01-10-2026 - Added i18n translations and removed ID column
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -48,7 +48,7 @@ const ProductList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getDesignation = (product: ProductDTO): string => {
@@ -65,7 +65,7 @@ const ProductList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'code';
       const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
 
       const pageable = {
@@ -112,31 +112,30 @@ const ProductList = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: t('product.id'), width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'code',
       headerName: t('product.code'),
-      width: 140,
+      width: 150,
       renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
     },
     {
       field: 'designation',
       headerName: t('product.designation'),
-      minWidth: 220,
+      minWidth: 300,
       flex: 1,
       valueGetter: (p) => getDesignation(p.row),
     },
     {
       field: 'density',
       headerName: t('product.density'),
-      width: 100,
+      width: 120,
       align: 'right',
       headerAlign: 'right',
     },
     {
       field: 'isHazardous',
       headerName: t('product.isHazardous'),
-      width: 120,
+      width: 140,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (

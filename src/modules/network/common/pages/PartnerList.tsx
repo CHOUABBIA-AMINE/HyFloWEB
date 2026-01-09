@@ -5,7 +5,7 @@
  * @created 12-28-2025
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Added i18n translations
+ * @updated 01-10-2026 - Added i18n translations and removed ID column
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -48,7 +48,7 @@ const PartnerList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getTypeLabel = (obj: any): string => {
@@ -73,7 +73,7 @@ const PartnerList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'shortName';
       const sortDir = sortModel.length > 0 ? (sortModel[0].sort || 'asc') : 'asc';
 
       const pageable = {
@@ -120,17 +120,16 @@ const PartnerList = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: t('partner.id'), width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'shortName',
       headerName: t('partner.shortName'),
-      width: 140,
+      width: 150,
       renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
     },
     {
       field: 'name',
       headerName: t('partner.name'),
-      minWidth: 220,
+      minWidth: 250,
       flex: 1,
       valueGetter: (p) => p.row.name || '-',
     },
