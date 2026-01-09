@@ -45,5 +45,19 @@
     "createError": "Échec de la création de la structure",
     "updateSuccess": "Structure mise à jour avec succès",
     "updateError": "Échec de la mise à jour de la structure"
+  },
+  "employee": {
+    "title": "Employés",
+    "subtitle": "Gérer les dossiers et informations des employés",
+    "searchPlaceholder": "Rechercher par numéro d'immatriculation ou nom...",
+    "registrationNumber": "Numéro d'Immatriculation",
+    "lastNameLt": "Nom de Famille",
+    "firstNameLt": "Prénom",
+    "birthDate": "Date de Naissance",
+    "create": "Créer un Employé",
+    "confirmDelete": "Supprimer cet employé ?",
+    "deleteSuccess": "Employé supprimé avec succès",
+    "deleteError": "Échec de la suppression de l'employé",
+    "errorLoading": "Échec du chargement des employés"
   }
 }
