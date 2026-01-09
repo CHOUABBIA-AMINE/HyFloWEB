@@ -45,5 +45,19 @@
     "createError": "Failed to create structure",
     "updateSuccess": "Structure updated successfully",
     "updateError": "Failed to update structure"
+  },
+  "employee": {
+    "title": "Employees",
+    "subtitle": "Manage employee records and information",
+    "searchPlaceholder": "Search by registration number or name...",
+    "registrationNumber": "Registration Number",
+    "lastNameLt": "Last Name",
+    "firstNameLt": "First Name",
+    "birthDate": "Birth Date",
+    "create": "Create Employee",
+    "confirmDelete": "Delete this employee?",
+    "deleteSuccess": "Employee deleted successfully",
+    "deleteError": "Failed to delete employee",
+    "errorLoading": "Failed to load employees"
   }
 }
