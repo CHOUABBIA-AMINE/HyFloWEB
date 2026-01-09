@@ -12,6 +12,7 @@
  * @updated 01-01-2026 - Moved Dashboard/Map under Workspace
  * @updated 01-06-2026 - Added Pipeline Map entry under Workspace
  * @updated 01-09-2026 - Restructured menu: Created General section, moved Organization & Localization from Network
+ * @updated 01-09-2026 - Removed Regions menu item (entity no longer exists)
  */
 
 import {
@@ -79,7 +80,7 @@ const Sidebar = ({ open }: SidebarProps) => {
 
   // Top-level order: Home, Workspace, General, Network, System
   // General: Organization (Structures, Employees) + Localization (Locations)
-  // Network: Common (Products, Regions, Partners, Vendors) + Core (Pipeline systems, infrastructure)
+  // Network: Common (Products, Partners, Vendors) + Core (Pipeline systems, infrastructure)
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -152,11 +153,6 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.products',
               icon: <OilBarrelIcon />,
               path: '/network/common/products',
-            },
-            {
-              titleKey: 'nav.regions',
-              icon: <PublicIcon />,
-              path: '/network/common/regions',
             },
             {
               titleKey: 'nav.partners',
