@@ -6,7 +6,7 @@
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
  * @updated 01-10-2026 - Added i18n translations and removed ID column
- * @updated 01-10-2026 - Fixed column headers reactivity to language changes
+ * @updated 01-10-2026 - Fixed column headers reactivity with DataGrid key prop
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -246,6 +246,7 @@ const PartnerList = () => {
           <Divider sx={{ my: 2 }} />
 
           <DataGrid
+            key={currentLanguage}
             rows={rows}
             columns={columns}
             loading={loading}
