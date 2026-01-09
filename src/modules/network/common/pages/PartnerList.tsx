@@ -6,9 +6,10 @@
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
  * @updated 01-10-2026 - Added i18n translations and removed ID column
+ * @updated 01-10-2026 - Made column headers reactive to language changes
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -119,7 +120,7 @@ const PartnerList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize });
   };
 
-  const columns: GridColDef[] = [
+  const columns: GridColDef[] = useMemo(() => [
     {
       field: 'shortName',
       headerName: t('partner.shortName'),
@@ -184,7 +185,7 @@ const PartnerList = () => {
         </Box>
       ),
     },
-  ];
+  ], [i18n.language, t, navigate, currentLanguage]);
 
   return (
     <Box>
