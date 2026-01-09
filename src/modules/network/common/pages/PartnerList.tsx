@@ -6,7 +6,7 @@
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
  * @updated 01-10-2026 - Added i18n translations and removed ID column
- * @updated 01-10-2026 - Made column headers reactive to language changes
+ * @updated 01-10-2026 - Fixed column headers reactivity to language changes
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -51,20 +51,6 @@ const PartnerList = () => {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
-
-  const getTypeLabel = (obj: any): string => {
-    if (!obj) return '-';
-    if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '-';
-    if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '-';
-    return obj.designationFr || obj.designationEn || obj.designationAr || '-';
-  };
-
-  const getCountryLabel = (obj: any): string => {
-    if (!obj) return '-';
-    if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '-';
-    if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '-';
-    return obj.designationFr || obj.designationEn || obj.designationAr || '-';
-  };
 
   useEffect(() => {
     loadData();
@@ -120,72 +106,88 @@ const PartnerList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize });
   };
 
-  const columns: GridColDef[] = useMemo(() => [
-    {
-      field: 'shortName',
-      headerName: t('partner.shortName'),
-      width: 150,
-      renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
-    },
-    {
-      field: 'name',
-      headerName: t('partner.name'),
-      minWidth: 250,
-      flex: 1,
-      valueGetter: (p) => p.row.name || '-',
-    },
-    {
-      field: 'partnerType',
-      headerName: t('partner.type'),
-      minWidth: 180,
-      flex: 1,
-      valueGetter: (p) => getTypeLabel(p.row.partnerType),
-    },
-    {
-      field: 'country',
-      headerName: t('partner.country'),
-      minWidth: 180,
-      flex: 1,
-      valueGetter: (p) => getCountryLabel(p.row.country),
-    },
-    {
-      field: 'actions',
-      headerName: t('common.actions'),
-      width: 130,
-      sortable: false,
-      filterable: false,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit')}>
-            <IconButton
-              size="small"
-              onClick={() => navigate(`/network/common/partners/${params.row.id}/edit`)}
-              sx={{
-                color: 'primary.main',
-                '&:hover': { bgcolor: alpha('#2563eb', 0.1) }
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <IconButton
-              size="small"
-              onClick={() => handleDelete(params.row.id)}
-              sx={{
-                color: 'error.main',
-                '&:hover': { bgcolor: alpha('#dc2626', 0.1) }
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
-  ], [i18n.language, t, navigate, currentLanguage]);
+  const columns: GridColDef[] = useMemo(() => {
+    const getTypeLabel = (obj: any): string => {
+      if (!obj) return '-';
+      if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '-';
+      if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '-';
+      return obj.designationFr || obj.designationEn || obj.designationAr || '-';
+    };
+
+    const getCountryLabel = (obj: any): string => {
+      if (!obj) return '-';
+      if (currentLanguage === 'ar') return obj.designationAr || obj.designationFr || obj.designationEn || '-';
+      if (currentLanguage === 'en') return obj.designationEn || obj.designationFr || obj.designationAr || '-';
+      return obj.designationFr || obj.designationEn || obj.designationAr || '-';
+    };
+
+    return [
+      {
+        field: 'shortName',
+        headerName: t('partner.shortName'),
+        width: 150,
+        renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
+      },
+      {
+        field: 'name',
+        headerName: t('partner.name'),
+        minWidth: 250,
+        flex: 1,
+        valueGetter: (p) => p.row.name || '-',
+      },
+      {
+        field: 'partnerType',
+        headerName: t('partner.type'),
+        minWidth: 180,
+        flex: 1,
+        valueGetter: (p) => getTypeLabel(p.row.partnerType),
+      },
+      {
+        field: 'country',
+        headerName: t('partner.country'),
+        minWidth: 180,
+        flex: 1,
+        valueGetter: (p) => getCountryLabel(p.row.country),
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 130,
+        sortable: false,
+        filterable: false,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: (params) => (
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Tooltip title={t('common.edit')}>
+              <IconButton
+                size="small"
+                onClick={() => navigate(`/network/common/partners/${params.row.id}/edit`)}
+                sx={{
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: alpha('#2563eb', 0.1) }
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.delete')}>
+              <IconButton
+                size="small"
+                onClick={() => handleDelete(params.row.id)}
+                sx={{
+                  color: 'error.main',
+                  '&:hover': { bgcolor: alpha('#dc2626', 0.1) }
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+      },
+    ];
+  }, [currentLanguage, t, navigate]);
 
   return (
     <Box>

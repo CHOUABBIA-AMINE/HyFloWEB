@@ -6,7 +6,7 @@
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
  * @updated 01-10-2026 - Added i18n translations and removed ID column
- * @updated 01-10-2026 - Made column headers reactive to language changes
+ * @updated 01-10-2026 - Fixed column headers reactivity to language changes
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -51,12 +51,6 @@ const ProductList = () => {
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
-
-  const getDesignation = (product: ProductDTO): string => {
-    if (currentLanguage === 'ar') return product.designationAr || product.designationFr || product.designationEn || '-';
-    if (currentLanguage === 'en') return product.designationEn || product.designationFr || product.designationAr || '-';
-    return product.designationFr || product.designationEn || product.designationAr || '-';
-  };
 
   useEffect(() => {
     loadData();
@@ -112,80 +106,88 @@ const ProductList = () => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize });
   };
 
-  const columns: GridColDef[] = useMemo(() => [
-    {
-      field: 'code',
-      headerName: t('product.code'),
-      width: 150,
-      renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
-    },
-    {
-      field: 'designation',
-      headerName: t('product.designation'),
-      minWidth: 300,
-      flex: 1,
-      valueGetter: (p) => getDesignation(p.row),
-    },
-    {
-      field: 'density',
-      headerName: t('product.density'),
-      width: 120,
-      align: 'right',
-      headerAlign: 'right',
-    },
-    {
-      field: 'isHazardous',
-      headerName: t('product.isHazardous'),
-      width: 140,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => (
-        <Chip
-          label={params.value ? t('product.yes') : t('product.no')}
-          size="small"
-          color={params.value ? 'error' : 'success'}
-          variant="outlined"
-        />
-      ),
-    },
-    {
-      field: 'actions',
-      headerName: t('common.actions'),
-      width: 130,
-      sortable: false,
-      filterable: false,
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit')}>
-            <IconButton
-              size="small"
-              onClick={() => navigate(`/network/common/products/${params.row.id}/edit`)}
-              sx={{
-                color: 'primary.main',
-                '&:hover': { bgcolor: alpha('#2563eb', 0.1) }
-              }}
-            >
-              <EditIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <IconButton
-              size="small"
-              onClick={() => handleDelete(params.row.id)}
-              sx={{
-                color: 'error.main',
-                '&:hover': { bgcolor: alpha('#dc2626', 0.1) }
-              }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      ),
-    },
-  ], [i18n.language, t, navigate]);
+  const columns: GridColDef[] = useMemo(() => {
+    const getDesignation = (product: ProductDTO): string => {
+      if (currentLanguage === 'ar') return product.designationAr || product.designationFr || product.designationEn || '-';
+      if (currentLanguage === 'en') return product.designationEn || product.designationFr || product.designationAr || '-';
+      return product.designationFr || product.designationEn || product.designationAr || '-';
+    };
+
+    return [
+      {
+        field: 'code',
+        headerName: t('product.code'),
+        width: 150,
+        renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />,
+      },
+      {
+        field: 'designation',
+        headerName: t('product.designation'),
+        minWidth: 300,
+        flex: 1,
+        valueGetter: (p) => getDesignation(p.row),
+      },
+      {
+        field: 'density',
+        headerName: t('product.density'),
+        width: 120,
+        align: 'right',
+        headerAlign: 'right',
+      },
+      {
+        field: 'isHazardous',
+        headerName: t('product.isHazardous'),
+        width: 140,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: (params) => (
+          <Chip
+            label={params.value ? t('product.yes') : t('product.no')}
+            size="small"
+            color={params.value ? 'error' : 'success'}
+            variant="outlined"
+          />
+        ),
+      },
+      {
+        field: 'actions',
+        headerName: t('common.actions'),
+        width: 130,
+        sortable: false,
+        filterable: false,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: (params) => (
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            <Tooltip title={t('common.edit')}>
+              <IconButton
+                size="small"
+                onClick={() => navigate(`/network/common/products/${params.row.id}/edit`)}
+                sx={{
+                  color: 'primary.main',
+                  '&:hover': { bgcolor: alpha('#2563eb', 0.1) }
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={t('common.delete')}>
+              <IconButton
+                size="small"
+                onClick={() => handleDelete(params.row.id)}
+                sx={{
+                  color: 'error.main',
+                  '&:hover': { bgcolor: alpha('#dc2626', 0.1) }
+                }}
+              >
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+      },
+    ];
+  }, [currentLanguage, t, navigate]);
 
   return (
     <Box>
