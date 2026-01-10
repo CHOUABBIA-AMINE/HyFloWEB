@@ -1,325 +1,166 @@
 /**
- * HydrocarbonField List Page with DataGrid
+ * Hydrocarbon Field List Page - SERVER-SIDE PAGINATION
  * 
  * @author CHOUABBIA Amine
- * @created 12-24-2025
- * @updated 01-08-2026 - Fixed valueGetter signatures
+ * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Removed ID column and applied translations
+ * @updated 01-10-2026 - Applied i18n translations
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Box,
-  Button,
-  Typography,
-  Chip,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  CircularProgress,
-  alpha,
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Visibility as ViewIcon,
-} from '@mui/icons-material';
-import {
-  DataGrid,
-  GridColDef,
-  GridRowParams,
-  GridActionsCellItem,
-  GridToolbarContainer,
-  GridToolbarColumnsButton,
-  GridToolbarFilterButton,
-  GridToolbarDensitySelector,
-  GridToolbarExport,
-  GridRenderCellParams,
-  GridValueGetterParams,
-} from '@mui/x-data-grid';
+import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdornment, Stack, Paper, Divider, Tooltip, alpha, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, FilterList as FilterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 import { HydrocarbonFieldService } from '../services';
 import { HydrocarbonFieldDTO } from '../dto';
-import { getLocalizedName } from '../utils/localizationUtils';
 
 const HydrocarbonFieldList = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [fields, setFields] = useState<HydrocarbonFieldDTO[]>([]);
-  const [loading, setLoading] = useState(false);
+  
+  const [hydrocarbonFields, setHydrocarbonFields] = useState<HydrocarbonFieldDTO[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [searchText, setSearchText] = useState('');
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [totalRows, setTotalRows] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fieldToDelete, setFieldToDelete] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Get current language
-  const currentLanguage = i18n.language || 'en';
+  useEffect(() => { loadHydrocarbonFields(); }, [paginationModel, sortModel, searchText]);
 
-  useEffect(() => {
-    loadFields();
-  }, []);
-
-  const loadFields = async () => {
+  const loadHydrocarbonFields = async () => {
     try {
       setLoading(true);
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
+      
+      const pageable = {
+        page: paginationModel.page,
+        size: paginationModel.pageSize,
+        sort: `${sortField},${sortDir}`
+      };
+
+      const pageResponse = searchText 
+        ? await HydrocarbonFieldService.globalSearch(searchText, pageable)
+        : await HydrocarbonFieldService.getAll(pageable);
+        
+      setHydrocarbonFields(pageResponse.content);
+      setTotalRows(pageResponse.totalElements);
       setError('');
-      const data = await HydrocarbonFieldService.getAllNoPagination();
-      setFields(data || []);
     } catch (err: any) {
-      console.error('Failed to load hydrocarbon fields:', err);
       setError(err.message || t('hydrocarbonField.errorLoading'));
+      setHydrocarbonFields([]);
+      setTotalRows(0);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreate = () => {
-    navigate('/network/core/hydrocarbon-fields/new');
-  };
+  const handlePaginationChange = useCallback((model: GridPaginationModel) => setPaginationModel(model), []);
+  const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
-  const handleEdit = (id: number) => {
-    navigate(`/network/core/hydrocarbon-fields/${id}/edit`);
-  };
-
-  const handleView = (id: number) => {
-    navigate(`/network/core/hydrocarbon-fields/${id}`);
-  };
-
-  const handleDeleteClick = (id: number) => {
-    setFieldToDelete(id);
-    setDeleteDialogOpen(true);
-  };
+  const columns: GridColDef[] = [
+    { field: 'code', headerName: t('hydrocarbonField.columns.code'), width: 130, renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> },
+    { field: 'name', headerName: t('hydrocarbonField.columns.name'), minWidth: 200, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
+    { field: 'hydrocarbonFieldType', headerName: t('hydrocarbonField.columns.type'), width: 120 },
+    { field: 'placeName', headerName: t('hydrocarbonField.columns.location'), minWidth: 180, flex: 1 },
+    { field: 'vendorShortName', headerName: t('hydrocarbonField.columns.vendor'), width: 130 },
+    { field: 'operationalStatusName', headerName: t('hydrocarbonField.columns.status'), width: 140, renderCell: (params) => params.value ? <Chip label={params.value} size="small" color="primary" variant="outlined" /> : '-' },
+    { field: 'installationDate', headerName: t('hydrocarbonField.columns.installationDate'), width: 150, valueFormatter: (params) => params.value ? new Date(params.value).toLocaleDateString() : '-' },
+    {
+      field: 'actions',
+      headerName: t('hydrocarbonField.columns.actions'),
+      width: 130,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Tooltip title={t('common.edit')}>
+            <IconButton size="small" onClick={() => navigate(`/network/core/hydrocarbon-fields/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}><EditIcon fontSize="small" /></IconButton>
+          </Tooltip>
+          <Tooltip title={t('common.delete')}>
+            <IconButton size="small" onClick={() => { setFieldToDelete(params.row.id); setDeleteDialogOpen(true); }} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></IconButton>
+          </Tooltip>
+        </Box>
+      ),
+    },
+  ];
 
   const handleDeleteConfirm = async () => {
-    if (!fieldToDelete) return;
-
+    if (fieldToDelete === null) return;
     try {
       setDeleting(true);
       await HydrocarbonFieldService.delete(fieldToDelete);
-      await loadFields();
+      setSuccess(t('hydrocarbonField.deleteSuccess'));
       setDeleteDialogOpen(false);
       setFieldToDelete(null);
+      loadHydrocarbonFields();
     } catch (err: any) {
-      console.error('Failed to delete hydrocarbon field:', err);
       setError(err.message || t('hydrocarbonField.deleteError'));
+      setDeleteDialogOpen(false);
     } finally {
       setDeleting(false);
     }
   };
 
-  // Extract unique values for filter options
-  const { statusOptions, typeOptions, vendorOptions } = useMemo(() => {
-    const statuses = new Set<string>();
-    const types = new Set<string>();
-    const vendors = new Set<string>();
-
-    fields.forEach(field => {
-      // Status
-      if (field.operationalStatus) {
-        const statusName = getLocalizedName(field.operationalStatus, currentLanguage);
-        statuses.add(statusName);
-      }
-
-      // Type
-      if (field.hydrocarbonFieldType) {
-        const typeName = getLocalizedName(field.hydrocarbonFieldType, currentLanguage);
-        types.add(typeName);
-      }
-
-      // Vendor
-      const vendorName = field.vendor?.name;
-      if (vendorName) {
-        vendors.add(vendorName);
-      }
-    });
-
-    return {
-      statusOptions: Array.from(statuses).sort(),
-      typeOptions: Array.from(types).sort(),
-      vendorOptions: Array.from(vendors).sort(),
-    };
-  }, [fields, currentLanguage]);
-
-  const CustomToolbar = () => {
-    return (
-      <GridToolbarContainer>
-        <GridToolbarColumnsButton />
-        <GridToolbarFilterButton />
-        <GridToolbarDensitySelector />
-        <GridToolbarExport />
-        <Box sx={{ flexGrow: 1 }} />
-        <Button
-          size="small"
-          startIcon={<AddIcon />}
-          onClick={handleCreate}
-          variant="contained"
-        >
-          {t('hydrocarbonField.create')}
-        </Button>
-      </GridToolbarContainer>
-    );
-  };
-
-  const columns: GridColDef<HydrocarbonFieldDTO>[] = [
-    {
-      field: 'code',
-      headerName: t('hydrocarbonField.code'),
-      width: 120,
-      filterable: true,
-      sortable: true,
-    },
-    {
-      field: 'name',
-      headerName: t('hydrocarbonField.name'),
-      flex: 1,
-      minWidth: 200,
-      filterable: true,
-      sortable: true,
-    },
-    {
-      field: 'hydrocarbonFieldType',
-      headerName: t('hydrocarbonField.type'),
-      width: 150,
-      filterable: true,
-      sortable: true,
-      type: 'singleSelect',
-      valueOptions: typeOptions,
-      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
-        return params.row.hydrocarbonFieldType ? getLocalizedName(params.row.hydrocarbonFieldType, currentLanguage) : 'N/A';
-      },
-    },
-    {
-      field: 'location',
-      headerName: t('hydrocarbonField.location'),
-      width: 200,
-      filterable: false,
-      sortable: false,
-      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
-        if (params.row.location?.placeName) {
-          return params.row.location.placeName;
-        }
-        if (params.row.location?.latitude && params.row.location?.longitude) {
-          return `${params.row.location.latitude.toFixed(4)}, ${params.row.location.longitude.toFixed(4)}`;
-        }
-        return '-';
-      },
-    },
-    {
-      field: 'vendor',
-      headerName: t('hydrocarbonField.vendor'),
-      width: 180,
-      filterable: true,
-      sortable: true,
-      type: 'singleSelect',
-      valueOptions: vendorOptions,
-      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
-        return params.row.vendor?.name || '-';
-      },
-    },
-    {
-      field: 'operationalStatus',
-      headerName: t('hydrocarbonField.status'),
-      width: 150,
-      filterable: true,
-      sortable: true,
-      type: 'singleSelect',
-      valueOptions: statusOptions,
-      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
-        return params.row.operationalStatus ? getLocalizedName(params.row.operationalStatus, currentLanguage) : 'Unknown';
-      },
-      renderCell: (params: GridRenderCellParams<HydrocarbonFieldDTO>) => {
-        const status = params.row.operationalStatus;
-        if (!status) return null;
-        
-        return (
-          <Chip
-            label={getLocalizedName(status, currentLanguage)}
-            size="small"
-            color="primary"
-            variant="outlined"
-          />
-        );
-      },
-    },
-    {
-      field: 'installationDate',
-      headerName: t('hydrocarbonField.installationDate'),
-      width: 150,
-      type: 'date',
-      valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
-        return params.row.installationDate ? new Date(params.row.installationDate) : null;
-      },
-    },
-    {
-      field: 'actions',
-      type: 'actions',
-      headerName: t('common.actions'),
-      width: 120,
-      getActions: (params: GridRowParams<HydrocarbonFieldDTO>) => [
-        <GridActionsCellItem
-          key="view"
-          icon={<ViewIcon />}
-          label={t('common.edit')}
-          onClick={() => handleView(params.row.id!)}
-        />,
-        <GridActionsCellItem
-          key="edit"
-          icon={<EditIcon />}
-          label={t('common.edit')}
-          onClick={() => handleEdit(params.row.id!)}
-        />,
-        <GridActionsCellItem
-          key="delete"
-          icon={<DeleteIcon />}
-          label={t('common.delete')}
-          onClick={() => handleDeleteClick(params.row.id!)}
-          showInMenu
-        />,
-      ],
-    },
-  ];
+  const handleClearFilters = () => { setSearchText(''); setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }); };
 
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h4" fontWeight={700} color="text.primary">
-            {t('hydrocarbonField.title')}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {t('hydrocarbonField.subtitle')}
-          </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="h4" fontWeight={700}>{t('hydrocarbonField.title')}</Typography>
+          <Stack direction="row" spacing={1.5}>
+            <Tooltip title={t('common.refresh')}>
+              <IconButton onClick={loadHydrocarbonFields} color="primary"><RefreshIcon /></IconButton>
+            </Tooltip>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/hydrocarbon-fields/create')}>
+              {t('hydrocarbonField.create')}
+            </Button>
+          </Stack>
         </Box>
+        <Typography variant="body2" color="text.secondary">
+          {t('hydrocarbonField.subtitle')}
+        </Typography>
       </Box>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
-      )}
+      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
-      {/* DataGrid */}
-      <Box sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={fields}
-          columns={columns}
-          loading={loading}
-          pageSizeOptions={[10, 25, 50, 100]}
-          initialState={{
-            pagination: { paginationModel: { pageSize: 25 } },
-          }}
-          slots={{
-            toolbar: CustomToolbar,
-          }}
-          disableRowSelectionOnClick
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider', p: 2.5 }}>
+        <Stack spacing={2.5}>
+          <Stack direction="row" spacing={2}>
+            <TextField fullWidth placeholder={t('hydrocarbonField.searchPlaceholder')} value={searchText} onChange={(e) => setSearchText(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} sx={{ maxWidth: 400 }} />
+            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>{t('common.clear')}</Button>
+          </Stack>
+          <Divider />
+          <Typography variant="body2" color="text.secondary">{totalRows} {t('common.total')}</Typography>
+        </Stack>
+      </Paper>
+
+      <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+        <DataGrid 
+          rows={hydrocarbonFields} 
+          columns={columns} 
+          loading={loading} 
+          rowCount={totalRows} 
+          paginationMode="server" 
+          sortingMode="server" 
+          paginationModel={paginationModel} 
+          onPaginationModelChange={handlePaginationChange} 
+          sortModel={sortModel} 
+          onSortModelChange={handleSortChange} 
+          pageSizeOptions={[10, 25, 50, 100]} 
+          disableRowSelectionOnClick 
+          autoHeight 
           sx={{
             border: 0,
             '& .MuiDataGrid-cell:focus': {
@@ -327,7 +168,6 @@ const HydrocarbonFieldList = () => {
             },
             '& .MuiDataGrid-row:hover': {
               backgroundColor: alpha('#2563eb', 0.04),
-              cursor: 'pointer',
             },
             '& .MuiDataGrid-columnHeaders': {
               backgroundColor: alpha('#2563eb', 0.05),
@@ -338,32 +178,18 @@ const HydrocarbonFieldList = () => {
               fontWeight: 600,
             },
           }}
-          onRowClick={(params: GridRowParams<HydrocarbonFieldDTO>) => handleView(params.row.id!)}
         />
-      </Box>
+      </Paper>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => !deleting && setDeleteDialogOpen(false)}
-      >
-        <DialogTitle>{t('hydrocarbonField.delete')}</DialogTitle>
+      <Dialog open={deleteDialogOpen} onClose={() => !deleting && setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>{t('hydrocarbonField.confirmDelete')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            {t('hydrocarbonField.confirmDeleteMessage')}
-          </DialogContentText>
+          <Typography>{t('hydrocarbonField.confirmDeleteMessage')}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
-            {t('common.cancel')}
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            color="error"
-            variant="contained"
-            disabled={deleting}
-            startIcon={deleting ? <CircularProgress size={20} /> : <DeleteIcon />}
-          >
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>{t('common.cancel')}</Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained" disabled={deleting}>
             {deleting ? t('hydrocarbonField.deleting') : t('common.delete')}
           </Button>
         </DialogActions>
