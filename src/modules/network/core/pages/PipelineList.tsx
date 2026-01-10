@@ -3,6 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
+ * @updated 01-10-2026 - Aligned table header design with StructureList
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -113,7 +114,38 @@ const PipelineList = () => {
       </Paper>
 
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
-        <DataGrid rows={pipelines} columns={columns} loading={loading} rowCount={totalRows} paginationMode="server" sortingMode="server" paginationModel={paginationModel} onPaginationModelChange={handlePaginationChange} sortModel={sortModel} onSortModelChange={handleSortChange} pageSizeOptions={[10, 25, 50, 100]} disableRowSelectionOnClick autoHeight />
+        <DataGrid 
+          rows={pipelines} 
+          columns={columns} 
+          loading={loading} 
+          rowCount={totalRows} 
+          paginationMode="server" 
+          sortingMode="server" 
+          paginationModel={paginationModel} 
+          onPaginationModelChange={handlePaginationChange} 
+          sortModel={sortModel} 
+          onSortModelChange={handleSortChange} 
+          pageSizeOptions={[10, 25, 50, 100]} 
+          disableRowSelectionOnClick 
+          autoHeight 
+          sx={{
+            border: 0,
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: alpha('#2563eb', 0.04),
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: alpha('#2563eb', 0.05),
+              borderBottom: 2,
+              borderColor: 'divider',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 600,
+            },
+          }}
+        />
       </Paper>
     </Box>
   );

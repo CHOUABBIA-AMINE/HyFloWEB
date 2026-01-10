@@ -4,6 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 12-24-2025
  * @updated 01-08-2026 - Fixed valueGetter signatures
+ * @updated 01-10-2026 - Aligned table header design with StructureList
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -21,6 +22,7 @@ import {
   DialogContentText,
   DialogActions,
   CircularProgress,
+  alpha,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -318,11 +320,21 @@ const HydrocarbonFieldList = () => {
           }}
           disableRowSelectionOnClick
           sx={{
+            border: 0,
             '& .MuiDataGrid-cell:focus': {
               outline: 'none',
             },
             '& .MuiDataGrid-row:hover': {
+              backgroundColor: alpha('#2563eb', 0.04),
               cursor: 'pointer',
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: alpha('#2563eb', 0.05),
+              borderBottom: 2,
+              borderColor: 'divider',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 600,
             },
           }}
           onRowClick={(params: GridRowParams<HydrocarbonFieldDTO>) => handleView(params.row.id!)}

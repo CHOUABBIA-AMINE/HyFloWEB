@@ -4,12 +4,13 @@
  * @author CHOUABBIA Amine
  * @created 01-01-2026
  * @updated 01-08-2026 - Fixed region column (replaced with structure)
+ * @updated 01-10-2026 - Aligned table header design with StructureList
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdornment, Stack, Paper, Divider } from '@mui/material';
+import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdornment, Stack, Paper, Divider, alpha } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, FilterList as FilterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
@@ -102,7 +103,7 @@ const PipelineSystemList = () => {
       flex: 1,
       renderCell: (params) => {
         const row = params.row as PipelineSystemDTO;
-        return <>{row.structure ? getDesignation(row.structure) : row.structureId ?? ''}</>;
+        return <>{row.structure ? getDesignation(row.structure) : row.structureId ?? ''};</>;
       },
     },
     {
@@ -112,7 +113,7 @@ const PipelineSystemList = () => {
       flex: 1,
       renderCell: (params) => {
         const row = params.row as PipelineSystemDTO;
-        return <>{row.product ? getDesignation(row.product) : row.productId ?? ''}</>;
+        return <>{row.product ? getDesignation(row.product) : row.productId ?? ''};</>;
       },
     },
     {
@@ -122,7 +123,7 @@ const PipelineSystemList = () => {
       flex: 1,
       renderCell: (params) => {
         const row = params.row as PipelineSystemDTO;
-        return <>{row.operationalStatus ? getDesignation(row.operationalStatus) : row.operationalStatusId ?? ''}</>;
+        return <>{row.operationalStatus ? getDesignation(row.operationalStatus) : row.operationalStatusId ?? ''};</>;
       },
     },
     {
@@ -165,7 +166,38 @@ const PipelineSystemList = () => {
       </Paper>
 
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
-        <DataGrid rows={pipelineSystems} columns={columns} loading={loading} rowCount={totalRows} paginationMode="server" sortingMode="server" paginationModel={paginationModel} onPaginationModelChange={handlePaginationChange} sortModel={sortModel} onSortModelChange={handleSortChange} pageSizeOptions={[10, 25, 50, 100]} disableRowSelectionOnClick autoHeight />
+        <DataGrid 
+          rows={pipelineSystems} 
+          columns={columns} 
+          loading={loading} 
+          rowCount={totalRows} 
+          paginationMode="server" 
+          sortingMode="server" 
+          paginationModel={paginationModel} 
+          onPaginationModelChange={handlePaginationChange} 
+          sortModel={sortModel} 
+          onSortModelChange={handleSortChange} 
+          pageSizeOptions={[10, 25, 50, 100]} 
+          disableRowSelectionOnClick 
+          autoHeight 
+          sx={{
+            border: 0,
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none',
+            },
+            '& .MuiDataGrid-row:hover': {
+              backgroundColor: alpha('#2563eb', 0.04),
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: alpha('#2563eb', 0.05),
+              borderBottom: 2,
+              borderColor: 'divider',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              fontWeight: 600,
+            },
+          }}
+        />
       </Paper>
     </Box>
   );
