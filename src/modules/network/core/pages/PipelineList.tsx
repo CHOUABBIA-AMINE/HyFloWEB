@@ -4,7 +4,7 @@
  * @author CHOUABBIA Amine
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Removed ID column and applied translations
+ * @updated 01-10-2026 - Applied i18n translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -26,7 +26,7 @@ const PipelineList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   useEffect(() => { loadPipelines(); }, [paginationModel, sortModel, searchText]);
@@ -34,7 +34,7 @@ const PipelineList = () => {
   const loadPipelines = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'name';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
       
       const pageable = {
@@ -63,27 +63,10 @@ const PipelineList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const columns: GridColDef[] = [
-    { 
-      field: 'name', 
-      headerName: t('pipeline.name'),
-      minWidth: 200, 
-      flex: 1, 
-      renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> 
-    },
-    { 
-      field: 'code', 
-      headerName: t('pipeline.code'),
-      width: 130, 
-      renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> 
-    },
-    { 
-      field: 'length', 
-      headerName: t('pipeline.length'),
-      width: 140, 
-      align: 'right',
-      headerAlign: 'right',
-      valueFormatter: (params) => params.value ? `${params.value.toFixed(2)} km` : '-' 
-    },
+    { field: 'id', headerName: t('pipeline.columns.id'), width: 80, align: 'center', headerAlign: 'center' },
+    { field: 'name', headerName: t('pipeline.columns.name'), minWidth: 200, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
+    { field: 'code', headerName: t('pipeline.columns.code'), width: 130, renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> },
+    { field: 'length', headerName: t('pipeline.columns.length'), width: 130, align: 'right', valueFormatter: (params) => params.value ? `${params.value.toFixed(2)} km` : '-' },
     {
       field: 'actions',
       headerName: t('common.actions'),
@@ -94,14 +77,10 @@ const PipelineList = () => {
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
           <Tooltip title={t('common.edit')}>
-            <IconButton size="small" onClick={() => navigate(`/network/core/pipelines/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}>
-              <EditIcon fontSize="small" />
-            </IconButton>
+            <IconButton size="small" onClick={() => navigate(`/network/core/pipelines/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}><EditIcon fontSize="small" /></IconButton>
           </Tooltip>
           <Tooltip title={t('common.delete')}>
-            <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main' }}>
-              <DeleteIcon fontSize="small" />
-            </IconButton>
+            <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></IconButton>
           </Tooltip>
         </Box>
       ),
@@ -120,28 +99,26 @@ const PipelineList = () => {
     }
   };
 
-  const handleClearFilters = () => { 
-    setSearchText(''); 
-    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }); 
-  };
+  const handleClearFilters = () => { setSearchText(''); setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }); };
 
   return (
     <Box>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h4" fontWeight={700}>{t('pipeline.title')}</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {t('pipeline.subtitle')}
-          </Typography>
+          <Stack direction="row" spacing={1.5}>
+            <Tooltip title={t('common.refresh')}>
+              <IconButton onClick={loadPipelines} color="primary"><RefreshIcon /></IconButton>
+            </Tooltip>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/pipelines/create')}>
+              {t('pipeline.create')}
+            </Button>
+          </Stack>
         </Box>
-        <Stack direction="row" spacing={1.5}>
-          <Tooltip title={t('common.refresh')}>
-            <IconButton onClick={loadPipelines} color="primary"><RefreshIcon /></IconButton>
-          </Tooltip>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/pipelines/create')}>
-            {t('pipeline.create')}
-          </Button>
-        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          {t('pipeline.subtitle')}
+        </Typography>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
@@ -150,24 +127,11 @@ const PipelineList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider', p: 2.5 }}>
         <Stack spacing={2.5}>
           <Stack direction="row" spacing={2}>
-            <TextField 
-              fullWidth 
-              placeholder={t('pipeline.searchPlaceholder')} 
-              value={searchText} 
-              onChange={(e) => setSearchText(e.target.value)} 
-              InputProps={{ 
-                startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> 
-              }} 
-              sx={{ maxWidth: 400 }} 
-            />
-            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>
-              {t('common.clear')}
-            </Button>
+            <TextField fullWidth placeholder={t('pipeline.searchPlaceholder')} value={searchText} onChange={(e) => setSearchText(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} sx={{ maxWidth: 400 }} />
+            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>{t('common.clear')}</Button>
           </Stack>
           <Divider />
-          <Typography variant="body2" color="text.secondary">
-            {totalRows} {t('common.total')}
-          </Typography>
+          <Typography variant="body2" color="text.secondary">{totalRows} {t('common.total')}</Typography>
         </Stack>
       </Paper>
 
