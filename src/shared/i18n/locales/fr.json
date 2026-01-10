@@ -458,7 +458,36 @@
     "updateError": "Échec de la mise à jour du partenaire",
     "deleteError": "Échec de la suppression du partenaire",
     "errorLoading": "Échec du chargement des partenaires",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "create": {
+      "title": "Créer un Partenaire",
+      "subtitle": "Ajouter un nouveau partenaire commercial"
+    },
+    "edit": {
+      "title": "Modifier le Partenaire",
+      "subtitle": "Mettre à jour les informations du partenaire",
+      "sections": {
+        "basicInformation": "Informations de Base"
+      },
+      "fields": {
+        "shortName": "Nom Court",
+        "shortNameHelper": "Obligatoire (2-20 caractères)",
+        "name": "Nom du Partenaire",
+        "nameHelper": "Optionnel (max 100 caractères)",
+        "partnerType": "Type de Partenaire",
+        "partnerTypeHelper": "Sélectionner le type de partenaire",
+        "country": "Pays",
+        "countryHelper": "Sélectionner le pays"
+      },
+      "validation": {
+        "shortNameRequired": "Le nom court est obligatoire (2-20 caractères)",
+        "nameMaxLength": "Le nom ne doit pas dépasser 100 caractères",
+        "partnerTypeRequired": "Le type de partenaire est obligatoire",
+        "countryRequired": "Le pays est obligatoire"
+      },
+      "errorLoading": "Échec du chargement des données du partenaire",
+      "saveError": "Échec de l'enregistrement du partenaire"
+    }
   },
   "product": {
     "title": "Produits",
@@ -488,7 +517,47 @@
     "updateError": "Échec de la mise à jour du produit",
     "deleteError": "Échec de la suppression du produit",
     "errorLoading": "Échec du chargement des produits",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "create": {
+      "title": "Créer un Produit",
+      "subtitle": "Ajouter un nouveau produit au système"
+    },
+    "edit": {
+      "title": "Modifier le Produit",
+      "subtitle": "Mettre à jour les informations du produit",
+      "sections": {
+        "basicInformation": "Informations de Base",
+        "designations": "Désignations Multilingues",
+        "properties": "Propriétés Physiques et Chimiques"
+      },
+      "fields": {
+        "code": "Code Produit",
+        "codeHelper": "Code unique obligatoire (max 10 caractères)",
+        "designationFr": "Désignation (Français)",
+        "designationFrHelper": "Obligatoire",
+        "designationAr": "Désignation (Arabe)",
+        "designationArHelper": "Optionnel",
+        "designationEn": "Désignation (Anglais)",
+        "designationEnHelper": "Optionnel",
+        "density": "Densité (kg/m³)",
+        "densityHelper": "Densité du produit en kg/m³",
+        "viscosity": "Viscosité (cP)",
+        "viscosityHelper": "Viscosité du produit en centipoise",
+        "flashPoint": "Point d'Éclair (°C)",
+        "flashPointHelper": "Température d'inflammation des vapeurs",
+        "sulfurContent": "Teneur en Soufre (%)",
+        "sulfurContentHelper": "Pourcentage de teneur en soufre",
+        "isHazardous": "Matière Dangereuse"
+      },
+      "validation": {
+        "codeRequired": "Le code produit est obligatoire",
+        "codeMaxLength": "Le code produit ne doit pas dépasser 10 caractères",
+        "designationFrRequired": "La désignation française est obligatoire",
+        "designationMaxLength": "La désignation ne doit pas dépasser 100 caractères"
+      },
+      "errorLoading": "Échec du chargement du produit",
+      "saveError": "Échec de l'enregistrement du produit"
+    }
   },
   "vendor": {
     "title": "Fournisseurs",
@@ -517,7 +586,36 @@
     "updateError": "Échec de la mise à jour du fournisseur",
     "deleteError": "Échec de la suppression du fournisseur",
     "errorLoading": "Échec du chargement des fournisseurs",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "create": {
+      "title": "Créer un Fournisseur",
+      "subtitle": "Ajouter un nouveau fournisseur ou prestataire"
+    },
+    "edit": {
+      "title": "Modifier le Fournisseur",
+      "subtitle": "Mettre à jour les informations du fournisseur",
+      "sections": {
+        "basicInformation": "Informations de Base"
+      },
+      "fields": {
+        "name": "Nom du Fournisseur",
+        "nameHelper": "Optionnel (max 100 caractères)",
+        "shortName": "Nom Court",
+        "shortNameHelper": "Optionnel (2-20 caractères)",
+        "vendorType": "Type de Fournisseur",
+        "vendorTypeHelper": "Sélectionner le type de fournisseur",
+        "country": "Pays",
+        "countryHelper": "Sélectionner le pays"
+      },
+      "validation": {
+        "nameMaxLength": "Le nom ne doit pas dépasser 100 caractères",
+        "shortNameLength": "Le nom court doit contenir entre 2 et 20 caractères",
+        "vendorTypeRequired": "Le type de fournisseur est obligatoire",
+        "countryRequired": "Le pays est obligatoire"
+      },
+      "errorLoading": "Échec du chargement des données du fournisseur",
+      "saveError": "Échec de l'enregistrement du fournisseur"
+    }
   },
   "operationalStatus": {
     "title": "État opérationnel",
