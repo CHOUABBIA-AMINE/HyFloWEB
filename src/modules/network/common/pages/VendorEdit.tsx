@@ -5,6 +5,7 @@
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed to match VendorDTO schema
  * @updated 01-09-2026 - Fixed DTO field names and added multilingual support
+ * @updated 01-10-2026 - Added i18n translations for all text elements
  */
 
 import { useState, useEffect } from 'react';
@@ -83,7 +84,7 @@ const VendorEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('vendor.edit.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -111,19 +112,19 @@ const VendorEdit = () => {
     const errors: Record<string, string> = {};
 
     if (vendor.name && vendor.name.length > 100) {
-      errors.name = 'Name must not exceed 100 characters';
+      errors.name = t('vendor.edit.validation.nameMaxLength');
     }
 
     if (vendor.shortName && (vendor.shortName.length < 2 || vendor.shortName.length > 20)) {
-      errors.shortName = 'Short name must be between 2 and 20 characters';
+      errors.shortName = t('vendor.edit.validation.shortNameLength');
     }
 
     if (!vendor.vendorTypeId) {
-      errors.vendorTypeId = 'Vendor type is required';
+      errors.vendorTypeId = t('vendor.edit.validation.vendorTypeRequired');
     }
 
     if (!vendor.countryId) {
-      errors.countryId = 'Country is required';
+      errors.countryId = t('vendor.edit.validation.countryRequired');
     }
 
     setValidationErrors(errors);
@@ -167,7 +168,7 @@ const VendorEdit = () => {
       navigate('/network/common/vendors');
     } catch (err: any) {
       console.error('Failed to save vendor:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save vendor');
+      setError(err.response?.data?.message || err.message || t('vendor.edit.saveError'));
     } finally {
       setSaving(false);
     }
@@ -196,10 +197,10 @@ const VendorEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? 'Edit Vendor' : 'Create Vendor'}
+          {isEditMode ? t('vendor.edit.title') : t('vendor.create.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update vendor information' : 'Create a new vendor'}
+          {isEditMode ? t('vendor.edit.subtitle') : t('vendor.create.subtitle')}
         </Typography>
       </Box>
 
@@ -214,7 +215,7 @@ const VendorEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('vendor.edit.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -222,22 +223,22 @@ const VendorEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Vendor Name"
+                    label={t('vendor.edit.fields.name')}
                     value={vendor.name || ''}
                     onChange={handleChange('name')}
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name || 'Optional vendor name (max 100 characters)'}
+                    helperText={validationErrors.name || t('vendor.edit.fields.nameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Short Name"
+                    label={t('vendor.edit.fields.shortName')}
                     value={vendor.shortName || ''}
                     onChange={handleChange('shortName')}
                     error={!!validationErrors.shortName}
-                    helperText={validationErrors.shortName || 'Optional short name (2-20 characters)'}
+                    helperText={validationErrors.shortName || t('vendor.edit.fields.shortNameHelper')}
                   />
                 </Grid>
 
@@ -245,12 +246,12 @@ const VendorEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Vendor Type"
+                    label={t('vendor.edit.fields.vendorType')}
                     value={vendor.vendorTypeId || ''}
                     onChange={handleChange('vendorTypeId')}
                     required
                     error={!!validationErrors.vendorTypeId}
-                    helperText={validationErrors.vendorTypeId}
+                    helperText={validationErrors.vendorTypeId || t('vendor.edit.fields.vendorTypeHelper')}
                   >
                     {vendorTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
@@ -264,12 +265,12 @@ const VendorEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Country"
+                    label={t('vendor.edit.fields.country')}
                     value={vendor.countryId || ''}
                     onChange={handleChange('countryId')}
                     required
                     error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId}
+                    helperText={validationErrors.countryId || t('vendor.edit.fields.countryHelper')}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
@@ -301,7 +302,7 @@ const VendorEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>

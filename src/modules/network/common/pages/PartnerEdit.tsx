@@ -5,6 +5,7 @@
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed to match PartnerDTO schema
  * @updated 01-10-2026 - Fixed DTO field names and added multilingual support
+ * @updated 01-10-2026 - Added i18n translations for all text elements
  */
 
 import { useState, useEffect } from 'react';
@@ -83,7 +84,7 @@ const PartnerEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('partner.edit.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -111,19 +112,19 @@ const PartnerEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!partner.shortName || partner.shortName.trim().length < 2 || partner.shortName.trim().length > 20) {
-      errors.shortName = 'Short name is required (2-20 characters)';
+      errors.shortName = t('partner.edit.validation.shortNameRequired');
     }
 
     if (partner.name && partner.name.length > 100) {
-      errors.name = 'Name must not exceed 100 characters';
+      errors.name = t('partner.edit.validation.nameMaxLength');
     }
 
     if (!partner.partnerTypeId) {
-      errors.partnerTypeId = 'Partner type is required';
+      errors.partnerTypeId = t('partner.edit.validation.partnerTypeRequired');
     }
 
     if (!partner.countryId) {
-      errors.countryId = 'Country is required';
+      errors.countryId = t('partner.edit.validation.countryRequired');
     }
 
     setValidationErrors(errors);
@@ -167,7 +168,7 @@ const PartnerEdit = () => {
       navigate('/network/common/partners');
     } catch (err: any) {
       console.error('Failed to save partner:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save partner');
+      setError(err.response?.data?.message || err.message || t('partner.edit.saveError'));
     } finally {
       setSaving(false);
     }
@@ -196,10 +197,10 @@ const PartnerEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? 'Edit Partner' : 'Create Partner'}
+          {isEditMode ? t('partner.edit.title') : t('partner.create.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update partner information' : 'Create a new partner'}
+          {isEditMode ? t('partner.edit.subtitle') : t('partner.create.subtitle')}
         </Typography>
       </Box>
 
@@ -214,7 +215,7 @@ const PartnerEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('partner.edit.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -222,22 +223,23 @@ const PartnerEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Short Name"
+                    label={t('partner.edit.fields.shortName')}
                     value={partner.shortName || ''}
                     onChange={handleChange('shortName')}
                     required
                     error={!!validationErrors.shortName}
-                    helperText={validationErrors.shortName || 'Required (2-20 characters)'}
+                    helperText={validationErrors.shortName || t('partner.edit.fields.shortNameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Partner Name"
+                    label={t('partner.edit.fields.name')}
                     value={partner.name || ''}
                     onChange={handleChange('name')}
-                    helperText="Optional partner name (max 100 characters)"
+                    error={!!validationErrors.name}
+                    helperText={validationErrors.name || t('partner.edit.fields.nameHelper')}
                   />
                 </Grid>
 
@@ -245,12 +247,12 @@ const PartnerEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Partner Type"
+                    label={t('partner.edit.fields.partnerType')}
                     value={partner.partnerTypeId || ''}
                     onChange={handleChange('partnerTypeId')}
                     required
                     error={!!validationErrors.partnerTypeId}
-                    helperText={validationErrors.partnerTypeId}
+                    helperText={validationErrors.partnerTypeId || t('partner.edit.fields.partnerTypeHelper')}
                   >
                     {partnerTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
@@ -264,12 +266,12 @@ const PartnerEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Country"
+                    label={t('partner.edit.fields.country')}
                     value={partner.countryId || ''}
                     onChange={handleChange('countryId')}
                     required
                     error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId}
+                    helperText={validationErrors.countryId || t('partner.edit.fields.countryHelper')}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
@@ -301,7 +303,7 @@ const PartnerEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
