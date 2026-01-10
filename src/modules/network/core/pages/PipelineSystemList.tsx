@@ -5,12 +5,13 @@
  * @created 01-01-2026
  * @updated 01-08-2026 - Fixed region column (replaced with structure)
  * @updated 01-10-2026 - Aligned table header design with StructureList
+ * @updated 01-10-2026 - Removed ID column and applied translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdornment, Stack, Paper, Divider, alpha } from '@mui/material';
+import { Box, Typography, Button, IconButton, Chip, Alert, TextField, InputAdornment, Stack, Paper, Divider, Tooltip, alpha } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, FilterList as FilterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
@@ -29,7 +30,7 @@ const PipelineSystemList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   const getDesignation = (obj: any): string => {
@@ -47,7 +48,7 @@ const PipelineSystemList = () => {
   const loadPipelineSystems = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'name';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
       const pageable = {
@@ -64,7 +65,7 @@ const PipelineSystemList = () => {
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to load pipeline systems');
+      setError(err.message || t('pipelineSystem.errorLoading'));
       setPipelineSystems([]);
       setTotalRows(0);
     } finally {
@@ -76,13 +77,13 @@ const PipelineSystemList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Delete this pipeline system?')) {
+    if (window.confirm(t('pipelineSystem.confirmDelete'))) {
       try {
         await PipelineSystemService.delete(id);
-        setSuccess('Deleted');
+        setSuccess(t('pipelineSystem.deleteSuccess'));
         loadPipelineSystems();
       } catch (err: any) {
-        setError(err.message || 'Failed to delete pipeline system');
+        setError(err.message || t('pipelineSystem.deleteError'));
       }
     }
   };
@@ -93,12 +94,22 @@ const PipelineSystemList = () => {
   };
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
-    { field: 'name', headerName: 'System Name', minWidth: 220, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
-    { field: 'code', headerName: 'Code', width: 130, renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> },
+    { 
+      field: 'name', 
+      headerName: t('pipelineSystem.name'),
+      minWidth: 220, 
+      flex: 1, 
+      renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> 
+    },
+    { 
+      field: 'code', 
+      headerName: t('pipelineSystem.code'),
+      width: 130, 
+      renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> 
+    },
     {
       field: 'structureId',
-      headerName: 'Structure',
+      headerName: t('pipelineSystem.structure'),
       minWidth: 180,
       flex: 1,
       renderCell: (params) => {
@@ -108,7 +119,7 @@ const PipelineSystemList = () => {
     },
     {
       field: 'productId',
-      headerName: 'Product',
+      headerName: t('pipelineSystem.product'),
       minWidth: 180,
       flex: 1,
       renderCell: (params) => {
@@ -118,7 +129,7 @@ const PipelineSystemList = () => {
     },
     {
       field: 'operationalStatusId',
-      headerName: 'Status',
+      headerName: t('pipelineSystem.status'),
       minWidth: 160,
       flex: 1,
       renderCell: (params) => {
@@ -131,11 +142,20 @@ const PipelineSystemList = () => {
       headerName: t('common.actions'),
       width: 130,
       align: 'center',
+      headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <IconButton size="small" onClick={() => navigate(`/network/core/pipeline-systems/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}><EditIcon fontSize="small" /></IconButton>
-          <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></IconButton>
+          <Tooltip title={t('common.edit')}>
+            <IconButton size="small" onClick={() => navigate(`/network/core/pipeline-systems/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t('common.delete')}>
+            <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main' }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
       ),
     },
@@ -144,10 +164,19 @@ const PipelineSystemList = () => {
   return (
     <Box>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h4" fontWeight={700}>Pipeline Systems</Typography>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>{t('pipelineSystem.title')}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {t('pipelineSystem.subtitle')}
+          </Typography>
+        </Box>
         <Stack direction="row" spacing={1.5}>
-          <IconButton onClick={loadPipelineSystems} color="primary"><RefreshIcon /></IconButton>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/pipeline-systems/create')}>Create Pipeline System</Button>
+          <Tooltip title={t('common.refresh')}>
+            <IconButton onClick={loadPipelineSystems} color="primary"><RefreshIcon /></IconButton>
+          </Tooltip>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/pipeline-systems/create')}>
+            {t('pipelineSystem.create')}
+          </Button>
         </Stack>
       </Box>
 
@@ -157,11 +186,24 @@ const PipelineSystemList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider', p: 2.5 }}>
         <Stack spacing={2.5}>
           <Stack direction="row" spacing={2}>
-            <TextField fullWidth placeholder="Search pipeline systems..." value={searchText} onChange={(e) => setSearchText(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} sx={{ maxWidth: 400 }} />
-            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>Clear</Button>
+            <TextField 
+              fullWidth 
+              placeholder={t('pipelineSystem.searchPlaceholder')} 
+              value={searchText} 
+              onChange={(e) => setSearchText(e.target.value)} 
+              InputProps={{ 
+                startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> 
+              }} 
+              sx={{ maxWidth: 400 }} 
+            />
+            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>
+              {t('common.clear')}
+            </Button>
           </Stack>
           <Divider />
-          <Typography variant="body2" color="text.secondary">{totalRows} total</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {totalRows} {t('common.total')}
+          </Typography>
         </Stack>
       </Paper>
 
