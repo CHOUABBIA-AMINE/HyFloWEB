@@ -7,6 +7,7 @@
  * @updated 01-10-2026 - Aligned table header design with StructureList
  * @updated 01-10-2026 - Added i18n translations and removed ID column
  * @updated 01-10-2026 - Optimized i18n reactivity following best practices
+ * @updated 01-10-2026 - Changed default page size to 10, added 5 to size options
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -48,7 +49,7 @@ const PartnerList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
@@ -257,7 +258,7 @@ const PartnerList = () => {
             onPaginationModelChange={handlePaginationChange}
             sortModel={sortModel}
             onSortModelChange={handleSortChange}
-            pageSizeOptions={[10, 25, 50, 100]}
+            pageSizeOptions={[5, 10, 25, 50, 100]}
             disableRowSelectionOnClick
             autoHeight
             sx={{
