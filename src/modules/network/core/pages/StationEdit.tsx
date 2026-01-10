@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-23-2025
  * @updated 01-08-2026 - Refactored for U-006 schema (locationId)
+ * @updated 01-10-2026 - Applied i18n translations
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -196,7 +197,7 @@ const StationEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('station.errorLoadingFormData'));
     } finally {
       setLoading(false);
     }
@@ -206,35 +207,35 @@ const StationEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!station.name || station.name.trim().length < 3) {
-      errors.name = 'Station name must be at least 3 characters';
+      errors.name = t('station.validation.nameRequired');
     }
 
     if (!station.code || station.code.trim().length < 2) {
-      errors.code = 'Station code must be at least 2 characters';
+      errors.code = t('station.validation.codeRequired');
     }
 
     if (!station.operationalStatusId) {
-      errors.operationalStatusId = 'Operational status is required';
+      errors.operationalStatusId = t('station.validation.operationalStatusRequired');
     }
 
     if (!station.structureId) {
-      errors.structureId = 'Structure is required';
+      errors.structureId = t('station.validation.structureRequired');
     }
 
     if (!station.vendorId) {
-      errors.vendorId = 'Vendor is required';
+      errors.vendorId = t('station.validation.vendorRequired');
     }
 
     if (!station.locationId) {
-      errors.locationId = 'Location is required';
+      errors.locationId = t('station.validation.locationRequired');
     }
 
     if (!station.stationTypeId) {
-      errors.stationTypeId = 'Station type is required';
+      errors.stationTypeId = t('station.validation.stationTypeRequired');
     }
 
     if (!station.pipelineSystemId) {
-      errors.pipelineSystemId = 'Pipeline system is required';
+      errors.pipelineSystemId = t('station.validation.pipelineSystemRequired');
     }
 
     setValidationErrors(errors);
@@ -293,7 +294,7 @@ const StationEdit = () => {
       navigate('/network/core/stations');
     } catch (err: any) {
       console.error('Failed to save station:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save station');
+      setError(err.response?.data?.message || err.message || t('station.saveError'));
     } finally {
       setSaving(false);
     }
@@ -323,10 +324,10 @@ const StationEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? 'Edit Station' : 'Create Station'}
+          {isEditMode ? t('station.edit') : t('station.create')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update station information and details' : 'Create a new pipeline station'}
+          {isEditMode ? t('station.editSubtitle') : t('station.createSubtitle')}
         </Typography>
       </Box>
 
@@ -344,7 +345,7 @@ const StationEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('station.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -352,24 +353,24 @@ const StationEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Station Code"
+                    label={t('station.fields.code')}
                     value={station.code || ''}
                     onChange={handleChange('code')}
                     required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code || '2-20 characters'}
+                    helperText={validationErrors.code || t('station.fields.codeHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Station Name"
+                    label={t('station.fields.name')}
                     value={station.name || ''}
                     onChange={handleChange('name')}
                     required
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name || '3-100 characters'}
+                    helperText={validationErrors.name || t('station.fields.nameHelper')}
                   />
                 </Grid>
               </Grid>
@@ -380,7 +381,7 @@ const StationEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Location & Organization
+                {t('station.sections.locationOrganization')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -389,12 +390,12 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Location"
+                    label={t('station.fields.location')}
                     value={station.locationId || ''}
                     onChange={handleChange('locationId')}
                     required
                     error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId || 'Select the physical location'}
+                    helperText={validationErrors.locationId || t('station.fields.locationHelper')}
                   >
                     {sortedLocations.length > 0 ? (
                       sortedLocations.map((location) => (
@@ -403,7 +404,7 @@ const StationEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading locations...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -412,12 +413,12 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Structure"
+                    label={t('station.fields.structure')}
                     value={station.structureId || ''}
                     onChange={handleChange('structureId')}
                     required
                     error={!!validationErrors.structureId}
-                    helperText={validationErrors.structureId || 'Organizational unit'}
+                    helperText={validationErrors.structureId || t('station.fields.structureHelper')}
                   >
                     {sortedStructures.length > 0 ? (
                       sortedStructures.map((structure) => (
@@ -426,7 +427,7 @@ const StationEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading structures...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -438,7 +439,7 @@ const StationEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Technical Details
+                {t('station.sections.technicalDetails')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -447,12 +448,12 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Station Type"
+                    label={t('station.fields.stationType')}
                     value={station.stationTypeId || ''}
                     onChange={handleChange('stationTypeId')}
                     required
                     error={!!validationErrors.stationTypeId}
-                    helperText={validationErrors.stationTypeId}
+                    helperText={validationErrors.stationTypeId || t('station.fields.stationTypeHelper')}
                   >
                     {sortedStationTypes.length > 0 ? (
                       sortedStationTypes.map((type) => (
@@ -461,7 +462,7 @@ const StationEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading types...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -470,12 +471,12 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Operational Status"
+                    label={t('station.fields.operationalStatus')}
                     value={station.operationalStatusId || ''}
                     onChange={handleChange('operationalStatusId')}
                     required
                     error={!!validationErrors.operationalStatusId}
-                    helperText={validationErrors.operationalStatusId}
+                    helperText={validationErrors.operationalStatusId || t('station.fields.operationalStatusHelper')}
                   >
                     {sortedOperationalStatuses.length > 0 ? (
                       sortedOperationalStatuses.map((status) => (
@@ -484,7 +485,7 @@ const StationEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading statuses...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -493,12 +494,12 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Vendor"
+                    label={t('station.fields.vendor')}
                     value={station.vendorId || ''}
                     onChange={handleChange('vendorId')}
                     required
                     error={!!validationErrors.vendorId}
-                    helperText={validationErrors.vendorId}
+                    helperText={validationErrors.vendorId || t('station.fields.vendorHelper')}
                   >
                     {vendors.length > 0 ? (
                       vendors.map((vendor) => (
@@ -507,7 +508,7 @@ const StationEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading vendors...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -516,12 +517,12 @@ const StationEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Pipeline System"
+                    label={t('station.fields.pipelineSystem')}
                     value={station.pipelineSystemId || ''}
                     onChange={handleChange('pipelineSystemId')}
                     required
                     error={!!validationErrors.pipelineSystemId}
-                    helperText={validationErrors.pipelineSystemId}
+                    helperText={validationErrors.pipelineSystemId || t('station.fields.pipelineSystemHelper')}
                   >
                     {pipelineSystems.length > 0 ? (
                       pipelineSystems.map((system) => (
@@ -530,7 +531,7 @@ const StationEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading systems...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -542,7 +543,7 @@ const StationEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Important Dates
+                {t('station.sections.importantDates')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -550,33 +551,36 @@ const StationEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Installation Date"
+                    label={t('station.fields.installationDate')}
                     type="date"
                     value={station.installationDate || ''}
                     onChange={handleChange('installationDate')}
                     InputLabelProps={{ shrink: true }}
+                    helperText={t('station.fields.installationDateHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Commissioning Date"
+                    label={t('station.fields.commissioningDate')}
                     type="date"
                     value={station.commissioningDate || ''}
                     onChange={handleChange('commissioningDate')}
                     InputLabelProps={{ shrink: true }}
+                    helperText={t('station.fields.commissioningDateHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Decommissioning Date"
+                    label={t('station.fields.decommissioningDate')}
                     type="date"
                     value={station.decommissioningDate || ''}
                     onChange={handleChange('decommissioningDate')}
                     InputLabelProps={{ shrink: true }}
+                    helperText={t('station.fields.decommissioningDateHelper')}
                   />
                 </Grid>
               </Grid>
@@ -603,7 +607,7 @@ const StationEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
