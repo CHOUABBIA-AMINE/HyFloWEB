@@ -52,6 +52,169 @@
     "add": "Ajouter",
     "view": "Voir"
   },
+  "product": {
+    "title": "Produits",
+    "subtitle": "Gérer les produits d'hydrocarbures et matériaux",
+    "create": "Créer un Produit",
+    "edit": "Modifier le Produit",
+    "delete": "Supprimer le Produit",
+    "confirmDelete": "Supprimer ce produit ?",
+    "deleteSuccess": "Produit supprimé avec succès",
+    "deleteError": "Échec de la suppression du produit",
+    "errorLoading": "Échec du chargement des produits",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire",
+    "saveError": "Échec de l'enregistrement du produit",
+    "createSuccess": "Produit créé avec succès",
+    "updateSuccess": "Produit mis à jour avec succès",
+    "searchPlaceholder": "Rechercher des produits...",
+    "columns": {
+      "code": "Code",
+      "designation": "Désignation",
+      "density": "Densité (kg/m³)",
+      "isHazardous": "Dangereux",
+      "actions": "Actions"
+    },
+    "createPage": {
+      "title": "Créer un Produit",
+      "subtitle": "Ajouter un nouveau produit d'hydrocarbures"
+    },
+    "editPage": {
+      "title": "Modifier le Produit",
+      "subtitle": "Mettre à jour les informations et propriétés du produit"
+    },
+    "sections": {
+      "basicInformation": "Informations de Base",
+      "designations": "Désignations Multilingues",
+      "properties": "Propriétés Physiques et Chimiques"
+    },
+    "fields": {
+      "code": "Code Produit",
+      "codeHelper": "Identifiant unique du produit (max 10 caractères)",
+      "designationFr": "Désignation (Français)",
+      "designationFrHelper": "Obligatoire",
+      "designationAr": "Désignation (Arabe)",
+      "designationArHelper": "Optionnel",
+      "designationEn": "Désignation (Anglais)",
+      "designationEnHelper": "Optionnel",
+      "density": "Densité (kg/m³)",
+      "densityHelper": "Densité du produit en kilogrammes par mètre cube",
+      "viscosity": "Viscosité (cP)",
+      "viscosityHelper": "Viscosité du produit en centipoise",
+      "flashPoint": "Point d'Éclair (°C)",
+      "flashPointHelper": "Température d'inflammation de la vapeur",
+      "sulfurContent": "Teneur en Soufre (%)",
+      "sulfurContentHelper": "Pourcentage de teneur en soufre",
+      "isHazardous": "Matière Dangereuse",
+      "isHazardousHelper": "Cocher si ce produit est classé comme dangereux"
+    },
+    "validation": {
+      "codeRequired": "Le code produit est requis",
+      "codeMaxLength": "Le code produit ne doit pas dépasser 10 caractères",
+      "designationFrRequired": "La désignation française est requise",
+      "designationMaxLength": "La désignation ne doit pas dépasser 100 caractères",
+      "densityPositive": "La densité doit être supérieure à 0"
+    }
+  },
+  "partner": {
+    "title": "Partenaires",
+    "subtitle": "Gérer les partenaires commerciaux et collaborateurs",
+    "create": "Créer un Partenaire",
+    "edit": "Modifier le Partenaire",
+    "delete": "Supprimer le Partenaire",
+    "confirmDelete": "Supprimer ce partenaire ?",
+    "deleteSuccess": "Partenaire supprimé avec succès",
+    "deleteError": "Échec de la suppression du partenaire",
+    "errorLoading": "Échec du chargement des partenaires",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire",
+    "saveError": "Échec de l'enregistrement du partenaire",
+    "createSuccess": "Partenaire créé avec succès",
+    "updateSuccess": "Partenaire mis à jour avec succès",
+    "searchPlaceholder": "Rechercher des partenaires...",
+    "columns": {
+      "shortName": "Nom Court",
+      "name": "Nom Complet",
+      "type": "Type",
+      "country": "Pays",
+      "actions": "Actions"
+    },
+    "createPage": {
+      "title": "Créer un Partenaire",
+      "subtitle": "Ajouter un nouveau partenaire commercial"
+    },
+    "editPage": {
+      "title": "Modifier le Partenaire",
+      "subtitle": "Mettre à jour les informations du partenaire"
+    },
+    "sections": {
+      "basicInformation": "Informations de Base"
+    },
+    "fields": {
+      "shortName": "Nom Court",
+      "shortNameHelper": "Obligatoire (2-20 caractères)",
+      "name": "Nom du Partenaire",
+      "nameHelper": "Nom complet optionnel (max 100 caractères)",
+      "partnerType": "Type de Partenaire",
+      "partnerTypeHelper": "Sélectionner le type de partenariat",
+      "country": "Pays",
+      "countryHelper": "Pays d'origine du partenaire"
+    },
+    "validation": {
+      "shortNameRequired": "Le nom court est requis (2-20 caractères)",
+      "nameMaxLength": "Le nom ne doit pas dépasser 100 caractères",
+      "partnerTypeRequired": "Le type de partenaire est requis",
+      "countryRequired": "Le pays est requis"
+    }
+  },
+  "vendor": {
+    "title": "Fournisseurs",
+    "subtitle": "Gérer les fournisseurs d'équipements et prestataires",
+    "create": "Créer un Fournisseur",
+    "edit": "Modifier le Fournisseur",
+    "delete": "Supprimer le Fournisseur",
+    "confirmDelete": "Supprimer ce fournisseur ?",
+    "deleteSuccess": "Fournisseur supprimé avec succès",
+    "deleteError": "Échec de la suppression du fournisseur",
+    "errorLoading": "Échec du chargement des fournisseurs",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire",
+    "saveError": "Échec de l'enregistrement du fournisseur",
+    "createSuccess": "Fournisseur créé avec succès",
+    "updateSuccess": "Fournisseur mis à jour avec succès",
+    "searchPlaceholder": "Rechercher des fournisseurs...",
+    "columns": {
+      "shortName": "Nom Court",
+      "name": "Nom Complet",
+      "type": "Type",
+      "country": "Pays",
+      "actions": "Actions"
+    },
+    "createPage": {
+      "title": "Créer un Fournisseur",
+      "subtitle": "Ajouter un nouveau fournisseur d'équipements"
+    },
+    "editPage": {
+      "title": "Modifier le Fournisseur",
+      "subtitle": "Mettre à jour les informations du fournisseur"
+    },
+    "sections": {
+      "basicInformation": "Informations de Base"
+    },
+    "fields": {
+      "name": "Nom du Fournisseur",
+      "nameHelper": "Nom complet optionnel (max 100 caractères)",
+      "shortName": "Nom Court",
+      "shortNameHelper": "Abréviation optionnelle (2-20 caractères)",
+      "vendorType": "Type de Fournisseur",
+      "vendorTypeHelper": "Sélectionner la classification du fournisseur",
+      "country": "Pays",
+      "countryHelper": "Pays d'opération du fournisseur"
+    },
+    "validation": {
+      "nameMaxLength": "Le nom ne doit pas dépasser 100 caractères",
+      "shortNameLength": "Le nom court doit contenir entre 2 et 20 caractères",
+      "vendorTypeRequired": "Le type de fournisseur est requis",
+      "countryRequired": "Le pays est requis"
+    }
+  },
   "station": {
     "title": "Stations",
     "subtitle": "Gérer les infrastructures et équipements de stations",

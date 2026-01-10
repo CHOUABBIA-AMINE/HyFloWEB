@@ -52,6 +52,169 @@
     "add": "Add",
     "view": "View"
   },
+  "product": {
+    "title": "Products",
+    "subtitle": "Manage hydrocarbon products and materials",
+    "create": "Create Product",
+    "edit": "Edit Product",
+    "delete": "Delete Product",
+    "confirmDelete": "Delete this product?",
+    "deleteSuccess": "Product deleted successfully",
+    "deleteError": "Failed to delete product",
+    "errorLoading": "Failed to load products",
+    "errorLoadingFormData": "Failed to load form data",
+    "saveError": "Failed to save product",
+    "createSuccess": "Product created successfully",
+    "updateSuccess": "Product updated successfully",
+    "searchPlaceholder": "Search products...",
+    "columns": {
+      "code": "Code",
+      "designation": "Designation",
+      "density": "Density (kg/m³)",
+      "isHazardous": "Hazardous",
+      "actions": "Actions"
+    },
+    "createPage": {
+      "title": "Create Product",
+      "subtitle": "Add a new hydrocarbon product"
+    },
+    "editPage": {
+      "title": "Edit Product",
+      "subtitle": "Update product information and properties"
+    },
+    "sections": {
+      "basicInformation": "Basic Information",
+      "designations": "Multilingual Designations",
+      "properties": "Physical & Chemical Properties"
+    },
+    "fields": {
+      "code": "Product Code",
+      "codeHelper": "Unique product identifier (max 10 characters)",
+      "designationFr": "Designation (French)",
+      "designationFrHelper": "Required",
+      "designationAr": "Designation (Arabic)",
+      "designationArHelper": "Optional",
+      "designationEn": "Designation (English)",
+      "designationEnHelper": "Optional",
+      "density": "Density (kg/m³)",
+      "densityHelper": "Product density in kilograms per cubic meter",
+      "viscosity": "Viscosity (cP)",
+      "viscosityHelper": "Product viscosity in centipoise",
+      "flashPoint": "Flash Point (°C)",
+      "flashPointHelper": "Temperature at which vapor ignites",
+      "sulfurContent": "Sulfur Content (%)",
+      "sulfurContentHelper": "Percentage of sulfur content",
+      "isHazardous": "Hazardous Material",
+      "isHazardousHelper": "Mark if this product is classified as hazardous"
+    },
+    "validation": {
+      "codeRequired": "Product code is required",
+      "codeMaxLength": "Product code must not exceed 10 characters",
+      "designationFrRequired": "French designation is required",
+      "designationMaxLength": "Designation must not exceed 100 characters",
+      "densityPositive": "Density must be greater than 0"
+    }
+  },
+  "partner": {
+    "title": "Partners",
+    "subtitle": "Manage business partners and collaborators",
+    "create": "Create Partner",
+    "edit": "Edit Partner",
+    "delete": "Delete Partner",
+    "confirmDelete": "Delete this partner?",
+    "deleteSuccess": "Partner deleted successfully",
+    "deleteError": "Failed to delete partner",
+    "errorLoading": "Failed to load partners",
+    "errorLoadingFormData": "Failed to load form data",
+    "saveError": "Failed to save partner",
+    "createSuccess": "Partner created successfully",
+    "updateSuccess": "Partner updated successfully",
+    "searchPlaceholder": "Search partners...",
+    "columns": {
+      "shortName": "Short Name",
+      "name": "Full Name",
+      "type": "Type",
+      "country": "Country",
+      "actions": "Actions"
+    },
+    "createPage": {
+      "title": "Create Partner",
+      "subtitle": "Add a new business partner"
+    },
+    "editPage": {
+      "title": "Edit Partner",
+      "subtitle": "Update partner information"
+    },
+    "sections": {
+      "basicInformation": "Basic Information"
+    },
+    "fields": {
+      "shortName": "Short Name",
+      "shortNameHelper": "Required (2-20 characters)",
+      "name": "Partner Name",
+      "nameHelper": "Optional full name (max 100 characters)",
+      "partnerType": "Partner Type",
+      "partnerTypeHelper": "Select the type of partnership",
+      "country": "Country",
+      "countryHelper": "Partner's country of origin"
+    },
+    "validation": {
+      "shortNameRequired": "Short name is required (2-20 characters)",
+      "nameMaxLength": "Name must not exceed 100 characters",
+      "partnerTypeRequired": "Partner type is required",
+      "countryRequired": "Country is required"
+    }
+  },
+  "vendor": {
+    "title": "Vendors",
+    "subtitle": "Manage equipment vendors and suppliers",
+    "create": "Create Vendor",
+    "edit": "Edit Vendor",
+    "delete": "Delete Vendor",
+    "confirmDelete": "Delete this vendor?",
+    "deleteSuccess": "Vendor deleted successfully",
+    "deleteError": "Failed to delete vendor",
+    "errorLoading": "Failed to load vendors",
+    "errorLoadingFormData": "Failed to load form data",
+    "saveError": "Failed to save vendor",
+    "createSuccess": "Vendor created successfully",
+    "updateSuccess": "Vendor updated successfully",
+    "searchPlaceholder": "Search vendors...",
+    "columns": {
+      "shortName": "Short Name",
+      "name": "Full Name",
+      "type": "Type",
+      "country": "Country",
+      "actions": "Actions"
+    },
+    "createPage": {
+      "title": "Create Vendor",
+      "subtitle": "Add a new equipment vendor or supplier"
+    },
+    "editPage": {
+      "title": "Edit Vendor",
+      "subtitle": "Update vendor information"
+    },
+    "sections": {
+      "basicInformation": "Basic Information"
+    },
+    "fields": {
+      "name": "Vendor Name",
+      "nameHelper": "Optional full name (max 100 characters)",
+      "shortName": "Short Name",
+      "shortNameHelper": "Optional abbreviation (2-20 characters)",
+      "vendorType": "Vendor Type",
+      "vendorTypeHelper": "Select vendor classification",
+      "country": "Country",
+      "countryHelper": "Vendor's country of operation"
+    },
+    "validation": {
+      "nameMaxLength": "Name must not exceed 100 characters",
+      "shortNameLength": "Short name must be between 2 and 20 characters",
+      "vendorTypeRequired": "Vendor type is required",
+      "countryRequired": "Country is required"
+    }
+  },
   "station": {
     "title": "Stations",
     "subtitle": "Manage station infrastructure and equipment",
@@ -661,329 +824,6 @@
     "description": "Description",
     "users": "Users",
     "searchGroups": "Search groups..."
-  },
-  "mail": {
-    "title": "Mail Management",
-    "create": "Create Mail",
-    "edit": "Edit Mail",
-    "delete": "Delete Mail",
-    "deleteConfirm": "Are you sure you want to delete this mail?",
-    "reference": "Reference",
-    "recordNumber": "Record Number",
-    "subject": "Subject",
-    "mailDate": "Mail Date",
-    "recordDate": "Record Date",
-    "mailNature": "Mail Nature",
-    "mailType": "Mail Type",
-    "structure": "Structure",
-    "file": "File",
-    "filterByNature": "Filter by Nature",
-    "filterByType": "Filter by Type",
-    "searchPlaceholder": "Search by reference, subject, or record number..."
-  },
-  "archiveBox": {
-    "title": "Archive Boxes",
-    "create": "Create Archive Box",
-    "edit": "Edit Archive Box",
-    "delete": "Delete Archive Box",
-    "deleteConfirm": "Are you sure you want to delete this archive box?",
-    "code": "Code",
-    "description": "Description",
-    "shelf": "Shelf",
-    "shelfFloor": "Shelf Floor",
-    "location": "Location",
-    "filterByShelf": "Filter by Shelf",
-    "searchPlaceholder": "Search by code or description..."
-  },
-  "bloc": {
-    "title": "Blocs",
-    "create": "Create Bloc",
-    "edit": "Edit Bloc",
-    "delete": "Delete Bloc",
-    "deleteConfirm": "Are you sure you want to delete this bloc?",
-    "designationFr": "French Designation",
-    "designationEn": "English Designation",
-    "designationAr": "Arabic Designation",
-    "searchPlaceholder": "Search by designation..."
-  },
-  "folder": {
-    "title": "Folders",
-    "create": "Create Folder",
-    "edit": "Edit Folder",
-    "delete": "Delete Folder",
-    "deleteConfirm": "Are you sure you want to delete this folder?",
-    "code": "Code",
-    "description": "Description",
-    "archiveBox": "Archive Box",
-    "filterByArchiveBox": "Filter by Archive Box",
-    "searchPlaceholder": "Search by code or description..."
-  },
-  "room": {
-    "title": "Rooms",
-    "create": "Create Room",
-    "edit": "Edit Room",
-    "delete": "Delete Room",
-    "deleteConfirm": "Are you sure you want to delete this room?",
-    "code": "Code",
-    "designationFr": "French Designation",
-    "designationEn": "English Designation",
-    "designationAr": "Arabic Designation",
-    "bloc": "Bloc",
-    "floor": "Floor",
-    "filterByBloc": "Filter by Bloc",
-    "filterByFloor": "Filter by Floor",
-    "searchPlaceholder": "Search by code or designation..."
-  },
-  "shelf": {
-    "title": "Shelves",
-    "create": "Create Shelf",
-    "edit": "Edit Shelf",
-    "delete": "Delete Shelf",
-    "deleteConfirm": "Are you sure you want to delete this shelf?",
-    "code": "Code",
-    "designationFr": "French Designation",
-    "designationEn": "English Designation",
-    "designationAr": "Arabic Designation",
-    "room": "Room",
-    "filterByRoom": "Filter by Room",
-    "searchPlaceholder": "Search by code or designation..."
-  },
-  "alloy": {
-    "title": "Alloys",
-    "subtitle": "Manage alloy materials and compositions",
-    "create": "Create Alloy",
-    "edit": "Edit Alloy",
-    "delete": "Delete Alloy",
-    "deleteConfirm": "Are you sure you want to delete this alloy?",
-    "code": "Code",
-    "designationAr": "Arabic Designation",
-    "designationEn": "English Designation",
-    "designationFr": "French Designation",
-    "descriptionAr": "Arabic Description",
-    "descriptionEn": "English Description",
-    "descriptionFr": "French Description",
-    "searchPlaceholder": "Search by code or designation...",
-    "filterByDesignation": "Filter by Designation",
-    "createSuccess": "Alloy created successfully",
-    "updateSuccess": "Alloy updated successfully",
-    "deleteSuccess": "Alloy deleted successfully",
-    "createError": "Failed to create alloy",
-    "updateError": "Failed to update alloy",
-    "deleteError": "Failed to delete alloy",
-    "errorLoading": "Failed to load alloys"
-  },
-  "partner": {
-    "title": "Partners",
-    "subtitle": "Manage business partners and collaborators",
-    "create": "Create Partner",
-    "edit": "Edit Partner",
-    "delete": "Delete Partner",
-    "confirmDelete": "Are you sure you want to delete this partner?",
-    "shortName": "Short Name",
-    "name": "Name",
-    "type": "Type",
-    "country": "Country",
-    "designation": "Designation",
-    "code": "Code",
-    "designationAr": "Arabic Designation",
-    "designationEn": "English Designation",
-    "designationFr": "French Designation",
-    "descriptionAr": "Arabic Description",
-    "descriptionEn": "English Description",
-    "descriptionFr": "French Description",
-    "searchPlaceholder": "Search by name, short name, type, or country...",
-    "filterByDesignation": "Filter by Designation",
-    "createSuccess": "Partner created successfully",
-    "updateSuccess": "Partner updated successfully",
-    "deleteSuccess": "Partner deleted successfully",
-    "createError": "Failed to create partner",
-    "updateError": "Failed to update partner",
-    "deleteError": "Failed to delete partner",
-    "errorLoading": "Failed to load partners",
-    "clear": "Clear",
-    "createPage": {
-      "title": "Create Partner",
-      "subtitle": "Add a new business partner"
-    },
-    "editPage": {
-      "title": "Edit Partner",
-      "subtitle": "Update partner information",
-      "sections": {
-        "basicInformation": "Basic Information"
-      },
-      "fields": {
-        "shortName": "Short Name",
-        "shortNameHelper": "Required (2-20 characters)",
-        "name": "Partner Name",
-        "nameHelper": "Optional (max 100 characters)",
-        "partnerType": "Partner Type",
-        "partnerTypeHelper": "Select partner type",
-        "country": "Country",
-        "countryHelper": "Select country"
-      },
-      "validation": {
-        "shortNameRequired": "Short name is required (2-20 characters)",
-        "nameMaxLength": "Name must not exceed 100 characters",
-        "partnerTypeRequired": "Partner type is required",
-        "countryRequired": "Country is required"
-      },
-      "errorLoading": "Failed to load partner data",
-      "saveError": "Failed to save partner"
-    }
-  },
-  "product": {
-    "title": "Products",
-    "subtitle": "Manage products and inventory",
-    "create": "Create Product",
-    "edit": "Edit Product",
-    "delete": "Delete Product",
-    "confirmDelete": "Are you sure you want to delete this product?",
-    "code": "Code",
-    "designation": "Designation",
-    "density": "Density",
-    "isHazardous": "Hazardous",
-    "yes": "Yes",
-    "no": "No",
-    "designationAr": "Arabic Designation",
-    "designationEn": "English Designation",
-    "designationFr": "French Designation",
-    "descriptionAr": "Arabic Description",
-    "descriptionEn": "English Description",
-    "descriptionFr": "French Description",
-    "searchPlaceholder": "Search by code, designation, or density...",
-    "filterByDesignation": "Filter by Designation",
-    "createSuccess": "Product created successfully",
-    "updateSuccess": "Product updated successfully",
-    "deleteSuccess": "Product deleted successfully",
-    "createError": "Failed to create product",
-    "updateError": "Failed to update product",
-    "deleteError": "Failed to delete product",
-    "errorLoading": "Failed to load products",
-    "clear": "Clear",
-    "createPage": {
-      "title": "Create Product",
-      "subtitle": "Add a new product to the system"
-    },
-    "editPage": {
-      "title": "Edit Product",
-      "subtitle": "Update product information",
-      "sections": {
-        "basicInformation": "Basic Information",
-        "designations": "Multilingual Designations",
-        "properties": "Physical & Chemical Properties"
-      },
-      "fields": {
-        "code": "Product Code",
-        "codeHelper": "Required unique code (max 10 characters)",
-        "designationFr": "Designation (French)",
-        "designationFrHelper": "Required",
-        "designationAr": "Designation (Arabic)",
-        "designationArHelper": "Optional",
-        "designationEn": "Designation (English)",
-        "designationEnHelper": "Optional",
-        "density": "Density (kg/m³)",
-        "densityHelper": "Product density in kg/m³",
-        "viscosity": "Viscosity (cP)",
-        "viscosityHelper": "Product viscosity in centipoise",
-        "flashPoint": "Flash Point (°C)",
-        "flashPointHelper": "Temperature at which vapor ignites",
-        "sulfurContent": "Sulfur Content (%)",
-        "sulfurContentHelper": "Percentage of sulfur content",
-        "isHazardous": "Hazardous Material"
-      },
-      "validation": {
-        "codeRequired": "Product code is required",
-        "codeMaxLength": "Product code must not exceed 10 characters",
-        "designationFrRequired": "French designation is required",
-        "designationMaxLength": "Designation must not exceed 100 characters"
-      },
-      "errorLoading": "Failed to load product",
-      "saveError": "Failed to save product"
-    }
-  },
-  "vendor": {
-    "title": "Vendors",
-    "subtitle": "Manage vendor information and suppliers",
-    "create": "Create Vendor",
-    "edit": "Edit Vendor",
-    "delete": "Delete Vendor",
-    "confirmDelete": "Are you sure you want to delete this vendor?",
-    "shortName": "Short Name",
-    "name": "Name",
-    "type": "Type",
-    "country": "Country",
-    "code": "Code",
-    "designationAr": "Arabic Designation",
-    "designationEn": "English Designation",
-    "designationFr": "French Designation",
-    "descriptionAr": "Arabic Description",
-    "descriptionEn": "English Description",
-    "descriptionFr": "French Description",
-    "searchPlaceholder": "Search by name, short name, type, or country...",
-    "filterByDesignation": "Filter by Designation",
-    "createSuccess": "Vendor created successfully",
-    "updateSuccess": "Vendor updated successfully",
-    "deleteSuccess": "Vendor deleted successfully",
-    "createError": "Failed to create vendor",
-    "updateError": "Failed to update vendor",
-    "deleteError": "Failed to delete vendor",
-    "errorLoading": "Failed to load vendors",
-    "clear": "Clear",
-    "createPage": {
-      "title": "Create Vendor",
-      "subtitle": "Add a new vendor or supplier"
-    },
-    "editPage": {
-      "title": "Edit Vendor",
-      "subtitle": "Update vendor information",
-      "sections": {
-        "basicInformation": "Basic Information"
-      },
-      "fields": {
-        "name": "Vendor Name",
-        "nameHelper": "Optional (max 100 characters)",
-        "shortName": "Short Name",
-        "shortNameHelper": "Optional (2-20 characters)",
-        "vendorType": "Vendor Type",
-        "vendorTypeHelper": "Select vendor type",
-        "country": "Country",
-        "countryHelper": "Select country"
-      },
-      "validation": {
-        "nameMaxLength": "Name must not exceed 100 characters",
-        "shortNameLength": "Short name must be between 2 and 20 characters",
-        "vendorTypeRequired": "Vendor type is required",
-        "countryRequired": "Country is required"
-      },
-      "errorLoading": "Failed to load vendor data",
-      "saveError": "Failed to save vendor"
-    }
-  },
-  "operationalStatus": {
-    "title": "Operational Status",
-    "subtitle": "Manage operational status types and definitions",
-    "create": "Create Status",
-    "edit": "Edit Status",
-    "delete": "Delete Status",
-    "deleteConfirm": "Are you sure you want to delete this operational status?",
-    "code": "Code",
-    "designationAr": "Arabic Designation",
-    "designationEn": "English Designation",
-    "designationFr": "French Designation",
-    "descriptionAr": "Arabic Description",
-    "descriptionEn": "English Description",
-    "descriptionFr": "French Description",
-    "color": "Color",
-    "icon": "Icon",
-    "searchPlaceholder": "Search by code or designation...",
-    "filterByDesignation": "Filter by Designation",
-    "createSuccess": "Status created successfully",
-    "updateSuccess": "Status updated successfully",
-    "deleteSuccess": "Status deleted successfully",
-    "createError": "Failed to create status",
-    "updateError": "Failed to update status",
-    "deleteError": "Failed to delete status",
-    "errorLoading": "Failed to load operational statuses"
   },
   "footer": {
     "copyright": "© {{year}} IAAS Platform. All rights reserved."
