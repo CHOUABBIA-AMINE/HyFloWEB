@@ -4,7 +4,7 @@
  * @author CHOUABBIA Amine
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
- * @updated 01-10-2026 - Removed ID column and applied i18n translations
+ * @updated 01-10-2026 - Removed ID column and applied translations
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -63,22 +63,43 @@ const StationList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const columns: GridColDef[] = [
-    { field: 'code', headerName: t('station.code'), width: 130, renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> },
-    { field: 'name', headerName: t('station.name'), minWidth: 200, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
-    { field: 'placeName', headerName: t('station.location'), minWidth: 180, flex: 1 },
+    { 
+      field: 'name', 
+      headerName: t('station.name'),
+      minWidth: 200, 
+      flex: 1, 
+      renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> 
+    },
+    { 
+      field: 'code', 
+      headerName: t('station.code'),
+      width: 130, 
+      renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> 
+    },
+    { 
+      field: 'placeName', 
+      headerName: t('station.location'),
+      minWidth: 180, 
+      flex: 1 
+    },
     {
       field: 'actions',
       headerName: t('common.actions'),
       width: 130,
       align: 'center',
+      headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
           <Tooltip title={t('common.edit')}>
-            <IconButton size="small" onClick={() => navigate(`/network/core/stations/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}><EditIcon fontSize="small" /></IconButton>
+            <IconButton size="small" onClick={() => navigate(`/network/core/stations/${params.row.id}/edit`)} sx={{ color: 'primary.main' }}>
+              <EditIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
           <Tooltip title={t('common.delete')}>
-            <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></IconButton>
+            <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main' }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
           </Tooltip>
         </Box>
       ),
@@ -97,24 +118,28 @@ const StationList = () => {
     }
   };
 
-  const handleClearFilters = () => { setSearchText(''); setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }); };
+  const handleClearFilters = () => { 
+    setSearchText(''); 
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize }); 
+  };
 
   return (
     <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
           <Typography variant="h4" fontWeight={700}>{t('station.title')}</Typography>
-          <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh')}>
-              <IconButton onClick={loadStations} color="primary"><RefreshIcon /></IconButton>
-            </Tooltip>
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/stations/create')}>{t('station.create')}</Button>
-          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {t('station.subtitle')}
+          </Typography>
         </Box>
-        <Typography variant="body2" color="text.secondary">
-          {t('station.subtitle')}
-        </Typography>
+        <Stack direction="row" spacing={1.5}>
+          <Tooltip title={t('common.refresh')}>
+            <IconButton onClick={loadStations} color="primary"><RefreshIcon /></IconButton>
+          </Tooltip>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate('/network/core/stations/create')}>
+            {t('station.create')}
+          </Button>
+        </Stack>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
@@ -123,11 +148,24 @@ const StationList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider', p: 2.5 }}>
         <Stack spacing={2.5}>
           <Stack direction="row" spacing={2}>
-            <TextField fullWidth placeholder={t('station.searchPlaceholder')} value={searchText} onChange={(e) => setSearchText(e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }} sx={{ maxWidth: 400 }} />
-            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>{t('common.clear')}</Button>
+            <TextField 
+              fullWidth 
+              placeholder={t('station.searchPlaceholder')} 
+              value={searchText} 
+              onChange={(e) => setSearchText(e.target.value)} 
+              InputProps={{ 
+                startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> 
+              }} 
+              sx={{ maxWidth: 400 }} 
+            />
+            <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters}>
+              {t('common.clear')}
+            </Button>
           </Stack>
           <Divider />
-          <Typography variant="body2" color="text.secondary">{totalRows} {t('common.total')}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {totalRows} {t('common.total')}
+          </Typography>
         </Stack>
       </Paper>
 
