@@ -8,6 +8,8 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "delete": "Delete",
+    "deleting": "Deleting...",
+    "deleted": "Deleted",
     "edit": "Edit",
     "create": "Create",
     "update": "Update",
@@ -45,7 +47,9 @@
     "location": "Location",
     "status": "Status",
     "type": "Type",
-    "total": "total"
+    "total": "total",
+    "id": "ID",
+    "add": "Add"
   },
   "station": {
     "title": "Stations",
@@ -58,9 +62,12 @@
     "deleteError": "Failed to delete station",
     "errorLoading": "Failed to load stations",
     "searchPlaceholder": "Search stations...",
-    "code": "Code",
-    "name": "Station Name",
-    "location": "Location"
+    "columns": {
+      "id": "ID",
+      "code": "Code",
+      "name": "Station Name",
+      "location": "Location"
+    }
   },
   "terminal": {
     "title": "Terminals",
@@ -73,9 +80,12 @@
     "deleteError": "Failed to delete terminal",
     "errorLoading": "Failed to load terminals",
     "searchPlaceholder": "Search terminals...",
-    "code": "Code",
-    "name": "Terminal Name",
-    "location": "Location"
+    "columns": {
+      "id": "ID",
+      "code": "Code",
+      "name": "Terminal Name",
+      "location": "Location"
+    }
   },
   "pipeline": {
     "title": "Pipelines",
@@ -88,9 +98,12 @@
     "deleteError": "Failed to delete pipeline",
     "errorLoading": "Failed to load pipelines",
     "searchPlaceholder": "Search pipelines...",
-    "code": "Code",
-    "name": "Pipeline Name",
-    "length": "Length (km)"
+    "columns": {
+      "id": "ID",
+      "code": "Code",
+      "name": "Pipeline Name",
+      "length": "Length (km)"
+    }
   },
   "pipelineSystem": {
     "title": "Pipeline Systems",
@@ -103,11 +116,14 @@
     "deleteError": "Failed to delete pipeline system",
     "errorLoading": "Failed to load pipeline systems",
     "searchPlaceholder": "Search pipeline systems...",
-    "code": "Code",
-    "name": "System Name",
-    "structure": "Structure",
-    "product": "Product",
-    "status": "Status"
+    "columns": {
+      "id": "ID",
+      "code": "Code",
+      "name": "System Name",
+      "structure": "Structure",
+      "product": "Product",
+      "status": "Status"
+    }
   },
   "hydrocarbonField": {
     "title": "Hydrocarbon Fields",
@@ -115,20 +131,23 @@
     "create": "Create Hydrocarbon Field",
     "edit": "Edit Hydrocarbon Field",
     "delete": "Delete Hydrocarbon Field",
-    "confirmDelete": "Delete this hydrocarbon field?",
+    "confirmDelete": "Delete Hydrocarbon Field",
     "confirmDeleteMessage": "Are you sure you want to delete this hydrocarbon field? This action cannot be undone.",
     "deleteSuccess": "Hydrocarbon field deleted successfully",
     "deleteError": "Failed to delete hydrocarbon field",
     "errorLoading": "Failed to load hydrocarbon fields",
     "searchPlaceholder": "Search hydrocarbon fields...",
-    "code": "Code",
-    "name": "Name",
-    "type": "Type",
-    "location": "Location",
-    "vendor": "Vendor",
-    "status": "Status",
-    "installationDate": "Installation Date",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "columns": {
+      "code": "Code",
+      "name": "Name",
+      "type": "Type",
+      "location": "Location",
+      "vendor": "Vendor",
+      "status": "Status",
+      "installationDate": "Installation Date",
+      "actions": "Actions"
+    }
   },
   "auth": {
     "login": "Login",
