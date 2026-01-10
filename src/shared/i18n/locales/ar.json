@@ -38,7 +38,8 @@
     "exportedCSV": "تم التصدير إلى CSV",
     "exportedExcel": "تم التصدير إلى Excel",
     "exportedPDF": "تم التصدير إلى PDF",
-    "noData": "لا توجد بيانات متاحة"
+    "noData": "لا توجد بيانات متاحة",
+    "clear": "مسح"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -435,7 +436,12 @@
     "create": "إنشاء شريك",
     "edit": "تعديل الشريك",
     "delete": "حذف الشريك",
-    "deleteConfirm": "هل أنت متأكد من حذف هذا الشريك؟",
+    "confirmDelete": "هل أنت متأكد من حذف هذا الشريك؟",
+    "shortName": "الاسم المختصر",
+    "name": "الاسم",
+    "type": "النوع",
+    "country": "البلد",
+    "designation": "التسمية",
     "code": "الرمز",
     "designationAr": "التسمية العربية",
     "designationEn": "التسمية الإنجليزية",
@@ -443,7 +449,7 @@
     "descriptionAr": "الوصف بالعربية",
     "descriptionEn": "الوصف بالإنجليزية",
     "descriptionFr": "الوصف بالفرنسية",
-    "searchPlaceholder": "البحث بالرمز أو التسمية...",
+    "searchPlaceholder": "البحث بالاسم، الاسم المختصر، النوع أو البلد...",
     "filterByDesignation": "تصفية حسب التسمية",
     "createSuccess": "تم إنشاء الشريك بنجاح",
     "updateSuccess": "تم تحديث الشريك بنجاح",
@@ -451,7 +457,8 @@
     "createError": "فشل إنشاء الشريك",
     "updateError": "فشل تحديث الشريك",
     "deleteError": "فشل حذف الشريك",
-    "errorLoading": "فشل تحميل الشركاء"
+    "errorLoading": "فشل تحميل الشركاء",
+    "clear": "مسح"
   },
   "product": {
     "title": "المنتجات",
@@ -459,15 +466,20 @@
     "create": "إنشاء منتج",
     "edit": "تعديل المنتج",
     "delete": "حذف المنتج",
-    "deleteConfirm": "هل أنت متأكد من حذف هذا المنتج؟",
+    "confirmDelete": "هل أنت متأكد من حذف هذا المنتج؟",
     "code": "الرمز",
+    "designation": "التسمية",
+    "density": "الكثافة",
+    "isHazardous": "خطر",
+    "yes": "نعم",
+    "no": "لا",
     "designationAr": "التسمية العربية",
     "designationEn": "التسمية الإنجليزية",
     "designationFr": "التسمية الفرنسية",
     "descriptionAr": "الوصف بالعربية",
     "descriptionEn": "الوصف بالإنجليزية",
     "descriptionFr": "الوصف بالفرنسية",
-    "searchPlaceholder": "البحث بالرمز أو التسمية...",
+    "searchPlaceholder": "البحث بالرمز، التسمية أو الكثافة...",
     "filterByDesignation": "تصفية حسب التسمية",
     "createSuccess": "تم إنشاء المنتج بنجاح",
     "updateSuccess": "تم تحديث المنتج بنجاح",
@@ -475,7 +487,8 @@
     "createError": "فشل إنشاء المنتج",
     "updateError": "فشل تحديث المنتج",
     "deleteError": "فشل حذف المنتج",
-    "errorLoading": "فشل تحميل المنتجات"
+    "errorLoading": "فشل تحميل المنتجات",
+    "clear": "مسح"
   },
   "vendor": {
     "title": "الموردون",
@@ -483,7 +496,11 @@
     "create": "إنشاء مورد",
     "edit": "تعديل المورد",
     "delete": "حذف المورد",
-    "deleteConfirm": "هل أنت متأكد من حذف هذا المورد؟",
+    "confirmDelete": "هل أنت متأكد من حذف هذا المورد؟",
+    "shortName": "الاسم المختصر",
+    "name": "الاسم",
+    "type": "النوع",
+    "country": "البلد",
     "code": "الرمز",
     "designationAr": "التسمية العربية",
     "designationEn": "التسمية الإنجليزية",
@@ -491,7 +508,7 @@
     "descriptionAr": "الوصف بالعربية",
     "descriptionEn": "الوصف بالإنجليزية",
     "descriptionFr": "الوصف بالفرنسية",
-    "searchPlaceholder": "البحث بالرمز أو التسمية...",
+    "searchPlaceholder": "البحث بالاسم، الاسم المختصر، النوع أو البلد...",
     "filterByDesignation": "تصفية حسب التسمية",
     "createSuccess": "تم إنشاء المورد بنجاح",
     "updateSuccess": "تم تحديث المورد بنجاح",
@@ -499,7 +516,8 @@
     "createError": "فشل إنشاء المورد",
     "updateError": "فشل تحديث المورد",
     "deleteError": "فشل حذف المورد",
-    "errorLoading": "فشل تحميل الموردين"
+    "errorLoading": "فشل تحميل الموردين",
+    "clear": "مسح"
   },
   "operationalStatus": {
     "title": "الحالة التشغيلية",

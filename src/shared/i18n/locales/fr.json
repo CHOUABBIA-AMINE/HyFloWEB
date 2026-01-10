@@ -38,7 +38,8 @@
     "exportedCSV": "Exporté en CSV",
     "exportedExcel": "Exporté en Excel",
     "exportedPDF": "Exporté en PDF",
-    "noData": "Aucune donnée disponible"
+    "noData": "Aucune donnée disponible",
+    "clear": "Effacer"
   },
   "auth": {
     "login": "Connexion",
@@ -435,7 +436,12 @@
     "create": "Créer un partenaire",
     "edit": "Modifier le partenaire",
     "delete": "Supprimer le partenaire",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce partenaire?",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce partenaire?",
+    "shortName": "Nom Court",
+    "name": "Nom",
+    "type": "Type",
+    "country": "Pays",
+    "designation": "Désignation",
     "code": "Code",
     "designationAr": "Désignation arabe",
     "designationEn": "Désignation anglaise",
@@ -443,7 +449,7 @@
     "descriptionAr": "Description en arabe",
     "descriptionEn": "Description en anglais",
     "descriptionFr": "Description en français",
-    "searchPlaceholder": "Rechercher par code ou désignation...",
+    "searchPlaceholder": "Rechercher par nom, nom court, type ou pays...",
     "filterByDesignation": "Filtrer par désignation",
     "createSuccess": "Partenaire créé avec succès",
     "updateSuccess": "Partenaire mis à jour avec succès",
@@ -451,7 +457,8 @@
     "createError": "Échec de la création du partenaire",
     "updateError": "Échec de la mise à jour du partenaire",
     "deleteError": "Échec de la suppression du partenaire",
-    "errorLoading": "Échec du chargement des partenaires"
+    "errorLoading": "Échec du chargement des partenaires",
+    "clear": "Effacer"
   },
   "product": {
     "title": "Produits",
@@ -459,15 +466,20 @@
     "create": "Créer un produit",
     "edit": "Modifier le produit",
     "delete": "Supprimer le produit",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce produit?",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce produit?",
     "code": "Code",
+    "designation": "Désignation",
+    "density": "Densité",
+    "isHazardous": "Dangereux",
+    "yes": "Oui",
+    "no": "Non",
     "designationAr": "Désignation arabe",
     "designationEn": "Désignation anglaise",
     "designationFr": "Désignation française",
     "descriptionAr": "Description en arabe",
     "descriptionEn": "Description en anglais",
     "descriptionFr": "Description en français",
-    "searchPlaceholder": "Rechercher par code ou désignation...",
+    "searchPlaceholder": "Rechercher par code, désignation ou densité...",
     "filterByDesignation": "Filtrer par désignation",
     "createSuccess": "Produit créé avec succès",
     "updateSuccess": "Produit mis à jour avec succès",
@@ -475,7 +487,8 @@
     "createError": "Échec de la création du produit",
     "updateError": "Échec de la mise à jour du produit",
     "deleteError": "Échec de la suppression du produit",
-    "errorLoading": "Échec du chargement des produits"
+    "errorLoading": "Échec du chargement des produits",
+    "clear": "Effacer"
   },
   "vendor": {
     "title": "Fournisseurs",
@@ -483,7 +496,11 @@
     "create": "Créer un fournisseur",
     "edit": "Modifier le fournisseur",
     "delete": "Supprimer le fournisseur",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce fournisseur?",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce fournisseur?",
+    "shortName": "Nom Court",
+    "name": "Nom",
+    "type": "Type",
+    "country": "Pays",
     "code": "Code",
     "designationAr": "Désignation arabe",
     "designationEn": "Désignation anglaise",
@@ -491,7 +508,7 @@
     "descriptionAr": "Description en arabe",
     "descriptionEn": "Description en anglais",
     "descriptionFr": "Description en français",
-    "searchPlaceholder": "Rechercher par code ou désignation...",
+    "searchPlaceholder": "Rechercher par nom, nom court, type ou pays...",
     "filterByDesignation": "Filtrer par désignation",
     "createSuccess": "Fournisseur créé avec succès",
     "updateSuccess": "Fournisseur mis à jour avec succès",
@@ -499,7 +516,8 @@
     "createError": "Échec de la création du fournisseur",
     "updateError": "Échec de la mise à jour du fournisseur",
     "deleteError": "Échec de la suppression du fournisseur",
-    "errorLoading": "Échec du chargement des fournisseurs"
+    "errorLoading": "Échec du chargement des fournisseurs",
+    "clear": "Effacer"
   },
   "operationalStatus": {
     "title": "État opérationnel",
