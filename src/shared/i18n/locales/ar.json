@@ -458,7 +458,36 @@
     "updateError": "فشل تحديث الشريك",
     "deleteError": "فشل حذف الشريك",
     "errorLoading": "فشل تحميل الشركاء",
-    "clear": "مسح"
+    "clear": "مسح",
+    "create": {
+      "title": "إنشاء شريك",
+      "subtitle": "إضافة شريك أعمال جديد"
+    },
+    "edit": {
+      "title": "تعديل الشريك",
+      "subtitle": "تحديث معلومات الشريك",
+      "sections": {
+        "basicInformation": "المعلومات الأساسية"
+      },
+      "fields": {
+        "shortName": "الاسم المختصر",
+        "shortNameHelper": "إلزامي (2-20 حرفًا)",
+        "name": "اسم الشريك",
+        "nameHelper": "اختياري (حد أقصى 100 حرف)",
+        "partnerType": "نوع الشريك",
+        "partnerTypeHelper": "اختر نوع الشريك",
+        "country": "البلد",
+        "countryHelper": "اختر البلد"
+      },
+      "validation": {
+        "shortNameRequired": "الاسم المختصر إلزامي (2-20 حرفًا)",
+        "nameMaxLength": "يجب ألا يتجاوز الاسم 100 حرف",
+        "partnerTypeRequired": "نوع الشريك إلزامي",
+        "countryRequired": "البلد إلزامي"
+      },
+      "errorLoading": "فشل تحميل بيانات الشريك",
+      "saveError": "فشل حفظ الشريك"
+    }
   },
   "product": {
     "title": "المنتجات",
@@ -488,7 +517,47 @@
     "updateError": "فشل تحديث المنتج",
     "deleteError": "فشل حذف المنتج",
     "errorLoading": "فشل تحميل المنتجات",
-    "clear": "مسح"
+    "clear": "مسح",
+    "create": {
+      "title": "إنشاء منتج",
+      "subtitle": "إضافة منتج جديد إلى النظام"
+    },
+    "edit": {
+      "title": "تعديل المنتج",
+      "subtitle": "تحديث معلومات المنتج",
+      "sections": {
+        "basicInformation": "المعلومات الأساسية",
+        "designations": "التسميات متعددة اللغات",
+        "properties": "الخصائص الفيزيائية والكيميائية"
+      },
+      "fields": {
+        "code": "رمز المنتج",
+        "codeHelper": "رمز فريد إلزامي (حد أقصى 10 أحرف)",
+        "designationFr": "التسمية (فرنسي)",
+        "designationFrHelper": "إلزامي",
+        "designationAr": "التسمية (عربي)",
+        "designationArHelper": "اختياري",
+        "designationEn": "التسمية (إنجليزي)",
+        "designationEnHelper": "اختياري",
+        "density": "الكثافة (كجم/م³)",
+        "densityHelper": "كثافة المنتج بالكيلوجرام لكل متر مكعب",
+        "viscosity": "اللزوجة (سنتي بواز)",
+        "viscosityHelper": "لزوجة المنتج بالسنتي بواز",
+        "flashPoint": "نقطة الوميض (°س)",
+        "flashPointHelper": "درجة حرارة اشتعال البخار",
+        "sulfurContent": "محتوى الكبريت (%)",
+        "sulfurContentHelper": "نسبة محتوى الكبريت",
+        "isHazardous": "مادة خطرة"
+      },
+      "validation": {
+        "codeRequired": "رمز المنتج إلزامي",
+        "codeMaxLength": "يجب ألا يتجاوز رمز المنتج 10 أحرف",
+        "designationFrRequired": "التسمية الفرنسية إلزامية",
+        "designationMaxLength": "يجب ألا تتجاوز التسمية 100 حرف"
+      },
+      "errorLoading": "فشل تحميل المنتج",
+      "saveError": "فشل حفظ المنتج"
+    }
   },
   "vendor": {
     "title": "الموردون",
@@ -517,7 +586,36 @@
     "updateError": "فشل تحديث المورد",
     "deleteError": "فشل حذف المورد",
     "errorLoading": "فشل تحميل الموردين",
-    "clear": "مسح"
+    "clear": "مسح",
+    "create": {
+      "title": "إنشاء مورد",
+      "subtitle": "إضافة مورد أو مزود جديد"
+    },
+    "edit": {
+      "title": "تعديل المورد",
+      "subtitle": "تحديث معلومات المورد",
+      "sections": {
+        "basicInformation": "المعلومات الأساسية"
+      },
+      "fields": {
+        "name": "اسم المورد",
+        "nameHelper": "اختياري (حد أقصى 100 حرف)",
+        "shortName": "الاسم المختصر",
+        "shortNameHelper": "اختياري (2-20 حرفًا)",
+        "vendorType": "نوع المورد",
+        "vendorTypeHelper": "اختر نوع المورد",
+        "country": "البلد",
+        "countryHelper": "اختر البلد"
+      },
+      "validation": {
+        "nameMaxLength": "يجب ألا يتجاوز الاسم 100 حرف",
+        "shortNameLength": "يجب أن يكون الاسم المختصر بين 2 و20 حرفًا",
+        "vendorTypeRequired": "نوع المورد إلزامي",
+        "countryRequired": "البلد إلزامي"
+      },
+      "errorLoading": "فشل تحميل بيانات المورد",
+      "saveError": "فشل حفظ المورد"
+    }
   },
   "operationalStatus": {
     "title": "الحالة التشغيلية",
