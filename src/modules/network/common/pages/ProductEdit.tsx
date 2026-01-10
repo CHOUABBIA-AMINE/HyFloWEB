@@ -6,6 +6,7 @@
  * @updated 01-08-2026 - Fixed to match ProductDTO schema with all required fields
  * @updated 01-08-2026 - Display multilingual designations in one row
  * @updated 01-10-2026 - Added i18n translations for all text elements
+ * @updated 01-10-2026 - Fixed translation keys to use editPage/createPage structure
  */
 
 import { useState, useEffect } from 'react';
@@ -70,7 +71,7 @@ const ProductEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load product:', err);
-      setError(err.message || t('product.edit.errorLoading'));
+      setError(err.message || t('product.editPage.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -80,23 +81,23 @@ const ProductEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!product.code || product.code.trim().length === 0) {
-      errors.code = t('product.edit.validation.codeRequired');
+      errors.code = t('product.editPage.validation.codeRequired');
     } else if (product.code.length > 10) {
-      errors.code = t('product.edit.validation.codeMaxLength');
+      errors.code = t('product.editPage.validation.codeMaxLength');
     }
 
     if (!product.designationFr || product.designationFr.trim().length === 0) {
-      errors.designationFr = t('product.edit.validation.designationFrRequired');
+      errors.designationFr = t('product.editPage.validation.designationFrRequired');
     } else if (product.designationFr.length > 100) {
-      errors.designationFr = t('product.edit.validation.designationMaxLength');
+      errors.designationFr = t('product.editPage.validation.designationMaxLength');
     }
 
     if (product.designationAr && product.designationAr.length > 100) {
-      errors.designationAr = t('product.edit.validation.designationMaxLength');
+      errors.designationAr = t('product.editPage.validation.designationMaxLength');
     }
 
     if (product.designationEn && product.designationEn.length > 100) {
-      errors.designationEn = t('product.edit.validation.designationMaxLength');
+      errors.designationEn = t('product.editPage.validation.designationMaxLength');
     }
 
     setValidationErrors(errors);
@@ -145,7 +146,7 @@ const ProductEdit = () => {
       navigate('/network/common/products');
     } catch (err: any) {
       console.error('Failed to save product:', err);
-      setError(err.response?.data?.message || err.message || t('product.edit.saveError'));
+      setError(err.response?.data?.message || err.message || t('product.editPage.saveError'));
     } finally {
       setSaving(false);
     }
@@ -174,10 +175,10 @@ const ProductEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('product.edit.title') : t('product.create.title')}
+          {isEditMode ? t('product.editPage.title') : t('product.createPage.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? t('product.edit.subtitle') : t('product.create.subtitle')}
+          {isEditMode ? t('product.editPage.subtitle') : t('product.createPage.subtitle')}
         </Typography>
       </Box>
 
@@ -192,7 +193,7 @@ const ProductEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('product.edit.sections.basicInformation')}
+                {t('product.editPage.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -200,12 +201,12 @@ const ProductEdit = () => {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label={t('product.edit.fields.code')}
+                    label={t('product.editPage.fields.code')}
                     value={product.code || ''}
                     onChange={handleChange('code')}
                     required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code || t('product.edit.fields.codeHelper')}
+                    helperText={validationErrors.code || t('product.editPage.fields.codeHelper')}
                   />
                 </Grid>
               </Grid>
@@ -215,7 +216,7 @@ const ProductEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('product.edit.sections.designations')}
+                {t('product.editPage.sections.designations')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -223,23 +224,23 @@ const ProductEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label={t('product.edit.fields.designationFr')}
+                    label={t('product.editPage.fields.designationFr')}
                     value={product.designationFr || ''}
                     onChange={handleChange('designationFr')}
                     required
                     error={!!validationErrors.designationFr}
-                    helperText={validationErrors.designationFr || t('product.edit.fields.designationFrHelper')}
+                    helperText={validationErrors.designationFr || t('product.editPage.fields.designationFrHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label={t('product.edit.fields.designationAr')}
+                    label={t('product.editPage.fields.designationAr')}
                     value={product.designationAr || ''}
                     onChange={handleChange('designationAr')}
                     error={!!validationErrors.designationAr}
-                    helperText={validationErrors.designationAr || t('product.edit.fields.designationArHelper')}
+                    helperText={validationErrors.designationAr || t('product.editPage.fields.designationArHelper')}
                     inputProps={{ dir: 'rtl' }}
                   />
                 </Grid>
@@ -247,11 +248,11 @@ const ProductEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label={t('product.edit.fields.designationEn')}
+                    label={t('product.editPage.fields.designationEn')}
                     value={product.designationEn || ''}
                     onChange={handleChange('designationEn')}
                     error={!!validationErrors.designationEn}
-                    helperText={validationErrors.designationEn || t('product.edit.fields.designationEnHelper')}
+                    helperText={validationErrors.designationEn || t('product.editPage.fields.designationEnHelper')}
                   />
                 </Grid>
               </Grid>
@@ -261,7 +262,7 @@ const ProductEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('product.edit.sections.properties')}
+                {t('product.editPage.sections.properties')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -270,11 +271,11 @@ const ProductEdit = () => {
                   <TextField
                     fullWidth
                     type="number"
-                    label={t('product.edit.fields.density')}
+                    label={t('product.editPage.fields.density')}
                     value={product.density ?? 0}
                     onChange={handleChange('density')}
                     required
-                    helperText={t('product.edit.fields.densityHelper')}
+                    helperText={t('product.editPage.fields.densityHelper')}
                     inputProps={{ step: 0.01 }}
                   />
                 </Grid>
@@ -283,11 +284,11 @@ const ProductEdit = () => {
                   <TextField
                     fullWidth
                     type="number"
-                    label={t('product.edit.fields.viscosity')}
+                    label={t('product.editPage.fields.viscosity')}
                     value={product.viscosity ?? 0}
                     onChange={handleChange('viscosity')}
                     required
-                    helperText={t('product.edit.fields.viscosityHelper')}
+                    helperText={t('product.editPage.fields.viscosityHelper')}
                     inputProps={{ step: 0.01 }}
                   />
                 </Grid>
@@ -296,11 +297,11 @@ const ProductEdit = () => {
                   <TextField
                     fullWidth
                     type="number"
-                    label={t('product.edit.fields.flashPoint')}
+                    label={t('product.editPage.fields.flashPoint')}
                     value={product.flashPoint ?? 0}
                     onChange={handleChange('flashPoint')}
                     required
-                    helperText={t('product.edit.fields.flashPointHelper')}
+                    helperText={t('product.editPage.fields.flashPointHelper')}
                     inputProps={{ step: 0.1 }}
                   />
                 </Grid>
@@ -309,11 +310,11 @@ const ProductEdit = () => {
                   <TextField
                     fullWidth
                     type="number"
-                    label={t('product.edit.fields.sulfurContent')}
+                    label={t('product.editPage.fields.sulfurContent')}
                     value={product.sulfurContent ?? 0}
                     onChange={handleChange('sulfurContent')}
                     required
-                    helperText={t('product.edit.fields.sulfurContentHelper')}
+                    helperText={t('product.editPage.fields.sulfurContentHelper')}
                     inputProps={{ step: 0.001 }}
                   />
                 </Grid>
@@ -326,7 +327,7 @@ const ProductEdit = () => {
                         onChange={handleChange('isHazardous')}
                       />
                     }
-                    label={t('product.edit.fields.isHazardous')}
+                    label={t('product.editPage.fields.isHazardous')}
                   />
                 </Grid>
               </Grid>
