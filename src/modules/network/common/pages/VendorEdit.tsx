@@ -6,6 +6,7 @@
  * @updated 01-08-2026 - Fixed to match VendorDTO schema
  * @updated 01-09-2026 - Fixed DTO field names and added multilingual support
  * @updated 01-10-2026 - Added i18n translations for all text elements
+ * @updated 01-10-2026 - Fixed translation keys to use editPage/createPage structure
  */
 
 import { useState, useEffect } from 'react';
@@ -84,7 +85,7 @@ const VendorEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || t('vendor.edit.errorLoading'));
+      setError(err.message || t('vendor.editPage.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -112,19 +113,19 @@ const VendorEdit = () => {
     const errors: Record<string, string> = {};
 
     if (vendor.name && vendor.name.length > 100) {
-      errors.name = t('vendor.edit.validation.nameMaxLength');
+      errors.name = t('vendor.editPage.validation.nameMaxLength');
     }
 
     if (vendor.shortName && (vendor.shortName.length < 2 || vendor.shortName.length > 20)) {
-      errors.shortName = t('vendor.edit.validation.shortNameLength');
+      errors.shortName = t('vendor.editPage.validation.shortNameLength');
     }
 
     if (!vendor.vendorTypeId) {
-      errors.vendorTypeId = t('vendor.edit.validation.vendorTypeRequired');
+      errors.vendorTypeId = t('vendor.editPage.validation.vendorTypeRequired');
     }
 
     if (!vendor.countryId) {
-      errors.countryId = t('vendor.edit.validation.countryRequired');
+      errors.countryId = t('vendor.editPage.validation.countryRequired');
     }
 
     setValidationErrors(errors);
@@ -168,7 +169,7 @@ const VendorEdit = () => {
       navigate('/network/common/vendors');
     } catch (err: any) {
       console.error('Failed to save vendor:', err);
-      setError(err.response?.data?.message || err.message || t('vendor.edit.saveError'));
+      setError(err.response?.data?.message || err.message || t('vendor.editPage.saveError'));
     } finally {
       setSaving(false);
     }
@@ -197,10 +198,10 @@ const VendorEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('vendor.edit.title') : t('vendor.create.title')}
+          {isEditMode ? t('vendor.editPage.title') : t('vendor.createPage.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? t('vendor.edit.subtitle') : t('vendor.create.subtitle')}
+          {isEditMode ? t('vendor.editPage.subtitle') : t('vendor.createPage.subtitle')}
         </Typography>
       </Box>
 
@@ -215,7 +216,7 @@ const VendorEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('vendor.edit.sections.basicInformation')}
+                {t('vendor.editPage.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -223,22 +224,22 @@ const VendorEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('vendor.edit.fields.name')}
+                    label={t('vendor.editPage.fields.name')}
                     value={vendor.name || ''}
                     onChange={handleChange('name')}
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name || t('vendor.edit.fields.nameHelper')}
+                    helperText={validationErrors.name || t('vendor.editPage.fields.nameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('vendor.edit.fields.shortName')}
+                    label={t('vendor.editPage.fields.shortName')}
                     value={vendor.shortName || ''}
                     onChange={handleChange('shortName')}
                     error={!!validationErrors.shortName}
-                    helperText={validationErrors.shortName || t('vendor.edit.fields.shortNameHelper')}
+                    helperText={validationErrors.shortName || t('vendor.editPage.fields.shortNameHelper')}
                   />
                 </Grid>
 
@@ -246,12 +247,12 @@ const VendorEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label={t('vendor.edit.fields.vendorType')}
+                    label={t('vendor.editPage.fields.vendorType')}
                     value={vendor.vendorTypeId || ''}
                     onChange={handleChange('vendorTypeId')}
                     required
                     error={!!validationErrors.vendorTypeId}
-                    helperText={validationErrors.vendorTypeId || t('vendor.edit.fields.vendorTypeHelper')}
+                    helperText={validationErrors.vendorTypeId || t('vendor.editPage.fields.vendorTypeHelper')}
                   >
                     {vendorTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
@@ -265,12 +266,12 @@ const VendorEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label={t('vendor.edit.fields.country')}
+                    label={t('vendor.editPage.fields.country')}
                     value={vendor.countryId || ''}
                     onChange={handleChange('countryId')}
                     required
                     error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId || t('vendor.edit.fields.countryHelper')}
+                    helperText={validationErrors.countryId || t('vendor.editPage.fields.countryHelper')}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>

@@ -6,6 +6,7 @@
  * @updated 01-08-2026 - Fixed to match PartnerDTO schema
  * @updated 01-10-2026 - Fixed DTO field names and added multilingual support
  * @updated 01-10-2026 - Added i18n translations for all text elements
+ * @updated 01-10-2026 - Fixed translation keys to use editPage/createPage structure
  */
 
 import { useState, useEffect } from 'react';
@@ -84,7 +85,7 @@ const PartnerEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || t('partner.edit.errorLoading'));
+      setError(err.message || t('partner.editPage.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -112,19 +113,19 @@ const PartnerEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!partner.shortName || partner.shortName.trim().length < 2 || partner.shortName.trim().length > 20) {
-      errors.shortName = t('partner.edit.validation.shortNameRequired');
+      errors.shortName = t('partner.editPage.validation.shortNameRequired');
     }
 
     if (partner.name && partner.name.length > 100) {
-      errors.name = t('partner.edit.validation.nameMaxLength');
+      errors.name = t('partner.editPage.validation.nameMaxLength');
     }
 
     if (!partner.partnerTypeId) {
-      errors.partnerTypeId = t('partner.edit.validation.partnerTypeRequired');
+      errors.partnerTypeId = t('partner.editPage.validation.partnerTypeRequired');
     }
 
     if (!partner.countryId) {
-      errors.countryId = t('partner.edit.validation.countryRequired');
+      errors.countryId = t('partner.editPage.validation.countryRequired');
     }
 
     setValidationErrors(errors);
@@ -168,7 +169,7 @@ const PartnerEdit = () => {
       navigate('/network/common/partners');
     } catch (err: any) {
       console.error('Failed to save partner:', err);
-      setError(err.response?.data?.message || err.message || t('partner.edit.saveError'));
+      setError(err.response?.data?.message || err.message || t('partner.editPage.saveError'));
     } finally {
       setSaving(false);
     }
@@ -197,10 +198,10 @@ const PartnerEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('partner.edit.title') : t('partner.create.title')}
+          {isEditMode ? t('partner.editPage.title') : t('partner.createPage.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? t('partner.edit.subtitle') : t('partner.create.subtitle')}
+          {isEditMode ? t('partner.editPage.subtitle') : t('partner.createPage.subtitle')}
         </Typography>
       </Box>
 
@@ -215,7 +216,7 @@ const PartnerEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('partner.edit.sections.basicInformation')}
+                {t('partner.editPage.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -223,23 +224,23 @@ const PartnerEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('partner.edit.fields.shortName')}
+                    label={t('partner.editPage.fields.shortName')}
                     value={partner.shortName || ''}
                     onChange={handleChange('shortName')}
                     required
                     error={!!validationErrors.shortName}
-                    helperText={validationErrors.shortName || t('partner.edit.fields.shortNameHelper')}
+                    helperText={validationErrors.shortName || t('partner.editPage.fields.shortNameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('partner.edit.fields.name')}
+                    label={t('partner.editPage.fields.name')}
                     value={partner.name || ''}
                     onChange={handleChange('name')}
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name || t('partner.edit.fields.nameHelper')}
+                    helperText={validationErrors.name || t('partner.editPage.fields.nameHelper')}
                   />
                 </Grid>
 
@@ -247,12 +248,12 @@ const PartnerEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label={t('partner.edit.fields.partnerType')}
+                    label={t('partner.editPage.fields.partnerType')}
                     value={partner.partnerTypeId || ''}
                     onChange={handleChange('partnerTypeId')}
                     required
                     error={!!validationErrors.partnerTypeId}
-                    helperText={validationErrors.partnerTypeId || t('partner.edit.fields.partnerTypeHelper')}
+                    helperText={validationErrors.partnerTypeId || t('partner.editPage.fields.partnerTypeHelper')}
                   >
                     {partnerTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
@@ -266,12 +267,12 @@ const PartnerEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label={t('partner.edit.fields.country')}
+                    label={t('partner.editPage.fields.country')}
                     value={partner.countryId || ''}
                     onChange={handleChange('countryId')}
                     required
                     error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId || t('partner.edit.fields.countryHelper')}
+                    helperText={validationErrors.countryId || t('partner.editPage.fields.countryHelper')}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
