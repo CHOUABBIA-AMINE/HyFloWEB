@@ -5,6 +5,7 @@
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-10-2026 - Aligned table header design with StructureList
  * @updated 01-10-2026 - Applied i18n translations
+ * @updated 01-10-2026 - Removed ID column
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -26,7 +27,7 @@ const TerminalList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 25 });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   useEffect(() => { loadTerminals(); }, [paginationModel, sortModel, searchText]);
@@ -34,7 +35,7 @@ const TerminalList = () => {
   const loadTerminals = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'code';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
       
       const pageable = {
@@ -63,10 +64,9 @@ const TerminalList = () => {
   const handleSortChange = useCallback((model: GridSortModel) => setSortModel(model), []);
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: t('terminal.columns.id'), width: 80, align: 'center', headerAlign: 'center' },
-    { field: 'name', headerName: t('terminal.columns.name'), minWidth: 200, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
     { field: 'code', headerName: t('terminal.columns.code'), width: 130, renderCell: (params) => <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} /> },
-    { field: 'placeName', headerName: t('terminal.columns.location'), minWidth: 180, flex: 1 },
+    { field: 'name', headerName: t('terminal.columns.name'), minWidth: 250, flex: 1, renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography> },
+    { field: 'placeName', headerName: t('terminal.columns.location'), minWidth: 200, flex: 1 },
     {
       field: 'actions',
       headerName: t('common.actions'),
