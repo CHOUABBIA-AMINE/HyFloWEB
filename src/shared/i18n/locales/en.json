@@ -458,7 +458,36 @@
     "updateError": "Failed to update partner",
     "deleteError": "Failed to delete partner",
     "errorLoading": "Failed to load partners",
-    "clear": "Clear"
+    "clear": "Clear",
+    "create": {
+      "title": "Create Partner",
+      "subtitle": "Add a new business partner"
+    },
+    "edit": {
+      "title": "Edit Partner",
+      "subtitle": "Update partner information",
+      "sections": {
+        "basicInformation": "Basic Information"
+      },
+      "fields": {
+        "shortName": "Short Name",
+        "shortNameHelper": "Required (2-20 characters)",
+        "name": "Partner Name",
+        "nameHelper": "Optional (max 100 characters)",
+        "partnerType": "Partner Type",
+        "partnerTypeHelper": "Select partner type",
+        "country": "Country",
+        "countryHelper": "Select country"
+      },
+      "validation": {
+        "shortNameRequired": "Short name is required (2-20 characters)",
+        "nameMaxLength": "Name must not exceed 100 characters",
+        "partnerTypeRequired": "Partner type is required",
+        "countryRequired": "Country is required"
+      },
+      "errorLoading": "Failed to load partner data",
+      "saveError": "Failed to save partner"
+    }
   },
   "product": {
     "title": "Products",
@@ -488,7 +517,47 @@
     "updateError": "Failed to update product",
     "deleteError": "Failed to delete product",
     "errorLoading": "Failed to load products",
-    "clear": "Clear"
+    "clear": "Clear",
+    "create": {
+      "title": "Create Product",
+      "subtitle": "Add a new product to the system"
+    },
+    "edit": {
+      "title": "Edit Product",
+      "subtitle": "Update product information",
+      "sections": {
+        "basicInformation": "Basic Information",
+        "designations": "Multilingual Designations",
+        "properties": "Physical & Chemical Properties"
+      },
+      "fields": {
+        "code": "Product Code",
+        "codeHelper": "Required unique code (max 10 characters)",
+        "designationFr": "Designation (French)",
+        "designationFrHelper": "Required",
+        "designationAr": "Designation (Arabic)",
+        "designationArHelper": "Optional",
+        "designationEn": "Designation (English)",
+        "designationEnHelper": "Optional",
+        "density": "Density (kg/m³)",
+        "densityHelper": "Product density in kg/m³",
+        "viscosity": "Viscosity (cP)",
+        "viscosityHelper": "Product viscosity in centipoise",
+        "flashPoint": "Flash Point (°C)",
+        "flashPointHelper": "Temperature at which vapor ignites",
+        "sulfurContent": "Sulfur Content (%)",
+        "sulfurContentHelper": "Percentage of sulfur content",
+        "isHazardous": "Hazardous Material"
+      },
+      "validation": {
+        "codeRequired": "Product code is required",
+        "codeMaxLength": "Product code must not exceed 10 characters",
+        "designationFrRequired": "French designation is required",
+        "designationMaxLength": "Designation must not exceed 100 characters"
+      },
+      "errorLoading": "Failed to load product",
+      "saveError": "Failed to save product"
+    }
   },
   "vendor": {
     "title": "Vendors",
@@ -517,7 +586,36 @@
     "updateError": "Failed to update vendor",
     "deleteError": "Failed to delete vendor",
     "errorLoading": "Failed to load vendors",
-    "clear": "Clear"
+    "clear": "Clear",
+    "create": {
+      "title": "Create Vendor",
+      "subtitle": "Add a new vendor or supplier"
+    },
+    "edit": {
+      "title": "Edit Vendor",
+      "subtitle": "Update vendor information",
+      "sections": {
+        "basicInformation": "Basic Information"
+      },
+      "fields": {
+        "name": "Vendor Name",
+        "nameHelper": "Optional (max 100 characters)",
+        "shortName": "Short Name",
+        "shortNameHelper": "Optional (2-20 characters)",
+        "vendorType": "Vendor Type",
+        "vendorTypeHelper": "Select vendor type",
+        "country": "Country",
+        "countryHelper": "Select country"
+      },
+      "validation": {
+        "nameMaxLength": "Name must not exceed 100 characters",
+        "shortNameLength": "Short name must be between 2 and 20 characters",
+        "vendorTypeRequired": "Vendor type is required",
+        "countryRequired": "Country is required"
+      },
+      "errorLoading": "Failed to load vendor data",
+      "saveError": "Failed to save vendor"
+    }
   },
   "operationalStatus": {
     "title": "Operational Status",
