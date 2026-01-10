@@ -459,11 +459,11 @@
     "deleteError": "Failed to delete partner",
     "errorLoading": "Failed to load partners",
     "clear": "Clear",
-    "create": {
+    "createPage": {
       "title": "Create Partner",
       "subtitle": "Add a new business partner"
     },
-    "edit": {
+    "editPage": {
       "title": "Edit Partner",
       "subtitle": "Update partner information",
       "sections": {
@@ -518,11 +518,11 @@
     "deleteError": "Failed to delete product",
     "errorLoading": "Failed to load products",
     "clear": "Clear",
-    "create": {
+    "createPage": {
       "title": "Create Product",
       "subtitle": "Add a new product to the system"
     },
-    "edit": {
+    "editPage": {
       "title": "Edit Product",
       "subtitle": "Update product information",
       "sections": {
@@ -587,11 +587,11 @@
     "deleteError": "Failed to delete vendor",
     "errorLoading": "Failed to load vendors",
     "clear": "Clear",
-    "create": {
+    "createPage": {
       "title": "Create Vendor",
       "subtitle": "Add a new vendor or supplier"
     },
-    "edit": {
+    "editPage": {
       "title": "Edit Vendor",
       "subtitle": "Update vendor information",
       "sections": {
