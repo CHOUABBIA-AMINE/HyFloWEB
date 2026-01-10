@@ -5,6 +5,7 @@
  * @created 12-24-2025
  * @updated 01-08-2026 - Fixed valueGetter signatures
  * @updated 01-10-2026 - Aligned table header design with StructureList
+ * @updated 01-10-2026 - Removed ID column and applied translations
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -72,7 +73,7 @@ const HydrocarbonFieldList = () => {
       setFields(data || []);
     } catch (err: any) {
       console.error('Failed to load hydrocarbon fields:', err);
-      setError(err.message || 'Failed to load hydrocarbon fields');
+      setError(err.message || t('hydrocarbonField.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -106,7 +107,7 @@ const HydrocarbonFieldList = () => {
       setFieldToDelete(null);
     } catch (err: any) {
       console.error('Failed to delete hydrocarbon field:', err);
-      setError(err.message || 'Failed to delete hydrocarbon field');
+      setError(err.message || t('hydrocarbonField.deleteError'));
     } finally {
       setDeleting(false);
     }
@@ -159,7 +160,7 @@ const HydrocarbonFieldList = () => {
           onClick={handleCreate}
           variant="contained"
         >
-          {t('common.add')}
+          {t('hydrocarbonField.create')}
         </Button>
       </GridToolbarContainer>
     );
@@ -168,14 +169,14 @@ const HydrocarbonFieldList = () => {
   const columns: GridColDef<HydrocarbonFieldDTO>[] = [
     {
       field: 'code',
-      headerName: 'Code',
+      headerName: t('hydrocarbonField.code'),
       width: 120,
       filterable: true,
       sortable: true,
     },
     {
       field: 'name',
-      headerName: 'Name',
+      headerName: t('hydrocarbonField.name'),
       flex: 1,
       minWidth: 200,
       filterable: true,
@@ -183,7 +184,7 @@ const HydrocarbonFieldList = () => {
     },
     {
       field: 'hydrocarbonFieldType',
-      headerName: 'Type',
+      headerName: t('hydrocarbonField.type'),
       width: 150,
       filterable: true,
       sortable: true,
@@ -195,7 +196,7 @@ const HydrocarbonFieldList = () => {
     },
     {
       field: 'location',
-      headerName: 'Location',
+      headerName: t('hydrocarbonField.location'),
       width: 200,
       filterable: false,
       sortable: false,
@@ -211,7 +212,7 @@ const HydrocarbonFieldList = () => {
     },
     {
       field: 'vendor',
-      headerName: 'Vendor',
+      headerName: t('hydrocarbonField.vendor'),
       width: 180,
       filterable: true,
       sortable: true,
@@ -223,7 +224,7 @@ const HydrocarbonFieldList = () => {
     },
     {
       field: 'operationalStatus',
-      headerName: 'Status',
+      headerName: t('hydrocarbonField.status'),
       width: 150,
       filterable: true,
       sortable: true,
@@ -248,7 +249,7 @@ const HydrocarbonFieldList = () => {
     },
     {
       field: 'installationDate',
-      headerName: 'Installation Date',
+      headerName: t('hydrocarbonField.installationDate'),
       width: 150,
       type: 'date',
       valueGetter: (params: GridValueGetterParams<HydrocarbonFieldDTO>) => {
@@ -258,25 +259,25 @@ const HydrocarbonFieldList = () => {
     {
       field: 'actions',
       type: 'actions',
-      headerName: 'Actions',
+      headerName: t('common.actions'),
       width: 120,
       getActions: (params: GridRowParams<HydrocarbonFieldDTO>) => [
         <GridActionsCellItem
           key="view"
           icon={<ViewIcon />}
-          label="View"
+          label={t('common.edit')}
           onClick={() => handleView(params.row.id!)}
         />,
         <GridActionsCellItem
           key="edit"
           icon={<EditIcon />}
-          label="Edit"
+          label={t('common.edit')}
           onClick={() => handleEdit(params.row.id!)}
         />,
         <GridActionsCellItem
           key="delete"
           icon={<DeleteIcon />}
-          label="Delete"
+          label={t('common.delete')}
           onClick={() => handleDeleteClick(params.row.id!)}
           showInMenu
         />,
@@ -290,10 +291,10 @@ const HydrocarbonFieldList = () => {
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h4" fontWeight={700} color="text.primary">
-            Hydrocarbon Fields
+            {t('hydrocarbonField.title')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Manage hydrocarbon field infrastructure
+            {t('hydrocarbonField.subtitle')}
           </Typography>
         </Box>
       </Box>
@@ -346,15 +347,15 @@ const HydrocarbonFieldList = () => {
         open={deleteDialogOpen}
         onClose={() => !deleting && setDeleteDialogOpen(false)}
       >
-        <DialogTitle>Delete Hydrocarbon Field</DialogTitle>
+        <DialogTitle>{t('hydrocarbonField.delete')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this hydrocarbon field? This action cannot be undone.
+            {t('hydrocarbonField.confirmDeleteMessage')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleDeleteConfirm}
@@ -363,7 +364,7 @@ const HydrocarbonFieldList = () => {
             disabled={deleting}
             startIcon={deleting ? <CircularProgress size={20} /> : <DeleteIcon />}
           >
-            {deleting ? 'Deleting...' : 'Delete'}
+            {deleting ? t('hydrocarbonField.deleting') : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
