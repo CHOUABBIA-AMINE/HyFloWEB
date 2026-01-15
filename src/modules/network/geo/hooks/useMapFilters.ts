@@ -2,9 +2,11 @@
  * useMapFilters Hook
  * Custom hook for managing map layer visibility filters
  * 
+ * Updated: 01-16-2026 - Renamed showHydrocarbonFields to showProductionFields
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-24-2025
+ * @updated 01-16-2026
  */
 
 import { useState } from 'react';
@@ -20,7 +22,7 @@ export const useMapFilters = (): UseMapFiltersResult => {
   const [filters, setFilters] = useState<MapFilters>({
     showStations: true,
     showTerminals: true,
-    showHydrocarbonFields: true,
+    showProductionFields: true,
     showPipelines: true
   });
 
@@ -35,7 +37,7 @@ export const useMapFilters = (): UseMapFiltersResult => {
     setFilters({
       showStations: value,
       showTerminals: value,
-      showHydrocarbonFields: value,
+      showProductionFields: value,
       showPipelines: value
     });
   };
