@@ -43,7 +43,7 @@ export const MapControls: React.FC<MapControlsProps> = ({ filters, onToggleFilte
   const infrastructureTypes = [
     { key: 'station', color: infrastructureColors.station, icon: '🏭' },
     { key: 'terminal', color: infrastructureColors.terminal, icon: '🏢' },
-    { key: 'productionField', color: infrastructureColors.productionField || infrastructureColors.hydrocarbonField, icon: '⛽' },
+    { key: 'productionField', color: infrastructureColors.productionField, icon: '⛽' },
     { key: 'pipeline', color: infrastructureColors.pipeline, icon: '━' }
   ];
 
