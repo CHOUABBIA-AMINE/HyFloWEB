@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-24-2025
  * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
+ * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -42,17 +43,17 @@ const PipelineEdit = () => {
   // Get current language
   const currentLanguage = i18n.language || 'en';
 
-  // Form state matching backend fields with 0 as default for numeric fields
+  // Form state matching backend fields - using strings for fields that backend expects as strings
   const [pipeline, setPipeline] = useState<Partial<PipelineDTO>>({
     code: '',
     name: '',
     installationDate: undefined,
     commissioningDate: undefined,
     decommissioningDate: undefined,
-    nominalDiameter: 0,
+    nominalDiameter: '0',
     length: 0,
-    nominalThickness: 0,
-    nominalRoughness: 0,
+    nominalThickness: '0',
+    nominalRoughness: '0',
     designMaxServicePressure: 0,
     operationalMaxServicePressure: 0,
     designMinServicePressure: 0,
@@ -242,10 +243,10 @@ const PipelineEdit = () => {
         installationDate: pipeline.installationDate,
         commissioningDate: pipeline.commissioningDate,
         decommissioningDate: pipeline.decommissioningDate,
-        nominalDiameter: pipeline.nominalDiameter !== undefined ? Number(pipeline.nominalDiameter) : 0,
+        nominalDiameter: String(pipeline.nominalDiameter || '0'),
         length: pipeline.length !== undefined ? Number(pipeline.length) : 0,
-        nominalThickness: pipeline.nominalThickness !== undefined ? Number(pipeline.nominalThickness) : 0,
-        nominalRoughness: pipeline.nominalRoughness !== undefined ? Number(pipeline.nominalRoughness) : 0,
+        nominalThickness: String(pipeline.nominalThickness || '0'),
+        nominalRoughness: String(pipeline.nominalRoughness || '0'),
         designMaxServicePressure: pipeline.designMaxServicePressure !== undefined ? Number(pipeline.designMaxServicePressure) : 0,
         operationalMaxServicePressure: pipeline.operationalMaxServicePressure !== undefined ? Number(pipeline.operationalMaxServicePressure) : 0,
         designMinServicePressure: pipeline.designMinServicePressure !== undefined ? Number(pipeline.designMinServicePressure) : 0,
@@ -368,7 +369,7 @@ const PipelineEdit = () => {
                     fullWidth
                     label="Nominal Diameter (in)"
                     type="number"
-                    value={pipeline.nominalDiameter ?? 0}
+                    value={pipeline.nominalDiameter || '0'}
                     onChange={handleChange('nominalDiameter')}
                     inputProps={{ step: 0.01, min: 0 }}
                   />
@@ -379,7 +380,7 @@ const PipelineEdit = () => {
                     fullWidth
                     label="Nominal Thickness (mm)"
                     type="number"
-                    value={pipeline.nominalThickness ?? 0}
+                    value={pipeline.nominalThickness || '0'}
                     onChange={handleChange('nominalThickness')}
                     inputProps={{ step: 0.01, min: 0 }}
                   />
@@ -390,7 +391,7 @@ const PipelineEdit = () => {
                     fullWidth
                     label="Length (km)"
                     type="number"
-                    value={pipeline.length ?? 0}
+                    value={pipeline.length || 0}
                     onChange={handleChange('length')}
                     inputProps={{ step: 0.01, min: 0 }}
                   />
@@ -401,7 +402,7 @@ const PipelineEdit = () => {
                     fullWidth
                     label="Nominal Roughness (mm)"
                     type="number"
-                    value={pipeline.nominalRoughness ?? 0}
+                    value={pipeline.nominalRoughness || '0'}
                     onChange={handleChange('nominalRoughness')}
                     inputProps={{ step: 0.0001, min: 0 }}
                   />
