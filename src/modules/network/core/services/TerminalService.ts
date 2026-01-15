@@ -2,13 +2,12 @@
  * Terminal Service - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.TerminalService
+ * Updated: 01-15-2026 - Added collection query support (pipelines, facilities)
  * 
  * Provides CRUD operations and search functionality for terminals.
  * Terminals are endpoints where hydrocarbons are received or dispatched.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @created 06-26-2025
- * @updated 01-02-2026
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -89,5 +88,34 @@ export class TerminalService {
       },
     });
     return response.data;
+  }
+
+  /**
+   * Find terminals by location
+   * Returns all terminals at a specific location
+   */
+  static async findByLocation(locationId: number): Promise<TerminalDTO[]> {
+    const response = await axiosInstance.get<TerminalDTO[]>(
+      `${BASE_URL}/by-location/${locationId}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Get pipelines connected to a terminal
+   * Returns pipeline IDs from the terminal's pipelineIds collection
+   */
+  static async getPipelines(terminalId: number): Promise<number[]> {
+    const terminal = await this.getById(terminalId);
+    return terminal.pipelineIds || [];
+  }
+
+  /**
+   * Get facilities associated with a terminal
+   * Returns facility IDs from the terminal's facilityIds collection
+   */
+  static async getFacilities(terminalId: number): Promise<number[]> {
+    const terminal = await this.getById(terminalId);
+    return terminal.facilityIds || [];
   }
 }
