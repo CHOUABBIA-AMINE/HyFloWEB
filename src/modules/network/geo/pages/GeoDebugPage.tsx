@@ -2,8 +2,11 @@
  * Geo Debug Page
  * Debug page to inspect infrastructure geo data from API
  * 
+ * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
+ * @updated 01-16-2026
  */
 
 import { useState, useEffect } from 'react';
@@ -30,14 +33,14 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import { geoService } from '../services';
-import { StationDTO, TerminalDTO, HydrocarbonFieldDTO } from '../../core/dto';
+import { StationDTO, TerminalDTO, ProductionFieldDTO } from '../../core/dto';
 
 export const GeoDebugPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stations, setStations] = useState<StationDTO[]>([]);
   const [terminals, setTerminals] = useState<TerminalDTO[]>([]);
-  const [fields, setFields] = useState<HydrocarbonFieldDTO[]>([]);
+  const [fields, setFields] = useState<ProductionFieldDTO[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -49,7 +52,7 @@ export const GeoDebugPage: React.FC = () => {
       
       setStations(data.stations || []);
       setTerminals(data.terminals || []);
-      setFields(data.hydrocarbonFields || []);
+      setFields(data.productionFields || []);
     } catch (err) {
       console.error('GeoDebug - Error:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -62,13 +65,33 @@ export const GeoDebugPage: React.FC = () => {
     fetchData();
   }, []);
 
+  // Check if entity has valid coordinates via location object
   const hasValidCoordinates = (item: any) => {
-    return item.latitude != null && 
-           item.longitude != null && 
-           typeof item.latitude === 'number' && 
-           typeof item.longitude === 'number' &&
-           !isNaN(item.latitude) &&
-           !isNaN(item.longitude);
+    if (item.location) {
+      return item.location.latitude != null && 
+             item.location.longitude != null && 
+             typeof item.location.latitude === 'number' && 
+             typeof item.location.longitude === 'number' &&
+             !isNaN(item.location.latitude) &&
+             !isNaN(item.location.longitude);
+    }
+    return false;
+  };
+
+  // Get coordinates from location object
+  const getCoordinates = (item: any) => {
+    if (item.location) {
+      return {
+        latitude: item.location.latitude,
+        longitude: item.location.longitude,
+        placeName: item.location.placeName
+      };
+    }
+    return {
+      latitude: null,
+      longitude: null,
+      placeName: null
+    };
   };
 
   const renderDataTable = (
@@ -121,12 +144,14 @@ export const GeoDebugPage: React.FC = () => {
                     <TableCell>Latitude</TableCell>
                     <TableCell>Longitude</TableCell>
                     <TableCell>Place Name</TableCell>
+                    <TableCell>Has Location</TableCell>
                     <TableCell>Status</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.map((item, index) => {
                     const valid = hasValidCoordinates(item);
+                    const coords = getCoordinates(item);
                     return (
                       <TableRow 
                         key={item.id || index}
@@ -139,12 +164,19 @@ export const GeoDebugPage: React.FC = () => {
                         <TableCell>{item.code || 'N/A'}</TableCell>
                         <TableCell>{item.name || 'N/A'}</TableCell>
                         <TableCell>
-                          {item.latitude != null ? item.latitude : '❌ NULL'}
+                          {coords.latitude != null ? coords.latitude : '❌ NULL'}
                         </TableCell>
                         <TableCell>
-                          {item.longitude != null ? item.longitude : '❌ NULL'}
+                          {coords.longitude != null ? coords.longitude : '❌ NULL'}
                         </TableCell>
-                        <TableCell>{item.placeName || 'N/A'}</TableCell>
+                        <TableCell>{coords.placeName || 'N/A'}</TableCell>
+                        <TableCell>
+                          {item.location ? (
+                            <Chip label="Yes" color="success" size="small" />
+                          ) : (
+                            <Chip label="No" color="error" size="small" />
+                          )}
+                        </TableCell>
                         <TableCell>
                           {valid ? (
                             <Chip label="Valid" color="success" size="small" />
@@ -234,10 +266,10 @@ export const GeoDebugPage: React.FC = () => {
         
         <Box sx={{ mt: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            ✅ Valid records have non-null numeric latitude and longitude values
+            ✅ Valid records have location object with non-null numeric coordinates
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            ❌ Invalid records are missing coordinates or have null values
+            ❌ Invalid records are missing location object or have null values
           </Typography>
         </Box>
       </Paper>
@@ -245,7 +277,7 @@ export const GeoDebugPage: React.FC = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {renderDataTable('Stations', stations, 'primary')}
         {renderDataTable('Terminals', terminals, 'secondary')}
-        {renderDataTable('Hydrocarbon Fields', fields, 'success')}
+        {renderDataTable('Production Fields', fields, 'success')}
       </Box>
 
       {totalRecords === 0 && (
@@ -264,8 +296,8 @@ export const GeoDebugPage: React.FC = () => {
           </Typography>
           <ol>
             <li>Check if data exists in your database</li>
-            <li>Verify API endpoints: /network/core/station, /network/core/terminal, /network/core/hydrocarbonField</li>
-            <li>Add test data to your database with valid coordinates</li>
+            <li>Verify API endpoints: /network/core/station, /network/core/terminal, /network/core/productionField</li>
+            <li>Add test data to your database with valid location references</li>
           </ol>
         </Alert>
       )}
@@ -274,15 +306,15 @@ export const GeoDebugPage: React.FC = () => {
         <Alert severity="warning" sx={{ mt: 3 }}>
           <Typography variant="h6" gutterBottom>All Records Have Invalid Coordinates</Typography>
           <Typography variant="body2">
-            Found {totalRecords} records, but none have valid latitude/longitude values.
+            Found {totalRecords} records, but none have valid location references.
           </Typography>
           <Typography variant="body2" sx={{ mt: 2 }}>
             <strong>Fix this by:</strong>
           </Typography>
           <ol>
-            <li>Updating records in database to include latitude and longitude</li>
-            <li>Ensuring coordinates are numeric (not strings)</li>
-            <li>Ensuring coordinates are not null</li>
+            <li>Creating Location entities with valid GPS coordinates</li>
+            <li>Linking stations/terminals/fields to these locations via locationId</li>
+            <li>Ensuring location objects are included in API responses</li>
           </ol>
         </Alert>
       )}
