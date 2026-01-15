@@ -2,12 +2,14 @@
  * Geo Types
  * TypeScript types for geovisualization functionality
  * 
+ * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-06-2026
+ * @updated 01-16-2026
  */
 
-import { StationDTO, TerminalDTO, HydrocarbonFieldDTO, PipelineDTO } from '../../core/dto';
+import { StationDTO, TerminalDTO, ProductionFieldDTO, PipelineDTO } from '../../core/dto';
 import { LatLngExpression } from 'leaflet';
 
 export interface LocationPoint {
@@ -27,14 +29,14 @@ export interface PipelineGeoData {
 export interface InfrastructureData {
   stations: StationDTO[];
   terminals: TerminalDTO[];
-  hydrocarbonFields: HydrocarbonFieldDTO[];
+  productionFields: ProductionFieldDTO[];
   pipelines?: PipelineGeoData[];
 }
 
 export interface MapFilters {
   showStations: boolean;
   showTerminals: boolean;
-  showHydrocarbonFields: boolean;
+  showProductionFields: boolean;
   showPipelines: boolean;
 }
 
@@ -43,8 +45,8 @@ export interface MarkerData {
   name: string;
   code: string;
   position: LatLngExpression;
-  type: 'station' | 'terminal' | 'hydrocarbonField';
-  data: StationDTO | TerminalDTO | HydrocarbonFieldDTO;
+  type: 'station' | 'terminal' | 'productionField';
+  data: StationDTO | TerminalDTO | ProductionFieldDTO;
 }
 
 export interface MapBounds {
