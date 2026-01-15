@@ -2,15 +2,15 @@
  * Locality DTO - Localization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocalityDTO
- * Updated: 01-15-2026 - Added districtId (Locality belongs to District)
+ * Updated: 01-16-2026 - Fixed hierarchy: Locality does NOT have districtId
  * 
- * Hierarchy: State → District → Locality → Location
+ * Correct Hierarchy: State → Locality → District → Location
+ * (District belongs to Locality, not the other way around)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 import { StateDTO } from './StateDTO';
-import { DistrictDTO } from './DistrictDTO';
 
 export interface LocalityDTO {
   // Identifier (from GenericDTO)
@@ -24,11 +24,9 @@ export interface LocalityDTO {
   
   // Relationships (from backend)
   stateId: number; // @NotNull - FK to State (required)
-  districtId: number; // @NotNull - FK to District (required)
   
   // Nested objects (populated in responses)
   state?: StateDTO; // Optional nested object
-  district?: DistrictDTO; // Optional nested object
 }
 
 /**
@@ -51,13 +49,6 @@ export const validateLocalityDTO = (data: Partial<LocalityDTO>): string[] => {
     errors.push("State is required");
   } else if (data.stateId <= 0) {
     errors.push("State ID must be a positive number");
-  }
-  
-  // District relationship validation
-  if (!data.districtId) {
-    errors.push("District is required");
-  } else if (data.districtId <= 0) {
-    errors.push("District ID must be a positive number");
   }
   
   // French designation validation (required)
