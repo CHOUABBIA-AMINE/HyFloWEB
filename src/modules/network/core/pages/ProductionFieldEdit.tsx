@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-15-2026
+ * @updated 01-15-2026 - Fixed LocationService import path, replaced estimatedReserves with capacity, fixed handleChange bug
  */
 
 import { useState, useEffect } from 'react';
@@ -17,7 +18,10 @@ import {
   Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon
 } from '@mui/icons-material';
 import { ProductionFieldService, ProcessingPlantService } from '../services';
-import { LocationService, OperationalStatusService } from '../../common/services';
+import { OperationalStatusService, VendorService } from '../../common/services';
+import { ProductionFieldTypeService } from '../../type/services';
+import { StructureService } from '../../../general/organization/services';
+import { LocationService } from '../../../general/localization/services';
 import { ProductionFieldDTO } from '../dto/ProductionFieldDTO';
 
 const ProductionFieldEdit = () => {
@@ -29,15 +33,23 @@ const ProductionFieldEdit = () => {
   const [field, setField] = useState<Partial<ProductionFieldDTO>>({
     code: '',
     name: '',
-    estimatedReserves: 0,
+    capacity: 0,
     operationalStatusId: 0,
-    locationId: undefined,
-    productionFieldTypeId: undefined,
+    structureId: 0,
+    vendorId: 0,
+    locationId: 0,
+    productionFieldTypeId: 0,
     processingPlantId: undefined,
+    installationDate: undefined,
+    commissioningDate: undefined,
+    decommissioningDate: undefined,
   });
 
+  const [structures, setStructures] = useState<any[]>([]);
+  const [vendors, setVendors] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
+  const [productionFieldTypes, setProductionFieldTypes] = useState<any[]>([]);
   const [processingPlants, setProcessingPlants] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -55,30 +67,68 @@ const ProductionFieldEdit = () => {
         fieldData = await ProductionFieldService.getById(Number(fieldId));
       }
       
-      const [locationsData, statusesData, plantsData] = await Promise.allSettled([
+      const [
+        structuresData,
+        vendorsData,
+        locationsData,
+        statusesData,
+        typesData,
+        plantsData
+      ] = await Promise.allSettled([
+        StructureService.getAllNoPagination(),
+        VendorService.getAllNoPagination(),
         LocationService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
+        ProductionFieldTypeService.getAllNoPagination(),
         ProcessingPlantService.getAllNoPagination(),
       ]);
 
+      if (structuresData.status === 'fulfilled') {
+        const structs = Array.isArray(structuresData.value) 
+          ? structuresData.value 
+          : (Array.isArray((structuresData.value as any)?.data) ? (structuresData.value as any).data : []);
+        setStructures(structs);
+      }
+
+      if (vendorsData.status === 'fulfilled') {
+        const vends = Array.isArray(vendorsData.value) 
+          ? vendorsData.value 
+          : (Array.isArray((vendorsData.value as any)?.data) ? (vendorsData.value as any).data : []);
+        setVendors(vends);
+      }
+
       if (locationsData.status === 'fulfilled') {
-        const locs = Array.isArray(locationsData.value) ? locationsData.value : [];
+        const locs = Array.isArray(locationsData.value) 
+          ? locationsData.value 
+          : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data : []);
         setLocations(locs);
       }
 
       if (statusesData.status === 'fulfilled') {
-        const stats = Array.isArray(statusesData.value) ? statusesData.value : [];
+        const stats = Array.isArray(statusesData.value) 
+          ? statusesData.value 
+          : (Array.isArray((statusesData.value as any)?.data) ? (statusesData.value as any).data : []);
         setOperationalStatuses(stats);
       }
 
+      if (typesData.status === 'fulfilled') {
+        const types = Array.isArray(typesData.value) 
+          ? typesData.value 
+          : (Array.isArray((typesData.value as any)?.data) ? (typesData.value as any).data : []);
+        setProductionFieldTypes(types);
+      }
+
       if (plantsData.status === 'fulfilled') {
-        const plants = Array.isArray(plantsData.value) ? plantsData.value : [];
+        const plants = Array.isArray(plantsData.value) 
+          ? plantsData.value 
+          : (Array.isArray((plantsData.value as any)?.data) ? (plantsData.value as any).data : []);
         setProcessingPlants(plants);
       }
 
       if (fieldData) setField(fieldData);
       setError('');
     } catch (err: any) {
+      console.error('Failed to load data:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
@@ -87,17 +137,39 @@ const ProductionFieldEdit = () => {
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
-    if (!field.name || field.name.trim().length < 2) errors.name = 'Name must be at least 2 characters';
-    if (!field.code || field.code.trim().length < 2) errors.code = 'Code is required';
-    if (!field.operationalStatusId) errors.operationalStatusId = 'Operational status is required';
+    if (!field.name || field.name.trim().length < 3) {
+      errors.name = 'Name must be at least 3 characters';
+    }
+    if (!field.code || field.code.trim().length < 2) {
+      errors.code = 'Code is required (min 2 characters)';
+    }
+    if (!field.operationalStatusId) {
+      errors.operationalStatusId = 'Operational status is required';
+    }
+    if (!field.structureId) {
+      errors.structureId = 'Structure is required';
+    }
+    if (!field.vendorId) {
+      errors.vendorId = 'Vendor is required';
+    }
+    if (!field.locationId) {
+      errors.locationId = 'Location is required';
+    }
+    if (!field.productionFieldTypeId) {
+      errors.productionFieldTypeId = 'Production field type is required';
+    }
+    if (field.capacity === undefined || field.capacity === null || field.capacity < 0) {
+      errors.capacity = 'Capacity must be a positive number';
+    }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (field: keyof ProductionFieldDTO) => (e: any) => {
-    setField({ ...field, [field]: e.target.value });
-    if (validationErrors[field]) {
-      setValidationErrors({ ...validationErrors, [field]: '' });
+  const handleChange = (fieldName: keyof ProductionFieldDTO) => (e: any) => {
+    const value = e.target.value;
+    setField({ ...field, [fieldName]: value });
+    if (validationErrors[fieldName]) {
+      setValidationErrors({ ...validationErrors, [fieldName]: '' });
     }
   };
 
@@ -112,11 +184,16 @@ const ProductionFieldEdit = () => {
       const fieldData: Partial<ProductionFieldDTO> = {
         code: field.code!,
         name: field.name!,
-        estimatedReserves: Number(field.estimatedReserves) || 0,
+        capacity: Number(field.capacity) || 0,
         operationalStatusId: Number(field.operationalStatusId),
-        locationId: field.locationId ? Number(field.locationId) : undefined,
-        productionFieldTypeId: field.productionFieldTypeId ? Number(field.productionFieldTypeId) : undefined,
+        structureId: Number(field.structureId),
+        vendorId: Number(field.vendorId),
+        locationId: Number(field.locationId),
+        productionFieldTypeId: Number(field.productionFieldTypeId),
         processingPlantId: field.processingPlantId ? Number(field.processingPlantId) : undefined,
+        installationDate: field.installationDate,
+        commissioningDate: field.commissioningDate,
+        decommissioningDate: field.decommissioningDate,
       };
 
       if (isEditMode) {
@@ -127,6 +204,7 @@ const ProductionFieldEdit = () => {
 
       navigate('/network/core/production-fields');
     } catch (err: any) {
+      console.error('Failed to save production field:', err);
       setError(err.response?.data?.message || err.message || 'Failed to save production field');
     } finally {
       setSaving(false);
@@ -170,7 +248,7 @@ const ProductionFieldEdit = () => {
                     fullWidth label="Code" value={field.code || ''}
                     onChange={handleChange('code')} required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code}
+                    helperText={validationErrors.code || 'Min 2, max 20 characters'}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -178,14 +256,17 @@ const ProductionFieldEdit = () => {
                     fullWidth label="Name" value={field.name || ''}
                     onChange={handleChange('name')} required
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name}
+                    helperText={validationErrors.name || 'Min 3, max 100 characters'}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Estimated Reserves"
-                    type="number" value={field.estimatedReserves ?? 0}
-                    onChange={handleChange('estimatedReserves')}
+                    fullWidth label="Capacity"
+                    type="number" value={field.capacity ?? 0}
+                    onChange={handleChange('capacity')}
+                    required
+                    error={!!validationErrors.capacity}
+                    helperText={validationErrors.capacity || 'Production capacity (required)'}
                     inputProps={{ step: 0.01, min: 0 }}
                   />
                 </Grid>
@@ -197,21 +278,81 @@ const ProductionFieldEdit = () => {
                     error={!!validationErrors.operationalStatusId}
                     helperText={validationErrors.operationalStatusId}
                   >
-                    {operationalStatuses.map((status) => (
-                      <MenuItem key={status.id} value={status.id}>{status.nameEn}</MenuItem>
-                    ))}
+                    {operationalStatuses.length > 0 ? (
+                      operationalStatuses.map((status) => (
+                        <MenuItem key={status.id} value={status.id}>{status.nameEn || status.code}</MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading statuses...</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth select label="Structure"
+                    value={field.structureId || ''}
+                    onChange={handleChange('structureId')} required
+                    error={!!validationErrors.structureId}
+                    helperText={validationErrors.structureId}
+                  >
+                    {structures.length > 0 ? (
+                      structures.map((struct) => (
+                        <MenuItem key={struct.id} value={struct.id}>{struct.name}</MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading structures...</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth select label="Vendor"
+                    value={field.vendorId || ''}
+                    onChange={handleChange('vendorId')} required
+                    error={!!validationErrors.vendorId}
+                    helperText={validationErrors.vendorId}
+                  >
+                    {vendors.length > 0 ? (
+                      vendors.map((vendor) => (
+                        <MenuItem key={vendor.id} value={vendor.id}>{vendor.name}</MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading vendors...</MenuItem>
+                    )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth select label="Location"
                     value={field.locationId || ''}
-                    onChange={handleChange('locationId')}
+                    onChange={handleChange('locationId')} required
+                    error={!!validationErrors.locationId}
+                    helperText={validationErrors.locationId}
                   >
-                    <MenuItem value="">None</MenuItem>
-                    {locations.map((loc) => (
-                      <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
-                    ))}
+                    {locations.length > 0 ? (
+                      locations.map((loc) => (
+                        <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading locations...</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth select label="Production Field Type"
+                    value={field.productionFieldTypeId || ''}
+                    onChange={handleChange('productionFieldTypeId')} required
+                    error={!!validationErrors.productionFieldTypeId}
+                    helperText={validationErrors.productionFieldTypeId}
+                  >
+                    {productionFieldTypes.length > 0 ? (
+                      productionFieldTypes.map((type) => (
+                        <MenuItem key={type.id} value={type.id}>{type.nameEn || type.code}</MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>Loading types...</MenuItem>
+                    )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
@@ -219,12 +360,50 @@ const ProductionFieldEdit = () => {
                     fullWidth select label="Processing Plant"
                     value={field.processingPlantId || ''}
                     onChange={handleChange('processingPlantId')}
+                    helperText="Optional - Associated processing plant"
                   >
                     <MenuItem value="">None</MenuItem>
                     {processingPlants.map((plant) => (
-                      <MenuItem key={plant.id} value={plant.id}>{plant.name}</MenuItem>
+                      <MenuItem key={plant.id} value={plant.id}>{plant.name} ({plant.code})</MenuItem>
                     ))}
                   </TextField>
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>Important Dates</Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth label="Installation Date"
+                    type="date"
+                    value={field.installationDate || ''}
+                    onChange={handleChange('installationDate')}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth label="Commissioning Date"
+                    type="date"
+                    value={field.commissioningDate || ''}
+                    onChange={handleChange('commissioningDate')}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth label="Decommissioning Date"
+                    type="date"
+                    value={field.decommissioningDate || ''}
+                    onChange={handleChange('decommissioningDate')}
+                    InputLabelProps={{ shrink: true }}
+                  />
                 </Grid>
               </Grid>
             </Box>
