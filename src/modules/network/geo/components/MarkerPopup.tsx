@@ -3,19 +3,21 @@
  * Displays detailed information in map marker popups with enhanced styling
  * Updated for U-006 schema (location reference) and localized names
  * 
+ * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Updated for U-006 and localized designations
+ * @updated 01-16-2026
  */
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { StationDTO, TerminalDTO, HydrocarbonFieldDTO } from '../../core/dto';
+import { StationDTO, TerminalDTO, ProductionFieldDTO } from '../../core/dto';
 import { getLocalizedName } from '../../core/utils/localizationUtils';
 
 interface MarkerPopupProps {
-  data: StationDTO | TerminalDTO | HydrocarbonFieldDTO;
-  type: 'station' | 'terminal' | 'hydrocarbonField';
+  data: StationDTO | TerminalDTO | ProductionFieldDTO;
+  type: 'station' | 'terminal' | 'productionField';
 }
 
 const formatDate = (dateString?: string) => {
@@ -55,9 +57,9 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
           color: '#9c27b0',
           bgColor: '#f3e5f5'
         };
-      case 'hydrocarbonField':
+      case 'productionField':
         return {
-          label: `🛢️ ${t('map.hydrocarbonField')}`,
+          label: `🛢️ ${t('map.productionField')}`,
           color: '#2e7d32',
           bgColor: '#e8f5e9'
         };
@@ -67,7 +69,7 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
   const config = getTypeConfig();
   const stationData = type === 'station' ? (data as StationDTO) : null;
   const terminalData = type === 'terminal' ? (data as TerminalDTO) : null;
-  const fieldData = type === 'hydrocarbonField' ? (data as HydrocarbonFieldDTO) : null;
+  const fieldData = type === 'productionField' ? (data as ProductionFieldDTO) : null;
 
   // Get the specific type name using localized designations
   const getTypeName = () => {
@@ -77,8 +79,8 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
     if (terminalData?.terminalType) {
       return getLocalizedName(terminalData.terminalType, currentLanguage);
     }
-    if (fieldData?.hydrocarbonFieldType) {
-      return getLocalizedName(fieldData.hydrocarbonFieldType, currentLanguage);
+    if (fieldData?.productionFieldType) {
+      return getLocalizedName(fieldData.productionFieldType, currentLanguage);
     }
     return null;
   };
@@ -96,17 +98,17 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
         elevation: stationData.location.elevation
       };
     }
-    if (terminalData) {
-      // Terminal: direct access (legacy fields)
+    if (terminalData?.location) {
+      // Terminal: via location object (updated)
       return {
-        latitude: terminalData.latitude || 0,
-        longitude: terminalData.longitude || 0,
-        placeName: terminalData.placeName || 'N/A',
-        elevation: terminalData.elevation
+        latitude: terminalData.location.latitude || 0,
+        longitude: terminalData.location.longitude || 0,
+        placeName: terminalData.location.placeName || 'N/A',
+        elevation: terminalData.location.elevation
       };
     }
     if (fieldData?.location) {
-      // Hydrocarbon Field: via location object
+      // Production Field: via location object
       return {
         latitude: fieldData.location.latitude || 0,
         longitude: fieldData.location.longitude || 0,
