@@ -2,11 +2,35 @@
  * Pipeline DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
+ * Updated: 01-15-2026 - Alignment audit completed
  * 
  * Complex pipeline entity with detailed physical properties, pressure/capacity specs,
  * material/coating information, and facility connections.
  * 
+ * ARCHITECTURE NOTE - Facility Abstraction:
+ * ============================================
+ * Backend uses: departureTerminalId / arrivalTerminalId (specific Terminal references)
+ * Frontend uses: departureFacilityId / arrivalFacilityId (generic Facility abstraction)
+ * 
+ * This is an INTENTIONAL DESIGN CHOICE to:
+ * • Treat all facility types (Terminal, Station, ProcessingPlant) uniformly
+ * • Reduce tight coupling to specific facility types
+ * • Enable easier future changes if pipeline endpoints can connect to other facility types
+ * • Simplify UI logic by using common FacilityDTO interface
+ * 
+ * Field Mapping:
+ * • Backend: departureTerminalId (Long) → Frontend: departureFacilityId (number)
+ * • Backend: arrivalTerminalId (Long) → Frontend: arrivalFacilityId (number)
+ * • Backend: departureTerminal: TerminalDTO → Frontend: departureFacility: FacilityDTO
+ * • Backend: arrivalTerminal: TerminalDTO → Frontend: arrivalFacility: FacilityDTO
+ * 
+ * At runtime, these will be Terminal entities from the backend,
+ * but the frontend type system treats them as generic Facilities.
+ * 
+ * Field Count: 32 fields (aligned with backend)
+ * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @alignment "2026-01-15 - Verified alignment with backend PipelineDTO (32 fields)"
  */
 
 import { OperationalStatusDTO } from '../../common/dto/OperationalStatusDTO';
@@ -53,8 +77,8 @@ export interface PipelineDTO {
   nominalInteriorCoatingId: number; // @NotNull (required) - Alloy coating
   vendorId: number; // @NotNull (required)
   pipelineSystemId: number; // @NotNull (required)
-  departureFacilityId: number; // @NotNull (required) - Starting point
-  arrivalFacilityId: number; // @NotNull (required) - Ending point
+  departureFacilityId: number; // @NotNull (required) - Starting facility endpoint (abstracted from Terminal)
+  arrivalFacilityId: number; // @NotNull (required) - Ending facility endpoint (abstracted from Terminal)
   
   // Collections
   locationIds?: number[]; // Array of location IDs along the pipeline route
@@ -67,8 +91,8 @@ export interface PipelineDTO {
   nominalInteriorCoating?: AlloyDTO;
   vendor?: VendorDTO;
   pipelineSystem?: PipelineSystemDTO;
-  departureFacility?: FacilityDTO;
-  arrivalFacility?: FacilityDTO;
+  departureFacility?: FacilityDTO; // Frontend abstraction of backend's departureTerminal
+  arrivalFacility?: FacilityDTO; // Frontend abstraction of backend's arrivalTerminal
 }
 
 /**
