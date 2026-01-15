@@ -3,9 +3,11 @@
  * Provides collapsible layer visibility controls and legend
  * Legend content moved from bottom corner to hover panel
  * 
+ * Updated: 01-16-2026 - Renamed showHydrocarbonFields to showProductionFields
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-26-2025
+ * @updated 01-16-2026
  */
 
 import { useState } from 'react';
@@ -41,7 +43,7 @@ export const MapControls: React.FC<MapControlsProps> = ({ filters, onToggleFilte
   const infrastructureTypes = [
     { key: 'station', color: infrastructureColors.station, icon: '🏭' },
     { key: 'terminal', color: infrastructureColors.terminal, icon: '🏢' },
-    { key: 'hydrocarbonField', color: infrastructureColors.hydrocarbonField, icon: '⛽' },
+    { key: 'productionField', color: infrastructureColors.productionField || infrastructureColors.hydrocarbonField, icon: '⛽' },
     { key: 'pipeline', color: infrastructureColors.pipeline, icon: '━' }
   ];
 
@@ -117,13 +119,13 @@ export const MapControls: React.FC<MapControlsProps> = ({ filters, onToggleFilte
                 sx={{ m: 0 }}
               />
               
-              {/* Hydrocarbon Fields */}
+              {/* Production Fields */}
               <FormControlLabel
-                control={<Switch checked={filters.showHydrocarbonFields} onChange={() => onToggleFilter('showHydrocarbonFields')} size="small" color="warning" />}
+                control={<Switch checked={filters.showProductionFields} onChange={() => onToggleFilter('showProductionFields')} size="small" color="warning" />}
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: '#FF9800', border: '2px solid white', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{t('map.showHydrocarbonFields')}</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>{t('map.showProductionFields')}</Typography>
                   </Box>
                 }
                 sx={{ m: 0 }}
