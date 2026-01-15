@@ -4,6 +4,7 @@
  * Constants specific to Network Core entities.
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-15-2026 - Aligned API endpoints with current DTOs
  */
 
 /**
@@ -16,7 +17,8 @@ export const API_ENDPOINTS = {
   EQUIPMENT: '/api/network/core/equipment',
   FACILITIES: '/api/network/core/facilities',
   INFRASTRUCTURES: '/api/network/core/infrastructures',
-  HYDROCARBON_FIELDS: '/api/network/core/hydrocarbon-fields',
+  PROCESSING_PLANTS: '/api/network/core/processing-plants',
+  PRODUCTION_FIELDS: '/api/network/core/production-fields',
   STATIONS: '/api/network/core/stations',
   TERMINALS: '/api/network/core/terminals',
 } as const;
