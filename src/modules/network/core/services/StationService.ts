@@ -2,13 +2,12 @@
  * Station Service - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.StationService
+ * Updated: 01-15-2026 - Added pipelineSystem query support
  * 
  * Provides CRUD operations and search functionality for stations.
  * Stations are intermediate facilities along pipelines (compression, pumping, etc.).
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @created 06-26-2025
- * @updated 01-02-2026
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -88,6 +87,28 @@ export class StationService {
         sort: pageable.sort,
       },
     });
+    return response.data;
+  }
+
+  /**
+   * Find stations by pipeline system
+   * Returns all stations associated with a specific pipeline system
+   */
+  static async findByPipelineSystem(systemId: number): Promise<StationDTO[]> {
+    const response = await axiosInstance.get<StationDTO[]>(
+      `${BASE_URL}/by-pipeline-system/${systemId}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Find stations by location
+   * Returns all stations at a specific location
+   */
+  static async findByLocation(locationId: number): Promise<StationDTO[]> {
+    const response = await axiosInstance.get<StationDTO[]>(
+      `${BASE_URL}/by-location/${locationId}`
+    );
     return response.data;
   }
 }
