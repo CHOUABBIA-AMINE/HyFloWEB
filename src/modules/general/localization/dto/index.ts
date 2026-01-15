@@ -5,10 +5,15 @@
  * - CountryDTO: dz.sh.trc.hyflo.general.localization.dto.CountryDTO
  * - StateDTO: dz.sh.trc.hyflo.general.localization.dto.StateDTO
  * - LocalityDTO: dz.sh.trc.hyflo.general.localization.dto.LocalityDTO
+ * - DistrictDTO: dz.sh.trc.hyflo.general.localization.dto.DistrictDTO
  * - ZoneDTO: dz.sh.trc.hyflo.general.localization.dto.ZoneDTO
  * - LocationDTO: dz.sh.trc.hyflo.general.localization.dto.LocationDTO
  * 
- * Updated: 01-06-2026 - Field naming standardized (designation* instead of name*)
+ * Updated: 01-15-2026 - Added DistrictDTO
+ * 
+ * Geographic Hierarchy (No relationship between Country and State):
+ * Country (Independent)
+ * State (Independent) → Locality → District → Location
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -21,6 +26,9 @@ export { validateStateDTO } from './StateDTO';
 
 export type { LocalityDTO } from './LocalityDTO';
 export { validateLocalityDTO } from './LocalityDTO';
+
+export type { DistrictDTO } from './DistrictDTO';
+export { validateDistrictDTO } from './DistrictDTO';
 
 export type { LocationDTO } from './LocationDTO';
 export { validateLocationDTO } from './LocationDTO';
