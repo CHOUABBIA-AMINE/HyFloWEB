@@ -4,13 +4,14 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.service.DistrictService
  * 
  * Provides CRUD operations and search functionality for districts.
- * Districts belong to localities in the geographic hierarchy.
+ * Districts belong to States in the geographic hierarchy.
  * 
- * Geographic Hierarchy:
- * State → Locality → District → Location
+ * Correct Geographic Hierarchy:
+ * State → District → Locality → Location
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-15-2026
+ * @updated 01-16-2026 - Fixed hierarchy (District belongs to State)
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -52,7 +53,7 @@ export class DistrictService {
 
   /**
    * Create new district
-   * Backend logs: "Creating district: code={code}, designationFr={designationFr}"
+   * Backend logs: "Creating district: code={code}, designationFr={designationFr}, stateId={stateId}"
    */
   static async create(dto: DistrictDTO): Promise<DistrictDTO> {
     const response = await axiosInstance.post<DistrictDTO>(BASE_URL, dto);
@@ -94,10 +95,10 @@ export class DistrictService {
   }
 
   /**
-   * Find districts by locality ID
+   * Find districts by state ID
    */
-  static async findByLocality(localityId: number): Promise<DistrictDTO[]> {
-    const response = await axiosInstance.get<DistrictDTO[]>(`${BASE_URL}/by-locality/${localityId}`);
+  static async findByState(stateId: number): Promise<DistrictDTO[]> {
+    const response = await axiosInstance.get<DistrictDTO[]>(`${BASE_URL}/by-state/${stateId}`);
     return response.data;
   }
 }
