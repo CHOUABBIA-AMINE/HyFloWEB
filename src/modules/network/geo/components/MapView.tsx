@@ -4,9 +4,11 @@
  * Legend now integrated in MapControls hover panel
  * Updated for U-006 schema (location reference)
  * 
+ * Updated: 01-16-2026 - Replaced HydrocarbonFieldMarkers with ProductionFieldMarkers
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Fixed coordinate conversion
+ * @updated 01-16-2026
  */
 
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
@@ -15,7 +17,7 @@ import { MapContainer } from 'react-leaflet';
 import { useMapData, useMapFilters } from '../hooks';
 import { StationMarkers } from './StationMarkers';
 import { TerminalMarkers } from './TerminalMarkers';
-import { HydrocarbonFieldMarkers } from './HydrocarbonFieldMarkers';
+import { ProductionFieldMarkers } from './ProductionFieldMarkers';
 import { PipelinePolylines } from './PipelinePolylines';
 import { MapControls } from './MapControls';
 import { OfflineTileLayer } from './OfflineTileLayer';
@@ -88,7 +90,7 @@ export const MapView: React.FC<MapViewProps> = ({
   // Check if we have any data with coordinates
   const hasStations = data.stations && data.stations.length > 0;
   const hasTerminals = data.terminals && data.terminals.length > 0;
-  const hasFields = data.hydrocarbonFields && data.hydrocarbonFields.length > 0;
+  const hasFields = data.productionFields && data.productionFields.length > 0;
   const hasPipelines = data.pipelines && data.pipelines.length > 0;
 
   if (!hasStations && !hasTerminals && !hasFields && !hasPipelines) {
@@ -102,19 +104,18 @@ export const MapView: React.FC<MapViewProps> = ({
   }
 
   // Calculate map center based on all infrastructure
-  // U-006 Update: StationDTO and HydrocarbonFieldDTO now use location.latitude/longitude
-  // TerminalDTO keeps legacy latitude/longitude fields
+  // U-006 Update: All entities now use location.latitude/longitude via location object
   const allCoordinates = [
     // Stations: access via location object
     ...(data.stations || [])
       .filter(s => s.location?.latitude && s.location?.longitude)
       .map(s => toLatLng({ location: { latitude: s.location!.latitude!, longitude: s.location!.longitude! } })),
-    // Terminals: direct access (legacy fields)
+    // Terminals: access via location object
     ...(data.terminals || [])
-      .filter(t => t.latitude && t.longitude)
-      .map(t => toLatLng({ latitude: t.latitude!, longitude: t.longitude! })),
-    // Hydrocarbon Fields: access via location object
-    ...(data.hydrocarbonFields || [])
+      .filter(t => t.location?.latitude && t.location?.longitude)
+      .map(t => toLatLng({ location: { latitude: t.location!.latitude!, longitude: t.location!.longitude! } })),
+    // Production Fields: access via location object
+    ...(data.productionFields || [])
       .filter(f => f.location?.latitude && f.location?.longitude)
       .map(f => toLatLng({ location: { latitude: f.location!.latitude!, longitude: f.location!.longitude! } })),
     // Add pipeline coordinates for center calculation
@@ -159,8 +160,8 @@ export const MapView: React.FC<MapViewProps> = ({
         {filters.showTerminals && hasTerminals && (
           <TerminalMarkers terminals={data.terminals} />
         )}
-        {filters.showHydrocarbonFields && hasFields && (
-          <HydrocarbonFieldMarkers hydrocarbonFields={data.hydrocarbonFields} />
+        {filters.showProductionFields && hasFields && (
+          <ProductionFieldMarkers productionFields={data.productionFields} />
         )}
       </MapContainer>
 
