@@ -3,13 +3,15 @@
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.flow.dto.FlowProducedDTO
  * 
- * Represents daily produced vs estimated volumes for hydrocarbon fields.
+ * Represents daily produced vs estimated volumes for production fields.
  * Used for daily production tracking and variance analysis at field level.
+ * 
+ * Updated: 01-16-2026 - Fixed import to use ProductionFieldDTO
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
-import { HydrocarbonFieldDTO } from '../../core/dto/HydrocarbonFieldDTO';
+import { ProductionFieldDTO } from '../../core/dto/ProductionFieldDTO';
 
 export interface FlowProducedDTO {
   // Identifier
@@ -23,10 +25,10 @@ export interface FlowProducedDTO {
   measurementDate?: string; // ISO 8601 date (YYYY-MM-DD)
   
   // Required relationships (IDs)
-  hydrocarbonFieldId: number; // @NotNull (required)
+  productionFieldId: number; // @NotNull (required) - renamed from hydrocarbonFieldId
   
   // Nested objects (populated in responses)
-  hydrocarbonField?: HydrocarbonFieldDTO;
+  productionField?: ProductionFieldDTO; // renamed from hydrocarbonField
 }
 
 /**
@@ -40,9 +42,9 @@ export const validateFlowProducedDTO = (data: Partial<FlowProducedDTO>): string[
     errors.push("Estimated volume is required");
   }
   
-  // Hydrocarbon field validation
-  if (data.hydrocarbonFieldId === undefined || data.hydrocarbonFieldId === null) {
-    errors.push("Hydrocarbon field is required");
+  // Production field validation
+  if (data.productionFieldId === undefined || data.productionFieldId === null) {
+    errors.push("Production field is required");
   }
   
   // Date validation (optional, but if provided must be valid)
