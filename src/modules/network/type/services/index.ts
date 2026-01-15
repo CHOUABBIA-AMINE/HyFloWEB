@@ -7,13 +7,12 @@
  * @module Network/Type/Services
  * @category Service
  * @author CHOUABBIA Amine
- * @updated 01-15-2026 - Added ProductionFieldTypeService and ProcessingPlantTypeService
+ * @updated 01-15-2026 - Removed deprecated HydrocarbonFieldTypeService
  */
 
 export * from './CompanyTypeService';
 export * from './EquipmentTypeService';
 export * from './FacilityTypeService';
-export * from './HydrocarbonFieldTypeService'; // DEPRECATED - Use ProductionFieldTypeService
 export * from './PartnerTypeService';
 export * from './ProcessingPlantTypeService';
 export * from './ProductionFieldTypeService';
