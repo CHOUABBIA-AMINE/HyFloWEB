@@ -1,25 +1,33 @@
 /**
  * Localization Utils Barrel Export
  * 
+ * Updated: 01-16-2026 - Added District mapper exports
+ * 
  * @author CHOUABBIA Amine
  * @created 01-05-2026
- * @updated 01-08-2026 - Fixed export conflicts with explicit exports
+ * @updated 01-16-2026
  */
 
-// Export mapper functions (except conflicting ones)
+// Export mapper functions
 export {
   mapToCountryDTO,
   mapFromCountryDTO,
   mapToStateDTO,
   mapFromStateDTO,
+  mapToDistrictDTO,        // Added
+  mapFromDistrictDTO,      // Added
   mapToLocalityDTO,
   mapFromLocalityDTO,
   mapToLocationDTO,
   mapFromLocationDTO,
   findCountryByCode,
-  // isValidCountryCode - conflicts with @/shared/utils
-  // getLocalizedName - conflicts with localizationUtils
+  findStateByCode,         // Added
+  findDistrictByCode,      // Added
+  findLocalityByCode,      // Added
 } from './localizationMapper';
 
 // Export utility functions
 export * from './localizationUtils';
+
+// Export constants
+export * from './constants';
