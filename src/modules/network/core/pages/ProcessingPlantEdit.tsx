@@ -126,7 +126,7 @@ const ProcessingPlantEdit = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 40}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress />
       </Box>
     );
@@ -158,33 +158,44 @@ const ProcessingPlantEdit = () => {
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Code" value={plant.code || ''}
-                    onChange={handleChange('code')} required
+                    fullWidth
+                    label="Code"
+                    value={plant.code || ''}
+                    onChange={handleChange('code')}
+                    required
                     error={!!validationErrors.code}
                     helperText={validationErrors.code}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Name" value={plant.name || ''}
-                    onChange={handleChange('name')} required
+                    fullWidth
+                    label="Name"
+                    value={plant.name || ''}
+                    onChange={handleChange('name')}
+                    required
                     error={!!validationErrors.name}
                     helperText={validationErrors.name}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Capacity"
-                    type="number" value={plant.capacity ?? 0}
+                    fullWidth
+                    label="Capacity"
+                    type="number"
+                    value={plant.capacity ?? 0}
                     onChange={handleChange('capacity')}
-         inputProps={{ step: 0.01, min: 0 }}
+                    inputProps={{ step: 0.01, min: 0 }}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Operational Status"
+                    fullWidth
+                    select
+                    label="Operational Status"
                     value={plant.operationalStatusId || ''}
-                    onChange={handleChange('operationalStatusId')} required
+                    onChange={handleChange('operationalStatusId')}
+                    required
                     error={!!validationErrors.operationalStatusId}
                     helperText={validationErrors.operationalStatusId}
                   >
@@ -195,7 +206,9 @@ const ProcessingPlantEdit = () => {
                 </Grid>
                 <Grid item xs={12}>
                   <TextField
-                    fullWidth select label="Location"
+                    fullWidth
+                    select
+                    label="Location"
                     value={plant.locationId || ''}
                     onChange={handleChange('locationId')}
                   >
@@ -211,13 +224,21 @@ const ProcessingPlantEdit = () => {
 
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
             <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button variant="outlined" startIcon={<CancelIcon />}
-                onClick={() => navigate('/network/core/processing-plants')} disabled={saving}>
+              <Button
+                variant="outlined"
+                startIcon={<CancelIcon />}
+                onClick={() => navigate('/network/core/processing-plants')}
+                disabled={saving}
+              >
                 {t('common.cancel')}
               </Button>
-              <Button type="submit" variant="contained"
+              <Button
+                type="submit"
+                variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving} sx={{ minWidth: 150 }}>
+                disabled={saving}
+                sx={{ minWidth: 150 }}
+              >
                 {saving ? t('common.loading') : t('common.save')}
               </Button>
             </Box>
