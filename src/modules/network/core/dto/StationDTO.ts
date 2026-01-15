@@ -2,14 +2,21 @@
  * Station DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.StationDTO
- * Updated: 01-07-2026 - Synced with backend U-006 update
+ * Updated: 01-15-2026 - Alignment audit and corrections
  * 
  * Backend Updates History:
  * - U-006 (Jan 7, 2026, 10:59 AM): Added locationId field
  *   • Station now has location reference
  *   • Following U-005 architectural change
+ * - Alignment Audit (Jan 15, 2026, 19:43 PM): Added missing equipmentIds collection
+ * 
+ * Changes:
+ * ✅ ADDED equipmentIds collection (exists in backend but was missing in frontend)
+ * 
+ * Field Count Verification: 13 fields (aligned with backend)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @alignment "2026-01-15 - Verified alignment with backend StationDTO"
  */
 
 import { LocationDTO } from '../../../general/localization/dto/LocationDTO';
@@ -42,6 +49,7 @@ export interface StationDTO {
   
   // Collections
   pipelineIds?: number[]; // Array of pipeline IDs
+  equipmentIds?: number[]; // Array of equipment IDs (ADDED in alignment audit)
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
