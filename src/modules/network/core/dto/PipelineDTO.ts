@@ -2,35 +2,12 @@
  * Pipeline DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
- * Updated: 01-15-2026 - Alignment audit completed
+ * Updated: 01-15-2026 - Exact backend alignment (35 fields)
  * 
  * Complex pipeline entity with detailed physical properties, pressure/capacity specs,
- * material/coating information, and facility connections.
- * 
- * ARCHITECTURE NOTE - Facility Abstraction:
- * ============================================
- * Backend uses: departureTerminalId / arrivalTerminalId (specific Terminal references)
- * Frontend uses: departureFacilityId / arrivalFacilityId (generic Facility abstraction)
- * 
- * This is an INTENTIONAL DESIGN CHOICE to:
- * • Treat all facility types (Terminal, Station, ProcessingPlant) uniformly
- * • Reduce tight coupling to specific facility types
- * • Enable easier future changes if pipeline endpoints can connect to other facility types
- * • Simplify UI logic by using common FacilityDTO interface
- * 
- * Field Mapping:
- * • Backend: departureTerminalId (Long) → Frontend: departureFacilityId (number)
- * • Backend: arrivalTerminalId (Long) → Frontend: arrivalFacilityId (number)
- * • Backend: departureTerminal: TerminalDTO → Frontend: departureFacility: FacilityDTO
- * • Backend: arrivalTerminal: TerminalDTO → Frontend: arrivalFacility: FacilityDTO
- * 
- * At runtime, these will be Terminal entities from the backend,
- * but the frontend type system treats them as generic Facilities.
- * 
- * Field Count: 32 fields (aligned with backend)
+ * material/coating information, and terminal connections.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @alignment "2026-01-15 - Verified alignment with backend PipelineDTO (32 fields)"
  */
 
 import { OperationalStatusDTO } from '../../common/dto/OperationalStatusDTO';
@@ -38,10 +15,10 @@ import { StructureDTO } from '../../../general/organization/dto/StructureDTO';
 import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { VendorDTO } from '../../common/dto/VendorDTO';
 import { PipelineSystemDTO } from './PipelineSystemDTO';
-import { FacilityDTO } from './FacilityDTO';
+import { TerminalDTO } from './TerminalDTO';
 
 export interface PipelineDTO {
-  // Identifier
+  // Identifier (from GenericDTO)
   id?: number;
 
   // Core infrastructure fields
@@ -53,21 +30,21 @@ export interface PipelineDTO {
   commissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
   decommissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
   
-  // Physical dimensions (all required, @PositiveOrZero)
-  nominalDiameter: number; // Nominal diameter (required)
-  length: number; // Total length (required)
-  nominalThickness: number; // Wall thickness (required)
-  nominalRoughness: number; // Surface roughness (required)
+  // Physical dimensions (all required, @NotNull, @PositiveOrZero)
+  nominalDiameter: string; // String in backend (e.g., "24 inches")
+  length: number; // Double - Total length
+  nominalThickness: string; // String in backend (e.g., "0.5 inches")
+  nominalRoughness: string; // String in backend (e.g., "0.045 mm")
   
-  // Pressure specifications (all required, @PositiveOrZero)
-  designMaxServicePressure: number; // Design maximum pressure (required)
-  operationalMaxServicePressure: number; // Actual maximum operating pressure (required)
-  designMinServicePressure: number; // Design minimum pressure (required)
-  operationalMinServicePressure: number; // Actual minimum operating pressure (required)
+  // Pressure specifications (all required, @NotNull, @PositiveOrZero)
+  designMaxServicePressure: number; // Double - Design maximum pressure
+  operationalMaxServicePressure: number; // Double - Actual maximum operating pressure
+  designMinServicePressure: number; // Double - Design minimum pressure
+  operationalMinServicePressure: number; // Double - Actual minimum operating pressure
   
-  // Capacity specifications (all required, @PositiveOrZero)
-  designCapacity: number; // Design capacity (required)
-  operationalCapacity: number; // Actual operating capacity (required)
+  // Capacity specifications (all required, @NotNull, @PositiveOrZero)
+  designCapacity: number; // Double - Design capacity
+  operationalCapacity: number; // Double - Actual operating capacity
   
   // Required relationships (IDs)
   operationalStatusId: number; // @NotNull (required)
@@ -77,11 +54,11 @@ export interface PipelineDTO {
   nominalInteriorCoatingId: number; // @NotNull (required) - Alloy coating
   vendorId: number; // @NotNull (required)
   pipelineSystemId: number; // @NotNull (required)
-  departureFacilityId: number; // @NotNull (required) - Starting facility endpoint (abstracted from Terminal)
-  arrivalFacilityId: number; // @NotNull (required) - Ending facility endpoint (abstracted from Terminal)
+  departureTerminalId: number; // @NotNull (required) - Starting terminal endpoint
+  arrivalTerminalId: number; // @NotNull (required) - Ending terminal endpoint
   
   // Collections
-  locationIds?: number[]; // Array of location IDs along the pipeline route
+  locationIds?: number[]; // Set<Long> - Array of location IDs along the pipeline route
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
@@ -91,8 +68,8 @@ export interface PipelineDTO {
   nominalInteriorCoating?: AlloyDTO;
   vendor?: VendorDTO;
   pipelineSystem?: PipelineSystemDTO;
-  departureFacility?: FacilityDTO; // Frontend abstraction of backend's departureTerminal
-  arrivalFacility?: FacilityDTO; // Frontend abstraction of backend's arrivalTerminal
+  departureTerminal?: TerminalDTO; // Starting terminal
+  arrivalTerminal?: TerminalDTO; // Ending terminal
 }
 
 /**
@@ -115,22 +92,23 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
     errors.push("Name must be between 3 and 100 characters");
   }
   
-  // Physical dimensions validation
-  const physicalFields = [
-    { name: 'nominalDiameter', label: 'Nominal diameter' },
-    { name: 'length', label: 'Length' },
-    { name: 'nominalThickness', label: 'Nominal thickness' },
-    { name: 'nominalRoughness', label: 'Nominal roughness' }
-  ] as const;
+  // Physical dimensions validation (String fields)
+  if (!data.nominalDiameter) {
+    errors.push("Nominal diameter is required");
+  }
+  if (!data.nominalThickness) {
+    errors.push("Nominal thickness is required");
+  }
+  if (!data.nominalRoughness) {
+    errors.push("Nominal roughness is required");
+  }
   
-  physicalFields.forEach(({ name, label }) => {
-    const value = data[name];
-    if (value === undefined || value === null) {
-      errors.push(`${label} is required`);
-    } else if (value < 0) {
-      errors.push(`${label} must be positive`);
-    }
-  });
+  // Length validation (numeric)
+  if (data.length === undefined || data.length === null) {
+    errors.push("Length is required");
+  } else if (data.length < 0) {
+    errors.push("Length must be positive");
+  }
   
   // Pressure specifications validation
   const pressureFields = [
@@ -171,8 +149,8 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
     { name: 'nominalInteriorCoatingId', label: 'Interior coating' },
     { name: 'vendorId', label: 'Vendor' },
     { name: 'pipelineSystemId', label: 'Pipeline system' },
-    { name: 'departureFacilityId', label: 'Departure facility' },
-    { name: 'arrivalFacilityId', label: 'Arrival facility' }
+    { name: 'departureTerminalId', label: 'Departure terminal' },
+    { name: 'arrivalTerminalId', label: 'Arrival terminal' }
   ] as const;
   
   relationshipFields.forEach(({ name, label }) => {
