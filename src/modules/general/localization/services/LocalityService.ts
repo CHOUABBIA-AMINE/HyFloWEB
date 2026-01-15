@@ -4,11 +4,13 @@
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.service.LocalityService
  * 
  * Provides CRUD operations and search functionality for localities/cities.
- * Localities belong to states in the geographic hierarchy.
+ * Localities belong to both State and District in the geographic hierarchy.
+ * 
+ * Updated: 01-15-2026 - Added findByDistrict method
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
- * @updated 01-02-2026
+ * @updated 01-15-2026
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -50,7 +52,7 @@ export class LocalityService {
 
   /**
    * Create new locality
-   * Backend logs: "Creating locality: code={code}, designationFr={designationFr}, stateId={stateId}"
+   * Backend logs: "Creating locality: code={code}, designationFr={designationFr}, stateId={stateId}, districtId={districtId}"
    */
   static async create(dto: LocalityDTO): Promise<LocalityDTO> {
     const response = await axiosInstance.post<LocalityDTO>(BASE_URL, dto);
@@ -92,10 +94,18 @@ export class LocalityService {
   }
 
   /**
-   * Get localities by state ID
+   * Find localities by state ID
    */
-  static async getByStateId(stateId: number): Promise<LocalityDTO[]> {
+  static async findByState(stateId: number): Promise<LocalityDTO[]> {
     const response = await axiosInstance.get<LocalityDTO[]>(`${BASE_URL}/by-state/${stateId}`);
+    return response.data;
+  }
+
+  /**
+   * Find localities by district ID
+   */
+  static async findByDistrict(districtId: number): Promise<LocalityDTO[]> {
+    const response = await axiosInstance.get<LocalityDTO[]>(`${BASE_URL}/by-district/${districtId}`);
     return response.data;
   }
 }
