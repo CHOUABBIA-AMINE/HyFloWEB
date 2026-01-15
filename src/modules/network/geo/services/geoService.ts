@@ -2,13 +2,15 @@
  * Geo Service
  * API service for fetching infrastructure geolocation data
  * 
+ * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Fixed type errors for optional properties
+ * @updated 01-16-2026
  */
 
 import axiosInstance from '../../../../shared/config/axios';
-import { StationDTO, TerminalDTO, HydrocarbonFieldDTO, PipelineDTO } from '../../core/dto';
+import { StationDTO, TerminalDTO, ProductionFieldDTO, PipelineDTO } from '../../core/dto';
 import { InfrastructureData, PipelineGeoData, LocationPoint } from '../types/geo.types';
 import { convertLocationsToCoordinates, validatePipelineCoordinates } from '../utils/pipelineHelpers';
 
@@ -235,24 +237,24 @@ class GeoService {
     try {
       console.log('GeoService - Fetching all infrastructure data...');
       
-      const [stations, terminals, hydrocarbonFields, pipelines] = await Promise.all([
+      const [stations, terminals, productionFields, pipelines] = await Promise.all([
         this.fetchAllPages<StationDTO>('/network/core/station'),
         this.fetchAllPages<TerminalDTO>('/network/core/terminal'),
-        this.fetchAllPages<HydrocarbonFieldDTO>('/network/core/hydrocarbonField'),
+        this.fetchAllPages<ProductionFieldDTO>('/network/core/productionField'),
         this.getPipelinesWithGeoData()
       ]);
 
       console.log('GeoService - Infrastructure loaded:', {
         stations: stations.length,
         terminals: terminals.length,
-        hydrocarbonFields: hydrocarbonFields.length,
+        productionFields: productionFields.length,
         pipelines: pipelines.length
       });
 
       return {
         stations,
         terminals,
-        hydrocarbonFields,
+        productionFields,
         pipelines
       };
     } catch (error) {
@@ -261,7 +263,7 @@ class GeoService {
       return {
         stations: [],
         terminals: [],
-        hydrocarbonFields: [],
+        productionFields: [],
         pipelines: []
       };
     }
@@ -288,27 +290,41 @@ class GeoService {
       );
     });
     
-    // Helper function to safely check coordinates
-    const hasValidCoordinates = (item: any): item is { latitude: number; longitude: number } => {
-      return typeof item.latitude === 'number' && typeof item.longitude === 'number';
+    // Helper function to safely check coordinates via location object
+    const hasValidCoordinates = (item: any): boolean => {
+      if (item.location) {
+        return typeof item.location.latitude === 'number' && typeof item.location.longitude === 'number';
+      }
+      return false;
+    };
+    
+    // Helper to get coordinates from location object
+    const getCoords = (item: any) => {
+      if (item.location) {
+        return { lat: item.location.latitude, lng: item.location.longitude };
+      }
+      return { lat: 0, lng: 0 };
     };
     
     return {
-      stations: data.stations.filter(s => 
-        hasValidCoordinates(s) &&
-        s.latitude >= bounds.south && s.latitude <= bounds.north &&
-        s.longitude >= bounds.west && s.longitude <= bounds.east
-      ),
-      terminals: data.terminals.filter(t => 
-        hasValidCoordinates(t) &&
-        t.latitude >= bounds.south && t.latitude <= bounds.north &&
-        t.longitude >= bounds.west && t.longitude <= bounds.east
-      ),
-      hydrocarbonFields: data.hydrocarbonFields.filter(f => 
-        hasValidCoordinates(f) &&
-        f.latitude >= bounds.south && f.latitude <= bounds.north &&
-        f.longitude >= bounds.west && f.longitude <= bounds.east
-      ),
+      stations: data.stations.filter(s => {
+        if (!hasValidCoordinates(s)) return false;
+        const coords = getCoords(s);
+        return coords.lat >= bounds.south && coords.lat <= bounds.north &&
+               coords.lng >= bounds.west && coords.lng <= bounds.east;
+      }),
+      terminals: data.terminals.filter(t => {
+        if (!hasValidCoordinates(t)) return false;
+        const coords = getCoords(t);
+        return coords.lat >= bounds.south && coords.lat <= bounds.north &&
+               coords.lng >= bounds.west && coords.lng <= bounds.east;
+      }),
+      productionFields: data.productionFields.filter(f => {
+        if (!hasValidCoordinates(f)) return false;
+        const coords = getCoords(f);
+        return coords.lat >= bounds.south && coords.lat <= bounds.north &&
+               coords.lng >= bounds.west && coords.lng <= bounds.east;
+      }),
       pipelines: pipelinesInBounds
     };
   }
