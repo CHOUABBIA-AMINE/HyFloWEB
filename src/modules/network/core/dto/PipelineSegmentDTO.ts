@@ -2,9 +2,10 @@
  * PipelineSegment DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineSegmentDTO
+ * Updated: 01-15-2026 - Exact backend alignment (24 fields)
  * 
- * Represents a physical segment of a pipeline with specific dimensions,
- * materials, coatings, and position markers (startPoint/endPoint).
+ * Represents a segment of a pipeline with its physical properties, materials,
+ * and position within the parent pipeline.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -15,7 +16,7 @@ import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { PipelineDTO } from './PipelineDTO';
 
 export interface PipelineSegmentDTO {
-  // Identifier
+  // Identifier (from GenericDTO)
   id?: number;
 
   // Core infrastructure fields
@@ -27,15 +28,15 @@ export interface PipelineSegmentDTO {
   commissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
   decommissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
   
-  // Physical dimensions (all required, @PositiveOrZero)
-  diameter: number; // Segment diameter (required)
-  length: number; // Segment length (required)
-  thickness: number; // Wall thickness (required)
-  roughness: number; // Surface roughness (required)
+  // Physical dimensions (all required, @NotNull, @PositiveOrZero)
+  diameter: number; // Double - Segment diameter
+  length: number; // Double - Segment length
+  thickness: number; // Double - Wall thickness
+  roughness: number; // Double - Surface roughness
   
-  // Position markers (required, @PositiveOrZero)
-  startPoint: number; // Starting position along pipeline (required)
-  endPoint: number; // Ending position along pipeline (required)
+  // Position within pipeline (both required, @NotNull, @PositiveOrZero)
+  startPoint: number; // Double - Starting point along pipeline
+  endPoint: number; // Double - Ending point along pipeline
   
   // Required relationships (IDs)
   operationalStatusId: number; // @NotNull (required)
@@ -51,7 +52,7 @@ export interface PipelineSegmentDTO {
   constructionMaterial?: AlloyDTO;
   exteriorCoating?: AlloyDTO;
   interiorCoating?: AlloyDTO;
-  pipeline?: PipelineDTO; // Parent pipeline
+  pipeline?: PipelineDTO; // Parent pipeline reference
 }
 
 /**
@@ -79,9 +80,7 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
     { name: 'diameter', label: 'Diameter' },
     { name: 'length', label: 'Length' },
     { name: 'thickness', label: 'Thickness' },
-    { name: 'roughness', label: 'Roughness' },
-    { name: 'startPoint', label: 'Start point' },
-    { name: 'endPoint', label: 'End point' }
+    { name: 'roughness', label: 'Roughness' }
   ] as const;
   
   physicalFields.forEach(({ name, label }) => {
@@ -92,6 +91,25 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
       errors.push(`${label} must be positive`);
     }
   });
+  
+  // Position validation
+  if (data.startPoint === undefined || data.startPoint === null) {
+    errors.push("Start point is required");
+  } else if (data.startPoint < 0) {
+    errors.push("Start point must be positive");
+  }
+  
+  if (data.endPoint === undefined || data.endPoint === null) {
+    errors.push("End point is required");
+  } else if (data.endPoint < 0) {
+    errors.push("End point must be positive");
+  }
+  
+  // Validate start < end
+  if (data.startPoint !== undefined && data.endPoint !== undefined && 
+      data.startPoint >= data.endPoint) {
+    errors.push("End point must be greater than start point");
+  }
   
   // Relationship validations
   const relationshipFields = [
@@ -117,14 +135,6 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
       errors.push(`${field} must be in YYYY-MM-DD format`);
     }
   });
-  
-  // Logical validation: endPoint should be > startPoint
-  if (data.startPoint !== undefined && data.startPoint !== null && 
-      data.endPoint !== undefined && data.endPoint !== null) {
-    if (data.endPoint <= data.startPoint) {
-      errors.push("End point must be greater than start point");
-    }
-  }
   
   return errors;
 };
