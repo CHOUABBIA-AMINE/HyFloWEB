@@ -2,17 +2,23 @@
  * Terminal DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.TerminalDTO
- * Updated: 01-07-2026 - Synced with backend U-006 update
+ * Updated: 01-15-2026 - Alignment audit and corrections
  * 
  * Backend Updates History:
  * - U-006 (Jan 7, 2026, 10:59 AM): Added locationId field
  *   • Terminal now has location reference
  *   • Following U-005 architectural change
+ *   • REMOVED legacy location fields: placeName, latitude, longitude, elevation
+ * - Alignment Audit (Jan 15, 2026, 19:43 PM): Removed legacy fields, added facilityIds
  * 
- * Note: TerminalDTO has legacy fields (placeName, latitude, longitude, elevation)
- * which seem redundant with the location reference but are kept for backend compatibility.
+ * Changes:
+ * ✅ REMOVED legacy fields (no longer in backend): placeName, latitude, longitude, elevation
+ * ✅ ADDED facilityIds collection (exists in backend but was missing in frontend)
+ * 
+ * Field Count Verification: 17 fields (aligned with backend)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * @alignment "2026-01-15 - Verified alignment with backend TerminalDTO"
  */
 
 import { LocationDTO } from '../../../general/localization/dto/LocationDTO';
@@ -34,12 +40,6 @@ export interface TerminalDTO {
   commissioningDate?: string; // LocalDate (ISO format)
   decommissioningDate?: string; // LocalDate (ISO format)
   
-  // Legacy location fields (redundant with location reference, but kept for backend compatibility)
-  placeName: string; // @NotBlank, max 100 chars (required)
-  latitude: number; // @NotNull (required)
-  longitude: number; // @NotNull (required)
-  elevation: number; // @NotNull (required)
-  
   // Required relationships (IDs)
   operationalStatusId: number; // @NotNull (required)
   structureId: number; // @NotNull (required)
@@ -49,6 +49,7 @@ export interface TerminalDTO {
   
   // Collections
   pipelineIds?: number[]; // Array of pipeline IDs
+  facilityIds?: number[]; // Array of facility IDs (ADDED in alignment audit)
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
@@ -71,24 +72,6 @@ export const validateTerminalDTO = (data: Partial<TerminalDTO>): string[] => {
     errors.push("Name is required");
   } else if (data.name.length < 3 || data.name.length > 100) {
     errors.push("Name must be between 3 and 100 characters");
-  }
-  
-  if (!data.placeName) {
-    errors.push("Place name is required");
-  } else if (data.placeName.length > 100) {
-    errors.push("Place name must not exceed 100 characters");
-  }
-  
-  if (data.latitude === undefined || data.latitude === null) {
-    errors.push("Latitude is required");
-  }
-  
-  if (data.longitude === undefined || data.longitude === null) {
-    errors.push("Longitude is required");
-  }
-  
-  if (data.elevation === undefined || data.elevation === null) {
-    errors.push("Elevation is required");
   }
   
   if (data.operationalStatusId === undefined || data.operationalStatusId === null) {
