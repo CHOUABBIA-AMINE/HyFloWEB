@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-08-2026 - Fixed type errors
+ * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -28,7 +28,7 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { PipelineService, PipelineSystemService, FacilityService } from '../services';
+import { PipelineService, PipelineSystemService, TerminalService } from '../services';
 import { VendorService, OperationalStatusService, AlloyService } from '../../common/services';
 import { PipelineDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
@@ -65,8 +65,8 @@ const PipelineEdit = () => {
     operationalStatusId: 0,
     vendorId: 0,
     pipelineSystemId: undefined,
-    departureFacilityId: undefined,
-    arrivalFacilityId: undefined,
+    departureTerminalId: undefined,
+    arrivalTerminalId: undefined,
   });
 
   // Available options
@@ -74,7 +74,7 @@ const PipelineEdit = () => {
   const [pipelineSystems, setPipelineSystems] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [alloys, setAlloys] = useState<any[]>([]);
-  const [facilities, setFacilities] = useState<any[]>([]);
+  const [terminals, setTerminals] = useState<any[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -113,13 +113,13 @@ const PipelineEdit = () => {
         pipelineSystemsData,
         operationalStatusesData,
         alloysData,
-        facilitiesData,
+        terminalsData,
       ] = await Promise.allSettled([
         VendorService.getAllNoPagination(),
         PipelineSystemService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
         AlloyService.getAllNoPagination(),
-        FacilityService.getAllNoPagination(),
+        TerminalService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -166,16 +166,16 @@ const PipelineEdit = () => {
         console.error('Failed to load alloys:', alloysData.reason);
       }
 
-      // Handle facilities
-      if (facilitiesData.status === 'fulfilled') {
-        const facilities = Array.isArray(facilitiesData.value) 
-          ? facilitiesData.value 
-          : (Array.isArray((facilitiesData.value as any)?.data) ? (facilitiesData.value as any).data 
-            : Array.isArray((facilitiesData.value as any)?.content) ? (facilitiesData.value as any).content : []);
-        setFacilities(facilities);
+      // Handle terminals
+      if (terminalsData.status === 'fulfilled') {
+        const terminals = Array.isArray(terminalsData.value) 
+          ? terminalsData.value 
+          : (Array.isArray((terminalsData.value as any)?.data) ? (terminalsData.value as any).data 
+            : Array.isArray((terminalsData.value as any)?.content) ? (terminalsData.value as any).content : []);
+        setTerminals(terminals);
       } else {
-        console.error('Failed to load facilities:', facilitiesData.reason);
-        setFacilities([]);
+        console.error('Failed to load terminals:', terminalsData.reason);
+        setTerminals([]);
       }
 
       // Set pipeline data if editing
@@ -258,8 +258,8 @@ const PipelineEdit = () => {
         operationalStatusId: Number(pipeline.operationalStatusId),
         vendorId: Number(pipeline.vendorId),
         pipelineSystemId: pipeline.pipelineSystemId ? Number(pipeline.pipelineSystemId) : undefined,
-        departureFacilityId: pipeline.departureFacilityId ? Number(pipeline.departureFacilityId) : undefined,
-        arrivalFacilityId: pipeline.arrivalFacilityId ? Number(pipeline.arrivalFacilityId) : undefined,
+        departureTerminalId: pipeline.departureTerminalId ? Number(pipeline.departureTerminalId) : undefined,
+        arrivalTerminalId: pipeline.arrivalTerminalId ? Number(pipeline.arrivalTerminalId) : undefined,
       };
 
       if (isEditMode) {
@@ -640,11 +640,11 @@ const PipelineEdit = () => {
             </Box>
           </Paper>
 
-          {/* Connected Facilities */}
+          {/* Connected Terminals */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Connected Facilities
+                Connected Terminals
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -653,14 +653,14 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Departure Facility"
-                    value={pipeline.departureFacilityId || ''}
-                    onChange={handleChange('departureFacilityId')}
+                    label="Departure Terminal"
+                    value={pipeline.departureTerminalId || ''}
+                    onChange={handleChange('departureTerminalId')}
                   >
                     <MenuItem value="">None</MenuItem>
-                    {facilities.map((facility) => (
-                      <MenuItem key={facility.id} value={facility.id}>
-                        {facility.name} ({facility.code})
+                    {terminals.map((terminal) => (
+                      <MenuItem key={terminal.id} value={terminal.id}>
+                        {terminal.name} ({terminal.code})
                       </MenuItem>
                     ))}
                   </TextField>
@@ -670,14 +670,14 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Arrival Facility"
-                    value={pipeline.arrivalFacilityId || ''}
-                    onChange={handleChange('arrivalFacilityId')}
+                    label="Arrival Terminal"
+                    value={pipeline.arrivalTerminalId || ''}
+                    onChange={handleChange('arrivalTerminalId')}
                   >
                     <MenuItem value="">None</MenuItem>
-                    {facilities.map((facility) => (
-                      <MenuItem key={facility.id} value={facility.id}>
-                        {facility.name} ({facility.code})
+                    {terminals.map((terminal) => (
+                      <MenuItem key={terminal.id} value={terminal.id}>
+                        {terminal.name} ({terminal.code})
                       </MenuItem>
                     ))}
                   </TextField>
