@@ -1,10 +1,10 @@
 /**
- * Terminal Edit/Create Page - Updated for U-006 Schema
- * Uses locationId while keeping legacy coordinate fields
+ * Terminal Edit/Create Page - Aligned with Backend
+ * Uses locationId relationship only (no embedded location fields)
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
- * @updated 01-08-2026 - Updated for U-006 schema (locationId + structureId)
+ * @updated 01-16-2026 - Removed legacy location fields, uses locationId only
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -22,20 +22,22 @@ import {
   Divider,
   Stack,
   MenuItem,
+  Chip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { TerminalService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
 import { TerminalTypeService } from '../../type/services';
 import { LocationService } from '../../../general/localization/services';
 import { StructureService } from '../../../general/organization/services';
-import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
+import { LocationDTO } from '../../../general/localization/dto';
 import { TerminalDTO } from '../dto';
-import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
+import { getLocalizedName } from '../utils/localizationUtils';
 
 const TerminalEdit = () => {
   const { t, i18n } = useTranslation();
@@ -46,27 +48,26 @@ const TerminalEdit = () => {
   // Get current language
   const currentLanguage = i18n.language || 'en';
 
-  // Form state - aligned with TerminalDTO schema (keeps legacy fields)
+  // Form state - aligned with TerminalDTO schema
   const [terminal, setTerminal] = useState<Partial<TerminalDTO>>({
     name: '',
     code: '',
-    placeName: '',
-    latitude: 0,
-    longitude: 0,
-    elevation: 0,
     installationDate: undefined,
     commissioningDate: undefined,
     decommissioningDate: undefined,
-    operationalStatusId: 0,
-    structureId: 0,
-    vendorId: 0,
-    locationId: 0,
-    terminalTypeId: 0,
+    operationalStatusId: undefined,
+    structureId: undefined,
+    vendorId: undefined,
+    locationId: undefined,
+    terminalTypeId: undefined,
     pipelineIds: [],
   });
 
+  // Selected location (for display purposes)
+  const [selectedLocation, setSelectedLocation] = useState<LocationDTO | null>(null);
+
   // Available options
-  const [locations, setLocations] = useState<any[]>([]);
+  const [locations, setLocations] = useState<LocationDTO[]>([]);
   const [structures, setStructures] = useState<any[]>([]);
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
   const [terminalTypes, setTerminalTypes] = useState<any[]>([]);
@@ -93,15 +94,19 @@ const TerminalEdit = () => {
     [operationalStatuses, currentLanguage]
   );
 
-  const sortedLocations = useMemo(
-    () => sortByLocalizedName(locations, currentLanguage),
-    [locations, currentLanguage]
-  );
-
   const sortedStructures = useMemo(
     () => sortByLocalizedName(structures, currentLanguage),
     [structures, currentLanguage]
   );
+
+  // Helper function to sort by localized name
+  function sortByLocalizedName(items: any[], language: string) {
+    return [...items].sort((a, b) => {
+      const nameA = getLocalizedName(a, language);
+      const nameB = getLocalizedName(b, language);
+      return nameA.localeCompare(nameB);
+    });
+  }
 
   const loadData = async () => {
     try {
@@ -181,6 +186,18 @@ const TerminalEdit = () => {
       // Set terminal data if editing
       if (terminalData) {
         setTerminal(terminalData);
+        // Set selected location if terminal has location
+        if (terminalData.location) {
+          setSelectedLocation(terminalData.location);
+        } else if (terminalData.locationId) {
+          // Load location details if not nested
+          try {
+            const loc = await LocationService.getById(terminalData.locationId);
+            setSelectedLocation(loc);
+          } catch (err) {
+            console.error('Failed to load location details:', err);
+          }
+        }
       }
 
       setError('');
@@ -201,18 +218,6 @@ const TerminalEdit = () => {
 
     if (!terminal.code || terminal.code.trim().length < 2) {
       errors.code = 'Terminal code must be at least 2 characters';
-    }
-
-    if (!terminal.placeName || terminal.placeName.trim().length < 2) {
-      errors.placeName = 'Place name is required';
-    }
-
-    if (!terminal.latitude || terminal.latitude === 0) {
-      errors.latitude = 'Latitude is required';
-    }
-
-    if (!terminal.longitude || terminal.longitude === 0) {
-      errors.longitude = 'Longitude is required';
     }
 
     if (!terminal.operationalStatusId) {
@@ -243,6 +248,12 @@ const TerminalEdit = () => {
     const value = e.target.value;
     setTerminal({ ...terminal, [field]: value });
     
+    // If location changed, update selected location for display
+    if (field === 'locationId') {
+      const loc = locations.find(l => l.id === Number(value));
+      setSelectedLocation(loc || null);
+    }
+    
     // Clear validation error for this field
     if (validationErrors[field]) {
       setValidationErrors({ ...validationErrors, [field]: '' });
@@ -265,12 +276,6 @@ const TerminalEdit = () => {
         code: String(terminal.code || ''),
         name: String(terminal.name || ''),
         
-        // Legacy location fields (still required in TerminalDTO)
-        placeName: String(terminal.placeName || ''),
-        latitude: Number(terminal.latitude),
-        longitude: Number(terminal.longitude),
-        elevation: Number(terminal.elevation || 0),
-        
         // Dates
         installationDate: terminal.installationDate,
         commissioningDate: terminal.commissioningDate,
@@ -285,6 +290,7 @@ const TerminalEdit = () => {
         
         // Collections
         pipelineIds: terminal.pipelineIds || [],
+        facilityIds: terminal.facilityIds || [],
       };
 
       if (isEditMode) {
@@ -389,21 +395,31 @@ const TerminalEdit = () => {
               
               <Grid container spacing={3}>
                 {/* Location Reference */}
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     select
-                    label="Location"
+                    label="Location *"
                     value={terminal.locationId || ''}
                     onChange={handleChange('locationId')}
                     required
                     error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId || 'Select the physical location'}
+                    helperText={validationErrors.locationId || 'Select the physical location with GPS coordinates'}
                   >
-                    {sortedLocations.length > 0 ? (
-                      sortedLocations.map((location) => (
+                    {locations.length > 0 ? (
+                      locations.map((location) => (
                         <MenuItem key={location.id} value={location.id}>
-                          {getLocalizationLocalizedName(location, currentLanguage)}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocationIcon fontSize="small" color="action" />
+                            <span>{location.placeName}</span>
+                            {location.locality && (
+                              <Chip 
+                                label={location.locality.designationFr || location.locality.designationEn} 
+                                size="small" 
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
                         </MenuItem>
                       ))
                     ) : (
@@ -412,59 +428,43 @@ const TerminalEdit = () => {
                   </TextField>
                 </Grid>
 
-                {/* Place Name - Legacy Field */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Place Name"
-                    value={terminal.placeName || ''}
-                    onChange={handleChange('placeName')}
-                    required
-                    error={!!validationErrors.placeName}
-                    helperText={validationErrors.placeName || 'Max 100 characters'}
-                  />
-                </Grid>
-
-                {/* Coordinates - Legacy Fields */}
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Latitude"
-                    type="number"
-                    value={terminal.latitude ?? 0}
-                    onChange={handleChange('latitude')}
-                    required
-                    error={!!validationErrors.latitude}
-                    helperText={validationErrors.latitude}
-                    inputProps={{ step: 0.000001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Longitude"
-                    type="number"
-                    value={terminal.longitude ?? 0}
-                    onChange={handleChange('longitude')}
-                    required
-                    error={!!validationErrors.longitude}
-                    helperText={validationErrors.longitude}
-                    inputProps={{ step: 0.000001 }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Elevation (m)"
-                    type="number"
-                    value={terminal.elevation ?? 0}
-                    onChange={handleChange('elevation')}
-                    required
-                    inputProps={{ step: 0.1 }}
-                  />
-                </Grid>
+                {/* Selected Location Details (Read-only) */}
+                {selectedLocation && (
+                  <Grid item xs={12}>
+                    <Paper 
+                      variant="outlined" 
+                      sx={{ 
+                        p: 2, 
+                        bgcolor: 'grey.50',
+                        borderStyle: 'dashed'
+                      }}
+                    >
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Selected Location Details
+                      </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Typography variant="caption" color="text.secondary">Place Name</Typography>
+                          <Typography variant="body2" fontWeight={500}>{selectedLocation.placeName}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                          <Typography variant="body2" fontWeight={500}>{selectedLocation.latitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                          <Typography variant="body2" fontWeight={500}>{selectedLocation.longitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <Typography variant="caption" color="text.secondary">Elevation</Typography>
+                          <Typography variant="body2" fontWeight={500}>
+                            {selectedLocation.elevation ? `${selectedLocation.elevation} m` : 'N/A'}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           </Paper>
@@ -482,7 +482,7 @@ const TerminalEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Structure"
+                    label="Structure *"
                     value={terminal.structureId || ''}
                     onChange={handleChange('structureId')}
                     required
@@ -505,7 +505,7 @@ const TerminalEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Terminal Type"
+                    label="Terminal Type *"
                     value={terminal.terminalTypeId || ''}
                     onChange={handleChange('terminalTypeId')}
                     required
@@ -528,7 +528,7 @@ const TerminalEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Operational Status"
+                    label="Operational Status *"
                     value={terminal.operationalStatusId || ''}
                     onChange={handleChange('operationalStatusId')}
                     required
@@ -551,7 +551,7 @@ const TerminalEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Vendor"
+                    label="Vendor *"
                     value={terminal.vendorId || ''}
                     onChange={handleChange('vendorId')}
                     required
