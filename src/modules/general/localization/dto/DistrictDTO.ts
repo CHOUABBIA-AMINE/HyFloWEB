@@ -2,15 +2,18 @@
  * District DTO - Localization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.DistrictDTO
- * Created: 01-15-2026 - New entity added to hierarchy
+ * Updated: 01-16-2026 - Backend confirmed hierarchy
  * 
- * Geographic Hierarchy:
- * State → Locality → District → Location
+ * Correct Geographic Hierarchy:
+ * State → District → Locality → Location
+ * 
+ * District belongs to State (has stateId)
+ * Locality belongs to District (has districtId)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
-import { LocalityDTO } from './LocalityDTO';
+import { StateDTO } from './StateDTO';
 
 export interface DistrictDTO {
   // Identifier (from GenericDTO)
@@ -23,8 +26,8 @@ export interface DistrictDTO {
   designationFr: string; // @NotBlank, max 100 chars
   
   // Relationships (from backend)
-  localityId: number; // @NotNull - FK to Locality (required)
-  locality?: LocalityDTO; // Optional nested object
+  stateId: number; // @NotNull - FK to State (required)
+  state?: StateDTO; // Optional nested object
 }
 
 /**
@@ -42,11 +45,11 @@ export const validateDistrictDTO = (data: Partial<DistrictDTO>): string[] => {
     errors.push("Code must not exceed 10 characters");
   }
   
-  // Locality relationship validation
-  if (!data.localityId) {
-    errors.push("Locality is required");
-  } else if (data.localityId <= 0) {
-    errors.push("Locality ID must be a positive number");
+  // State relationship validation
+  if (!data.stateId) {
+    errors.push("State is required");
+  } else if (data.stateId <= 0) {
+    errors.push("State ID must be a positive number");
   }
   
   // French designation validation (required)
