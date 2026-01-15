@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-24-2025
  * @updated 01-08-2026 - Added coordinate conversion functions
+ * @updated 01-15-2026 - Fixed nominalDiameter type handling (string to number conversion)
  */
 
 import { PipelineDTO } from '../../core/dto';
@@ -53,9 +54,12 @@ export const formatPipelineLength = (lengthKm?: number): string => {
 
 /**
  * Format pipeline diameter
+ * @param diameter - Diameter value (can be string or number)
  */
-export const formatPipelineDiameter = (diameterInch?: number): string => {
-  if (!diameterInch) return 'N/A';
+export const formatPipelineDiameter = (diameter?: string | number): string => {
+  if (!diameter) return 'N/A';
+  const diameterInch = typeof diameter === 'string' ? parseFloat(diameter) : diameter;
+  if (isNaN(diameterInch)) return 'N/A';
   return `${diameterInch}" (${(diameterInch * 25.4).toFixed(0)} mm)`;
 };
 
@@ -244,11 +248,17 @@ export const getPipelineStyle = (pipeline: PipelineDTO) => {
     color = getPipelineColor(productCode);
   }
   
-  // Get weight based on diameter
+  // Get weight based on diameter (convert string to number)
   let weight = 3;
   if (pipeline.nominalDiameter) {
-    // Larger diameter = thicker line
-    weight = Math.min(Math.max(pipeline.nominalDiameter / 10, 2), 8);
+    const diameterValue = typeof pipeline.nominalDiameter === 'string' 
+      ? parseFloat(pipeline.nominalDiameter) 
+      : pipeline.nominalDiameter;
+    
+    if (!isNaN(diameterValue)) {
+      // Larger diameter = thicker line
+      weight = Math.min(Math.max(diameterValue / 10, 2), 8);
+    }
   }
   
   // Adjust opacity based on status
