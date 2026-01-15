@@ -2,9 +2,11 @@
  * Icon Factory
  * Factory functions for creating custom Leaflet marker icons
  * 
+ * Updated: 01-16-2026 - Renamed hydrocarbonField to productionField
+ * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 12-26-2025
+ * @updated 01-16-2026
  */
 
 import L from 'leaflet';
@@ -25,7 +27,7 @@ export const infrastructureColors = {
   // Infrastructure Types
   station: '#2196F3',           // Blue
   terminal: '#4CAF50',          // Green
-  hydrocarbonField: '#FF9800',  // Orange
+  productionField: '#FF9800',   // Orange
   pipeline: '#9C27B0',          // Purple
   
   // Operational Status
@@ -107,7 +109,7 @@ const getInfrastructureEmoji = (type: string): string => {
   const emojis: Record<string, string> = {
     station: '🏭',
     terminal: '🏢',
-    hydrocarbonField: '⛽',
+    productionField: '⛽',
     field: '⛽'
   };
   return emojis[type] || '📍';
@@ -149,6 +151,6 @@ export const getIconByStatus = (type: string, statusCode?: string): L.DivIcon =>
 export const icons = {
   station: createCustomIcon(infrastructureColors.station, '🏭'),
   terminal: createCustomIcon(infrastructureColors.terminal, '🏢'),
-  hydrocarbonField: createCustomIcon(infrastructureColors.hydrocarbonField, '⛽'),
+  productionField: createCustomIcon(infrastructureColors.productionField, '⛽'),
   pipeline: infrastructureColors.pipeline // Color for polylines
 };
