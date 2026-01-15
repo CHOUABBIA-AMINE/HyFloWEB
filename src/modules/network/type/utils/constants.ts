@@ -4,17 +4,19 @@
  * Constants for Network Type entities.
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-15-2026 - Aligned with current DTOs: removed HYDROCARBON_FIELD_TYPES, added PROCESSING_PLANT_TYPES and PRODUCTION_FIELD_TYPES
  */
 
 /**
  * API endpoints
  */
 export const API_ENDPOINTS = {
+  COMPANY_TYPES: '/api/network/type/company-types',
   EQUIPMENT_TYPES: '/api/network/type/equipment-types',
   FACILITY_TYPES: '/api/network/type/facility-types',
-  COMPANY_TYPES: '/api/network/type/company-types',
-  HYDROCARBON_FIELD_TYPES: '/api/network/type/hydrocarbon-field-types',
   PARTNER_TYPES: '/api/network/type/partner-types',
+  PROCESSING_PLANT_TYPES: '/api/network/type/processing-plant-types',
+  PRODUCTION_FIELD_TYPES: '/api/network/type/production-field-types',
   STATION_TYPES: '/api/network/type/station-types',
   TERMINAL_TYPES: '/api/network/type/terminal-types',
   VENDOR_TYPES: '/api/network/type/vendor-types',
@@ -58,13 +60,24 @@ export const COMPANY_TYPE_CATEGORIES = {
 } as const;
 
 /**
- * Hydrocarbon field type categories
+ * Production field type categories (replaces hydrocarbon field types)
  */
-export const HYDROCARBON_FIELD_TYPE_CATEGORIES = {
+export const PRODUCTION_FIELD_TYPE_CATEGORIES = {
   OIL_FIELD: 'OIL_FIELD',
   GAS_FIELD: 'GAS_FIELD',
   CONDENSATE_FIELD: 'CONDENSATE_FIELD',
   MIXED_FIELD: 'MIXED_FIELD',
+} as const;
+
+/**
+ * Processing plant type categories
+ */
+export const PROCESSING_PLANT_TYPE_CATEGORIES = {
+  REFINERY: 'REFINERY',
+  GAS_PROCESSING_PLANT: 'GAS_PROCESSING_PLANT',
+  LNG_PLANT: 'LNG_PLANT',
+  PETROCHEMICAL_PLANT: 'PETROCHEMICAL_PLANT',
+  FRACTIONATION_PLANT: 'FRACTIONATION_PLANT',
 } as const;
 
 /**
@@ -118,6 +131,7 @@ export const TYPE_VALIDATION_CONSTRAINTS = {
   CODE_MAX_LENGTH: 20,
   DESIGNATION_FR_MAX_LENGTH: 100,
   DESIGNATION_EN_MAX_LENGTH: 100,
+  DESIGNATION_AR_MAX_LENGTH: 100,
   DESCRIPTION_MAX_LENGTH: 500,
 } as const;
 
@@ -125,11 +139,12 @@ export const TYPE_VALIDATION_CONSTRAINTS = {
  * Type entity display colors
  */
 export const TYPE_COLORS = {
+  COMPANY_TYPE: '#7B1FA2',
   EQUIPMENT_TYPE: '#1976D2',
   FACILITY_TYPE: '#388E3C',
-  COMPANY_TYPE: '#7B1FA2',
-  HYDROCARBON_FIELD_TYPE: '#F57C00',
   PARTNER_TYPE: '#0097A7',
+  PROCESSING_PLANT_TYPE: '#FF6F00',
+  PRODUCTION_FIELD_TYPE: '#F57C00',
   STATION_TYPE: '#C2185B',
   TERMINAL_TYPE: '#D32F2F',
   VENDOR_TYPE: '#303F9F',
