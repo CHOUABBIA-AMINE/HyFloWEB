@@ -2,8 +2,11 @@
  * Map Legend Component
  * Displays legend for map markers showing infrastructure types and status colors
  * 
+ * Updated: 01-16-2026 - Renamed hydrocarbonField to productionField
+ * 
  * @author CHOUABBIA Amine
  * @created 12-26-2025
+ * @updated 01-16-2026
  */
 
 import { Box, Paper, Typography, Divider, Chip } from '@mui/material';
@@ -17,7 +20,7 @@ export const MapLegend: React.FC = () => {
   const infrastructureTypes = [
     { key: 'station', color: infrastructureColors.station, icon: '🏭' },
     { key: 'terminal', color: infrastructureColors.terminal, icon: '🏢' },
-    { key: 'hydrocarbonField', color: infrastructureColors.hydrocarbonField, icon: '⛽' },
+    { key: 'productionField', color: infrastructureColors.productionField, icon: '⛽' },
     { key: 'pipeline', color: infrastructureColors.pipeline, icon: '━' }
   ];
 
