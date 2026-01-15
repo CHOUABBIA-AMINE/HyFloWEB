@@ -1,17 +1,15 @@
 /**
- * General Localization Services - Barrel Export
+ * Localization Services - Central Export
  * 
- * Services aligned with DTOs in general/localization module.
- * Each service corresponds to a DTO for API communication.
+ * All services for the localization module.
+ * Updated: 01-15-2026 - Added DistrictService
  * 
- * @module General/Localization/Services
- * @category Service
  * @author CHOUABBIA Amine
  */
 
-// Export service classes (PascalCase files only)
-export * from './CountryService';
-export * from './LocalityService';
-export * from './LocationService';
-export * from './StateService';
-export * from './ZoneService';
+export { CountryService } from './CountryService';
+export { StateService } from './StateService';
+export { LocalityService } from './LocalityService';
+export { DistrictService } from './DistrictService';
+export { ZoneService } from './ZoneService';
+export { LocationService } from './LocationService';
