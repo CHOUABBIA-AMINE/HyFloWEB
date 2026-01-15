@@ -12,6 +12,7 @@
  * @updated 01-07-2026 - Removed non-existent Region routes
  * @updated 01-08-2026 - Added type assertion for stylis plugins
  * @updated 01-08-2026 - Fixed Product edit route to include /edit suffix
+ * @updated 01-15-2026 - Replaced HydrocarbonField with ProductionField
  */
 
 import { useEffect, useMemo } from 'react';
@@ -37,8 +38,10 @@ import {
   StationEdit, 
   TerminalList, 
   TerminalEdit,
-  HydrocarbonFieldList,
-  HydrocarbonFieldEdit,
+  ProductionFieldList,
+  ProductionFieldEdit,
+  ProcessingPlantList,
+  ProcessingPlantEdit,
   PipelineList,
   PipelineEdit,
   PipelineSystemList,
@@ -438,28 +441,59 @@ function App() {
                       }
                     />
 
-                    {/* Hydrocarbon Fields */}
+                    {/* Production Fields (formerly Hydrocarbon Fields) */}
                     <Route
-                      path="hydrocarbon-fields"
+                      path="production-fields"
                       element={
                         <ProtectedRoute>
-                          <HydrocarbonFieldList />
+                          <ProductionFieldList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="hydrocarbon-fields/create"
+                      path="production-fields/create"
                       element={
                         <ProtectedRoute>
-                          <HydrocarbonFieldEdit />
+                          <ProductionFieldEdit />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="hydrocarbon-fields/:fieldId/edit"
+                      path="production-fields/:fieldId/edit"
                       element={
                         <ProtectedRoute>
-                          <HydrocarbonFieldEdit />
+                          <ProductionFieldEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Backward compatibility redirect */}
+                    <Route path="hydrocarbon-fields" element={<Navigate to="/network/core/production-fields" replace />} />
+                    <Route path="hydrocarbon-fields/create" element={<Navigate to="/network/core/production-fields/create" replace />} />
+                    <Route path="hydrocarbon-fields/:fieldId/edit" element={<Navigate to="/network/core/production-fields/:fieldId/edit" replace />} />
+
+                    {/* Processing Plants */}
+                    <Route
+                      path="processing-plants"
+                      element={
+                        <ProtectedRoute>
+                          <ProcessingPlantList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="processing-plants/create"
+                      element={
+                        <ProtectedRoute>
+                          <ProcessingPlantEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="processing-plants/:plantId/edit"
+                      element={
+                        <ProtectedRoute>
+                          <ProcessingPlantEdit />
                         </ProtectedRoute>
                       }
                     />
