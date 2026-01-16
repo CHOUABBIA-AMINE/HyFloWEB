@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "IAAS Platform",
-    "description": "Infrastructure as a Service Management"
+    "name": "HyFlo Platform",
+    "description": "Hydrocabon Flow Management"
   },
   "list": {
     "code": "Code",
