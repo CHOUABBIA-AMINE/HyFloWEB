@@ -6,6 +6,7 @@
  * @created 12-23-2025
  * @updated 01-16-2026 - Removed legacy location fields, uses locationId only
  * @updated 01-16-2026 - Added complete location details display (Locality, District, State)
+ * @updated 01-16-2026 - Made location details more compact
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -30,8 +31,6 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
   LocationOn as LocationIcon,
-  Public as PublicIcon,
-  Place as PlaceIcon,
 } from '@mui/icons-material';
 import { TerminalService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
@@ -454,88 +453,73 @@ const TerminalEdit = () => {
                   </TextField>
                 </Grid>
 
-                {/* Selected Location Details (Read-only) */}
+                {/* Selected Location Details (Compact) */}
                 {selectedLocation && (
                   <Grid item xs={12}>
                     <Paper 
                       variant="outlined" 
                       sx={{ 
-                        p: 2, 
+                        p: 1.5, 
                         bgcolor: 'grey.50',
                         borderStyle: 'dashed'
                       }}
                     >
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mb: 2 }}>
-                        📍 Selected Location Details
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1, fontWeight: 600 }}>
+                        📍 Selected Location
                       </Typography>
                       
-                      {/* Primary Location Info */}
-                      <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary" display="block">Place Name</Typography>
-                          <Typography variant="body2" fontWeight={500}>{selectedLocation.placeName}</Typography>
+                      <Grid container spacing={1.5}>
+                        {/* Coordinates Row */}
+                        <Grid item xs={12} sm={3}>
+                          <Typography variant="caption" color="text.secondary">Place</Typography>
+                          <Typography variant="body2" fontWeight={500} fontSize="0.875rem">{selectedLocation.placeName}</Typography>
                         </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary" display="block">Latitude</Typography>
-                          <Typography variant="body2" fontWeight={500}>{selectedLocation.latitude.toFixed(6)}°</Typography>
+                        <Grid item xs={4} sm={3}>
+                          <Typography variant="caption" color="text.secondary">Lat</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
                         </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary" display="block">Longitude</Typography>
-                          <Typography variant="body2" fontWeight={500}>{selectedLocation.longitude.toFixed(6)}°</Typography>
+                        <Grid item xs={4} sm={3}>
+                          <Typography variant="caption" color="text.secondary">Lon</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.longitude.toFixed(6)}°</Typography>
                         </Grid>
-                        <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary" display="block">Elevation</Typography>
-                          <Typography variant="body2" fontWeight={500}>
-                            {selectedLocation.elevation ? `${selectedLocation.elevation} m` : 'N/A'}
+                        <Grid item xs={4} sm={3}>
+                          <Typography variant="caption" color="text.secondary">Elev</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">
+                            {selectedLocation.elevation ? `${selectedLocation.elevation}m` : 'N/A'}
                           </Typography>
                         </Grid>
-                      </Grid>
 
-                      {/* Geographic Hierarchy */}
-                      {selectedLocation.locality && (
-                        <>
-                          <Divider sx={{ my: 2 }} />
-                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                            <PublicIcon fontSize="inherit" sx={{ mr: 0.5, verticalAlign: 'middle' }} />
-                            Geographic Hierarchy
-                          </Typography>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} sm={6} md={4}>
-                              <Typography variant="caption" color="text.secondary" display="block">Locality</Typography>
-                              <Typography variant="body2" fontWeight={500}>
-                                {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr || selectedLocation.locality.code}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                Code: {selectedLocation.locality.code}
+                        {/* Geographic Hierarchy - Compact */}
+                        {selectedLocation.locality && (
+                          <>
+                            <Grid item xs={12}>
+                              <Divider sx={{ my: 0.5 }} />
+                            </Grid>
+                            <Grid item xs={12} sm={4}>
+                              <Typography variant="caption" color="text.secondary">Locality</Typography>
+                              <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                                {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr}
                               </Typography>
                             </Grid>
-                            
                             {selectedLocation.locality.district && (
-                              <Grid item xs={12} sm={6} md={4}>
-                                <Typography variant="caption" color="text.secondary" display="block">District</Typography>
-                                <Typography variant="body2" fontWeight={500}>
-                                  {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr || selectedLocation.locality.district.code}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  Code: {selectedLocation.locality.district.code}
+                              <Grid item xs={12} sm={4}>
+                                <Typography variant="caption" color="text.secondary">District</Typography>
+                                <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                                  {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr}
                                 </Typography>
                               </Grid>
                             )}
-
                             {selectedLocation.locality.district?.state && (
-                              <Grid item xs={12} sm={6} md={4}>
-                                <Typography variant="caption" color="text.secondary" display="block">State</Typography>
-                                <Typography variant="body2" fontWeight={500}>
-                                  {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr || selectedLocation.locality.district.state.code}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  Code: {selectedLocation.locality.district.state.code}
+                              <Grid item xs={12} sm={4}>
+                                <Typography variant="caption" color="text.secondary">State</Typography>
+                                <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                                  {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr}
                                 </Typography>
                               </Grid>
                             )}
-                          </Grid>
-                        </>
-                      )}
+                          </>
+                        )}
+                      </Grid>
                     </Paper>
                   </Grid>
                 )}
