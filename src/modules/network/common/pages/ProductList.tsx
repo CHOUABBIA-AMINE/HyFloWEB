@@ -1,5 +1,5 @@
 /**
- * Product List Page - ADVANCED PATTERN
+ * Product List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
@@ -16,6 +16,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column, optimized reactivity
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
  * @updated 01-16-2026 - Fixed export transform signature
+ * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -129,7 +130,7 @@ const ProductList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load products:', err);
-      setError(err.message || t('product.errorLoading', 'Failed to load products'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setRows([]);
       setTotalRows(0);
     } finally {
@@ -146,14 +147,14 @@ const ProductList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('product.confirmDelete', 'Delete this product?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try {
         await ProductService.delete(id);
-        setSuccess(t('product.deleteSuccess', 'Product deleted successfully'));
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully'));
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
-        setError(err.message || t('product.deleteError', 'Failed to delete product'));
+        setError(err.message || t('message.deleteError', 'Failed to delete item'));
       }
     }
   };
@@ -166,7 +167,7 @@ const ProductList = () => {
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
@@ -196,8 +197,8 @@ const ProductList = () => {
     }));
 
     const exportColumns: ExportColumn[] = [
-      { header: t('product.code', 'Code'), key: 'code', width: 15 },
-      { header: t('product.designation', 'Designation'), key: 'designation', width: 35 },
+      { header: t('list.code', 'Code'), key: 'code', width: 15 },
+      { header: t('list.designation', 'Designation'), key: 'designation', width: 35 },
       { 
         header: t('product.density', 'Density'), 
         key: 'density',
@@ -217,7 +218,7 @@ const ProductList = () => {
       title: t('product.title', 'Products'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -230,8 +231,8 @@ const ProductList = () => {
     }));
 
     const exportColumns: ExportColumn[] = [
-      { header: t('product.code', 'Code'), key: 'code', width: 15 },
-      { header: t('product.designation', 'Designation'), key: 'designation', width: 35 },
+      { header: t('list.code', 'Code'), key: 'code', width: 15 },
+      { header: t('list.designation', 'Designation'), key: 'designation', width: 35 },
       { 
         header: t('product.density', 'Density'), 
         key: 'density',
@@ -251,7 +252,7 @@ const ProductList = () => {
       title: t('product.title', 'Products'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -264,8 +265,8 @@ const ProductList = () => {
     }));
 
     const exportColumns: ExportColumn[] = [
-      { header: t('product.code', 'Code'), key: 'code', width: 15 },
-      { header: t('product.designation', 'Designation'), key: 'designation', width: 35 },
+      { header: t('list.code', 'Code'), key: 'code', width: 15 },
+      { header: t('list.designation', 'Designation'), key: 'designation', width: 35 },
       { 
         header: t('product.density', 'Density'), 
         key: 'density',
@@ -285,7 +286,7 @@ const ProductList = () => {
       title: t('product.title', 'Products'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -293,7 +294,7 @@ const ProductList = () => {
   const columns: GridColDef[] = useMemo(() => [
     {
       field: 'code',
-      headerName: t('product.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -305,7 +306,7 @@ const ProductList = () => {
     },
     {
       field: 'designation',
-      headerName: t('product.designation', 'Designation'),
+      headerName: t('list.designation', 'Designation'),
       minWidth: 300,
       flex: 1,
       valueGetter: (params) => getDesignation(params.row),
@@ -344,14 +345,14 @@ const ProductList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       sortable: false,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/common/products/${params.row.id}/edit`)}
@@ -360,7 +361,7 @@ const ProductList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -382,7 +383,7 @@ const ProductList = () => {
             {t('product.title', 'Products')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -393,7 +394,7 @@ const ProductList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -401,7 +402,7 @@ const ProductList = () => {
               onClick={() => navigate('/network/common/products/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('product.create', 'Create Product')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -418,15 +419,15 @@ const ProductList = () => {
       >
         <MenuItem onClick={handleExportCSV}>
           <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -471,7 +472,7 @@ const ProductList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -480,7 +481,7 @@ const ProductList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
