@@ -15,6 +15,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Optimized translation keys and populated type dropdown
+ * @updated 01-16-2026 - Moved location to list.* namespace
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -198,7 +199,7 @@ const StationList = () => {
   const exportColumns: ExportColumn[] = [
     { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { header: t('list.name', 'Name'), key: 'name', width: 30 },
-    { header: t('station.columns.location', 'Location'), key: 'placeName', width: 25 },
+    { header: t('list.location', 'Location'), key: 'placeName', width: 25 },
     { 
       header: t('list.type', 'Type'), 
       key: 'stationType',
@@ -266,7 +267,7 @@ const StationList = () => {
     },
     { 
       field: 'placeName', 
-      headerName: t('station.columns.location', 'Location'),
+      headerName: t('list.location', 'Location'),
       minWidth: 200,
       flex: 1,
       renderCell: (params) => (
