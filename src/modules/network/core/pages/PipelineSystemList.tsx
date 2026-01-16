@@ -18,6 +18,7 @@
  * @updated 01-16-2026 - FIXED: Property access for operationalStatus
  * @updated 01-16-2026 - Optimized translation keys and populated status dropdown
  * @updated 01-16-2026 - Moved structure, status, product to list.* namespace
+ * @updated 01-16-2026 - Use list.status consistently in headers and dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -422,13 +423,13 @@ const PipelineSystemList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('pipelineSystem.filterByStatus', 'Status')}</InputLabel>
+                <InputLabel>{t('list.status', 'Status')}</InputLabel>
                 <Select
                   value={statusFilter}
                   onChange={handleStatusFilterChange}
-                  label={t('pipelineSystem.filterByStatus', 'Status')}
+                  label={t('list.status', 'Status')}
                 >
-                  <MenuItem value="">{t('pipelineSystem.allStatuses', 'All Statuses')}</MenuItem>
+                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
                   {operationalStatuses.map((status) => (
                     <MenuItem key={status.id} value={status.id?.toString()}>
                       {getMultiLangDesignation(status, lang)}
