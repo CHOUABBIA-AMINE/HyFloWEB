@@ -15,6 +15,7 @@
  * @updated 01-07-2026 - Fixed service imports
  * @updated 01-10-2026 - Applied i18n, removed ID column, optimized reactivity
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
+ * @updated 01-16-2026 - Fixed export transform signature
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -186,30 +187,32 @@ const ProductList = () => {
     return product.designationFr || product.designationEn || product.designationAr || '-';
   };
 
-  const exportColumns: ExportColumn[] = [
-    { header: t('product.code', 'Code'), key: 'code', width: 15 },
-    { 
-      header: t('product.designation', 'Designation'), 
-      key: 'designationFr',
-      width: 35,
-      transform: (value, row) => getDesignation(row as ProductDTO)
-    },
-    { 
-      header: t('product.density', 'Density'), 
-      key: 'density',
-      width: 15,
-      transform: (value) => value ? `${value}` : '-'
-    },
-    { 
-      header: t('product.isHazardous', 'Hazardous'), 
-      key: 'isHazardous',
-      width: 15,
-      transform: (value) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
-    }
-  ];
-
+  // ✅ FIX: Custom export with proper data transformation
   const handleExportCSV = () => {
-    exportToCSV(rows, {
+    // Transform data before export to handle multi-lang designations
+    const exportData = rows.map(row => ({
+      ...row,
+      designation: getDesignation(row)
+    }));
+
+    const exportColumns: ExportColumn[] = [
+      { header: t('product.code', 'Code'), key: 'code', width: 15 },
+      { header: t('product.designation', 'Designation'), key: 'designation', width: 35 },
+      { 
+        header: t('product.density', 'Density'), 
+        key: 'density',
+        width: 15,
+        transform: (value: any) => value ? `${value}` : '-'
+      },
+      { 
+        header: t('product.isHazardous', 'Hazardous'), 
+        key: 'isHazardous',
+        width: 15,
+        transform: (value: any) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
+      }
+    ];
+
+    exportToCSV(exportData, {
       filename: 'products-export',
       title: t('product.title', 'Products'),
       columns: exportColumns
@@ -220,7 +223,30 @@ const ProductList = () => {
   };
 
   const handleExportExcel = async () => {
-    await exportToExcel(rows, {
+    // Transform data before export to handle multi-lang designations
+    const exportData = rows.map(row => ({
+      ...row,
+      designation: getDesignation(row)
+    }));
+
+    const exportColumns: ExportColumn[] = [
+      { header: t('product.code', 'Code'), key: 'code', width: 15 },
+      { header: t('product.designation', 'Designation'), key: 'designation', width: 35 },
+      { 
+        header: t('product.density', 'Density'), 
+        key: 'density',
+        width: 15,
+        transform: (value: any) => value ? `${value}` : '-'
+      },
+      { 
+        header: t('product.isHazardous', 'Hazardous'), 
+        key: 'isHazardous',
+        width: 15,
+        transform: (value: any) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
+      }
+    ];
+
+    await exportToExcel(exportData, {
       filename: 'products-export',
       title: t('product.title', 'Products'),
       columns: exportColumns
@@ -231,7 +257,30 @@ const ProductList = () => {
   };
 
   const handleExportPDF = async () => {
-    await exportToPDF(rows, {
+    // Transform data before export to handle multi-lang designations
+    const exportData = rows.map(row => ({
+      ...row,
+      designation: getDesignation(row)
+    }));
+
+    const exportColumns: ExportColumn[] = [
+      { header: t('product.code', 'Code'), key: 'code', width: 15 },
+      { header: t('product.designation', 'Designation'), key: 'designation', width: 35 },
+      { 
+        header: t('product.density', 'Density'), 
+        key: 'density',
+        width: 15,
+        transform: (value: any) => value ? `${value}` : '-'
+      },
+      { 
+        header: t('product.isHazardous', 'Hazardous'), 
+        key: 'isHazardous',
+        width: 15,
+        transform: (value: any) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
+      }
+    ];
+
+    await exportToPDF(exportData, {
       filename: 'products-export',
       title: t('product.title', 'Products'),
       columns: exportColumns
