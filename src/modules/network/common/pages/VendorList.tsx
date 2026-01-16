@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-16-2026 - Moved common field keys to list.* namespace
+ * @updated 01-16-2026 - Fixed vendor type dropdown to load actual data
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -62,6 +63,8 @@ import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x
 
 import { VendorService } from '../services';
 import { VendorDTO } from '../dto/VendorDTO';
+import { VendorTypeService } from '@/modules/network/type/services';
+import { VendorTypeDTO } from '@/modules/network/type/dto/VendorTypeDTO';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -82,6 +85,7 @@ const VendorList = () => {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [vendorTypes, setVendorTypes] = useState<VendorTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -90,6 +94,19 @@ const VendorList = () => {
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
+
+  // Load vendor types on mount
+  useEffect(() => {
+    const loadVendorTypes = async () => {
+      try {
+        const types = await VendorTypeService.getAllNoPagination();
+        setVendorTypes(types);
+      } catch (err) {
+        console.error('Failed to load vendor types:', err);
+      }
+    };
+    loadVendorTypes();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
@@ -398,6 +415,11 @@ const VendorList = () => {
                   label={t('vendor.filterByType', 'Vendor Type')}
                 >
                   <MenuItem value="">{t('vendor.allTypes', 'All Types')}</MenuItem>
+                  {vendorTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id?.toString()}>
+                      {getMultiLangDesignation(type, lang)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
