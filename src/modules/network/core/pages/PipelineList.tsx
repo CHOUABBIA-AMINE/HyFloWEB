@@ -1,10 +1,10 @@
 /**
- * Pipeline List Page - ADVANCED PATTERN
+ * Pipeline List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
  * - Debounced global search
- * - Advanced filters
+ * - Advanced filters with pipeline system
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX
@@ -15,6 +15,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Fixed filter: pipelineSystem instead of pipelineType
+ * @updated 01-16-2026 - Optimized translation keys and populated system dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -58,8 +59,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
-import { PipelineService } from '../services';
-import { PipelineDTO } from '../dto';
+import { PipelineService, PipelineSystemService } from '../services';
+import { PipelineDTO, PipelineSystemDTO } from '../dto';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -79,8 +80,8 @@ const PipelineList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  // ✅ FIX: Renamed from typeFilter to systemFilter for clarity
   const [systemFilter, setSystemFilter] = useState<string>('');
+  const [pipelineSystems, setPipelineSystems] = useState<PipelineSystemDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -89,6 +90,19 @@ const PipelineList = () => {
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
+
+  // Load pipeline systems on mount
+  useEffect(() => {
+    const loadPipelineSystems = async () => {
+      try {
+        const systems = await PipelineSystemService.getAllNoPagination();
+        setPipelineSystems(systems);
+      } catch (err) {
+        console.error('Failed to load pipeline systems:', err);
+      }
+    };
+    loadPipelineSystems();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
@@ -117,7 +131,6 @@ const PipelineList = () => {
       
       let filteredContent = pageResponse.content;
       
-      // ✅ FIX: Use pipelineSystem instead of pipelineType
       if (systemFilter) {
         filteredContent = filteredContent.filter((pipeline: PipelineDTO) => 
           pipeline.pipelineSystem?.id?.toString() === systemFilter
@@ -129,7 +142,7 @@ const PipelineList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load pipelines:', err);
-      setError(err.message || t('pipeline.errorLoading', 'Failed to load pipelines'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setPipelines([]);
       setTotalRows(0);
     } finally {
@@ -146,14 +159,14 @@ const PipelineList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('pipeline.confirmDelete', 'Delete this pipeline?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try { 
         await PipelineService.delete(id); 
-        setSuccess(t('pipeline.deleteSuccess', 'Pipeline deleted successfully')); 
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully')); 
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) { 
-        setError(err.message || t('pipeline.deleteError', 'Failed to delete pipeline')); 
+        setError(err.message || t('message.deleteError', 'Failed to delete item')); 
       }
     }
   };
@@ -166,7 +179,7 @@ const PipelineList = () => {
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
@@ -182,8 +195,8 @@ const PipelineList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: t('pipeline.columns.code', 'Code'), key: 'code', width: 15 },
-    { header: t('pipeline.columns.name', 'Name'), key: 'name', width: 30 },
+    { header: t('list.code', 'Code'), key: 'code', width: 15 },
+    { header: t('list.name', 'Name'), key: 'name', width: 30 },
     { 
       header: t('pipeline.columns.length', 'Length'), 
       key: 'length',
@@ -204,7 +217,7 @@ const PipelineList = () => {
       title: t('pipeline.title', 'Pipelines'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -215,7 +228,7 @@ const PipelineList = () => {
       title: t('pipeline.title', 'Pipelines'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -226,7 +239,7 @@ const PipelineList = () => {
       title: t('pipeline.title', 'Pipelines'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -234,7 +247,7 @@ const PipelineList = () => {
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
-      headerName: t('pipeline.columns.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -246,7 +259,7 @@ const PipelineList = () => {
     },
     { 
       field: 'name', 
-      headerName: t('pipeline.columns.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -269,14 +282,14 @@ const PipelineList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/core/pipelines/${params.row.id}/edit`)}
@@ -285,7 +298,7 @@ const PipelineList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -307,7 +320,7 @@ const PipelineList = () => {
             {t('pipeline.title', 'Pipelines')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -318,7 +331,7 @@ const PipelineList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -326,7 +339,7 @@ const PipelineList = () => {
               onClick={() => navigate('/network/core/pipelines/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('pipeline.create', 'Create Pipeline')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -343,15 +356,15 @@ const PipelineList = () => {
       >
         <MenuItem onClick={handleExportCSV}>
           <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -384,6 +397,11 @@ const PipelineList = () => {
                   label={t('pipeline.filterBySystem', 'Pipeline System')}
                 >
                   <MenuItem value="">{t('pipeline.allSystems', 'All Systems')}</MenuItem>
+                  {pipelineSystems.map((system) => (
+                    <MenuItem key={system.id} value={system.id?.toString()}>
+                      {system.code} - {system.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -394,7 +412,7 @@ const PipelineList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -403,7 +421,7 @@ const PipelineList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
