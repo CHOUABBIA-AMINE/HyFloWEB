@@ -2,9 +2,11 @@
  * Pipeline Polylines Component
  * Renders pipeline routes on the map as polylines
  * 
+ * Updated: 01-16-2026 - Fixed to use departureTerminal and arrivalTerminal instead of departureFacility/arrivalFacility
+ * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed type errors for optional properties
+ * @updated 01-16-2026
  */
 
 import React, { useMemo, useState } from 'react';
@@ -152,15 +154,15 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
                   </Typography>
                 )}
                 
-                {pipeline.departureFacility && (
+                {pipeline.departureTerminal && (
                   <Typography variant="body2">
-                    <strong>From:</strong> {pipeline.departureFacility.name}
+                    <strong>From:</strong> {pipeline.departureTerminal.name}
                   </Typography>
                 )}
                 
-                {pipeline.arrivalFacility && (
+                {pipeline.arrivalTerminal && (
                   <Typography variant="body2">
-                    <strong>To:</strong> {pipeline.arrivalFacility.name}
+                    <strong>To:</strong> {pipeline.arrivalTerminal.name}
                   </Typography>
                 )}
               </Box>
