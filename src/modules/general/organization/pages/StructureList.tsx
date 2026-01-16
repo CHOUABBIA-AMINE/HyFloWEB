@@ -1,11 +1,12 @@
 /**
- * Structure List Page
+ * Structure List Page - OPTIMIZED TRANSLATION KEYS
  * Hierarchical organizational structures with search and filters
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
  * @updated 01-08-2026 - Fixed type guard for MenuItem
  * @updated 01-08-2026 - Changed default pageSize to 10, added 5 to options
+ * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -151,7 +152,7 @@ const StructureList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load structures:', err);
-      setError(err.message || t('structure.errorLoading', 'Failed to load structures'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setStructures([]);
       setRowCount(0);
     } finally {
@@ -167,7 +168,7 @@ const StructureList = () => {
   const columns: GridColDef[] = [
     { 
       field: 'code', 
-      headerName: t('structure.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -180,7 +181,7 @@ const StructureList = () => {
     },
     { 
       field: 'designation', 
-      headerName: t('structure.designation', 'Designation'),
+      headerName: t('list.designation', 'Designation'),
       minWidth: 300,
       flex: 3,
       valueGetter: (params: any) => getDesignation(params.row),
@@ -192,7 +193,7 @@ const StructureList = () => {
     },
     { 
       field: 'structureType', 
-      headerName: t('structure.type', 'Type'),
+      headerName: t('list.type', 'Type'),
       width: 180,
       valueGetter: (params: any) => getDesignation(params.row.structureType),
       renderCell: (params) => {
@@ -228,7 +229,7 @@ const StructureList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
@@ -236,7 +237,7 @@ const StructureList = () => {
       filterable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => handleEdit(params.row.id)}
@@ -248,7 +249,7 @@ const StructureList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -269,20 +270,20 @@ const StructureList = () => {
   const handleEdit = (structureId: number) => navigate(`/administration/structures/${structureId}/edit`);
   
   const handleDelete = async (structureId: number) => {
-    if (window.confirm(t('structure.confirmDelete', 'Delete this structure?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try {
         await StructureService.delete(structureId);
-        setSuccess(t('structure.deleteSuccess', 'Structure deleted successfully'));
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully'));
         loadData();
       } catch (err: any) {
-        setError(err.message || t('structure.deleteError', 'Failed to delete structure'));
+        setError(err.message || t('message.deleteError', 'Failed to delete item'));
       }
     }
   };
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
   };
 
   const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
@@ -306,17 +307,17 @@ const StructureList = () => {
   };
 
   const handleExportCSV = () => {
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     handleExportMenuClose();
   };
 
   const handleExportExcel = () => {
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     handleExportMenuClose();
   };
 
   const handleExportPDF = () => {
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     handleExportMenuClose();
   };
 
@@ -329,7 +330,7 @@ const StructureList = () => {
             {t('structure.title', 'Organizational Structures')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -340,7 +341,7 @@ const StructureList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -348,7 +349,7 @@ const StructureList = () => {
               onClick={handleCreate}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('structure.create', 'Create Structure')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -371,19 +372,19 @@ const StructureList = () => {
           <ListItemIcon>
             <CsvIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon>
             <ExcelIcon fontSize="small" color="success" />
           </ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon>
             <PdfIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -419,14 +420,14 @@ const StructureList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('structure.filterByType', 'Structure Type')}</InputLabel>
+                <InputLabel>{t('list.filterByType', 'Filter by Type')}</InputLabel>
                 <Select
                   value={selectedTypeId}
                   onChange={handleTypeFilterChange}
-                  label={t('structure.filterByType', 'Structure Type')}
+                  label={t('list.filterByType', 'Filter by Type')}
                 >
                   <MenuItem value="">
-                    {t('structure.allTypes', 'All Types')}
+                    {t('list.allTypes', 'All Types')}
                   </MenuItem>
                   {structureTypes
                     .filter(type => type.id !== undefined)
@@ -444,14 +445,14 @@ const StructureList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 120 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {rowCount} {t('common.results', 'results')}
+                {rowCount} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
