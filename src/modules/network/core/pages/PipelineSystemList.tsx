@@ -15,6 +15,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - VERIFIED: Pagination [5,10,15] and full i18n
+ * @updated 01-16-2026 - FIXED: Property access for operationalStatus
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -118,10 +119,16 @@ const PipelineSystemList = () => {
       
       let filteredContent = pageResponse.content;
       
+      // ✅ FIX: Access nested operationalStatus object
       if (statusFilter) {
-        filteredContent = filteredContent.filter((system: PipelineSystemDTO) => 
-          system.operationalStatusName?.toLowerCase() === statusFilter.toLowerCase()
-        );
+        filteredContent = filteredContent.filter((system: PipelineSystemDTO) => {
+          const statusDesignation = 
+            system.operationalStatus?.designationEn ||
+            system.operationalStatus?.designationFr ||
+            system.operationalStatus?.code ||
+            '';
+          return statusDesignation.toLowerCase().includes(statusFilter.toLowerCase());
+        });
       }
       
       setPipelineSystems(filteredContent);
@@ -181,13 +188,28 @@ const PipelineSystemList = () => {
 
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
-  // ✅ Export columns with translations
+  // ✅ Export columns with translations and nested object access
   const exportColumns: ExportColumn[] = [
     { header: t('pipelineSystem.code', 'Code'), key: 'code', width: 15 },
     { header: t('pipelineSystem.name', 'Name'), key: 'name', width: 25 },
-    { header: t('pipelineSystem.structure', 'Structure'), key: 'structureCode', width: 15 },
-    { header: t('pipelineSystem.product', 'Product'), key: 'productName', width: 20 },
-    { header: t('pipelineSystem.status', 'Status'), key: 'operationalStatusName', width: 15 }
+    { 
+      header: t('pipelineSystem.structure', 'Structure'), 
+      key: 'structure',
+      width: 15,
+      transform: (value) => value?.code || '-'
+    },
+    { 
+      header: t('pipelineSystem.product', 'Product'), 
+      key: 'product',
+      width: 20,
+      transform: (value) => getMultiLangDesignation(value, lang)
+    },
+    { 
+      header: t('pipelineSystem.status', 'Status'), 
+      key: 'operationalStatus',
+      width: 15,
+      transform: (value) => getMultiLangDesignation(value, lang)
+    }
   ];
 
   const handleExportCSV = () => {
@@ -223,7 +245,7 @@ const PipelineSystemList = () => {
     handleExportMenuClose();
   };
 
-  // ✅ Columns with full translation coverage
+  // ✅ Columns with full translation coverage and nested object access
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
@@ -249,31 +271,34 @@ const PipelineSystemList = () => {
       )
     },
     { 
-      field: 'structureCode', 
+      field: 'structure', 
       headerName: t('pipelineSystem.structure', 'Structure'),
       width: 140,
+      valueGetter: (params) => params.row.structure?.code || '-',
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary">
-          {params.value || '-'}
+          {params.value}
         </Typography>
       )
     },
     { 
-      field: 'productName', 
+      field: 'product', 
       headerName: t('pipelineSystem.product', 'Product'),
       minWidth: 150,
       flex: 1,
+      valueGetter: (params) => getMultiLangDesignation(params.row.product, lang),
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary">
-          {params.value || '-'}
+          {params.value}
         </Typography>
       )
     },
     { 
-      field: 'operationalStatusName', 
+      field: 'operationalStatus', 
       headerName: t('pipelineSystem.status', 'Status'),
       width: 140,
-      renderCell: (params) => params.value ? (
+      valueGetter: (params) => getMultiLangDesignation(params.row.operationalStatus, lang),
+      renderCell: (params) => params.value && params.value !== '-' ? (
         <Chip label={params.value} size="small" color="primary" variant="outlined" />
       ) : (
         <Typography variant="body2" color="text.disabled">-</Typography>
