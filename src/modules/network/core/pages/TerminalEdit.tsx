@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-23-2025
  * @updated 01-16-2026 - Removed legacy location fields, uses locationId only
+ * @updated 01-16-2026 - Added complete location details display (Locality, District, State)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -29,6 +30,8 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
   LocationOn as LocationIcon,
+  Public as PublicIcon,
+  Place as PlaceIcon,
 } from '@mui/icons-material';
 import { TerminalService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
@@ -111,13 +114,17 @@ const TerminalEdit = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading data for TerminalEdit...');
       
       // Load terminal first if editing
       let terminalData: TerminalDTO | null = null;
       if (isEditMode) {
+        console.log('📝 Loading existing terminal with ID:', terminalId);
         terminalData = await TerminalService.getById(Number(terminalId));
+        console.log('✅ Terminal data loaded:', terminalData);
       }
       
+      console.log('📦 Fetching reference data...');
       // Load all data from REST APIs in parallel
       const [
         locationsData,
@@ -135,12 +142,15 @@ const TerminalEdit = () => {
 
       // Handle locations
       if (locationsData.status === 'fulfilled') {
+        console.log('📊 Raw locations response:', locationsData.value);
         const locs = Array.isArray(locationsData.value) 
           ? locationsData.value 
           : [];
+        console.log('✅ Locations loaded:', locs.length, 'items');
+        if (locs.length > 0) console.log('   First location:', locs[0]);
         setLocations(locs);
       } else {
-        console.error('Failed to load locations:', locationsData.reason);
+        console.error('❌ Failed to load locations:', locationsData.reason);
       }
 
       // Handle structures
@@ -148,9 +158,10 @@ const TerminalEdit = () => {
         const structs = Array.isArray(structuresData.value) 
           ? structuresData.value 
           : [];
+        console.log('✅ Structures loaded:', structs.length, 'items');
         setStructures(structs);
       } else {
-        console.error('Failed to load structures:', structuresData.reason);
+        console.error('❌ Failed to load structures:', structuresData.reason);
       }
 
       // Handle vendors
@@ -158,9 +169,10 @@ const TerminalEdit = () => {
         const vnds = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
           : [];
+        console.log('✅ Vendors loaded:', vnds.length, 'items');
         setVendors(vnds);
       } else {
-        console.error('Failed to load vendors:', vendorsData.reason);
+        console.error('❌ Failed to load vendors:', vendorsData.reason);
       }
 
       // Handle terminal types
@@ -168,9 +180,10 @@ const TerminalEdit = () => {
         const types = Array.isArray(terminalTypesData.value) 
           ? terminalTypesData.value 
           : [];
+        console.log('✅ Terminal types loaded:', types.length, 'items');
         setTerminalTypes(types);
       } else {
-        console.error('Failed to load terminal types:', terminalTypesData.reason);
+        console.error('❌ Failed to load terminal types:', terminalTypesData.reason);
       }
 
       // Handle operational statuses
@@ -178,9 +191,10 @@ const TerminalEdit = () => {
         const statuses = Array.isArray(operationalStatusesData.value) 
           ? operationalStatusesData.value 
           : [];
+        console.log('✅ Operational statuses loaded:', statuses.length, 'items');
         setOperationalStatuses(statuses);
       } else {
-        console.error('Failed to load operational statuses:', operationalStatusesData.reason);
+        console.error('❌ Failed to load operational statuses:', operationalStatusesData.reason);
       }
 
       // Set terminal data if editing
@@ -188,21 +202,25 @@ const TerminalEdit = () => {
         setTerminal(terminalData);
         // Set selected location if terminal has location
         if (terminalData.location) {
+          console.log('📍 Terminal has nested location:', terminalData.location);
           setSelectedLocation(terminalData.location);
         } else if (terminalData.locationId) {
           // Load location details if not nested
+          console.log('🔍 Loading location details for ID:', terminalData.locationId);
           try {
             const loc = await LocationService.getById(terminalData.locationId);
+            console.log('✅ Location details loaded:', loc);
             setSelectedLocation(loc);
           } catch (err) {
-            console.error('Failed to load location details:', err);
+            console.error('❌ Failed to load location details:', err);
           }
         }
       }
 
       setError('');
+      console.log('✅ All data loaded successfully');
     } catch (err: any) {
-      console.error('Failed to load data:', err);
+      console.error('❌ Failed to load data:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
@@ -251,6 +269,7 @@ const TerminalEdit = () => {
     // If location changed, update selected location for display
     if (field === 'locationId') {
       const loc = locations.find(l => l.id === Number(value));
+      console.log('📍 Location changed to:', loc);
       setSelectedLocation(loc || null);
     }
     
@@ -346,6 +365,13 @@ const TerminalEdit = () => {
         </Alert>
       )}
 
+      {/* Warning for empty locations */}
+      {locations.length === 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No locations available. Please create locations first in General → Localization → Locations.
+        </Alert>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
@@ -404,7 +430,7 @@ const TerminalEdit = () => {
                     onChange={handleChange('locationId')}
                     required
                     error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId || 'Select the physical location with GPS coordinates'}
+                    helperText={validationErrors.locationId || `Select the physical location with GPS coordinates (${locations.length} available)`}
                   >
                     {locations.length > 0 ? (
                       locations.map((location) => (
@@ -423,7 +449,7 @@ const TerminalEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading locations...</MenuItem>
+                      <MenuItem disabled>No locations available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -439,29 +465,77 @@ const TerminalEdit = () => {
                         borderStyle: 'dashed'
                       }}
                     >
-                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                        Selected Location Details
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom sx={{ mb: 2 }}>
+                        📍 Selected Location Details
                       </Typography>
+                      
+                      {/* Primary Location Info */}
                       <Grid container spacing={2}>
                         <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary">Place Name</Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">Place Name</Typography>
                           <Typography variant="body2" fontWeight={500}>{selectedLocation.placeName}</Typography>
                         </Grid>
                         <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">Latitude</Typography>
                           <Typography variant="body2" fontWeight={500}>{selectedLocation.latitude.toFixed(6)}°</Typography>
                         </Grid>
                         <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">Longitude</Typography>
                           <Typography variant="body2" fontWeight={500}>{selectedLocation.longitude.toFixed(6)}°</Typography>
                         </Grid>
                         <Grid item xs={12} sm={6} md={3}>
-                          <Typography variant="caption" color="text.secondary">Elevation</Typography>
+                          <Typography variant="caption" color="text.secondary" display="block">Elevation</Typography>
                           <Typography variant="body2" fontWeight={500}>
                             {selectedLocation.elevation ? `${selectedLocation.elevation} m` : 'N/A'}
                           </Typography>
                         </Grid>
                       </Grid>
+
+                      {/* Geographic Hierarchy */}
+                      {selectedLocation.locality && (
+                        <>
+                          <Divider sx={{ my: 2 }} />
+                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                            <PublicIcon fontSize="inherit" sx={{ mr: 0.5, verticalAlign: 'middle' }} />
+                            Geographic Hierarchy
+                          </Typography>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6} md={4}>
+                              <Typography variant="caption" color="text.secondary" display="block">Locality</Typography>
+                              <Typography variant="body2" fontWeight={500}>
+                                {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr || selectedLocation.locality.code}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                Code: {selectedLocation.locality.code}
+                              </Typography>
+                            </Grid>
+                            
+                            {selectedLocation.locality.district && (
+                              <Grid item xs={12} sm={6} md={4}>
+                                <Typography variant="caption" color="text.secondary" display="block">District</Typography>
+                                <Typography variant="body2" fontWeight={500}>
+                                  {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr || selectedLocation.locality.district.code}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  Code: {selectedLocation.locality.district.code}
+                                </Typography>
+                              </Grid>
+                            )}
+
+                            {selectedLocation.locality.district?.state && (
+                              <Grid item xs={12} sm={6} md={4}>
+                                <Typography variant="caption" color="text.secondary" display="block">State</Typography>
+                                <Typography variant="body2" fontWeight={500}>
+                                  {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr || selectedLocation.locality.district.state.code}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  Code: {selectedLocation.locality.district.state.code}
+                                </Typography>
+                              </Grid>
+                            )}
+                          </Grid>
+                        </>
+                      )}
                     </Paper>
                   </Grid>
                 )}
@@ -496,7 +570,7 @@ const TerminalEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading structures...</MenuItem>
+                      <MenuItem disabled>No structures available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -519,7 +593,7 @@ const TerminalEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading types...</MenuItem>
+                      <MenuItem disabled>No types available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -542,7 +616,7 @@ const TerminalEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading statuses...</MenuItem>
+                      <MenuItem disabled>No statuses available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -565,7 +639,7 @@ const TerminalEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading vendors...</MenuItem>
+                      <MenuItem disabled>No vendors available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -634,7 +708,7 @@ const TerminalEdit = () => {
                 type="submit"
                 variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving}
+                disabled={saving || locations.length === 0}
                 size="large"
                 sx={{ minWidth: 150 }}
               >
