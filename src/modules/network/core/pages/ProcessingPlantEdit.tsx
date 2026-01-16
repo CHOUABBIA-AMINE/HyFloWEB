@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 01-15-2026
  * @updated 01-16-2026 - Added tabs with Production Fields DataGrid integration
+ * @updated 01-16-2026 - Fixed property names: designationEn instead of nameEn
  */
 
 import { useState, useEffect } from 'react';
@@ -354,7 +355,8 @@ const ProcessingPlantEdit = () => {
       renderCell: (params) => {
         const row = params.row as ProductionFieldDTO;
         if (row.operationalStatus) {
-          return <>{row.operationalStatus.nameEn || row.operationalStatus.code}</>;
+          // ✅ FIX: Use designationEn instead of nameEn
+          return <>{row.operationalStatus.designationEn || row.operationalStatus.designationFr || row.operationalStatus.code}</>;
         }
         return <>{row.operationalStatusId}</>;
       },
@@ -628,7 +630,8 @@ const ProcessingPlantEdit = () => {
                           {operationalStatuses.length > 0 ? (
                             operationalStatuses.map((status) => (
                               <MenuItem key={status.id} value={status.id}>
-                                {status.nameEn || status.code}
+                                {/* ✅ FIX: Use designationEn/Fr instead of nameEn */}
+                                {status.designationEn || status.designationFr || status.code}
                               </MenuItem>
                             ))
                           ) : (
