@@ -7,6 +7,7 @@
     "code": "Code",
     "designation": "Designation",
     "name": "Name",
+    "description": "Description",
     "type": "Type",
     "status": "Status",
     "location": "Location",
@@ -27,7 +28,14 @@
     "loading": "Loading...",
     "pipelineSystem": "Pipeline System",
     "length": "Length",
-    "all": "All"
+    "all": "All",
+    "username": "Username",
+    "email": "Email",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "users": "Users",
+    "noPermissions": "No permissions",
+    "noUsers": "No users"
   },
   "action": {
     "create": "Create",
@@ -672,7 +680,8 @@
   },
   "user": {
     "title": "Users",
-    "searchPlaceholder": "Search users...",
+    "subtitle": "Manage and organize user accounts",
+    "searchPlaceholder": "Search by username or email...",
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email",
@@ -683,18 +692,22 @@
     "groups": "Groups",
     "createdAt": "Created At",
     "updatedAt": "Updated At",
-    "lastLogin": "Last Login"
+    "lastLogin": "Last Login",
+    "filterByStatus": "Filter by Status",
+    "filterByRole": "Filter by Role"
   },
   "role": {
     "title": "Roles",
-    "searchPlaceholder": "Search roles...",
+    "subtitle": "Manage roles and permissions",
+    "searchPlaceholder": "Search roles by name or description...",
     "permissions": "Permissions",
     "description": "Description"
   },
   "group": {
     "title": "Groups",
-    "searchPlaceholder": "Search groups...",
- "users": "Users",
+    "subtitle": "Manage user groups",
+    "searchPlaceholder": "Search groups by name or description...",
+    "users": "Users",
     "description": "Description"
   },
   "footer": {
