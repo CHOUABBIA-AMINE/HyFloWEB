@@ -1,10 +1,10 @@
 /**
- * Terminal List Page - ADVANCED PATTERN
+ * Terminal List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
  * - Debounced global search
- * - Advanced filters
+ * - Advanced filters with terminal type
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX
@@ -15,6 +15,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Fixed property path: location.placeName
+ * @updated 01-16-2026 - Optimized translation keys and added type dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -60,6 +61,8 @@ import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x
 
 import { TerminalService } from '../services';
 import { TerminalDTO } from '../dto';
+import { TerminalTypeService } from '@/modules/network/type/services';
+import { TerminalTypeDTO } from '@/modules/network/type/dto/TerminalTypeDTO';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -79,7 +82,8 @@ const TerminalList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [locationFilter, setLocationFilter] = useState<string>('');
+  const [typeFilter, setTypeFilter] = useState<string>('');
+  const [terminalTypes, setTerminalTypes] = useState<TerminalTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -89,6 +93,19 @@ const TerminalList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
+  // Load terminal types on mount
+  useEffect(() => {
+    const loadTerminalTypes = async () => {
+      try {
+        const types = await TerminalTypeService.getAllNoPagination();
+        setTerminalTypes(types);
+      } catch (err) {
+        console.error('Failed to load terminal types:', err);
+      }
+    };
+    loadTerminalTypes();
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
     return () => clearTimeout(timer);
@@ -96,7 +113,7 @@ const TerminalList = () => {
 
   useEffect(() => {
     loadData();
-  }, [paginationModel, sortModel, debouncedSearch, locationFilter]);
+  }, [paginationModel, sortModel, debouncedSearch, typeFilter]);
 
   const loadData = async () => {
     try {
@@ -116,10 +133,9 @@ const TerminalList = () => {
       
       let filteredContent = pageResponse.content;
       
-      // ✅ FIX: Access nested location.placeName
-      if (locationFilter) {
+      if (typeFilter) {
         filteredContent = filteredContent.filter((terminal: TerminalDTO) => 
-          terminal.location?.placeName?.toLowerCase().includes(locationFilter.toLowerCase())
+          terminal.terminalType?.id?.toString() === typeFilter
         );
       }
       
@@ -128,7 +144,7 @@ const TerminalList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load terminals:', err);
-      setError(err.message || t('terminal.errorLoading', 'Failed to load terminals'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setTerminals([]);
       setTotalRows(0);
     } finally {
@@ -145,32 +161,32 @@ const TerminalList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('terminal.confirmDelete', 'Delete this terminal?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try { 
         await TerminalService.delete(id); 
-        setSuccess(t('terminal.deleteSuccess', 'Terminal deleted successfully')); 
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully')); 
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) { 
-        setError(err.message || t('terminal.deleteError', 'Failed to delete terminal')); 
+        setError(err.message || t('message.deleteError', 'Failed to delete item')); 
       }
     }
   };
 
   const handleClearFilters = () => {
     setSearchText('');
-    setLocationFilter('');
+    setTypeFilter('');
     setPaginationModel({ page: 0, pageSize: 10 });
   };
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
-  const handleLocationFilterChange = (event: SelectChangeEvent<string>) => {
-    setLocationFilter(event.target.value);
+  const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
+    setTypeFilter(event.target.value);
     setPaginationModel({ ...paginationModel, page: 0 });
   };
 
@@ -180,15 +196,20 @@ const TerminalList = () => {
 
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
-  // ✅ FIX: Export columns access nested location
   const exportColumns: ExportColumn[] = [
-    { header: t('terminal.code', 'Code'), key: 'code', width: 15 },
-    { header: t('terminal.name', 'Name'), key: 'name', width: 30 },
+    { header: t('list.code', 'Code'), key: 'code', width: 15 },
+    { header: t('list.name', 'Name'), key: 'name', width: 30 },
     { 
-      header: t('terminal.location', 'Location'), 
+      header: t('terminal.columns.location', 'Location'), 
       key: 'location',
       width: 25,
       transform: (value: any) => value?.placeName || '-'
+    },
+    { 
+      header: t('list.type', 'Type'), 
+      key: 'terminalType',
+      width: 20,
+      transform: (value) => getMultiLangDesignation(value, lang)
     }
   ];
 
@@ -198,7 +219,7 @@ const TerminalList = () => {
       title: t('terminal.title', 'Terminals'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -209,7 +230,7 @@ const TerminalList = () => {
       title: t('terminal.title', 'Terminals'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -220,16 +241,15 @@ const TerminalList = () => {
       title: t('terminal.title', 'Terminals'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
 
-  // ✅ FIX: Columns access nested location.placeName
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
-      headerName: t('terminal.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -241,7 +261,7 @@ const TerminalList = () => {
     },
     { 
       field: 'name', 
-      headerName: t('terminal.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -252,7 +272,7 @@ const TerminalList = () => {
     },
     { 
       field: 'location', 
-      headerName: t('terminal.location', 'Location'),
+      headerName: t('terminal.columns.location', 'Location'),
       minWidth: 200,
       flex: 1,
       valueGetter: (params) => params.row.location?.placeName || '-',
@@ -264,14 +284,14 @@ const TerminalList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/core/terminals/${params.row.id}/edit`)}
@@ -280,7 +300,7 @@ const TerminalList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -302,7 +322,7 @@ const TerminalList = () => {
             {t('terminal.title', 'Terminals')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -313,7 +333,7 @@ const TerminalList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -321,7 +341,7 @@ const TerminalList = () => {
               onClick={() => navigate('/network/core/terminals/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('terminal.create', 'Create Terminal')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -338,15 +358,15 @@ const TerminalList = () => {
       >
         <MenuItem onClick={handleExportCSV}>
           <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -372,24 +392,29 @@ const TerminalList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('terminal.filterByLocation', 'Location')}</InputLabel>
+                <InputLabel>{t('terminal.filterByType', 'Terminal Type')}</InputLabel>
                 <Select
-                  value={locationFilter}
-                  onChange={handleLocationFilterChange}
-                  label={t('terminal.filterByLocation', 'Location')}
+                  value={typeFilter}
+                  onChange={handleTypeFilterChange}
+                  label={t('terminal.filterByType', 'Terminal Type')}
                 >
-                  <MenuItem value="">{t('terminal.allLocations', 'All Locations')}</MenuItem>
+                  <MenuItem value="">{t('terminal.allTypes', 'All Types')}</MenuItem>
+                  {terminalTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id?.toString()}>
+                      {getMultiLangDesignation(type, lang)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
-              {(searchText || locationFilter) && (
+              {(searchText || typeFilter) && (
                 <Button
                   variant="outlined"
                   startIcon={<FilterIcon />}
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -398,7 +423,7 @@ const TerminalList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
