@@ -1,5 +1,5 @@
 /**
- * Partner List Page - ADVANCED PATTERN
+ * Partner List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
@@ -15,6 +15,7 @@
  * @updated 01-07-2026 - Fixed service imports
  * @updated 01-10-2026 - Applied i18n, removed ID column, optimized reactivity
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
+ * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -128,7 +129,7 @@ const PartnerList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load partners:', err);
-      setError(err.message || t('partner.errorLoading', 'Failed to load partners'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setRows([]);
       setTotalRows(0);
     } finally {
@@ -145,14 +146,14 @@ const PartnerList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('partner.confirmDelete', 'Delete this partner?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try {
         await PartnerService.delete(id);
-        setSuccess(t('partner.deleteSuccess', 'Partner deleted successfully'));
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully'));
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
-        setError(err.message || t('partner.deleteError', 'Failed to delete partner'));
+        setError(err.message || t('message.deleteError', 'Failed to delete item'));
       }
     }
   };
@@ -165,7 +166,7 @@ const PartnerList = () => {
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
@@ -203,7 +204,7 @@ const PartnerList = () => {
       title: t('partner.title', 'Partners'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -214,7 +215,7 @@ const PartnerList = () => {
       title: t('partner.title', 'Partners'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -225,7 +226,7 @@ const PartnerList = () => {
       title: t('partner.title', 'Partners'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -282,14 +283,14 @@ const PartnerList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       sortable: false,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/common/partners/${params.row.id}/edit`)}
@@ -298,7 +299,7 @@ const PartnerList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -320,7 +321,7 @@ const PartnerList = () => {
             {t('partner.title', 'Partners')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -331,7 +332,7 @@ const PartnerList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -339,7 +340,7 @@ const PartnerList = () => {
               onClick={() => navigate('/network/common/partners/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('partner.create', 'Create Partner')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -356,15 +357,15 @@ const PartnerList = () => {
       >
         <MenuItem onClick={handleExportCSV}>
           <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -407,7 +408,7 @@ const PartnerList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -416,7 +417,7 @@ const PartnerList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
