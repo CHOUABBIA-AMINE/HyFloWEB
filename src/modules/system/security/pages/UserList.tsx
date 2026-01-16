@@ -64,7 +64,7 @@ const UserList = () => {
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
-    pageSize: 25,
+    pageSize: 10,
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
@@ -301,7 +301,7 @@ const UserList = () => {
           onPaginationModelChange={handlePaginationChange}
           sortModel={sortModel}
           onSortModelChange={handleSortChange}
-          pageSizeOptions={[10, 25, 50, 100]}
+          pageSizeOptions={[5, 10, 15]}
           disableRowSelectionOnClick
           autoHeight
           sx={{

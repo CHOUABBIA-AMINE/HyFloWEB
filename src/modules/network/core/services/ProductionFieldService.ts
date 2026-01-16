@@ -96,7 +96,7 @@ export class ProductionFieldService {
    */
   static async findByLocation(locationId: number): Promise<ProductionFieldDTO[]> {
     const response = await axiosInstance.get<ProductionFieldDTO[]>(
-      `${BASE_URL}/by-location/${locationId}`
+      `${BASE_URL}/location/${locationId}`
     );
     return response.data;
   }
@@ -107,7 +107,7 @@ export class ProductionFieldService {
    */
   static async findByType(typeId: number): Promise<ProductionFieldDTO[]> {
     const response = await axiosInstance.get<ProductionFieldDTO[]>(
-      `${BASE_URL}/by-type/${typeId}`
+      `${BASE_URL}/type/${typeId}`
     );
     return response.data;
   }
@@ -118,7 +118,7 @@ export class ProductionFieldService {
    */
   static async findByProcessingPlant(plantId: number): Promise<ProductionFieldDTO[]> {
     const response = await axiosInstance.get<ProductionFieldDTO[]>(
-      `${BASE_URL}/by-processing-plant/${plantId}`
+      `${BASE_URL}/plant/${plantId}`
     );
     return response.data;
   }
@@ -147,7 +147,7 @@ export class ProductionFieldService {
    */
   static async findByOperationalStatus(statusId: number): Promise<ProductionFieldDTO[]> {
     const response = await axiosInstance.get<ProductionFieldDTO[]>(
-      `${BASE_URL}/by-operational-status/${statusId}`
+      `${BASE_URL}/status/${statusId}`
     );
     return response.data;
   }

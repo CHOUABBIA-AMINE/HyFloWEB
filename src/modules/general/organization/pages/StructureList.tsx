@@ -465,7 +465,7 @@ const StructureList = () => {
           columns={columns}
           loading={loading}
           rowCount={rowCount}
-          pageSizeOptions={[5, 10, 25, 50, 100]}
+          pageSizeOptions={[5, 10, 15]}
           paginationModel={paginationModel}
           paginationMode="server"
           onPaginationModelChange={handlePaginationModelChange}
