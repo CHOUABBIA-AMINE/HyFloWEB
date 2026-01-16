@@ -1,5 +1,5 @@
 /**
- * Pipeline System List Page - ADVANCED PATTERN
+ * Pipeline System List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15) ✅
@@ -16,6 +16,7 @@
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - VERIFIED: Pagination [5,10,15] and full i18n
  * @updated 01-16-2026 - FIXED: Property access for operationalStatus
+ * @updated 01-16-2026 - Optimized translation keys and populated status dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -61,6 +62,8 @@ import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x
 
 import { PipelineSystemService } from '../services';
 import { PipelineSystemDTO } from '../dto';
+import { OperationalStatusService } from '../../common/services';
+import { OperationalStatusDTO } from '../../common/dto';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -81,17 +84,29 @@ const PipelineSystemList = () => {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [operationalStatuses, setOperationalStatuses] = useState<OperationalStatusDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
-  // ✅ VERIFIED: Default page size 10 with options [5, 10, 15]
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
-    pageSize: 10 // ✅ Default: 10
+    pageSize: 10
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
-  // Debounce search with 500ms delay
+  // Load operational statuses on mount
+  useEffect(() => {
+    const loadOperationalStatuses = async () => {
+      try {
+        const statuses = await OperationalStatusService.getAllNoPagination();
+        setOperationalStatuses(statuses);
+      } catch (err) {
+        console.error('Failed to load operational statuses:', err);
+      }
+    };
+    loadOperationalStatuses();
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
     return () => clearTimeout(timer);
@@ -119,16 +134,10 @@ const PipelineSystemList = () => {
       
       let filteredContent = pageResponse.content;
       
-      // ✅ FIX: Access nested operationalStatus object
       if (statusFilter) {
-        filteredContent = filteredContent.filter((system: PipelineSystemDTO) => {
-          const statusDesignation = 
-            system.operationalStatus?.designationEn ||
-            system.operationalStatus?.designationFr ||
-            system.operationalStatus?.code ||
-            '';
-          return statusDesignation.toLowerCase().includes(statusFilter.toLowerCase());
-        });
+        filteredContent = filteredContent.filter((system: PipelineSystemDTO) => 
+          system.operationalStatus?.id?.toString() === statusFilter
+        );
       }
       
       setPipelineSystems(filteredContent);
@@ -136,7 +145,7 @@ const PipelineSystemList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load pipeline systems:', err);
-      setError(err.message || t('pipelineSystem.errorLoading', 'Failed to load pipeline systems'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setPipelineSystems([]);
       setTotalRows(0);
     } finally {
@@ -153,14 +162,14 @@ const PipelineSystemList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('pipelineSystem.confirmDelete', 'Delete this pipeline system?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try { 
         await PipelineSystemService.delete(id); 
-        setSuccess(t('pipelineSystem.deleteSuccess', 'Pipeline system deleted successfully')); 
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully')); 
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) { 
-        setError(err.message || t('pipelineSystem.deleteError', 'Failed to delete pipeline system')); 
+        setError(err.message || t('message.deleteError', 'Failed to delete item')); 
       }
     }
   };
@@ -173,7 +182,7 @@ const PipelineSystemList = () => {
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
@@ -188,10 +197,9 @@ const PipelineSystemList = () => {
 
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
-  // ✅ Export columns with translations and nested object access
   const exportColumns: ExportColumn[] = [
-    { header: t('pipelineSystem.code', 'Code'), key: 'code', width: 15 },
-    { header: t('pipelineSystem.name', 'Name'), key: 'name', width: 25 },
+    { header: t('list.code', 'Code'), key: 'code', width: 15 },
+    { header: t('list.name', 'Name'), key: 'name', width: 25 },
     { 
       header: t('pipelineSystem.structure', 'Structure'), 
       key: 'structure',
@@ -218,7 +226,7 @@ const PipelineSystemList = () => {
       title: t('pipelineSystem.title', 'Pipeline Systems'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -229,7 +237,7 @@ const PipelineSystemList = () => {
       title: t('pipelineSystem.title', 'Pipeline Systems'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -240,16 +248,15 @@ const PipelineSystemList = () => {
       title: t('pipelineSystem.title', 'Pipeline Systems'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
 
-  // ✅ Columns with full translation coverage and nested object access
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
-      headerName: t('pipelineSystem.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -261,7 +268,7 @@ const PipelineSystemList = () => {
     },
     { 
       field: 'name', 
-      headerName: t('pipelineSystem.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 200,
       flex: 1,
       renderCell: (params) => (
@@ -306,14 +313,14 @@ const PipelineSystemList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/core/pipeline-systems/${params.row.id}/edit`)}
@@ -322,7 +329,7 @@ const PipelineSystemList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -338,14 +345,13 @@ const PipelineSystemList = () => {
 
   return (
     <Box>
-      {/* ✅ Header with translations */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h4" fontWeight={700} color="text.primary">
             {t('pipelineSystem.title', 'Pipeline Systems')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -356,7 +362,7 @@ const PipelineSystemList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -364,7 +370,7 @@ const PipelineSystemList = () => {
               onClick={() => navigate('/network/core/pipeline-systems/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('pipelineSystem.create', 'Create Pipeline System')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -373,7 +379,6 @@ const PipelineSystemList = () => {
         </Typography>
       </Box>
 
-      {/* ✅ Export menu with translations */}
       <Menu
         anchorEl={exportAnchorEl}
         open={Boolean(exportAnchorEl)}
@@ -382,23 +387,21 @@ const PipelineSystemList = () => {
       >
         <MenuItem onClick={handleExportCSV}>
           <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
-      {/* ✅ Alerts with translations */}
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
-      {/* ✅ Filters with translations */}
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
@@ -425,6 +428,11 @@ const PipelineSystemList = () => {
                   label={t('pipelineSystem.filterByStatus', 'Status')}
                 >
                   <MenuItem value="">{t('pipelineSystem.allStatuses', 'All Statuses')}</MenuItem>
+                  {operationalStatuses.map((status) => (
+                    <MenuItem key={status.id} value={status.id?.toString()}>
+                      {getMultiLangDesignation(status, lang)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -435,7 +443,7 @@ const PipelineSystemList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -444,14 +452,13 @@ const PipelineSystemList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
         </Box>
       </Paper>
 
-      {/* ✅ DataGrid with verified pagination [5, 10, 15] */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
           rows={pipelineSystems}
@@ -464,7 +471,7 @@ const PipelineSystemList = () => {
           onPaginationModelChange={handlePaginationChange}
           sortModel={sortModel}
           onSortModelChange={handleSortChange}
-          pageSizeOptions={[5, 10, 15]} // ✅ VERIFIED: Standardized [5, 10, 15]
+          pageSizeOptions={[5, 10, 15]}
           disableRowSelectionOnClick
           autoHeight
           sx={{
