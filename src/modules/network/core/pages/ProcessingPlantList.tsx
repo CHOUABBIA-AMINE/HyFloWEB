@@ -1,5 +1,5 @@
 /**
- * ProcessingPlant List Page - ADVANCED PATTERN
+ * ProcessingPlant List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
@@ -13,6 +13,7 @@
  * @author CHOUABBIA Amine
  * @created 01-15-2026
  * @updated 01-16-2026 - Upgraded to advanced pattern with all features
+ * @updated 01-16-2026 - Optimized translation keys and populated type dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -56,8 +57,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
-import { ProcessingPlantService } from '../services';
-import { ProcessingPlantDTO } from '../dto';
+import { ProcessingPlantService, ProcessingPlantTypeService } from '../services';
+import { ProcessingPlantDTO, ProcessingPlantTypeDTO } from '../dto';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -79,6 +80,7 @@ const ProcessingPlantList = () => {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [plantTypes, setPlantTypes] = useState<ProcessingPlantTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -87,6 +89,19 @@ const ProcessingPlantList = () => {
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
+
+  // Load processing plant types on mount
+  useEffect(() => {
+    const loadProcessingPlantTypes = async () => {
+      try {
+        const types = await ProcessingPlantTypeService.getAllNoPagination();
+        setPlantTypes(types);
+      } catch (err) {
+        console.error('Failed to load processing plant types:', err);
+      }
+    };
+    loadProcessingPlantTypes();
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -130,7 +145,7 @@ const ProcessingPlantList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load processing plants:', err);
-      setError(err.message || t('processingPlant.errorLoading', 'Failed to load processing plants'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setPlants([]);
       setTotalRows(0);
     } finally {
@@ -147,14 +162,14 @@ const ProcessingPlantList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('processingPlant.confirmDelete', 'Delete this processing plant?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try { 
         await ProcessingPlantService.delete(id); 
-        setSuccess(t('processingPlant.deleteSuccess', 'Processing plant deleted successfully')); 
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully')); 
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) { 
-        setError(err.message || t('processingPlant.deleteError', 'Failed to delete processing plant')); 
+        setError(err.message || t('message.deleteError', 'Failed to delete item')); 
       }
     }
   };
@@ -167,7 +182,7 @@ const ProcessingPlantList = () => {
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
@@ -184,14 +199,14 @@ const ProcessingPlantList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: t('processingPlant.code', 'Code'), key: 'code', width: 15 },
+    { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { 
-      header: t('processingPlant.name', 'Name'), 
+      header: t('list.name', 'Name'), 
       key: 'name',
       width: 35
     },
     { 
-      header: t('processingPlant.type', 'Type'), 
+      header: t('list.type', 'Type'), 
       key: 'processingPlantType',
       width: 25,
       transform: (value) => getMultiLangDesignation(value, lang)
@@ -210,7 +225,7 @@ const ProcessingPlantList = () => {
       title: t('processingPlant.title', 'Processing Plants'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -221,7 +236,7 @@ const ProcessingPlantList = () => {
       title: t('processingPlant.title', 'Processing Plants'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -232,7 +247,7 @@ const ProcessingPlantList = () => {
       title: t('processingPlant.title', 'Processing Plants'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -241,7 +256,7 @@ const ProcessingPlantList = () => {
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
-      headerName: t('processingPlant.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -253,7 +268,7 @@ const ProcessingPlantList = () => {
     },
     { 
       field: 'name', 
-      headerName: t('processingPlant.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -264,7 +279,7 @@ const ProcessingPlantList = () => {
     },
     { 
       field: 'processingPlantType', 
-      headerName: t('processingPlant.type', 'Type'),
+      headerName: t('list.type', 'Type'),
       width: 180,
       valueGetter: (params) => getMultiLangDesignation(params.row.processingPlantType, lang),
       renderCell: (params) => (
@@ -275,14 +290,14 @@ const ProcessingPlantList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/core/processing-plants/${params.row.id}/edit`)}
@@ -291,7 +306,7 @@ const ProcessingPlantList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -314,7 +329,7 @@ const ProcessingPlantList = () => {
             {t('processingPlant.title', 'Processing Plants')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -325,7 +340,7 @@ const ProcessingPlantList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -333,7 +348,7 @@ const ProcessingPlantList = () => {
               onClick={() => navigate('/network/core/processing-plants/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('processingPlant.create', 'Create Processing Plant')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -356,19 +371,19 @@ const ProcessingPlantList = () => {
           <ListItemIcon>
             <CsvIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon>
             <ExcelIcon fontSize="small" color="success" />
           </ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon>
             <PdfIcon fontSize="small" color="error" />
           </ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -404,16 +419,18 @@ const ProcessingPlantList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('processingPlant.filterByType', 'Plant Type')}</InputLabel>
+                <InputLabel>{t('list.type', 'Type')}</InputLabel>
                 <Select
                   value={typeFilter}
                   onChange={handleTypeFilterChange}
-                  label={t('processingPlant.filterByType', 'Plant Type')}
+                  label={t('list.type', 'Type')}
                 >
-                  <MenuItem value="">
-                    {t('processingPlant.allTypes', 'All Types')}
-                  </MenuItem>
-                  {/* Add type options dynamically if available */}
+                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
+                  {plantTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id?.toString()}>
+                      {getMultiLangDesignation(type, lang)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -424,7 +441,7 @@ const ProcessingPlantList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -433,7 +450,7 @@ const ProcessingPlantList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
