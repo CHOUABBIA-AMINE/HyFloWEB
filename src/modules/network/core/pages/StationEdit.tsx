@@ -6,6 +6,7 @@
  * @created 12-23-2025
  * @updated 01-08-2026 - Refactored for U-006 schema (locationId)
  * @updated 01-10-2026 - Applied i18n translations
+ * @updated 01-16-2026 - Applied compact location details template (single row layout)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -23,17 +24,20 @@ import {
   Divider,
   Stack,
   MenuItem,
+  Chip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { StationService, PipelineSystemService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
 import { StationTypeService } from '../../type/services';
 import { LocationService } from '../../../general/localization/services';
 import { StructureService } from '../../../general/organization/services';
+import { LocationDTO } from '../../../general/localization/dto';
 import { StationDTO } from '../dto';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 import { getLocalizedName as getLocalizationLocalizedName } from '../../../general/localization/utils';
@@ -62,6 +66,9 @@ const StationEdit = () => {
     pipelineSystemId: undefined,
     pipelineIds: [],
   });
+
+  // Selected location (for display purposes)
+  const [selectedLocation, setSelectedLocation] = useState<LocationDTO | null>(null);
 
   // Available options
   const [locations, setLocations] = useState<any[]>([]);
@@ -192,6 +199,18 @@ const StationEdit = () => {
       // Set station data if editing
       if (stationData) {
         setStation(stationData);
+        // Set selected location if station has location
+        if (stationData.location) {
+          setSelectedLocation(stationData.location);
+        } else if (stationData.locationId) {
+          // Load location details if not nested
+          try {
+            const loc = await LocationService.getById(stationData.locationId);
+            setSelectedLocation(loc);
+          } catch (err) {
+            console.error('Failed to load location details:', err);
+          }
+        }
       }
 
       setError('');
@@ -245,6 +264,12 @@ const StationEdit = () => {
   const handleChange = (field: keyof StationDTO) => (e: any) => {
     const value = e.target.value;
     setStation({ ...station, [field]: value });
+    
+    // If location changed, update selected location for display
+    if (field === 'locationId') {
+      const loc = locations.find(l => l.id === Number(value));
+      setSelectedLocation(loc || null);
+    }
     
     // Clear validation error for this field
     if (validationErrors[field]) {
@@ -338,6 +363,13 @@ const StationEdit = () => {
         </Alert>
       )}
 
+      {/* Warning for empty locations */}
+      {locations.length === 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No locations available. Please create locations first in General → Localization → Locations.
+        </Alert>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
@@ -377,7 +409,7 @@ const StationEdit = () => {
             </Box>
           </Paper>
 
-          {/* Location & Organization */}
+          {/* Location Information */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -386,7 +418,8 @@ const StationEdit = () => {
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                {/* Location Reference */}
+                <Grid item xs={12}>
                   <TextField
                     fullWidth
                     select
@@ -395,20 +428,103 @@ const StationEdit = () => {
                     onChange={handleChange('locationId')}
                     required
                     error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId || t('station.fields.locationHelper')}
+                    helperText={validationErrors.locationId || `Select the physical location with GPS coordinates (${locations.length} available)`}
                   >
-                    {sortedLocations.length > 0 ? (
+                    {locations.length > 0 ? (
                       sortedLocations.map((location) => (
                         <MenuItem key={location.id} value={location.id}>
-                          {getLocalizationLocalizedName(location, currentLanguage)}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocationIcon fontSize="small" color="action" />
+                            <span>{location.placeName}</span>
+                            {location.locality && (
+                              <Chip 
+                                label={location.locality.designationFr || location.locality.designationEn} 
+                                size="small" 
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>{t('common.loading')}</MenuItem>
+                      <MenuItem disabled>No locations available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
 
+                {/* Selected Location Details (Single Row) */}
+                {selectedLocation && (
+                  <Grid item xs={12}>
+                    <Paper 
+                      variant="outlined" 
+                      sx={{ 
+                        p: 1.5, 
+                        bgcolor: 'grey.50',
+                        borderStyle: 'dashed'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1, fontWeight: 600 }}>
+                        📍 Selected Location
+                      </Typography>
+                      
+                      <Grid container spacing={1.5} alignItems="flex-end">
+                        {/* Place */}
+                        <Grid item xs={6} sm={3} md={2}>
+                          <Typography variant="caption" color="text.secondary">Place</Typography>
+                          <Typography variant="body2" fontWeight={500} fontSize="0.875rem">{selectedLocation.placeName}</Typography>
+                        </Grid>
+
+                        {/* Locality */}
+                        {selectedLocation.locality && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">Locality</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* District */}
+                        {selectedLocation.locality?.district && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">District</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* State */}
+                        {selectedLocation.locality?.district?.state && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">State</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* Coordinates */}
+                        <Grid item xs={4} sm={3} md={1.5}>
+                          <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={4} sm={3} md={1.5}>
+                          <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.longitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={4} sm={3} md={1}>
+                          <Typography variant="caption" color="text.secondary">Elev</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">
+                            {selectedLocation.elevation ? `${selectedLocation.elevation}m` : 'N/A'}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
+
+                {/* Structure */}
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
@@ -603,7 +719,7 @@ const StationEdit = () => {
                 type="submit"
                 variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving}
+                disabled={saving || locations.length === 0}
                 size="large"
                 sx={{ minWidth: 150 }}
               >

@@ -6,6 +6,7 @@
  * @created 01-15-2026
  * @updated 01-15-2026 - Fixed LocationService import path
  * @updated 01-16-2026 - Added console logging and improved error handling for empty dropdown options
+ * @updated 01-16-2026 - Applied compact location details template (single row layout)
  */
 
 import { useState, useEffect } from 'react';
@@ -13,16 +14,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, TextField, Button, CircularProgress, Alert,
-  Grid, Paper, Divider, Stack, MenuItem
+  Grid, Paper, Divider, Stack, MenuItem, Chip
 } from '@mui/material';
 import {
-  Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon
+  Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
+  LocationOn as LocationIcon
 } from '@mui/icons-material';
 import { ProcessingPlantService } from '../services';
 import { OperationalStatusService, VendorService } from '../../common/services';
 import { ProcessingPlantTypeService } from '../../type/services';
 import { StructureService } from '../../../general/organization/services';
 import { LocationService } from '../../../general/localization/services';
+import { LocationDTO } from '../../../general/localization/dto';
 import { ProcessingPlantDTO } from '../dto/ProcessingPlantDTO';
 
 const ProcessingPlantEdit = () => {
@@ -44,6 +47,9 @@ const ProcessingPlantEdit = () => {
     commissioningDate: undefined,
     decommissioningDate: undefined,
   });
+
+  // Selected location (for display purposes)
+  const [selectedLocation, setSelectedLocation] = useState<LocationDTO | null>(null);
 
   const [structures, setStructures] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
@@ -86,12 +92,10 @@ const ProcessingPlantEdit = () => {
 
       // Structure data
       if (structuresData.status === 'fulfilled') {
-        console.log('📊 Raw structures response:', structuresData.value);
         const structs = Array.isArray(structuresData.value) 
           ? structuresData.value 
           : (Array.isArray((structuresData.value as any)?.data) ? (structuresData.value as any).data : []);
         console.log('✅ Structures loaded:', structs.length, 'items');
-        if (structs.length > 0) console.log('   First structure:', structs[0]);
         setStructures(structs);
       } else {
         console.error('❌ Failed to load structures:', structuresData.reason);
@@ -99,12 +103,10 @@ const ProcessingPlantEdit = () => {
 
       // Vendor data
       if (vendorsData.status === 'fulfilled') {
-        console.log('📊 Raw vendors response:', vendorsData.value);
         const vends = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
           : (Array.isArray((vendorsData.value as any)?.data) ? (vendorsData.value as any).data : []);
         console.log('✅ Vendors loaded:', vends.length, 'items');
-        if (vends.length > 0) console.log('   First vendor:', vends[0]);
         setVendors(vends);
       } else {
         console.error('❌ Failed to load vendors:', vendorsData.reason);
@@ -112,12 +114,10 @@ const ProcessingPlantEdit = () => {
 
       // Location data
       if (locationsData.status === 'fulfilled') {
-        console.log('📊 Raw locations response:', locationsData.value);
         const locs = Array.isArray(locationsData.value) 
           ? locationsData.value 
           : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data : []);
         console.log('✅ Locations loaded:', locs.length, 'items');
-        if (locs.length > 0) console.log('   First location:', locs[0]);
         setLocations(locs);
       } else {
         console.error('❌ Failed to load locations:', locationsData.reason);
@@ -125,12 +125,10 @@ const ProcessingPlantEdit = () => {
 
       // Operational Status data
       if (statusesData.status === 'fulfilled') {
-        console.log('📊 Raw statuses response:', statusesData.value);
         const stats = Array.isArray(statusesData.value) 
           ? statusesData.value 
           : (Array.isArray((statusesData.value as any)?.data) ? (statusesData.value as any).data : []);
         console.log('✅ Operational statuses loaded:', stats.length, 'items');
-        if (stats.length > 0) console.log('   First status:', stats[0]);
         setOperationalStatuses(stats);
       } else {
         console.error('❌ Failed to load operational statuses:', statusesData.reason);
@@ -138,12 +136,10 @@ const ProcessingPlantEdit = () => {
 
       // Processing Plant Type data
       if (typesData.status === 'fulfilled') {
-        console.log('📊 Raw types response:', typesData.value);
         const types = Array.isArray(typesData.value) 
           ? typesData.value 
           : (Array.isArray((typesData.value as any)?.data) ? (typesData.value as any).data : []);
         console.log('✅ Processing plant types loaded:', types.length, 'items');
-        if (types.length > 0) console.log('   First type:', types[0]);
         setProcessingPlantTypes(types);
       } else {
         console.error('❌ Failed to load processing plant types:', typesData.reason);
@@ -152,6 +148,18 @@ const ProcessingPlantEdit = () => {
       if (plantData) {
         console.log('📝 Setting plant data in form');
         setPlant(plantData);
+        // Set selected location if plant has location
+        if (plantData.location) {
+          setSelectedLocation(plantData.location);
+        } else if (plantData.locationId) {
+          // Load location details if not nested
+          try {
+            const loc = await LocationService.getById(plantData.locationId);
+            setSelectedLocation(loc);
+          } catch (err) {
+            console.error('Failed to load location details:', err);
+          }
+        }
       }
       setError('');
       console.log('✅ All data loaded successfully');
@@ -196,6 +204,13 @@ const ProcessingPlantEdit = () => {
   const handleChange = (fieldName: keyof ProcessingPlantDTO) => (e: any) => {
     const value = e.target.value;
     setPlant({ ...plant, [fieldName]: value });
+    
+    // If location changed, update selected location for display
+    if (fieldName === 'locationId') {
+      const loc = locations.find(l => l.id === Number(value));
+      setSelectedLocation(loc || null);
+    }
+    
     if (validationErrors[fieldName]) {
       setValidationErrors({ ...validationErrors, [fieldName]: '' });
     }
@@ -281,6 +296,7 @@ const ProcessingPlantEdit = () => {
 
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
+          {/* Basic Information */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>Basic Information</Typography>
@@ -314,6 +330,130 @@ const ProcessingPlantEdit = () => {
                     inputProps={{ step: 0.01, min: 0 }}
                   />
                 </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
+          {/* Location Information */}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>Location Information</Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                {/* Location Reference */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth select label="Location"
+                    value={plant.locationId || ''}
+                    onChange={handleChange('locationId')} required
+                    error={!!validationErrors.locationId}
+                    helperText={validationErrors.locationId || `Select the physical location with GPS coordinates (${locations.length} available)`}
+                  >
+                    {locations.length > 0 ? (
+                      locations.map((loc) => (
+                        <MenuItem key={loc.id} value={loc.id}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocationIcon fontSize="small" color="action" />
+                            <span>{loc.placeName || loc.name}</span>
+                            {loc.locality && (
+                              <Chip 
+                                label={loc.locality.designationFr || loc.locality.designationEn} 
+                                size="small" 
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No locations available</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+
+                {/* Selected Location Details (Single Row) */}
+                {selectedLocation && (
+                  <Grid item xs={12}>
+                    <Paper 
+                      variant="outlined" 
+                      sx={{ 
+                        p: 1.5, 
+                        bgcolor: 'grey.50',
+                        borderStyle: 'dashed'
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1, fontWeight: 600 }}>
+                        📍 Selected Location
+                      </Typography>
+                      
+                      <Grid container spacing={1.5} alignItems="flex-end">
+                        {/* Place */}
+                        <Grid item xs={6} sm={3} md={2}>
+                          <Typography variant="caption" color="text.secondary">Place</Typography>
+                          <Typography variant="body2" fontWeight={500} fontSize="0.875rem">{selectedLocation.placeName}</Typography>
+                        </Grid>
+
+                        {/* Locality */}
+                        {selectedLocation.locality && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">Locality</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* District */}
+                        {selectedLocation.locality?.district && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">District</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* State */}
+                        {selectedLocation.locality?.district?.state && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">State</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {/* Coordinates */}
+                        <Grid item xs={4} sm={3} md={1.5}>
+                          <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={4} sm={3} md={1.5}>
+                          <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.longitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={4} sm={3} md={1}>
+                          <Typography variant="caption" color="text.secondary">Elev</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">
+                            {selectedLocation.elevation ? `${selectedLocation.elevation}m` : 'N/A'}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          </Paper>
+
+          {/* Organization & Technical Details */}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>Organization & Technical Details</Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth select label="Operational Status"
@@ -373,25 +513,6 @@ const ProcessingPlantEdit = () => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Location"
-                    value={plant.locationId || ''}
-                    onChange={handleChange('locationId')} required
-                    error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId || `${locations.length} location(s) available`}
-                  >
-                    {locations.length > 0 ? (
-                      locations.map((loc) => (
-                        <MenuItem key={loc.id} value={loc.id}>
-                          {loc.placeName || loc.name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No locations available</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
                     fullWidth select label="Processing Plant Type"
                     value={plant.processingPlantTypeId || ''}
                     onChange={handleChange('processingPlantTypeId')} required
@@ -413,6 +534,7 @@ const ProcessingPlantEdit = () => {
             </Box>
           </Paper>
 
+          {/* Important Dates */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>Important Dates</Typography>
@@ -450,12 +572,14 @@ const ProcessingPlantEdit = () => {
             </Box>
           </Paper>
 
+          {/* Actions */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
             <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
               <Button
                 variant="outlined" startIcon={<CancelIcon />}
                 onClick={() => navigate('/network/core/processing-plants')}
                 disabled={saving}
+                size="large"
               >
                 {t('common.cancel')}
               </Button>
@@ -463,6 +587,7 @@ const ProcessingPlantEdit = () => {
                 type="submit" variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                 disabled={saving || structures.length === 0 || locations.length === 0 || processingPlantTypes.length === 0}
+                size="large"
                 sx={{ minWidth: 150 }}
               >
                 {saving ? t('common.loading') : t('common.save')}
