@@ -27,7 +27,15 @@
     "loading": "Chargement...",
     "pipelineSystem": "Système de Pipeline",
     "length": "Longueur",
-    "all": "Tous"
+    "all": "Tous",
+    "username": "Nom d'utilisateur",
+    "email": "E-mail",
+    "description": "Description",
+    "roles": "Rôles",
+    "permissions": "Autorisations",
+    "users": "Utilisateurs",
+    "noPermissions": "Aucune autorisation",
+    "noUsers": "Aucun utilisateur"
   },
   "action": {
     "create": "Créer",

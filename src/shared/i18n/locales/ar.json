@@ -27,7 +27,15 @@
     "loading": "جاري التحميل...",
     "pipelineSystem": "نظام خطوط الأنابيب",
     "length": "الطول",
-    "all": "الكل"
+    "all": "الكل",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "description": "الوصف",
+    "roles": "الأدوار",
+    "permissions": "الصلاحيات",
+    "users": "المستخدمون",
+    "noPermissions": "لا توجد صلاحيات",
+    "noUsers": "لا يوجد مستخدمون"
   },
   "action": {
     "create": "إنشاء",
