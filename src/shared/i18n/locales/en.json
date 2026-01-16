@@ -24,7 +24,10 @@
     "allStatuses": "All Statuses",
     "results": "results",
     "noData": "No data available",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "pipelineSystem": "Pipeline System",
+    "length": "Length",
+    "all": "All"
   },
   "action": {
     "create": "Create",
@@ -691,7 +694,7 @@
   "group": {
     "title": "Groups",
     "searchPlaceholder": "Search groups...",
-    "users": "Users",
+ "users": "Users",
     "description": "Description"
   },
   "footer": {
