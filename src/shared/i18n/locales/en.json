@@ -3,77 +3,95 @@
     "name": "IAAS Platform",
     "description": "Infrastructure as a Service Management"
   },
-  "common": {
+  "list": {
+    "code": "Code",
+    "designation": "Designation",
+    "name": "Name",
+    "type": "Type",
+    "status": "Status",
+    "location": "Location",
+    "actions": "Actions",
+    "country": "Country",
+    "vendor": "Vendor",
+    "structure": "Structure",
+    "product": "Product",
+    "shortName": "Short Name",
+    "fullName": "Full Name",
+    "searchPlaceholder": "Search...",
+    "filterByType": "Filter by Type",
+    "filterByStatus": "Filter by Status",
+    "allTypes": "All Types",
+    "allStatuses": "All Statuses",
+    "results": "results",
+    "noData": "No data available",
+    "loading": "Loading..."
+  },
+  "action": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
     "save": "Save",
     "saving": "Saving...",
     "cancel": "Cancel",
-    "delete": "Delete",
-    "deleting": "Deleting...",
-    "deleted": "Deleted",
-    "edit": "Edit",
-    "create": "Create",
-    "update": "Update",
+    "refresh": "Refresh",
+    "export": "Export",
+    "exportCSV": "Export CSV",
+    "exportExcel": "Export Excel",
+    "exportPDF": "Export PDF",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "clearFilters": "Clear Filters",
     "search": "Search",
-    "actions": "Actions",
-    "yes": "Yes",
-    "no": "No",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "confirm": "Confirm",
+    "add": "Add",
+    "view": "View",
+    "update": "Update",
+    "submit": "Submit",
+    "close": "Close",
     "back": "Back",
     "next": "Next",
     "previous": "Previous",
-    "submit": "Submit",
-    "close": "Close",
-    "export": "Export",
-    "exportCSV": "Export as CSV",
-    "exportExcel": "Export as Excel",
-    "exportPDF": "Export as PDF",
-    "filters": "Filters",
-    "clearFilters": "Clear Filters",
-    "results": "results",
-    "all": "All",
-    "legend": "Legend",
-    "refresh": "Refresh",
+    "confirm": "Confirm"
+  },
+  "message": {
+    "deleteSuccess": "Item deleted successfully",
+    "deleteError": "Failed to delete item",
+    "createSuccess": "Item created successfully",
+    "createError": "Failed to create item",
+    "updateSuccess": "Item updated successfully",
+    "updateError": "Failed to update item",
+    "saveError": "Failed to save item",
+    "errorLoading": "Failed to load data",
+    "errorLoadingFormData": "Failed to load form data",
     "refreshed": "Data refreshed",
     "exportedCSV": "Exported to CSV",
     "exportedExcel": "Exported to Excel",
     "exportedPDF": "Exported to PDF",
-    "noData": "No data available",
+    "deleting": "Deleting...",
+    "deleted": "Deleted",
+    "success": "Success",
+    "error": "Error"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "legend": "Legend",
+    "filters": "Filters",
     "clear": "Clear",
-    "code": "Code",
-    "name": "Name",
-    "location": "Location",
-    "status": "Status",
-    "type": "Type",
     "total": "total",
-    "id": "ID",
-    "add": "Add",
-    "view": "View"
+    "id": "ID"
   },
   "product": {
     "title": "Products",
     "subtitle": "Manage hydrocarbon products and materials",
-    "create": "Create Product",
-    "edit": "Edit Product",
-    "delete": "Delete Product",
-    "confirmDelete": "Delete this product?",
-    "deleteSuccess": "Product deleted successfully",
-    "deleteError": "Failed to delete product",
-    "errorLoading": "Failed to load products",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save product",
-    "createSuccess": "Product created successfully",
-    "updateSuccess": "Product updated successfully",
     "searchPlaceholder": "Search products...",
-    "columns": {
-      "code": "Code",
-      "designation": "Designation",
-      "density": "Density (kg/m³)",
-      "isHazardous": "Hazardous",
-      "actions": "Actions"
-    },
+    "yes": "Yes",
+    "no": "No",
+    "allProducts": "All Products",
+    "hazardousOnly": "Hazardous Only",
+    "nonHazardousOnly": "Non-Hazardous Only",
+    "filterByHazardous": "Hazardous Status",
+    "density": "Density",
+    "isHazardous": "Hazardous",
     "createPage": {
       "title": "Create Product",
       "subtitle": "Add a new hydrocarbon product"
@@ -118,25 +136,7 @@
   "partner": {
     "title": "Partners",
     "subtitle": "Manage business partners and collaborators",
-    "create": "Create Partner",
-    "edit": "Edit Partner",
-    "delete": "Delete Partner",
-    "confirmDelete": "Delete this partner?",
-    "deleteSuccess": "Partner deleted successfully",
-    "deleteError": "Failed to delete partner",
-    "errorLoading": "Failed to load partners",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save partner",
-    "createSuccess": "Partner created successfully",
-    "updateSuccess": "Partner updated successfully",
     "searchPlaceholder": "Search partners...",
-    "columns": {
-      "shortName": "Short Name",
-      "name": "Full Name",
-      "type": "Type",
-      "country": "Country",
-      "actions": "Actions"
-    },
     "createPage": {
       "title": "Create Partner",
       "subtitle": "Add a new business partner"
@@ -168,25 +168,7 @@
   "vendor": {
     "title": "Vendors",
     "subtitle": "Manage equipment vendors and suppliers",
-    "create": "Create Vendor",
-    "edit": "Edit Vendor",
-    "delete": "Delete Vendor",
-    "confirmDelete": "Delete this vendor?",
-    "deleteSuccess": "Vendor deleted successfully",
-    "deleteError": "Failed to delete vendor",
-    "errorLoading": "Failed to load vendors",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save vendor",
-    "createSuccess": "Vendor created successfully",
-    "updateSuccess": "Vendor updated successfully",
     "searchPlaceholder": "Search vendors...",
-    "columns": {
-      "shortName": "Short Name",
-      "name": "Full Name",
-      "type": "Type",
-      "country": "Country",
-      "actions": "Actions"
-    },
     "createPage": {
       "title": "Create Vendor",
       "subtitle": "Add a new equipment vendor or supplier"
@@ -218,23 +200,14 @@
   "station": {
     "title": "Stations",
     "subtitle": "Manage station infrastructure and equipment",
-    "create": "Create Station",
-    "createSubtitle": "Create a new pipeline station",
-    "edit": "Edit Station",
-    "editSubtitle": "Update station information and details",
-    "delete": "Delete Station",
-    "confirmDelete": "Delete this station?",
-    "deleteSuccess": "Station deleted successfully",
-    "deleteError": "Failed to delete station",
-    "errorLoading": "Failed to load stations",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save station",
     "searchPlaceholder": "Search stations...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Station Name",
-      "location": "Location"
+    "createPage": {
+      "title": "Create Station",
+      "subtitle": "Create a new pipeline station"
+    },
+    "editPage": {
+      "title": "Edit Station",
+      "subtitle": "Update station information and details"
     },
     "sections": {
       "basicInformation": "Basic Information",
@@ -280,23 +253,14 @@
   "terminal": {
     "title": "Terminals",
     "subtitle": "Manage terminal facilities and operations",
-    "create": "Create Terminal",
-    "createSubtitle": "Create a new pipeline terminal",
-    "edit": "Edit Terminal",
-    "editSubtitle": "Update terminal information and details",
-    "delete": "Delete Terminal",
-    "confirmDelete": "Delete this terminal?",
-    "deleteSuccess": "Terminal deleted successfully",
-    "deleteError": "Failed to delete terminal",
-    "errorLoading": "Failed to load terminals",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save terminal",
     "searchPlaceholder": "Search terminals...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Terminal Name",
-      "location": "Location"
+    "createPage": {
+      "title": "Create Terminal",
+      "subtitle": "Create a new pipeline terminal"
+    },
+    "editPage": {
+      "title": "Edit Terminal",
+      "subtitle": "Update terminal information and details"
     },
     "sections": {
       "basicInformation": "Basic Information",
@@ -350,23 +314,14 @@
   "pipeline": {
     "title": "Pipelines",
     "subtitle": "Manage pipeline infrastructure and routes",
-    "create": "Create Pipeline",
-    "createSubtitle": "Create a new pipeline",
-    "edit": "Edit Pipeline",
-    "editSubtitle": "Update pipeline information and details",
-    "delete": "Delete Pipeline",
-    "confirmDelete": "Delete this pipeline?",
-    "deleteSuccess": "Pipeline deleted successfully",
-    "deleteError": "Failed to delete pipeline",
-    "errorLoading": "Failed to load pipelines",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save pipeline",
     "searchPlaceholder": "Search pipelines...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Pipeline Name",
-      "length": "Length (km)"
+    "createPage": {
+      "title": "Create Pipeline",
+      "subtitle": "Create a new pipeline"
+    },
+    "editPage": {
+      "title": "Edit Pipeline",
+      "subtitle": "Update pipeline information and details"
     },
     "sections": {
       "basicInformation": "Basic Information",
@@ -429,25 +384,14 @@
   "pipelineSystem": {
     "title": "Pipeline Systems",
     "subtitle": "Manage integrated pipeline system networks",
-    "create": "Create Pipeline System",
-    "createSubtitle": "Create a new pipeline system",
-    "edit": "Edit Pipeline System",
-    "editSubtitle": "Update pipeline system information and details",
-    "delete": "Delete Pipeline System",
-    "confirmDelete": "Delete this pipeline system?",
-    "deleteSuccess": "Pipeline system deleted successfully",
-    "deleteError": "Failed to delete pipeline system",
-    "errorLoading": "Failed to load pipeline systems",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save pipeline system",
     "searchPlaceholder": "Search pipeline systems...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "System Name",
-      "structure": "Structure",
-      "product": "Product",
-      "status": "Status"
+    "createPage": {
+      "title": "Create Pipeline System",
+      "subtitle": "Create a new pipeline system"
+    },
+    "editPage": {
+      "title": "Edit Pipeline System",
+      "subtitle": "Update pipeline system information and details"
     },
     "sections": {
       "basicInformation": "Basic Information",
@@ -487,29 +431,14 @@
   "hydrocarbonField": {
     "title": "Hydrocarbon Fields",
     "subtitle": "Manage hydrocarbon field infrastructure",
-    "create": "Create Hydrocarbon Field",
-    "createSubtitle": "Create a new hydrocarbon field",
-    "edit": "Edit Hydrocarbon Field",
-    "editSubtitle": "Update hydrocarbon field information and details",
-    "delete": "Delete Hydrocarbon Field",
-    "confirmDelete": "Delete Hydrocarbon Field",
-    "confirmDeleteMessage": "Are you sure you want to delete this hydrocarbon field? This action cannot be undone.",
-    "deleteSuccess": "Hydrocarbon field deleted successfully",
-    "deleteError": "Failed to delete hydrocarbon field",
-    "errorLoading": "Failed to load hydrocarbon fields",
-    "errorLoadingFormData": "Failed to load form data",
-    "saveError": "Failed to save hydrocarbon field",
     "searchPlaceholder": "Search hydrocarbon fields...",
-    "deleting": "Deleting...",
-    "columns": {
-      "code": "Code",
-      "name": "Name",
-      "type": "Type",
-      "location": "Location",
-      "vendor": "Vendor",
-      "status": "Status",
-      "installationDate": "Installation Date",
-      "actions": "Actions"
+    "createPage": {
+      "title": "Create Hydrocarbon Field",
+      "subtitle": "Create a new hydrocarbon field"
+    },
+    "editPage": {
+      "title": "Edit Hydrocarbon Field",
+      "subtitle": "Update hydrocarbon field information and details"
     },
     "sections": {
       "basicInformation": "Basic Information",
@@ -611,39 +540,17 @@
   "structure": {
     "title": "Organizational Structures",
     "subtitle": "Manage organizational structures and hierarchies",
-    "createSubtitle": "Add a new organizational structure",
-    "editSubtitle": "Update organizational structure information and manage jobs",
-    "code": "Code",
-    "designation": "Designation",
-    "designationAr": "Arabic Designation",
-    "designationEn": "English Designation",
-    "designationFr": "French Designation",
-    "type": "Type",
-    "structureType": "Structure Type",
     "parentStructure": "Parent Structure",
     "root": "Root",
-    "create": "Create Structure",
-    "edit": "Edit Structure",
-    "delete": "Delete Structure",
+    "structureType": "Structure Type",
     "searchPlaceholder": "Search by code or designation...",
-    "filterByType": "Structure Type",
-    "allTypes": "All Types",
-    "confirmDelete": "Delete this structure?",
-    "deleteSuccess": "Structure deleted successfully",
-    "deleteError": "Failed to delete structure",
-    "errorLoading": "Failed to load structures",
-    "errorLoadingFormData": "Failed to load form data",
-    "createSuccess": "Structure created successfully",
-    "createError": "Failed to create structure",
-    "updateSuccess": "Structure updated successfully",
-    "updateError": "Failed to update structure",
-    "saveError": "Failed to save structure",
-    "selectType": "Select structure type",
-    "selectParent": "Select parent structure",
-    "noParent": "No parent (Root structure)",
-    "tabs": {
-      "generalInformation": "General Information",
-      "jobs": "Jobs"
+    "createPage": {
+      "title": "Create Structure",
+      "subtitle": "Add a new organizational structure"
+    },
+    "editPage": {
+      "title": "Edit Structure",
+      "subtitle": "Update organizational structure information and manage jobs"
     },
     "sections": {
       "basicInformation": "Basic Information",
@@ -665,6 +572,10 @@
       "typeRequired": "Structure type is required",
       "codeMaxLength": "Code must not exceed 50 characters",
       "designationMaxLength": "Designation must not exceed 100 characters"
+    },
+    "tabs": {
+      "generalInformation": "General Information",
+      "jobs": "Jobs"
     }
   },
   "job": {
@@ -672,9 +583,6 @@
     "titleInStructure": "Jobs in this Structure",
     "subtitle": "Manage job positions",
     "subtitleInStructure": "Manage job positions for this structure",
-    "code": "Code",
-    "designation": "Designation",
-    "structure": "Structure",
     "dialog": {
       "createTitle": "Create Job",
       "createSubtitle": "Add a new job position",
@@ -703,20 +611,12 @@
       "designationFrRequired": "French designation is required",
       "structureRequired": "Structure is required",
       "formInvalid": "Please fill in all required fields"
-    },
-    "confirmDelete": "Confirm Delete",
-    "confirmDeleteMessage": "Are you sure you want to delete this job? This action cannot be undone.",
-    "errorLoading": "Failed to load jobs",
-    "deleteError": "Failed to delete job",
-    "saveError": "Failed to save job"
+    }
   },
   "employee": {
     "title": "Employees",
     "subtitle": "Manage employee records and information",
-    "create": "Create Employee",
-    "edit": "Edit Employee",
-    "delete": "Delete Employee",
-    "deleteConfirm": "Are you sure you want to delete this employee?",
+    "searchPlaceholder": "Search by name or registration number...",
     "firstNameAr": "Arabic First Name",
     "lastNameAr": "Arabic Last Name",
     "firstNameLt": "Latin First Name",
@@ -725,42 +625,30 @@
     "birthPlace": "Birth Place",
     "registrationNumber": "Registration Number",
     "job": "Job",
-    "structure": "Structure",
-    "militaryRank": "Military Rank",
-    "country": "Country",
-    "searchPlaceholder": "Search by name or registration number..."
+    "militaryRank": "Military Rank"
   },
   "map": {
     "title": "Infrastructure Map",
     "description": "Interactive map showing stations, terminals, hydrocarbon fields, and pipelines",
     "layers": "Map Layers",
-    "legend": "Legend",
     "hoverToExpand": "Hover to expand",
     "clickToToggle": "Click to toggle layers",
     "showStations": "Stations",
     "showTerminals": "Terminals",
     "showHydrocarbonFields": "Hydrocarbon Fields",
     "showPipelines": "Pipelines",
-    "loading": "Loading map data...",
-    "error": "Error loading map data",
-    "noData": "No data available",
     "clickToEdit": "Click marker to edit",
     "station": "Station",
     "terminal": "Terminal",
     "hydrocarbonField": "Hydrocarbon Field",
-    "pipeline": "Pipeline",
-    "location": "Location",
     "coordinates": "Coordinates",
     "elevation": "Elevation",
-    "type": "Type",
     "capacity": "Capacity",
     "storage": "Storage",
     "reserves": "Reserves",
     "commissioned": "Commissioned",
     "discovered": "Discovered",
     "operationalStatus": "Operational Status",
-    "code": "Code",
-    "name": "Name",
     "description": "Description",
     "units": "units",
     "meters": "m",
@@ -781,49 +669,30 @@
   },
   "user": {
     "title": "Users",
-    "createUser": "Create User",
-    "editUser": "Edit User",
-    "deleteUser": "Delete User",
-    "userDetails": "User Details",
+    "searchPlaceholder": "Search users...",
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email",
     "username": "Username",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "status": "Status",
     "roles": "Roles",
     "groups": "Groups",
     "createdAt": "Created At",
     "updatedAt": "Updated At",
-    "lastLogin": "Last Login",
-    "searchUsers": "Search users...",
-    "filterByStatus": "Filter by Status",
-    "filterByRole": "Filter by Role",
-    "allStatuses": "All Statuses",
-    "allRoles": "All Roles"
+    "lastLogin": "Last Login"
   },
   "role": {
     "title": "Roles",
-    "createRole": "Create Role",
-    "editRole": "Edit Role",
-    "deleteRole": "Delete Role",
-    "roleDetails": "Role Details",
-    "name": "Name",
-    "description": "Description",
+    "searchPlaceholder": "Search roles...",
     "permissions": "Permissions",
-    "searchRoles": "Search roles..."
+    "description": "Description"
   },
   "group": {
     "title": "Groups",
-    "createGroup": "Create Group",
-    "editGroup": "Edit Group",
-    "deleteGroup": "Delete Group",
-    "groupDetails": "Group Details",
-    "name": "Group Name",
-    "description": "Description",
+    "searchPlaceholder": "Search groups...",
     "users": "Users",
-    "searchGroups": "Search groups..."
+    "description": "Description"
   },
   "footer": {
     "copyright": "© {{year}} IAAS Platform. All rights reserved."
