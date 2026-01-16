@@ -14,6 +14,7 @@
  * @updated 01-07-2026 - Fixed service imports
  * @updated 01-10-2026 - Applied i18n, removed ID column
  * @updated 01-16-2026 - Upgraded to advanced pattern
+ * @updated 01-16-2026 - Fixed property path: location.placeName
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -115,9 +116,10 @@ const TerminalList = () => {
       
       let filteredContent = pageResponse.content;
       
+      // ✅ FIX: Access nested location.placeName
       if (locationFilter) {
         filteredContent = filteredContent.filter((terminal: TerminalDTO) => 
-          terminal.placeName?.toLowerCase().includes(locationFilter.toLowerCase())
+          terminal.location?.placeName?.toLowerCase().includes(locationFilter.toLowerCase())
         );
       }
       
@@ -178,15 +180,15 @@ const TerminalList = () => {
 
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
+  // ✅ FIX: Export columns access nested location
   const exportColumns: ExportColumn[] = [
-    { header: t('terminal.columns.code', 'Code'), key: 'code', width: 15 },
-    { header: t('terminal.columns.name', 'Name'), key: 'name', width: 30 },
-    { header: t('terminal.columns.location', 'Location'), key: 'placeName', width: 25 },
+    { header: t('terminal.code', 'Code'), key: 'code', width: 15 },
+    { header: t('terminal.name', 'Name'), key: 'name', width: 30 },
     { 
-      header: t('terminal.columns.capacity', 'Capacity'), 
-      key: 'capacity',
-      width: 15,
-      transform: (value) => value ? `${value}` : 'N/A'
+      header: t('terminal.location', 'Location'), 
+      key: 'location',
+      width: 25,
+      transform: (value: any) => value?.placeName || '-'
     }
   ];
 
@@ -223,10 +225,11 @@ const TerminalList = () => {
     handleExportMenuClose();
   };
 
+  // ✅ FIX: Columns access nested location.placeName
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
-      headerName: t('terminal.columns.code', 'Code'),
+      headerName: t('terminal.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -238,7 +241,7 @@ const TerminalList = () => {
     },
     { 
       field: 'name', 
-      headerName: t('terminal.columns.name', 'Name'),
+      headerName: t('terminal.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -248,13 +251,14 @@ const TerminalList = () => {
       )
     },
     { 
-      field: 'placeName', 
-      headerName: t('terminal.columns.location', 'Location'),
+      field: 'location', 
+      headerName: t('terminal.location', 'Location'),
       minWidth: 200,
       flex: 1,
+      valueGetter: (params) => params.row.location?.placeName || '-',
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary">
-          {params.value || '-'}
+          {params.value}
         </Typography>
       )
     },
