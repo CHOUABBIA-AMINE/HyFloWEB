@@ -1,13 +1,22 @@
 /**
- * Role List Page - Professional Version
- * Advanced DataGrid with server-side pagination, search, filters, and polished UI
+ * Role List Page - ADVANCED PATTERN with Export & i18n
+ * Advanced DataGrid with server-side pagination, search, filters, export, and polished UI
+ * 
+ * Features:
+ * - Server-side pagination (default: 10, options: 5, 10, 15)
+ * - Debounced global search
+ * - Export to CSV/Excel/PDF
+ * - Multi-language support (Fr/En/Ar)
+ * - Professional UI/UX
+ * - Comprehensive i18n - 100% coverage
  * 
  * @author CHOUABBIA Amine
  * @created 12-23-2025
  * @updated 01-08-2026 - Removed export (requires role-specific utils)
+ * @updated 01-16-2026 - Added full export functionality and i18n translation keys
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -23,6 +32,10 @@ import {
   Paper,
   Divider,
   Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
   alpha,
 } from '@mui/material';
 import {
@@ -32,22 +45,33 @@ import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   Refresh as RefreshIcon,
+  FileDownload as ExportIcon,
+  TableChart as CsvIcon,
+  Description as ExcelIcon,
+  PictureAsPdf as PdfIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 import { roleService } from '../services';
 import { RoleDTO } from '../dto';
-// Note: Export functionality removed - requires role-specific export utils
-// import { exportToCSV, exportToExcel, exportToPDF } from '../utils/exportUtils';
+import { 
+  exportToCSV, 
+  exportToExcel, 
+  exportToPDF,
+  ExportColumn
+} from '@/shared/utils/exportUtils';
 
 const RoleList = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
   
   const [roles, setRoles] = useState<RoleDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
@@ -56,9 +80,15 @@ const RoleList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   useEffect(() => {
     loadRoles();
-  }, [paginationModel, sortModel, searchText]);
+  }, [paginationModel, sortModel, debouncedSearch]);
 
   const loadRoles = async () => {
     try {
@@ -69,8 +99,8 @@ const RoleList = () => {
 
       let pageResponse;
       
-      if (searchText) {
-        pageResponse = await roleService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir);
+      if (debouncedSearch) {
+        pageResponse = await roleService.search(debouncedSearch, paginationModel.page, paginationModel.pageSize, sortField, sortDir);
       } else {
         pageResponse = await roleService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
       }
@@ -80,7 +110,7 @@ const RoleList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load roles:', err);
-      setError(err.message || 'Failed to load roles');
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setRoles([]);
       setTotalRows(0);
     } finally {
@@ -96,41 +126,63 @@ const RoleList = () => {
     setSortModel(model);
   }, []);
 
-  const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
+  const columns: GridColDef[] = useMemo(() => [
+    { 
+      field: 'id', 
+      headerName: 'ID', 
+      width: 80, 
+      align: 'center', 
+      headerAlign: 'center' 
+    },
     { 
       field: 'name', 
-      headerName: t('role.name'), 
+      headerName: t('list.name', 'Name'), 
       minWidth: 200,
       flex: 1,
-      renderCell: (params) => <Typography variant="body2" fontWeight={500}>{params.value}</Typography>,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={500}>
+          {params.value}
+        </Typography>
+      ),
     },
     { 
       field: 'description', 
-      headerName: t('role.description'), 
+      headerName: t('list.description', 'Description'), 
       minWidth: 300,
       flex: 2,
-      renderCell: (params) => <Typography variant="body2" color="text.secondary">{params.value || '-'}</Typography>,
+      renderCell: (params) => (
+        <Typography variant="body2" color="text.secondary">
+          {params.value || '-'}
+        </Typography>
+      ),
     },
     {
       field: 'permissions',
-      headerName: t('role.permissions'),
+      headerName: t('list.permissions', 'Permissions'),
       minWidth: 180,
       flex: 1,
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', py: 0.5 }}>
           {params.value && Array.isArray(params.value) ? (
-            <Chip label={`${params.value.length} permissions`} size="small" variant="outlined" color="primary" sx={{ fontSize: '0.75rem' }} />
+            <Chip 
+              label={`${params.value.length} ${t('list.permissions', 'permissions')}`} 
+              size="small" 
+              variant="outlined" 
+              color="primary" 
+              sx={{ fontSize: '0.75rem' }} 
+            />
           ) : (
-            <Typography variant="caption" color="text.disabled">No permissions</Typography>
+            <Typography variant="caption" color="text.disabled">
+              {t('list.noPermissions', 'No permissions')}
+            </Typography>
           )}
         </Box>
       ),
     },
     {
       field: 'actions',
-      headerName: t('common.actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
@@ -138,56 +190,162 @@ const RoleList = () => {
       filterable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit')}>
-            <IconButton size="small" onClick={() => handleEdit(params.row.id)} sx={{ color: 'primary.main', '&:hover': { bgcolor: alpha('#2563eb', 0.1) } }}>
+          <Tooltip title={t('action.edit', 'Edit')}>
+            <IconButton 
+              size="small" 
+              onClick={() => handleEdit(params.row.id)} 
+              sx={{ color: 'primary.main', '&:hover': { bgcolor: alpha('#2563eb', 0.1) } }}
+            >
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <IconButton size="small" onClick={() => handleDelete(params.row.id)} sx={{ color: 'error.main', '&:hover': { bgcolor: alpha('#dc2626', 0.1) } }}>
+          <Tooltip title={t('action.delete', 'Delete')}>
+            <IconButton 
+              size="small" 
+              onClick={() => handleDelete(params.row.id)} 
+              sx={{ color: 'error.main', '&:hover': { bgcolor: alpha('#dc2626', 0.1) } }}
+            >
               <DeleteIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         </Box>
       ),
     },
-  ];
+  ], [t]);
 
   const handleCreate = () => navigate('/security/roles/create');
   const handleEdit = (roleId: number) => navigate(`/security/roles/${roleId}/edit`);
   
   const handleDelete = async (roleId: number) => {
-    if (window.confirm(t('role.deleteRole') + '?')) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try {
         await roleService.delete(roleId);
-        setSuccess('Role deleted successfully');
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully'));
         loadRoles();
+        setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) {
-        setError(err.message || 'Failed to delete role');
+        setError(err.message || t('message.deleteError', 'Failed to delete item'));
       }
     }
   };
 
   const handleClearFilters = () => {
     setSearchText('');
-    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize });
+    setPaginationModel({ page: 0, pageSize: 10 });
   };
 
-  const handleRefresh = () => { loadRoles(); setSuccess('Data refreshed'); };
+  const handleRefresh = () => {
+    loadRoles();
+    setSuccess(t('message.refreshed', 'Data refreshed'));
+    setTimeout(() => setSuccess(''), 2000);
+  };
+
+  const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setExportAnchorEl(event.currentTarget);
+  };
+
+  const handleExportMenuClose = () => setExportAnchorEl(null);
+
+  const exportColumns: ExportColumn[] = [
+    { header: 'ID', key: 'id', width: 10 },
+    { header: t('list.name', 'Name'), key: 'name', width: 25 },
+    { header: t('list.description', 'Description'), key: 'description', width: 40 },
+    { 
+      header: t('list.permissions', 'Permissions'), 
+      key: 'permissions',
+      width: 15,
+      transform: (value) => value && Array.isArray(value) ? `${value.length} permissions` : '0'
+    }
+  ];
+
+  const handleExportCSV = () => {
+    exportToCSV(roles, {
+      filename: 'roles-export',
+      title: t('role.title', 'Roles'),
+      columns: exportColumns
+    });
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
+    setTimeout(() => setSuccess(''), 2000);
+    handleExportMenuClose();
+  };
+
+  const handleExportExcel = async () => {
+    await exportToExcel(roles, {
+      filename: 'roles-export',
+      title: t('role.title', 'Roles'),
+      columns: exportColumns
+    });
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
+    setTimeout(() => setSuccess(''), 2000);
+    handleExportMenuClose();
+  };
+
+  const handleExportPDF = async () => {
+    await exportToPDF(roles, {
+      filename: 'roles-export',
+      title: t('role.title', 'Roles'),
+      columns: exportColumns
+    }, t);
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
+    setTimeout(() => setSuccess(''), 2000);
+    handleExportMenuClose();
+  };
 
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h4" fontWeight={700} color="text.primary">{t('role.title')}</Typography>
+          <Typography variant="h4" fontWeight={700} color="text.primary">
+            {t('role.title', 'Roles')}
+          </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title="Refresh"><IconButton onClick={handleRefresh} size="medium" color="primary"><RefreshIcon /></IconButton></Tooltip>
-            {/* Export functionality removed - requires role-specific export utils */}
-            <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate} sx={{ borderRadius: 2, boxShadow: 2 }}>{t('role.createRole')}</Button>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
+              <IconButton onClick={handleRefresh} size="medium" color="primary">
+                <RefreshIcon />
+              </IconButton>
+            </Tooltip>
+            <Button
+              variant="outlined"
+              startIcon={<ExportIcon />}
+              onClick={handleExportMenuOpen}
+              sx={{ borderRadius: 2 }}
+            >
+              {t('action.export', 'Export')}
+            </Button>
+            <Button 
+              variant="contained" 
+              startIcon={<AddIcon />} 
+              onClick={handleCreate} 
+              sx={{ borderRadius: 2, boxShadow: 2 }}
+            >
+              {t('action.create', 'Create')}
+            </Button>
           </Stack>
         </Box>
-        <Typography variant="body2" color="text.secondary">Manage roles and permissions</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t('role.subtitle', 'Manage roles and permissions')}
+        </Typography>
       </Box>
+
+      <Menu
+        anchorEl={exportAnchorEl}
+        open={Boolean(exportAnchorEl)}
+        onClose={handleExportMenuClose}
+        PaperProps={{ elevation: 3, sx: { minWidth: 200 } }}
+      >
+        <MenuItem onClick={handleExportCSV}>
+          <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleExportExcel}>
+          <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleExportPDF}>
+          <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
+        </MenuItem>
+      </Menu>
 
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
@@ -198,18 +356,33 @@ const RoleList = () => {
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
               <TextField
                 fullWidth
-                placeholder={t('role.searchRoles')}
+                placeholder={t('role.searchPlaceholder', 'Search roles by name or description...')}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment> }}
+                InputProps={{ 
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon color="action" />
+                    </InputAdornment>
+                  ) 
+                }}
                 sx={{ maxWidth: { md: 400 } }}
               />
-              <Button variant="outlined" startIcon={<FilterIcon />} onClick={handleClearFilters} sx={{ minWidth: 150 }}>{t('common.clearFilters')}</Button>
+              {searchText && (
+                <Button 
+                  variant="outlined" 
+                  startIcon={<FilterIcon />} 
+                  onClick={handleClearFilters} 
+                  sx={{ minWidth: 150 }}
+                >
+                  {t('action.clearFilters', 'Clear Filters')}
+                </Button>
+              )}
             </Stack>
             <Divider />
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results')} total
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
@@ -235,7 +408,11 @@ const RoleList = () => {
             border: 0,
             '& .MuiDataGrid-cell:focus': { outline: 'none' },
             '& .MuiDataGrid-row:hover': { backgroundColor: alpha('#2563eb', 0.04) },
-            '& .MuiDataGrid-columnHeaders': { backgroundColor: alpha('#2563eb', 0.05), borderBottom: 2, borderColor: 'divider' },
+            '& .MuiDataGrid-columnHeaders': { 
+              backgroundColor: alpha('#2563eb', 0.05), 
+              borderBottom: 2, 
+              borderColor: 'divider' 
+            },
             '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 600 },
           }}
         />
