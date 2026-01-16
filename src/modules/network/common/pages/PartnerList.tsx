@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-16-2026 - Moved common field keys to list.* namespace
+ * @updated 01-16-2026 - Fixed partner type dropdown to load actual data
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -62,6 +63,8 @@ import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x
 
 import { PartnerService } from '../services';
 import { PartnerDTO } from '../dto/PartnerDTO';
+import { PartnerTypeService } from '@/modules/network/type/services';
+import { PartnerTypeDTO } from '@/modules/network/type/dto/PartnerTypeDTO';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -82,6 +85,7 @@ const PartnerList = () => {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [partnerTypes, setPartnerTypes] = useState<PartnerTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -90,6 +94,19 @@ const PartnerList = () => {
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'shortName', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
+
+  // Load partner types on mount
+  useEffect(() => {
+    const loadPartnerTypes = async () => {
+      try {
+        const types = await PartnerTypeService.getAllNoPagination();
+        setPartnerTypes(types);
+      } catch (err) {
+        console.error('Failed to load partner types:', err);
+      }
+    };
+    loadPartnerTypes();
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -399,6 +416,11 @@ const PartnerList = () => {
                   label={t('partner.filterByType', 'Partner Type')}
                 >
                   <MenuItem value="">{t('partner.allTypes', 'All Types')}</MenuItem>
+                  {partnerTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id?.toString()}>
+                      {getMultiLangDesignation(type, lang)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
