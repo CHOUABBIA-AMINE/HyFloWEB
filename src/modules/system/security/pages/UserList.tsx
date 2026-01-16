@@ -76,8 +76,8 @@ const UserList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
+  //const [statusFilter, setStatusFilter] = useState<string>('all');
+  //const [roleFilter, setRoleFilter] = useState<string>('all');
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -96,7 +96,7 @@ const UserList = () => {
 
   useEffect(() => {
     loadUsers();
-  }, [paginationModel, sortModel, debouncedSearch, statusFilter, roleFilter]);
+  }, [paginationModel, sortModel, debouncedSearch ]);
 
   const loadUsers = async () => {
     try {
@@ -114,19 +114,6 @@ const UserList = () => {
       }
       
       let filteredContent = pageResponse.content;
-      
-      if (statusFilter !== 'all') {
-        filteredContent = filteredContent.filter((user: UserDTO) => 
-          (statusFilter === 'enabled' && user.enabled) ||
-          (statusFilter === 'disabled' && !user.enabled)
-        );
-      }
-      
-      if (roleFilter !== 'all') {
-        filteredContent = filteredContent.filter((user: UserDTO) =>
-          user.roles && user.roles.some((role: { id: number; name: string }) => role.name === roleFilter)
-        );
-      }
       
       setUsers(filteredContent);
       setTotalRows(pageResponse.totalElements);
@@ -257,8 +244,6 @@ const UserList = () => {
 
   const handleClearFilters = () => {
     setSearchText('');
-    setStatusFilter('all');
-    setRoleFilter('all');
     setPaginationModel({ page: 0, pageSize: 10 });
   };
 
@@ -399,34 +384,8 @@ const UserList = () => {
                 sx={{ maxWidth: { md: 400 } }}
               />
 
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>{t('user.filterByStatus', 'Filter by Status')}</InputLabel>
-                <Select 
-                  value={statusFilter} 
-                  label={t('user.filterByStatus', 'Filter by Status')} 
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <MenuItem value="all">{t('list.all', 'All')}</MenuItem>
-                  <MenuItem value="enabled">{t('user.enabled', 'Enabled')}</MenuItem>
-                  <MenuItem value="disabled">{t('user.disabled', 'Disabled')}</MenuItem>
-                </Select>
-              </FormControl>
 
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>{t('user.filterByRole', 'Filter by Role')}</InputLabel>
-                <Select 
-                  value={roleFilter} 
-                  label={t('user.filterByRole', 'Filter by Role')} 
-                  onChange={(e) => setRoleFilter(e.target.value)}
-                >
-                  <MenuItem value="all">{t('list.all', 'All')}</MenuItem>
-                  {allRoles.map((role) => (
-                    <MenuItem key={role} value={role}>{role}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {(searchText || statusFilter !== 'all' || roleFilter !== 'all') && (
+              {(searchText ) && (
                 <Button 
                   variant="outlined" 
                   startIcon={<FilterIcon />} 
