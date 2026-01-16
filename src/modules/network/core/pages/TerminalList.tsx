@@ -16,6 +16,7 @@
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Fixed property path: location.placeName
  * @updated 01-16-2026 - Optimized translation keys and added type dropdown
+ * @updated 01-16-2026 - Moved location to list.* namespace
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -200,7 +201,7 @@ const TerminalList = () => {
     { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { header: t('list.name', 'Name'), key: 'name', width: 30 },
     { 
-      header: t('terminal.columns.location', 'Location'), 
+      header: t('list.location', 'Location'), 
       key: 'location',
       width: 25,
       transform: (value: any) => value?.placeName || '-'
@@ -272,7 +273,7 @@ const TerminalList = () => {
     },
     { 
       field: 'location', 
-      headerName: t('terminal.columns.location', 'Location'),
+      headerName: t('list.location', 'Location'),
       minWidth: 200,
       flex: 1,
       valueGetter: (params) => params.row.location?.placeName || '-',
