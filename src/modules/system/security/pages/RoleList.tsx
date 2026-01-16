@@ -14,6 +14,7 @@
  * @created 12-23-2025
  * @updated 01-08-2026 - Removed export (requires role-specific utils)
  * @updated 01-16-2026 - Added full export functionality and i18n translation keys
+ * @updated 01-16-2026 - Removed ID column
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -77,7 +78,7 @@ const RoleList = () => {
     page: 0,
     pageSize: 10,
   });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   // Debounce search
@@ -94,7 +95,7 @@ const RoleList = () => {
     try {
       setLoading(true);
       
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'name';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
       let pageResponse;
@@ -127,13 +128,6 @@ const RoleList = () => {
   }, []);
 
   const columns: GridColDef[] = useMemo(() => [
-    { 
-      field: 'id', 
-      headerName: 'ID', 
-      width: 80, 
-      align: 'center', 
-      headerAlign: 'center' 
-    },
     { 
       field: 'name', 
       headerName: t('list.name', 'Name'), 
@@ -247,13 +241,12 @@ const RoleList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: 'ID', key: 'id', width: 10 },
     { header: t('list.name', 'Name'), key: 'name', width: 25 },
-    { header: t('list.description', 'Description'), key: 'description', width: 40 },
+    { header: t('list.description', 'Description'), key: 'description', width: 50 },
     { 
       header: t('list.permissions', 'Permissions'), 
       key: 'permissions',
-      width: 15,
+      width: 25,
       transform: (value) => value && Array.isArray(value) ? `${value.length} permissions` : '0'
     }
   ];
