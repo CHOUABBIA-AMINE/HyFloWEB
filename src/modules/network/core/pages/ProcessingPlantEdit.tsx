@@ -1,10 +1,10 @@
 /**
  * ProcessingPlant Edit/Create Page - Tab-based UI
- * Existing form wrapped in General Information tab with new Production Fields tab
+ * Production Fields tab integrated with DataGrid showing linked production fields
  * 
  * @author CHOUABBIA Amine
  * @created 01-15-2026
- * @updated 01-16-2026 - Added tabs: General Information (existing form) & Production Fields (new)
+ * @updated 01-16-2026 - Added tabs with Production Fields DataGrid integration
  */
 
 import { useState, useEffect } from 'react';
@@ -13,19 +13,21 @@ import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, TextField, Button, CircularProgress, Alert,
   Grid, Paper, Divider, Stack, MenuItem, Chip,
-  Card, CardContent, Tabs, Tab
+  Card, CardContent, Tabs, Tab, IconButton
 } from '@mui/material';
 import {
   Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
-  LocationOn as LocationIcon
+  LocationOn as LocationIcon, Refresh as RefreshIcon, Edit as EditIcon
 } from '@mui/icons-material';
-import { ProcessingPlantService } from '../services';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { ProcessingPlantService, ProductionFieldService } from '../services';
 import { OperationalStatusService, VendorService } from '../../common/services';
 import { ProcessingPlantTypeService } from '../../type/services';
 import { StructureService } from '../../../general/organization/services';
 import { LocationService } from '../../../general/localization/services';
 import { LocationDTO } from '../../../general/localization/dto';
 import { ProcessingPlantDTO } from '../dto/ProcessingPlantDTO';
+import { ProductionFieldDTO } from '../dto/ProductionFieldDTO';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -74,6 +76,11 @@ const ProcessingPlantEdit = () => {
   // Selected location (for display purposes)
   const [selectedLocation, setSelectedLocation] = useState<LocationDTO | null>(null);
 
+  // Production Fields tab data
+  const [productionFields, setProductionFields] = useState<ProductionFieldDTO[]>([]);
+  const [productionFieldsLoading, setProductionFieldsLoading] = useState(false);
+  const [productionFieldsError, setProductionFieldsError] = useState('');
+
   const [structures, setStructures] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
@@ -85,6 +92,13 @@ const ProcessingPlantEdit = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => { loadData(); }, [plantId]);
+
+  // Load production fields when tab is activated
+  useEffect(() => {
+    if (activeTab === 1 && isEditMode) {
+      loadProductionFields();
+    }
+  }, [activeTab, plantId]);
 
   const loadData = async () => {
     try {
@@ -194,6 +208,25 @@ const ProcessingPlantEdit = () => {
     }
   };
 
+  const loadProductionFields = async () => {
+    if (!plantId) return;
+
+    try {
+      setProductionFieldsLoading(true);
+      setProductionFieldsError('');
+      console.log('🔄 Loading production fields for plant:', plantId);
+      const fields = await ProductionFieldService.findByProcessingPlant(Number(plantId));
+      console.log('✅ Production fields loaded:', fields.length, 'items');
+      setProductionFields(Array.isArray(fields) ? fields : []);
+    } catch (err: any) {
+      console.error('❌ Failed to load production fields:', err);
+      setProductionFieldsError(err.message || 'Failed to load production fields');
+      setProductionFields([]);
+    } finally {
+      setProductionFieldsLoading(false);
+    }
+  };
+
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     if (!plant.name || plant.name.trim().length < 3) {
@@ -280,6 +313,70 @@ const ProcessingPlantEdit = () => {
     setActiveTab(newValue);
   };
 
+  const productionFieldColumns: GridColDef[] = [
+    { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
+    {
+      field: 'name',
+      headerName: 'Production Field Name',
+      minWidth: 220,
+      flex: 1,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={500}>
+          {params.value}
+        </Typography>
+      ),
+    },
+    {
+      field: 'code',
+      headerName: 'Code',
+      width: 140,
+      renderCell: (params) => (
+        <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
+      ),
+    },
+    {
+      field: 'capacity',
+      headerName: 'Capacity',
+      width: 120,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: (params) => (
+        <Typography variant="body2">
+          {params.value ? params.value.toLocaleString() : 'N/A'}
+        </Typography>
+      ),
+    },
+    {
+      field: 'operationalStatusId',
+      headerName: 'Status',
+      minWidth: 180,
+      flex: 1,
+      renderCell: (params) => {
+        const row = params.row as ProductionFieldDTO;
+        if (row.operationalStatus) {
+          return <>{row.operationalStatus.nameEn || row.operationalStatus.code}</>;
+        }
+        return <>{row.operationalStatusId}</>;
+      },
+    },
+    {
+      field: 'actions',
+      headerName: t('common.actions'),
+      width: 110,
+      align: 'center',
+      sortable: false,
+      renderCell: (params) => (
+        <IconButton
+          size="small"
+          onClick={() => navigate(`/network/core/production-fields/${params.row.id}/edit`)}
+          sx={{ color: 'primary.main' }}
+        >
+          <EditIcon fontSize="small" />
+        </IconButton>
+      ),
+    },
+  ];
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
@@ -299,7 +396,7 @@ const ProcessingPlantEdit = () => {
           {isEditMode ? 'Edit Processing Plant' : 'Create Processing Plant'}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update processing plant information' : 'Create a new processing plant'}
+          {isEditMode ? 'Update processing plant information and manage production fields' : 'Create a new processing plant'}
         </Typography>
       </Box>
 
@@ -622,15 +719,37 @@ const ProcessingPlantEdit = () => {
             </form>
           </TabPanel>
 
-          {/* Tab 1: Production Fields (new - placeholder) */}
+          {/* Tab 1: Production Fields */}
           <TabPanel value={activeTab} index={1}>
-            <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Production Fields
+            {productionFieldsError && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setProductionFieldsError('')}>
+                {productionFieldsError}
+              </Alert>
+            )}
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6" fontWeight={600}>
+                Production Fields supplied by this plant
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Production fields management will be available here.
-              </Typography>
+              <IconButton onClick={loadProductionFields} color="primary">
+                <RefreshIcon />
+              </IconButton>
+            </Box>
+
+            <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+              <DataGrid
+                rows={productionFields}
+                columns={productionFieldColumns}
+                loading={productionFieldsLoading}
+                disableRowSelectionOnClick
+                autoHeight
+                pageSizeOptions={[10, 25, 50, 100]}
+                initialState={{
+                  pagination: {
+                    paginationModel: { page: 0, pageSize: 25 },
+                  },
+                }}
+              />
             </Paper>
           </TabPanel>
         </CardContent>
