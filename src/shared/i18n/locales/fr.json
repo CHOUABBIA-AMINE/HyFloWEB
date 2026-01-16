@@ -3,77 +3,95 @@
     "name": "Plateforme IAAS",
     "description": "Gestion de l'Infrastructure en tant que Service"
   },
-  "common": {
+  "list": {
+    "code": "Code",
+    "designation": "Désignation",
+    "name": "Nom",
+    "type": "Type",
+    "status": "Statut",
+    "location": "Emplacement",
+    "actions": "Actions",
+    "country": "Pays",
+    "vendor": "Fournisseur",
+    "structure": "Structure",
+    "product": "Produit",
+    "shortName": "Nom Court",
+    "fullName": "Nom Complet",
+    "searchPlaceholder": "Rechercher...",
+    "filterByType": "Filtrer par Type",
+    "filterByStatus": "Filtrer par Statut",
+    "allTypes": "Tous les Types",
+    "allStatuses": "Tous les Statuts",
+    "results": "résultats",
+    "noData": "Aucune donnée disponible",
+    "loading": "Chargement..."
+  },
+  "action": {
+    "create": "Créer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
     "save": "Enregistrer",
     "saving": "Enregistrement...",
     "cancel": "Annuler",
-    "delete": "Supprimer",
-    "deleting": "Suppression...",
-    "deleted": "Supprimé",
-    "edit": "Modifier",
-    "create": "Créer",
-    "update": "Mettre à jour",
+    "refresh": "Actualiser",
+    "export": "Exporter",
+    "exportCSV": "Exporter CSV",
+    "exportExcel": "Exporter Excel",
+    "exportPDF": "Exporter PDF",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "clearFilters": "Effacer les Filtres",
     "search": "Rechercher",
-    "actions": "Actions",
-    "yes": "Oui",
-    "no": "Non",
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "success": "Succès",
-    "confirm": "Confirmer",
+    "add": "Ajouter",
+    "view": "Voir",
+    "update": "Mettre à jour",
+    "submit": "Soumettre",
+    "close": "Fermer",
     "back": "Retour",
     "next": "Suivant",
     "previous": "Précédent",
-    "submit": "Soumettre",
-    "close": "Fermer",
-    "export": "Exporter",
-    "exportCSV": "Exporter en CSV",
-    "exportExcel": "Exporter en Excel",
-    "exportPDF": "Exporter en PDF",
-    "filters": "Filtres",
-    "clearFilters": "Effacer les filtres",
-    "results": "résultats",
-    "all": "Tous",
-    "legend": "Légende",
-    "refresh": "Actualiser",
+    "confirm": "Confirmer"
+  },
+  "message": {
+    "deleteSuccess": "Élément supprimé avec succès",
+    "deleteError": "Échec de la suppression de l'élément",
+    "createSuccess": "Élément créé avec succès",
+    "createError": "Échec de la création de l'élément",
+    "updateSuccess": "Élément mis à jour avec succès",
+    "updateError": "Échec de la mise à jour de l'élément",
+    "saveError": "Échec de l'enregistrement de l'élément",
+    "errorLoading": "Échec du chargement des données",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire",
     "refreshed": "Données actualisées",
     "exportedCSV": "Exporté en CSV",
     "exportedExcel": "Exporté en Excel",
     "exportedPDF": "Exporté en PDF",
-    "noData": "Aucune donnée disponible",
+    "deleting": "Suppression...",
+    "deleted": "Supprimé",
+    "success": "Succès",
+    "error": "Erreur"
+  },
+  "common": {
+    "yes": "Oui",
+    "no": "Non",
+    "all": "Tous",
+    "legend": "Légende",
+    "filters": "Filtres",
     "clear": "Effacer",
-    "code": "Code",
-    "name": "Nom",
-    "location": "Emplacement",
-    "status": "Statut",
-    "type": "Type",
     "total": "total",
-    "id": "ID",
-    "add": "Ajouter",
-    "view": "Voir"
+    "id": "ID"
   },
   "product": {
     "title": "Produits",
     "subtitle": "Gérer les produits d'hydrocarbures et matériaux",
-    "create": "Créer un Produit",
-    "edit": "Modifier le Produit",
-    "delete": "Supprimer le Produit",
-    "confirmDelete": "Supprimer ce produit ?",
-    "deleteSuccess": "Produit supprimé avec succès",
-    "deleteError": "Échec de la suppression du produit",
-    "errorLoading": "Échec du chargement des produits",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du produit",
-    "createSuccess": "Produit créé avec succès",
-    "updateSuccess": "Produit mis à jour avec succès",
     "searchPlaceholder": "Rechercher des produits...",
-    "columns": {
-      "code": "Code",
-      "designation": "Désignation",
-      "density": "Densité (kg/m³)",
-      "isHazardous": "Dangereux",
-      "actions": "Actions"
-    },
+    "yes": "Oui",
+    "no": "Non",
+    "allProducts": "Tous les Produits",
+    "hazardousOnly": "Dangereux Seulement",
+    "nonHazardousOnly": "Non Dangereux Seulement",
+    "filterByHazardous": "Statut Dangereux",
+    "density": "Densité",
+    "isHazardous": "Dangereux",
     "createPage": {
       "title": "Créer un Produit",
       "subtitle": "Ajouter un nouveau produit d'hydrocarbures"
@@ -118,25 +136,7 @@
   "partner": {
     "title": "Partenaires",
     "subtitle": "Gérer les partenaires commerciaux et collaborateurs",
-    "create": "Créer un Partenaire",
-    "edit": "Modifier le Partenaire",
-    "delete": "Supprimer le Partenaire",
-    "confirmDelete": "Supprimer ce partenaire ?",
-    "deleteSuccess": "Partenaire supprimé avec succès",
-    "deleteError": "Échec de la suppression du partenaire",
-    "errorLoading": "Échec du chargement des partenaires",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du partenaire",
-    "createSuccess": "Partenaire créé avec succès",
-    "updateSuccess": "Partenaire mis à jour avec succès",
     "searchPlaceholder": "Rechercher des partenaires...",
-    "columns": {
-      "shortName": "Nom Court",
-      "name": "Nom Complet",
-      "type": "Type",
-      "country": "Pays",
-      "actions": "Actions"
-    },
     "createPage": {
       "title": "Créer un Partenaire",
       "subtitle": "Ajouter un nouveau partenaire commercial"
@@ -168,25 +168,7 @@
   "vendor": {
     "title": "Fournisseurs",
     "subtitle": "Gérer les fournisseurs d'équipements et prestataires",
-    "create": "Créer un Fournisseur",
-    "edit": "Modifier le Fournisseur",
-    "delete": "Supprimer le Fournisseur",
-    "confirmDelete": "Supprimer ce fournisseur ?",
-    "deleteSuccess": "Fournisseur supprimé avec succès",
-    "deleteError": "Échec de la suppression du fournisseur",
-    "errorLoading": "Échec du chargement des fournisseurs",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du fournisseur",
-    "createSuccess": "Fournisseur créé avec succès",
-    "updateSuccess": "Fournisseur mis à jour avec succès",
     "searchPlaceholder": "Rechercher des fournisseurs...",
-    "columns": {
-      "shortName": "Nom Court",
-      "name": "Nom Complet",
-      "type": "Type",
-      "country": "Pays",
-      "actions": "Actions"
-    },
     "createPage": {
       "title": "Créer un Fournisseur",
       "subtitle": "Ajouter un nouveau fournisseur d'équipements"
@@ -218,23 +200,14 @@
   "station": {
     "title": "Stations",
     "subtitle": "Gérer les infrastructures et équipements de stations",
-    "create": "Créer une Station",
-    "createSubtitle": "Créer une nouvelle station de pipeline",
-    "edit": "Modifier la Station",
-    "editSubtitle": "Mettre à jour les informations et détails de la station",
-    "delete": "Supprimer la Station",
-    "confirmDelete": "Supprimer cette station ?",
-    "deleteSuccess": "Station supprimée avec succès",
-    "deleteError": "Échec de la suppression de la station",
-    "errorLoading": "Échec du chargement des stations",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement de la station",
     "searchPlaceholder": "Rechercher des stations...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Nom de la Station",
-      "location": "Emplacement"
+    "createPage": {
+      "title": "Créer une Station",
+      "subtitle": "Créer une nouvelle station de pipeline"
+    },
+    "editPage": {
+      "title": "Modifier la Station",
+      "subtitle": "Mettre à jour les informations et détails de la station"
     },
     "sections": {
       "basicInformation": "Informations de Base",
@@ -280,23 +253,14 @@
   "terminal": {
     "title": "Terminaux",
     "subtitle": "Gérer les installations et opérations des terminaux",
-    "create": "Créer un Terminal",
-    "createSubtitle": "Créer un nouveau terminal de pipeline",
-    "edit": "Modifier le Terminal",
-    "editSubtitle": "Mettre à jour les informations et détails du terminal",
-    "delete": "Supprimer le Terminal",
-    "confirmDelete": "Supprimer ce terminal ?",
-    "deleteSuccess": "Terminal supprimé avec succès",
-    "deleteError": "Échec de la suppression du terminal",
-    "errorLoading": "Échec du chargement des terminaux",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du terminal",
     "searchPlaceholder": "Rechercher des terminaux...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Nom du Terminal",
-      "location": "Emplacement"
+    "createPage": {
+      "title": "Créer un Terminal",
+      "subtitle": "Créer un nouveau terminal de pipeline"
+    },
+    "editPage": {
+      "title": "Modifier le Terminal",
+      "subtitle": "Mettre à jour les informations et détails du terminal"
     },
     "sections": {
       "basicInformation": "Informations de Base",
@@ -350,23 +314,14 @@
   "pipeline": {
     "title": "Pipelines",
     "subtitle": "Gérer les infrastructures et tracés des pipelines",
-    "create": "Créer un Pipeline",
-    "createSubtitle": "Créer un nouveau pipeline",
-    "edit": "Modifier le Pipeline",
-    "editSubtitle": "Mettre à jour les informations et détails du pipeline",
-    "delete": "Supprimer le Pipeline",
-    "confirmDelete": "Supprimer ce pipeline ?",
-    "deleteSuccess": "Pipeline supprimé avec succès",
-    "deleteError": "Échec de la suppression du pipeline",
-    "errorLoading": "Échec du chargement des pipelines",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du pipeline",
     "searchPlaceholder": "Rechercher des pipelines...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Nom du Pipeline",
-      "length": "Longueur (km)"
+    "createPage": {
+      "title": "Créer un Pipeline",
+      "subtitle": "Créer un nouveau pipeline"
+    },
+    "editPage": {
+      "title": "Modifier le Pipeline",
+      "subtitle": "Mettre à jour les informations et détails du pipeline"
     },
     "sections": {
       "basicInformation": "Informations de Base",
@@ -429,25 +384,14 @@
   "pipelineSystem": {
     "title": "Systèmes de Pipeline",
     "subtitle": "Gérer les réseaux de systèmes de pipelines intégrés",
-    "create": "Créer un Système de Pipeline",
-    "createSubtitle": "Créer un nouveau système de pipeline",
-    "edit": "Modifier le Système de Pipeline",
-    "editSubtitle": "Mettre à jour les informations et détails du système de pipeline",
-    "delete": "Supprimer le Système de Pipeline",
-    "confirmDelete": "Supprimer ce système de pipeline ?",
-    "deleteSuccess": "Système de pipeline supprimé avec succès",
-    "deleteError": "Échec de la suppression du système de pipeline",
-    "errorLoading": "Échec du chargement des systèmes de pipeline",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du système de pipeline",
     "searchPlaceholder": "Rechercher des systèmes de pipeline...",
-    "columns": {
-      "id": "ID",
-      "code": "Code",
-      "name": "Nom du Système",
-      "structure": "Structure",
-      "product": "Produit",
-      "status": "Statut"
+    "createPage": {
+      "title": "Créer un Système de Pipeline",
+      "subtitle": "Créer un nouveau système de pipeline"
+    },
+    "editPage": {
+      "title": "Modifier le Système de Pipeline",
+      "subtitle": "Mettre à jour les informations et détails du système de pipeline"
     },
     "sections": {
       "basicInformation": "Informations de Base",
@@ -487,29 +431,14 @@
   "hydrocarbonField": {
     "title": "Champs d'Hydrocarbures",
     "subtitle": "Gérer les infrastructures des champs d'hydrocarbures",
-    "create": "Créer un Champ d'Hydrocarbures",
-    "createSubtitle": "Créer un nouveau champ d'hydrocarbures",
-    "edit": "Modifier le Champ d'Hydrocarbures",
-    "editSubtitle": "Mettre à jour les informations et détails du champ d'hydrocarbures",
-    "delete": "Supprimer le Champ d'Hydrocarbures",
-    "confirmDelete": "Supprimer le Champ d'Hydrocarbures",
-    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer ce champ d'hydrocarbures ? Cette action ne peut pas être annulée.",
-    "deleteSuccess": "Champ d'hydrocarbures supprimé avec succès",
-    "deleteError": "Échec de la suppression du champ d'hydrocarbures",
-    "errorLoading": "Échec du chargement des champs d'hydrocarbures",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "saveError": "Échec de l'enregistrement du champ d'hydrocarbures",
     "searchPlaceholder": "Rechercher des champs d'hydrocarbures...",
-    "deleting": "Suppression...",
-    "columns": {
-      "code": "Code",
-      "name": "Nom",
-      "type": "Type",
-      "location": "Emplacement",
-      "vendor": "Fournisseur",
-      "status": "Statut",
-      "installationDate": "Date d'Installation",
-      "actions": "Actions"
+    "createPage": {
+      "title": "Créer un Champ d'Hydrocarbures",
+      "subtitle": "Créer un nouveau champ d'hydrocarbures"
+    },
+    "editPage": {
+      "title": "Modifier le Champ d'Hydrocarbures",
+      "subtitle": "Mettre à jour les informations et détails du champ d'hydrocarbures"
     },
     "sections": {
       "basicInformation": "Informations de Base",
@@ -611,39 +540,17 @@
   "structure": {
     "title": "Structures Organisationnelles",
     "subtitle": "Gérer les structures organisationnelles et les hiérarchies",
-    "createSubtitle": "Ajouter une nouvelle structure organisationnelle",
-    "editSubtitle": "Mettre à jour les informations de la structure et gérer les postes",
-    "code": "Code",
-    "designation": "Désignation",
-    "designationAr": "Désignation arabe",
-    "designationEn": "Désignation anglaise",
-    "designationFr": "Désignation française",
-    "type": "Type",
-    "structureType": "Type de Structure",
     "parentStructure": "Structure Parente",
     "root": "Racine",
-    "create": "Créer une Structure",
-    "edit": "Modifier la Structure",
-    "delete": "Supprimer la Structure",
+    "structureType": "Type de Structure",
     "searchPlaceholder": "Rechercher par code ou désignation...",
-    "filterByType": "Type de Structure",
-    "allTypes": "Tous les Types",
-    "confirmDelete": "Supprimer cette structure ?",
-    "deleteSuccess": "Structure supprimée avec succès",
-    "deleteError": "Échec de la suppression de la structure",
-    "errorLoading": "Échec du chargement des structures",
-    "errorLoadingFormData": "Échec du chargement des données du formulaire",
-    "createSuccess": "Structure créée avec succès",
-    "createError": "Échec de la création de la structure",
-    "updateSuccess": "Structure mise à jour avec succès",
-    "updateError": "Échec de la mise à jour de la structure",
-    "saveError": "Échec de l'enregistrement de la structure",
-    "selectType": "Sélectionner le type de structure",
-    "selectParent": "Sélectionner la structure parente",
-    "noParent": "Aucun parent (structure racine)",
-    "tabs": {
-      "generalInformation": "Informations générales",
-      "jobs": "Postes"
+    "createPage": {
+      "title": "Créer une Structure",
+      "subtitle": "Ajouter une nouvelle structure organisationnelle"
+    },
+    "editPage": {
+      "title": "Modifier la Structure",
+      "subtitle": "Mettre à jour les informations de la structure et gérer les postes"
     },
     "sections": {
       "basicInformation": "Informations de base",
@@ -665,6 +572,10 @@
       "typeRequired": "Le type de structure est requis",
       "codeMaxLength": "Le code ne doit pas dépasser 50 caractères",
       "designationMaxLength": "La désignation ne doit pas dépasser 100 caractères"
+    },
+    "tabs": {
+      "generalInformation": "Informations générales",
+      "jobs": "Postes"
     }
   },
   "job": {
@@ -672,9 +583,6 @@
     "titleInStructure": "Postes dans cette structure",
     "subtitle": "Gérer les postes de travail",
     "subtitleInStructure": "Gérer les postes pour cette structure",
-    "code": "Code",
-    "designation": "Désignation",
-    "structure": "Structure",
     "dialog": {
       "createTitle": "Créer un Poste",
       "createSubtitle": "Ajouter un nouveau poste",
@@ -703,20 +611,12 @@
       "designationFrRequired": "La désignation française est obligatoire",
       "structureRequired": "La structure est obligatoire",
       "formInvalid": "Veuillez remplir tous les champs obligatoires"
-    },
-    "confirmDelete": "Confirmer la suppression",
-    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer ce poste ? Cette action est irréversible.",
-    "errorLoading": "Échec du chargement des postes",
-    "deleteError": "Échec de la suppression du poste",
-    "saveError": "Échec de l'enregistrement du poste"
+    }
   },
   "employee": {
     "title": "Employés",
     "subtitle": "Gérer les dossiers et informations des employés",
-    "create": "Créer un Employé",
-    "edit": "Modifier l'Employé",
-    "delete": "Supprimer l'Employé",
-    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cet employé?",
+    "searchPlaceholder": "Rechercher par nom ou numéro d'enregistrement...",
     "firstNameAr": "Prénom en Arabe",
     "lastNameAr": "Nom de Famille en Arabe",
     "firstNameLt": "Prénom en Latin",
@@ -725,42 +625,30 @@
     "birthPlace": "Lieu de Naissance",
     "registrationNumber": "Numéro d'Enregistrement",
     "job": "Poste",
-    "structure": "Structure",
-    "militaryRank": "Rang Militaire",
-    "country": "Pays",
-    "searchPlaceholder": "Rechercher par nom ou numéro d'enregistrement..."
+    "militaryRank": "Rang Militaire"
   },
   "map": {
     "title": "Carte d'infrastructure",
     "description": "Carte interactive montrant les stations, les terminaux, les champs d'hydrocarbures et les pipelines",
     "layers": "Couches de carte",
-    "legend": "Légende",
     "hoverToExpand": "Survoler pour développer",
     "clickToToggle": "Cliquer pour basculer les couches",
     "showStations": "Stations",
     "showTerminals": "Terminaux",
     "showHydrocarbonFields": "Champs d'hydrocarbures",
     "showPipelines": "Pipelines",
-    "loading": "Chargement des données de carte...",
-    "error": "Erreur de chargement des données de carte",
-    "noData": "Aucune donnée disponible",
     "clickToEdit": "Cliquer sur le marqueur pour modifier",
     "station": "Station",
     "terminal": "Terminal",
     "hydrocarbonField": "Champ d'hydrocarbures",
-    "pipeline": "Pipeline",
-    "location": "Emplacement",
     "coordinates": "Coordonnées",
     "elevation": "Altitude",
-    "type": "Type",
     "capacity": "Capacité",
     "storage": "Stockage",
     "reserves": "Réserves",
     "commissioned": "Mise en service",
     "discovered": "Découvert",
     "operationalStatus": "État opérationnel",
-    "code": "Code",
-    "name": "Nom",
     "description": "Description",
     "units": "unités",
     "meters": "m",
@@ -781,49 +669,30 @@
   },
   "user": {
     "title": "Utilisateurs",
-    "createUser": "Créer un utilisateur",
-    "editUser": "Modifier l'utilisateur",
-    "deleteUser": "Supprimer l'utilisateur",
-    "userDetails": "Détails de l'utilisateur",
+    "searchPlaceholder": "Rechercher des utilisateurs...",
     "firstName": "Prénom",
     "lastName": "Nom",
     "email": "Email",
     "username": "Nom d'utilisateur",
     "enabled": "Activé",
     "disabled": "Désactivé",
-    "status": "Statut",
     "roles": "Rôles",
     "groups": "Groupes",
     "createdAt": "Créé le",
     "updatedAt": "Modifié le",
-    "lastLogin": "Dernière connexion",
-    "searchUsers": "Rechercher des utilisateurs...",
-    "filterByStatus": "Filtrer par statut",
-    "filterByRole": "Filtrer par rôle",
-    "allStatuses": "Tous les statuts",
-    "allRoles": "Tous les rôles"
+    "lastLogin": "Dernière connexion"
   },
   "role": {
     "title": "Rôles",
-    "createRole": "Créer un rôle",
-    "editRole": "Modifier le rôle",
-    "deleteRole": "Supprimer le rôle",
-    "roleDetails": "Détails du rôle",
-    "name": "Nom",
-    "description": "Description",
+    "searchPlaceholder": "Rechercher des rôles...",
     "permissions": "Permissions",
-    "searchRoles": "Rechercher des rôles..."
+    "description": "Description"
   },
   "group": {
     "title": "Groupes",
-    "createGroup": "Créer un groupe",
-    "editGroup": "Modifier le groupe",
-    "deleteGroup": "Supprimer le groupe",
-    "groupDetails": "Détails du groupe",
-    "name": "Nom du groupe",
-    "description": "Description",
+    "searchPlaceholder": "Rechercher des groupes...",
     "users": "Utilisateurs",
-    "searchGroups": "Rechercher des groupes..."
+    "description": "Description"
   },
   "footer": {
     "copyright": "© {{year}} Plateforme IAAS. Tous droits réservés."
