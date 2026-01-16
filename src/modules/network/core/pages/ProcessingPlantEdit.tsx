@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 01-15-2026
  * @updated 01-15-2026 - Fixed LocationService import path
+ * @updated 01-16-2026 - Added console logging and improved error handling for empty dropdown options
  */
 
 import { useState, useEffect } from 'react';
@@ -59,12 +60,16 @@ const ProcessingPlantEdit = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading data for ProcessingPlantEdit...');
       
       let plantData: ProcessingPlantDTO | null = null;
       if (isEditMode) {
+        console.log('📝 Loading existing plant with ID:', plantId);
         plantData = await ProcessingPlantService.getById(Number(plantId));
+        console.log('✅ Plant data loaded:', plantData);
       }
       
+      console.log('📦 Fetching reference data...');
       const [
         structuresData,
         vendorsData,
@@ -79,45 +84,79 @@ const ProcessingPlantEdit = () => {
         ProcessingPlantTypeService.getAllNoPagination(),
       ]);
 
+      // Structure data
       if (structuresData.status === 'fulfilled') {
+        console.log('📊 Raw structures response:', structuresData.value);
         const structs = Array.isArray(structuresData.value) 
           ? structuresData.value 
           : (Array.isArray((structuresData.value as any)?.data) ? (structuresData.value as any).data : []);
+        console.log('✅ Structures loaded:', structs.length, 'items');
+        if (structs.length > 0) console.log('   First structure:', structs[0]);
         setStructures(structs);
+      } else {
+        console.error('❌ Failed to load structures:', structuresData.reason);
       }
 
+      // Vendor data
       if (vendorsData.status === 'fulfilled') {
+        console.log('📊 Raw vendors response:', vendorsData.value);
         const vends = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
           : (Array.isArray((vendorsData.value as any)?.data) ? (vendorsData.value as any).data : []);
+        console.log('✅ Vendors loaded:', vends.length, 'items');
+        if (vends.length > 0) console.log('   First vendor:', vends[0]);
         setVendors(vends);
+      } else {
+        console.error('❌ Failed to load vendors:', vendorsData.reason);
       }
 
+      // Location data
       if (locationsData.status === 'fulfilled') {
+        console.log('📊 Raw locations response:', locationsData.value);
         const locs = Array.isArray(locationsData.value) 
           ? locationsData.value 
           : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data : []);
+        console.log('✅ Locations loaded:', locs.length, 'items');
+        if (locs.length > 0) console.log('   First location:', locs[0]);
         setLocations(locs);
+      } else {
+        console.error('❌ Failed to load locations:', locationsData.reason);
       }
 
+      // Operational Status data
       if (statusesData.status === 'fulfilled') {
+        console.log('📊 Raw statuses response:', statusesData.value);
         const stats = Array.isArray(statusesData.value) 
           ? statusesData.value 
           : (Array.isArray((statusesData.value as any)?.data) ? (statusesData.value as any).data : []);
+        console.log('✅ Operational statuses loaded:', stats.length, 'items');
+        if (stats.length > 0) console.log('   First status:', stats[0]);
         setOperationalStatuses(stats);
+      } else {
+        console.error('❌ Failed to load operational statuses:', statusesData.reason);
       }
 
+      // Processing Plant Type data
       if (typesData.status === 'fulfilled') {
+        console.log('📊 Raw types response:', typesData.value);
         const types = Array.isArray(typesData.value) 
           ? typesData.value 
           : (Array.isArray((typesData.value as any)?.data) ? (typesData.value as any).data : []);
+        console.log('✅ Processing plant types loaded:', types.length, 'items');
+        if (types.length > 0) console.log('   First type:', types[0]);
         setProcessingPlantTypes(types);
+      } else {
+        console.error('❌ Failed to load processing plant types:', typesData.reason);
       }
 
-      if (plantData) setPlant(plantData);
+      if (plantData) {
+        console.log('📝 Setting plant data in form');
+        setPlant(plantData);
+      }
       setError('');
+      console.log('✅ All data loaded successfully');
     } catch (err: any) {
-      console.error('Failed to load data:', err);
+      console.error('❌ Failed to load data:', err);
       setError(err.message || 'Failed to load data');
     } finally {
       setLoading(false);
@@ -223,6 +262,23 @@ const ProcessingPlantEdit = () => {
 
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
 
+      {/* Warning alerts for empty dropdowns */}
+      {structures.length === 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No structures available. Please create structures first in Administration → Structures.
+        </Alert>
+      )}
+      {locations.length === 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No locations available. Please create locations first in General → Localization → Locations.
+        </Alert>
+      )}
+      {processingPlantTypes.length === 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          No processing plant types available. Please create types first or check API connectivity.
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
@@ -268,10 +324,12 @@ const ProcessingPlantEdit = () => {
                   >
                     {operationalStatuses.length > 0 ? (
                       operationalStatuses.map((status) => (
-                        <MenuItem key={status.id} value={status.id}>{status.nameEn || status.code}</MenuItem>
+                        <MenuItem key={status.id} value={status.id}>
+                          {status.nameEn || status.code}
+                        </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading statuses...</MenuItem>
+                      <MenuItem disabled>No statuses available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -281,14 +339,16 @@ const ProcessingPlantEdit = () => {
                     value={plant.structureId || ''}
                     onChange={handleChange('structureId')} required
                     error={!!validationErrors.structureId}
-                    helperText={validationErrors.structureId}
+                    helperText={validationErrors.structureId || `${structures.length} structure(s) available`}
                   >
                     {structures.length > 0 ? (
                       structures.map((struct) => (
-                        <MenuItem key={struct.id} value={struct.id}>{struct.name}</MenuItem>
+                        <MenuItem key={struct.id} value={struct.id}>
+                          {struct.name || struct.designationEn || struct.code}
+                        </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading structures...</MenuItem>
+                      <MenuItem disabled>No structures available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -302,10 +362,12 @@ const ProcessingPlantEdit = () => {
                   >
                     {vendors.length > 0 ? (
                       vendors.map((vendor) => (
-                        <MenuItem key={vendor.id} value={vendor.id}>{vendor.name}</MenuItem>
+                        <MenuItem key={vendor.id} value={vendor.id}>
+                          {vendor.name}
+                        </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading vendors...</MenuItem>
+                      <MenuItem disabled>No vendors available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -315,14 +377,16 @@ const ProcessingPlantEdit = () => {
                     value={plant.locationId || ''}
                     onChange={handleChange('locationId')} required
                     error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId}
+                    helperText={validationErrors.locationId || `${locations.length} location(s) available`}
                   >
                     {locations.length > 0 ? (
                       locations.map((loc) => (
-                        <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
+                        <MenuItem key={loc.id} value={loc.id}>
+                          {loc.placeName || loc.name}
+                        </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading locations...</MenuItem>
+                      <MenuItem disabled>No locations available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -332,14 +396,16 @@ const ProcessingPlantEdit = () => {
                     value={plant.processingPlantTypeId || ''}
                     onChange={handleChange('processingPlantTypeId')} required
                     error={!!validationErrors.processingPlantTypeId}
-                    helperText={validationErrors.processingPlantTypeId}
+                    helperText={validationErrors.processingPlantTypeId || `${processingPlantTypes.length} type(s) available`}
                   >
                     {processingPlantTypes.length > 0 ? (
                       processingPlantTypes.map((type) => (
-                        <MenuItem key={type.id} value={type.id}>{type.nameEn || type.code}</MenuItem>
+                        <MenuItem key={type.id} value={type.id}>
+                          {type.nameEn || type.code}
+                        </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading types...</MenuItem>
+                      <MenuItem disabled>No types available</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -396,7 +462,8 @@ const ProcessingPlantEdit = () => {
               <Button
                 type="submit" variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving} sx={{ minWidth: 150 }}
+                disabled={saving || structures.length === 0 || locations.length === 0 || processingPlantTypes.length === 0}
+                sx={{ minWidth: 150 }}
               >
                 {saving ? t('common.loading') : t('common.save')}
               </Button>
