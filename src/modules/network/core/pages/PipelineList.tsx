@@ -16,6 +16,7 @@
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Fixed filter: pipelineSystem instead of pipelineType
  * @updated 01-16-2026 - Optimized translation keys and populated system dropdown
+ * @updated 01-16-2026 - Moved length to list.* and added pipelineSystem column
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -198,7 +199,13 @@ const PipelineList = () => {
     { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { header: t('list.name', 'Name'), key: 'name', width: 30 },
     { 
-      header: t('pipeline.columns.length', 'Length'), 
+      header: t('list.pipelineSystem', 'Pipeline System'), 
+      key: 'pipelineSystem',
+      width: 20,
+      transform: (value: any) => value ? `${value.code} - ${value.name}` : '-'
+    },
+    { 
+      header: t('list.length', 'Length'), 
       key: 'length',
       width: 15,
       transform: (value) => value ? `${value.toFixed(2)} km` : '-'
@@ -260,7 +267,7 @@ const PipelineList = () => {
     { 
       field: 'name', 
       headerName: t('list.name', 'Name'),
-      minWidth: 250,
+      minWidth: 200,
       flex: 1,
       renderCell: (params) => (
         <Typography variant="body2" fontWeight={500}>
@@ -269,9 +276,24 @@ const PipelineList = () => {
       )
     },
     { 
+      field: 'pipelineSystem', 
+      headerName: t('list.pipelineSystem', 'Pipeline System'),
+      minWidth: 180,
+      flex: 1,
+      valueGetter: (params) => {
+        const system = params.row.pipelineSystem;
+        return system ? `${system.code} - ${system.name}` : '-';
+      },
+      renderCell: (params) => (
+        <Typography variant="body2" color="text.secondary">
+          {params.value}
+        </Typography>
+      )
+    },
+    { 
       field: 'length', 
-      headerName: t('pipeline.columns.length', 'Length'),
-      width: 150,
+      headerName: t('list.length', 'Length'),
+      width: 130,
       align: 'right',
       headerAlign: 'right',
       renderCell: (params) => (
