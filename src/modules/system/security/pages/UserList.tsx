@@ -15,6 +15,7 @@
  * @created 12-22-2025
  * @updated 01-08-2026 - Fixed implicit any types
  * @updated 01-16-2026 - Updated with i18n translation keys aligned with Network Core pattern
+ * @updated 01-16-2026 - Removed ID column
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -83,7 +84,7 @@ const UserList = () => {
     page: 0,
     pageSize: 10,
   });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'id', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'username', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
   const [allRoles, setAllRoles] = useState<string[]>([]);
 
@@ -101,7 +102,7 @@ const UserList = () => {
     try {
       setLoading(true);
       
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'id';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'username';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
       let pageResponse;
@@ -158,12 +159,16 @@ const UserList = () => {
   }, []);
 
   const columns: GridColDef[] = useMemo(() => [
-    { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
     { 
       field: 'username', 
       headerName: t('list.username', 'Username'), 
       minWidth: 180, 
-      flex: 1 
+      flex: 1,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight={500}>
+          {params.value}
+        </Typography>
+      )
     },
     { 
       field: 'email', 
@@ -267,7 +272,6 @@ const UserList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: 'ID', key: 'id', width: 10 },
     { header: t('list.username', 'Username'), key: 'username', width: 20 },
     { header: t('list.email', 'Email'), key: 'email', width: 30 },
     { 
@@ -279,7 +283,7 @@ const UserList = () => {
     { 
       header: t('list.roles', 'Roles'), 
       key: 'roles',
-      width: 25,
+      width: 35,
       transform: (value) => value && Array.isArray(value) ? value.map((r: any) => r.name).join(', ') : '-'
     }
   ];
