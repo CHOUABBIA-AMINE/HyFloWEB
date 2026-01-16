@@ -8,6 +8,7 @@
  * @updated 01-16-2026 - Added complete location details display (Locality, District, State)
  * @updated 01-16-2026 - Made location details more compact
  * @updated 01-16-2026 - Reorganized to single row: Place, Locality, District, State, Coordinates
+ * @updated 01-16-2026 - Moved Structure field before Location section
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -407,6 +408,29 @@ const TerminalEdit = () => {
                     helperText={validationErrors.name || '3-100 characters'}
                   />
                 </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label="Structure *"
+                    value={terminal.structureId || ''}
+                    onChange={handleChange('structureId')}
+                    required
+                    error={!!validationErrors.structureId}
+                    helperText={validationErrors.structureId || 'Organizational unit'}
+                  >
+                    {sortedStructures.length > 0 ? (
+                      sortedStructures.map((structure) => (
+                        <MenuItem key={structure.id} value={structure.id}>
+                          {getLocalizedName(structure, currentLanguage)}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No structures available</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
               </Grid>
             </Box>
           </Paper>
@@ -529,38 +553,15 @@ const TerminalEdit = () => {
             </Box>
           </Paper>
 
-          {/* Organization & Technical Details */}
+          {/* Technical Details */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Organization & Technical Details
+                Technical Details
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
-                    label="Structure *"
-                    value={terminal.structureId || ''}
-                    onChange={handleChange('structureId')}
-                    required
-                    error={!!validationErrors.structureId}
-                    helperText={validationErrors.structureId || 'Organizational unit'}
-                  >
-                    {sortedStructures.length > 0 ? (
-                      sortedStructures.map((structure) => (
-                        <MenuItem key={structure.id} value={structure.id}>
-                          {getLocalizedName(structure, currentLanguage)}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No structures available</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth

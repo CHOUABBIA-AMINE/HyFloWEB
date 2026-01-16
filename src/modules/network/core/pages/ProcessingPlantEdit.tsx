@@ -7,6 +7,7 @@
  * @updated 01-15-2026 - Fixed LocationService import path
  * @updated 01-16-2026 - Added console logging and improved error handling for empty dropdown options
  * @updated 01-16-2026 - Applied compact location details template (single row layout)
+ * @updated 01-16-2026 - Moved Structure field before Location section
  */
 
 import { useState, useEffect } from 'react';
@@ -330,6 +331,25 @@ const ProcessingPlantEdit = () => {
                     inputProps={{ step: 0.01, min: 0 }}
                   />
                 </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth select label="Structure"
+                    value={plant.structureId || ''}
+                    onChange={handleChange('structureId')} required
+                    error={!!validationErrors.structureId}
+                    helperText={validationErrors.structureId || `${structures.length} structure(s) available`}
+                  >
+                    {structures.length > 0 ? (
+                      structures.map((struct) => (
+                        <MenuItem key={struct.id} value={struct.id}>
+                          {struct.name || struct.designationEn || struct.code}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No structures available</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
               </Grid>
             </Box>
           </Paper>
@@ -447,10 +467,10 @@ const ProcessingPlantEdit = () => {
             </Box>
           </Paper>
 
-          {/* Organization & Technical Details */}
+          {/* Technical Details */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>Organization & Technical Details</Typography>
+              <Typography variant="h6" fontWeight={600} gutterBottom>Technical Details</Typography>
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
@@ -470,25 +490,6 @@ const ProcessingPlantEdit = () => {
                       ))
                     ) : (
                       <MenuItem disabled>No statuses available</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth select label="Structure"
-                    value={plant.structureId || ''}
-                    onChange={handleChange('structureId')} required
-                    error={!!validationErrors.structureId}
-                    helperText={validationErrors.structureId || `${structures.length} structure(s) available`}
-                  >
-                    {structures.length > 0 ? (
-                      structures.map((struct) => (
-                        <MenuItem key={struct.id} value={struct.id}>
-                          {struct.name || struct.designationEn || struct.code}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>No structures available</MenuItem>
                     )}
                   </TextField>
                 </Grid>

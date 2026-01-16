@@ -7,6 +7,7 @@
  * @updated 01-08-2026 - Refactored for U-006 schema (locationId)
  * @updated 01-10-2026 - Applied i18n translations
  * @updated 01-16-2026 - Applied compact location details template (single row layout)
+ * @updated 01-16-2026 - Moved Structure field before Location section
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -405,6 +406,29 @@ const StationEdit = () => {
                     helperText={validationErrors.name || t('station.fields.nameHelper')}
                   />
                 </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label={t('station.fields.structure')}
+                    value={station.structureId || ''}
+                    onChange={handleChange('structureId')}
+                    required
+                    error={!!validationErrors.structureId}
+                    helperText={validationErrors.structureId || t('station.fields.structureHelper')}
+                  >
+                    {sortedStructures.length > 0 ? (
+                      sortedStructures.map((structure) => (
+                        <MenuItem key={structure.id} value={structure.id}>
+                          {getLocalizedName(structure, currentLanguage)}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
               </Grid>
             </Box>
           </Paper>
@@ -523,30 +547,6 @@ const StationEdit = () => {
                     </Paper>
                   </Grid>
                 )}
-
-                {/* Structure */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    select
-                    label={t('station.fields.structure')}
-                    value={station.structureId || ''}
-                    onChange={handleChange('structureId')}
-                    required
-                    error={!!validationErrors.structureId}
-                    helperText={validationErrors.structureId || t('station.fields.structureHelper')}
-                  >
-                    {sortedStructures.length > 0 ? (
-                      sortedStructures.map((structure) => (
-                        <MenuItem key={structure.id} value={structure.id}>
-                          {getLocalizedName(structure, currentLanguage)}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>{t('common.loading')}</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
               </Grid>
             </Box>
           </Paper>
