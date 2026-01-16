@@ -14,7 +14,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { ProcessingPlantTypeDTO } from '../dto/ProcessingPlantTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/type/processing-plant';
+const BASE_URL = '/network/type/processingPlant';
 
 export class ProcessingPlantTypeService {
   /**

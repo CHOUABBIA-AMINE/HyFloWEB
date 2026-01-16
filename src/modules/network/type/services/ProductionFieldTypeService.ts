@@ -14,7 +14,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { ProductionFieldTypeDTO } from '../dto/ProductionFieldTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/network/type/production-field';
+const BASE_URL = '/network/type/productionField';
 
 export class ProductionFieldTypeService {
   /**
