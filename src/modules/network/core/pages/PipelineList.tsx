@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - Fixed filter: pipelineSystem instead of pipelineType
  * @updated 01-16-2026 - Optimized translation keys and populated system dropdown
  * @updated 01-16-2026 - Moved length to list.* and added pipelineSystem column
+ * @updated 01-16-2026 - Use list.pipelineSystem consistently in headers and dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -412,13 +413,13 @@ const PipelineList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('pipeline.filterBySystem', 'Pipeline System')}</InputLabel>
+                <InputLabel>{t('list.pipelineSystem', 'Pipeline System')}</InputLabel>
                 <Select
                   value={systemFilter}
                   onChange={handleSystemFilterChange}
-                  label={t('pipeline.filterBySystem', 'Pipeline System')}
+                  label={t('list.pipelineSystem', 'Pipeline System')}
                 >
-                  <MenuItem value="">{t('pipeline.allSystems', 'All Systems')}</MenuItem>
+                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
                   {pipelineSystems.map((system) => (
                     <MenuItem key={system.id} value={system.id?.toString()}>
                       {system.code} - {system.name}
