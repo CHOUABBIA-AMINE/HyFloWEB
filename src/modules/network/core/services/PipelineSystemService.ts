@@ -96,7 +96,7 @@ export class PipelineSystemService {
    */
   static async findByProduct(productId: number): Promise<PipelineSystemDTO[]> {
     const response = await axiosInstance.get<PipelineSystemDTO[]>(
-      `${BASE_URL}/by-product/${productId}`
+      `${BASE_URL}/product/${productId}`
     );
     return response.data;
   }

@@ -96,7 +96,7 @@ export class PipelineService {
    */
   static async findByPipelineSystem(systemId: number): Promise<PipelineDTO[]> {
     const response = await axiosInstance.get<PipelineDTO[]>(
-      `${BASE_URL}/by-pipeline-system/${systemId}`
+      `${BASE_URL}/system/${systemId}`
     );
     return response.data;
   }
