@@ -1,10 +1,11 @@
 /**
- * Job List Page
+ * Job List Page - OPTIMIZED TRANSLATION KEYS
  * Displays paginated list of jobs with search and CRUD operations
  * 
  * @author CHOUABBIA Amine
  * @created 01-07-2026
  * @updated 01-08-2026 - Fixed structure nested object handling
+ * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -97,7 +98,7 @@ const JobList = () => {
       setTotalElements(response.totalElements || 0);
     } catch (err) {
       console.error('Error fetching jobs:', err);
-      setError(t('common.error', 'Error'));
+      setError(t('message.error', 'Error'));
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ const JobList = () => {
       setTotalElements(response.totalElements || 0);
     } catch (err) {
       console.error('Error searching jobs:', err);
-      setError(t('common.error', 'Error'));
+      setError(t('message.error', 'Error'));
     } finally {
       setLoading(false);
     }
@@ -130,7 +131,7 @@ const JobList = () => {
       fetchJobs();
     } catch (err) {
       console.error('Error deleting job:', err);
-      setError(t('common.error', 'Error'));
+      setError(t('message.error', 'Error'));
     }
   };
 
@@ -157,7 +158,7 @@ const JobList = () => {
               startIcon={<AddIcon />}
               onClick={() => navigate('/administration/jobs/create')}
             >
-              {t('job.create', 'Create Job')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
 
@@ -165,7 +166,7 @@ const JobList = () => {
           <Stack direction="row" spacing={2} mb={3}>
             <TextField
               fullWidth
-              placeholder={t('job.searchPlaceholder', 'Search...')}
+              placeholder={t('list.searchPlaceholder', 'Search...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -174,9 +175,9 @@ const JobList = () => {
               }}
             />
             <Button variant="outlined" onClick={handleSearch} sx={{ minWidth: '120px' }}>
-              {t('common.search', 'Search')}
+              {t('action.search', 'Search')}
             </Button>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={fetchJobs}>
                 <RefreshIcon />
               </IconButton>
@@ -196,23 +197,23 @@ const JobList = () => {
               <TableHead>
                 <TableRow>
                   <TableCell>ID</TableCell>
-                  <TableCell>{t('job.code', 'Code')}</TableCell>
-                  <TableCell>{t('job.designation', 'Designation')}</TableCell>
-                  <TableCell>{t('job.structure', 'Structure')}</TableCell>
-                  <TableCell align="right">{t('common.actions', 'Actions')}</TableCell>
+                  <TableCell>{t('list.code', 'Code')}</TableCell>
+                  <TableCell>{t('list.designation', 'Designation')}</TableCell>
+                  <TableCell>{t('list.structure', 'Structure')}</TableCell>
+                  <TableCell align="right">{t('list.actions', 'Actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {loading ? (
                   <TableRow>
                     <TableCell colSpan={5} align="center">
-                      {t('common.loading', 'Loading...')}
+                      {t('list.loading', 'Loading...')}
                     </TableCell>
                   </TableRow>
                 ) : jobs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} align="center">
-                      {t('common.noData', 'No data')}
+                      {t('list.noData', 'No data')}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -225,7 +226,7 @@ const JobList = () => {
                       <TableCell>{getDesignation(job)}</TableCell>
                       <TableCell>{getStructureDesignation(job)}</TableCell>
                       <TableCell align="right">
-                        <Tooltip title={t('common.edit', 'Edit')}>
+                        <Tooltip title={t('action.edit', 'Edit')}>
                           <IconButton
                             size="small"
                             onClick={() => navigate(`/administration/jobs/${job.id}/edit`)}
@@ -233,7 +234,7 @@ const JobList = () => {
                             <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title={t('common.delete', 'Delete')}>
+                        <Tooltip title={t('action.delete', 'Delete')}>
                           <IconButton
                             size="small"
                             color="error"
@@ -272,8 +273,8 @@ const JobList = () => {
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={deleteDialogOpen}
-        title={t('job.delete', 'Delete Job')}
-        message={t('job.deleteConfirm', 'Are you sure you want to delete this job?')}
+        title={t('action.delete', 'Delete')}
+        message={t('action.confirmDelete', 'Are you sure you want to delete this item?')}
         onConfirm={handleDelete}
         onCancel={() => {
           setDeleteDialogOpen(false);
