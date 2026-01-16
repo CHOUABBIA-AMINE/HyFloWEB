@@ -16,6 +16,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column, optimized reactivity
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
+ * @updated 01-16-2026 - Moved common field keys to list.* namespace
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -181,16 +182,16 @@ const VendorList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: t('vendor.shortName', 'Short Name'), key: 'shortName', width: 15 },
-    { header: t('vendor.name', 'Name'), key: 'name', width: 30 },
+    { header: t('list.shortName', 'Short Name'), key: 'shortName', width: 15 },
+    { header: t('list.name', 'Name'), key: 'name', width: 30 },
     { 
-      header: t('vendor.type', 'Type'), 
+      header: t('list.type', 'Type'), 
       key: 'vendorType',
       width: 20,
       transform: (value) => getMultiLangDesignation(value, lang)
     },
     { 
-      header: t('vendor.country', 'Country'), 
+      header: t('list.country', 'Country'), 
       key: 'country',
       width: 20,
       transform: (value) => getMultiLangDesignation(value, lang)
@@ -233,7 +234,7 @@ const VendorList = () => {
   const columns: GridColDef[] = useMemo(() => [
     {
       field: 'shortName',
-      headerName: t('vendor.shortName', 'Short Name'),
+      headerName: t('list.shortName', 'Short Name'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -245,7 +246,7 @@ const VendorList = () => {
     },
     {
       field: 'name',
-      headerName: t('vendor.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -256,7 +257,7 @@ const VendorList = () => {
     },
     {
       field: 'vendorType',
-      headerName: t('vendor.type', 'Type'),
+      headerName: t('list.type', 'Type'),
       minWidth: 180,
       flex: 1,
       valueGetter: (params) => getMultiLangDesignation(params.row.vendorType, lang),
@@ -270,7 +271,7 @@ const VendorList = () => {
     },
     {
       field: 'country',
-      headerName: t('vendor.country', 'Country'),
+      headerName: t('list.country', 'Country'),
       minWidth: 180,
       flex: 1,
       valueGetter: (params) => getMultiLangDesignation(params.row.country, lang),
