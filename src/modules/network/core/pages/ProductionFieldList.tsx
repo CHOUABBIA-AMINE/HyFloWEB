@@ -57,8 +57,10 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
-import { ProductionFieldService, ProductionFieldTypeService } from '../services';
-import { ProductionFieldDTO, ProductionFieldTypeDTO } from '../dto';
+import { ProductionFieldService } from '../services';
+import { ProductionFieldTypeService } from '../../type/services';
+import { ProductionFieldDTO } from '../dto';
+import { ProductionFieldTypeDTO } from '../../type/dto';
 import { 
   exportToCSV, 
   exportToExcel, 
