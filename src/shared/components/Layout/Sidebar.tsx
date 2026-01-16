@@ -13,6 +13,7 @@
  * @updated 01-06-2026 - Added Pipeline Map entry under Workspace
  * @updated 01-09-2026 - Restructured menu: Created General section, moved Organization & Localization from Network
  * @updated 01-09-2026 - Removed Regions menu item (entity no longer exists)
+ * @updated 01-16-2026 - Replaced HydrocarbonFields with ProcessingPlants (matches data model: ProcessingPlant contains ProductionFields)
  */
 
 import {
@@ -52,6 +53,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import MapIcon from '@mui/icons-material/Map';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import AppsIcon from '@mui/icons-material/Apps';
+import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -81,6 +83,7 @@ const Sidebar = ({ open }: SidebarProps) => {
   // Top-level order: Home, Workspace, General, Network, System
   // General: Organization (Structures, Employees) + Localization (Locations)
   // Network: Common (Products, Partners, Vendors) + Core (Pipeline systems, infrastructure)
+  // Note: ProcessingPlant contains ProductionFields in the data model
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -181,9 +184,9 @@ const Sidebar = ({ open }: SidebarProps) => {
               path: '/network/core/pipelines',
             },
             {
-              titleKey: 'nav.hydrocarbonFields',
-              icon: <OilBarrelIcon />,
-              path: '/network/core/hydrocarbon-fields',
+              titleKey: 'nav.processingPlants',
+              icon: <PrecisionManufacturingIcon />,
+              path: '/network/core/processing-plants',
             },
             {
               titleKey: 'nav.stations',
