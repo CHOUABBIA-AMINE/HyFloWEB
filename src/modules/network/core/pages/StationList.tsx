@@ -16,6 +16,7 @@
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Optimized translation keys and populated type dropdown
  * @updated 01-16-2026 - Moved location to list.* namespace
+ * @updated 01-16-2026 - Fixed location field to access nested location.placeName
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -199,7 +200,12 @@ const StationList = () => {
   const exportColumns: ExportColumn[] = [
     { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { header: t('list.name', 'Name'), key: 'name', width: 30 },
-    { header: t('list.location', 'Location'), key: 'placeName', width: 25 },
+    { 
+      header: t('list.location', 'Location'), 
+      key: 'location',
+      width: 25,
+      transform: (value: any) => value?.placeName || '-'
+    },
     { 
       header: t('list.type', 'Type'), 
       key: 'stationType',
@@ -266,13 +272,14 @@ const StationList = () => {
       )
     },
     { 
-      field: 'placeName', 
+      field: 'location', 
       headerName: t('list.location', 'Location'),
       minWidth: 200,
       flex: 1,
+      valueGetter: (params) => params.row.location?.placeName || '-',
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary">
-          {params.value || '-'}
+          {params.value}
         </Typography>
       )
     },
