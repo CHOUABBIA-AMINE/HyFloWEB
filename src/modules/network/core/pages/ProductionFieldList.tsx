@@ -1,5 +1,5 @@
 /**
- * ProductionField List Page - ADVANCED PATTERN
+ * ProductionField List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
@@ -13,6 +13,7 @@
  * @author CHOUABBIA Amine
  * @created 01-15-2026
  * @updated 01-16-2026 - Upgraded to advanced pattern
+ * @updated 01-16-2026 - Optimized translation keys and populated type dropdown
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -56,8 +57,8 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
-import { ProductionFieldService } from '../services';
-import { ProductionFieldDTO } from '../dto';
+import { ProductionFieldService, ProductionFieldTypeService } from '../services';
+import { ProductionFieldDTO, ProductionFieldTypeDTO } from '../dto';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -78,6 +79,7 @@ const ProductionFieldList = () => {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('');
+  const [fieldTypes, setFieldTypes] = useState<ProductionFieldTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -86,6 +88,19 @@ const ProductionFieldList = () => {
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
+
+  // Load production field types on mount
+  useEffect(() => {
+    const loadProductionFieldTypes = async () => {
+      try {
+        const types = await ProductionFieldTypeService.getAllNoPagination();
+        setFieldTypes(types);
+      } catch (err) {
+        console.error('Failed to load production field types:', err);
+      }
+    };
+    loadProductionFieldTypes();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
@@ -125,7 +140,7 @@ const ProductionFieldList = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load production fields:', err);
-      setError(err.message || t('productionField.errorLoading', 'Failed to load production fields'));
+      setError(err.message || t('message.errorLoading', 'Failed to load data'));
       setFields([]);
       setTotalRows(0);
     } finally {
@@ -142,14 +157,14 @@ const ProductionFieldList = () => {
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (window.confirm(t('productionField.confirmDelete', 'Delete this production field?'))) {
+    if (window.confirm(t('action.confirmDelete', 'Are you sure you want to delete this item?'))) {
       try { 
         await ProductionFieldService.delete(id); 
-        setSuccess(t('productionField.deleteSuccess', 'Production field deleted successfully')); 
+        setSuccess(t('message.deleteSuccess', 'Item deleted successfully')); 
         loadData();
         setTimeout(() => setSuccess(''), 3000);
       } catch (err: any) { 
-        setError(err.message || t('productionField.deleteError', 'Failed to delete production field')); 
+        setError(err.message || t('message.deleteError', 'Failed to delete item')); 
       }
     }
   };
@@ -162,7 +177,7 @@ const ProductionFieldList = () => {
 
   const handleRefresh = () => {
     loadData();
-    setSuccess(t('common.refreshed', 'Data refreshed'));
+    setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
@@ -178,14 +193,14 @@ const ProductionFieldList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: t('productionField.code', 'Code'), key: 'code', width: 15 },
+    { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { 
-      header: t('productionField.name', 'Name'), 
+      header: t('list.name', 'Name'), 
       key: 'name',
       width: 35
     },
     { 
-      header: t('productionField.type', 'Type'), 
+      header: t('list.type', 'Type'), 
       key: 'productionFieldType',
       width: 25,
       transform: (value) => getMultiLangDesignation(value, lang)
@@ -198,7 +213,7 @@ const ProductionFieldList = () => {
       title: t('productionField.title', 'Production Fields'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedCSV', 'Exported to CSV'));
+    setSuccess(t('message.exportedCSV', 'Exported to CSV'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -209,7 +224,7 @@ const ProductionFieldList = () => {
       title: t('productionField.title', 'Production Fields'),
       columns: exportColumns
     });
-    setSuccess(t('common.exportedExcel', 'Exported to Excel'));
+    setSuccess(t('message.exportedExcel', 'Exported to Excel'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -220,7 +235,7 @@ const ProductionFieldList = () => {
       title: t('productionField.title', 'Production Fields'),
       columns: exportColumns
     }, t);
-    setSuccess(t('common.exportedPDF', 'Exported to PDF'));
+    setSuccess(t('message.exportedPDF', 'Exported to PDF'));
     setTimeout(() => setSuccess(''), 2000);
     handleExportMenuClose();
   };
@@ -228,7 +243,7 @@ const ProductionFieldList = () => {
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
-      headerName: t('productionField.code', 'Code'),
+      headerName: t('list.code', 'Code'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -240,7 +255,7 @@ const ProductionFieldList = () => {
     },
     { 
       field: 'name', 
-      headerName: t('productionField.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -251,7 +266,7 @@ const ProductionFieldList = () => {
     },
     { 
       field: 'productionFieldType', 
-      headerName: t('productionField.type', 'Type'),
+      headerName: t('list.type', 'Type'),
       width: 180,
       valueGetter: (params) => getMultiLangDesignation(params.row.productionFieldType, lang),
       renderCell: (params) => (
@@ -262,14 +277,14 @@ const ProductionFieldList = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions', 'Actions'),
+      headerName: t('list.actions', 'Actions'),
       width: 130,
       align: 'center',
       headerAlign: 'center',
       sortable: false,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <Tooltip title={t('common.edit', 'Edit')}>
+          <Tooltip title={t('action.edit', 'Edit')}>
             <IconButton
               size="small"
               onClick={() => navigate(`/network/core/production-fields/${params.row.id}/edit`)}
@@ -278,7 +293,7 @@ const ProductionFieldList = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <Tooltip title={t('common.delete', 'Delete')}>
+          <Tooltip title={t('action.delete', 'Delete')}>
             <IconButton
               size="small"
               onClick={() => handleDelete(params.row.id)}
@@ -300,7 +315,7 @@ const ProductionFieldList = () => {
             {t('productionField.title', 'Production Fields')}
           </Typography>
           <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('common.refresh', 'Refresh')}>
+            <Tooltip title={t('action.refresh', 'Refresh')}>
               <IconButton onClick={handleRefresh} size="medium" color="primary">
                 <RefreshIcon />
               </IconButton>
@@ -311,7 +326,7 @@ const ProductionFieldList = () => {
               onClick={handleExportMenuOpen}
               sx={{ borderRadius: 2 }}
             >
-              {t('common.export', 'Export')}
+              {t('action.export', 'Export')}
             </Button>
             <Button
               variant="contained"
@@ -319,7 +334,7 @@ const ProductionFieldList = () => {
               onClick={() => navigate('/network/core/production-fields/create')}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('productionField.create', 'Create Production Field')}
+              {t('action.create', 'Create')}
             </Button>
           </Stack>
         </Box>
@@ -336,15 +351,15 @@ const ProductionFieldList = () => {
       >
         <MenuItem onClick={handleExportCSV}>
           <ListItemIcon><CsvIcon fontSize="small" /></ListItemIcon>
-          <ListItemText>{t('common.exportCSV', 'Export CSV')}</ListItemText>
+          <ListItemText>{t('action.exportCSV', 'Export CSV')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportExcel}>
           <ListItemIcon><ExcelIcon fontSize="small" color="success" /></ListItemIcon>
-          <ListItemText>{t('common.exportExcel', 'Export Excel')}</ListItemText>
+          <ListItemText>{t('action.exportExcel', 'Export Excel')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleExportPDF}>
           <ListItemIcon><PdfIcon fontSize="small" color="error" /></ListItemIcon>
-          <ListItemText>{t('common.exportPDF', 'Export PDF')}</ListItemText>
+          <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -370,13 +385,18 @@ const ProductionFieldList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('productionField.filterByType', 'Field Type')}</InputLabel>
+                <InputLabel>{t('list.type', 'Type')}</InputLabel>
                 <Select
                   value={typeFilter}
                   onChange={handleTypeFilterChange}
-                  label={t('productionField.filterByType', 'Field Type')}
+                  label={t('list.type', 'Type')}
                 >
-                  <MenuItem value="">{t('productionField.allTypes', 'All Types')}</MenuItem>
+                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
+                  {fieldTypes.map((type) => (
+                    <MenuItem key={type.id} value={type.id?.toString()}>
+                      {getMultiLangDesignation(type, lang)}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -387,7 +407,7 @@ const ProductionFieldList = () => {
                   onClick={handleClearFilters}
                   sx={{ minWidth: 140 }}
                 >
-                  {t('common.clearFilters', 'Clear Filters')}
+                  {t('action.clearFilters', 'Clear Filters')}
                 </Button>
               )}
             </Box>
@@ -396,7 +416,7 @@ const ProductionFieldList = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                {totalRows} {t('common.results', 'results')}
+                {totalRows} {t('list.results', 'results')}
               </Typography>
             </Box>
           </Stack>
