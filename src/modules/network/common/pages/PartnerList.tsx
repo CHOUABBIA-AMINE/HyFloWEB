@@ -16,6 +16,7 @@
  * @updated 01-10-2026 - Applied i18n, removed ID column, optimized reactivity
  * @updated 01-16-2026 - Upgraded to advanced pattern with export and debounce
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
+ * @updated 01-16-2026 - Moved common field keys to list.* namespace
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -182,16 +183,16 @@ const PartnerList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: t('partner.shortName', 'Short Name'), key: 'shortName', width: 15 },
-    { header: t('partner.name', 'Name'), key: 'name', width: 30 },
+    { header: t('list.shortName', 'Short Name'), key: 'shortName', width: 15 },
+    { header: t('list.name', 'Name'), key: 'name', width: 30 },
     { 
-      header: t('partner.type', 'Type'), 
+      header: t('list.type', 'Type'), 
       key: 'partnerType',
       width: 20,
       transform: (value) => getMultiLangDesignation(value, lang)
     },
     { 
-      header: t('partner.country', 'Country'), 
+      header: t('list.country', 'Country'), 
       key: 'country',
       width: 20,
       transform: (value) => getMultiLangDesignation(value, lang)
@@ -234,7 +235,7 @@ const PartnerList = () => {
   const columns: GridColDef[] = useMemo(() => [
     {
       field: 'shortName',
-      headerName: t('partner.shortName', 'Short Name'),
+      headerName: t('list.shortName', 'Short Name'),
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -246,7 +247,7 @@ const PartnerList = () => {
     },
     {
       field: 'name',
-      headerName: t('partner.name', 'Name'),
+      headerName: t('list.name', 'Name'),
       minWidth: 250,
       flex: 1,
       renderCell: (params) => (
@@ -257,7 +258,7 @@ const PartnerList = () => {
     },
     {
       field: 'partnerType',
-      headerName: t('partner.type', 'Type'),
+      headerName: t('list.type', 'Type'),
       minWidth: 180,
       flex: 1,
       valueGetter: (params) => getMultiLangDesignation(params.row.partnerType, lang),
@@ -271,7 +272,7 @@ const PartnerList = () => {
     },
     {
       field: 'country',
-      headerName: t('partner.country', 'Country'),
+      headerName: t('list.country', 'Country'),
       minWidth: 180,
       flex: 1,
       valueGetter: (params) => getMultiLangDesignation(params.row.country, lang),
