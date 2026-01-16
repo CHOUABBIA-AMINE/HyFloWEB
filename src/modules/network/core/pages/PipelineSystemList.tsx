@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - VERIFIED: Pagination [5,10,15] and full i18n
  * @updated 01-16-2026 - FIXED: Property access for operationalStatus
  * @updated 01-16-2026 - Optimized translation keys and populated status dropdown
+ * @updated 01-16-2026 - Moved structure, status, product to list.* namespace
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -201,19 +202,19 @@ const PipelineSystemList = () => {
     { header: t('list.code', 'Code'), key: 'code', width: 15 },
     { header: t('list.name', 'Name'), key: 'name', width: 25 },
     { 
-      header: t('pipelineSystem.structure', 'Structure'), 
+      header: t('list.structure', 'Structure'), 
       key: 'structure',
       width: 15,
       transform: (value) => value?.code || '-'
     },
     { 
-      header: t('pipelineSystem.product', 'Product'), 
+      header: t('list.product', 'Product'), 
       key: 'product',
       width: 20,
       transform: (value) => getMultiLangDesignation(value, lang)
     },
     { 
-      header: t('pipelineSystem.status', 'Status'), 
+      header: t('list.status', 'Status'), 
       key: 'operationalStatus',
       width: 15,
       transform: (value) => getMultiLangDesignation(value, lang)
@@ -279,7 +280,7 @@ const PipelineSystemList = () => {
     },
     { 
       field: 'structure', 
-      headerName: t('pipelineSystem.structure', 'Structure'),
+      headerName: t('list.structure', 'Structure'),
       width: 140,
       valueGetter: (params) => params.row.structure?.code || '-',
       renderCell: (params) => (
@@ -290,7 +291,7 @@ const PipelineSystemList = () => {
     },
     { 
       field: 'product', 
-      headerName: t('pipelineSystem.product', 'Product'),
+      headerName: t('list.product', 'Product'),
       minWidth: 150,
       flex: 1,
       valueGetter: (params) => getMultiLangDesignation(params.row.product, lang),
@@ -302,7 +303,7 @@ const PipelineSystemList = () => {
     },
     { 
       field: 'operationalStatus', 
-      headerName: t('pipelineSystem.status', 'Status'),
+      headerName: t('list.status', 'Status'),
       width: 140,
       valueGetter: (params) => getMultiLangDesignation(params.row.operationalStatus, lang),
       renderCell: (params) => params.value && params.value !== '-' ? (
