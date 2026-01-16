@@ -14,6 +14,7 @@
  * @updated 01-07-2026 - Fixed service imports
  * @updated 01-10-2026 - Applied i18n, removed ID column
  * @updated 01-16-2026 - Upgraded to advanced pattern
+ * @updated 01-16-2026 - Fixed filter: pipelineSystem instead of pipelineType
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -78,7 +79,8 @@ const PipelineList = () => {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('');
+  // ✅ FIX: Renamed from typeFilter to systemFilter for clarity
+  const [systemFilter, setSystemFilter] = useState<string>('');
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -95,7 +97,7 @@ const PipelineList = () => {
 
   useEffect(() => {
     loadData();
-  }, [paginationModel, sortModel, debouncedSearch, typeFilter]);
+  }, [paginationModel, sortModel, debouncedSearch, systemFilter]);
 
   const loadData = async () => {
     try {
@@ -115,9 +117,10 @@ const PipelineList = () => {
       
       let filteredContent = pageResponse.content;
       
-      if (typeFilter) {
+      // ✅ FIX: Use pipelineSystem instead of pipelineType
+      if (systemFilter) {
         filteredContent = filteredContent.filter((pipeline: PipelineDTO) => 
-          pipeline.pipelineType?.id?.toString() === typeFilter
+          pipeline.pipelineSystem?.id?.toString() === systemFilter
         );
       }
       
@@ -157,7 +160,7 @@ const PipelineList = () => {
 
   const handleClearFilters = () => {
     setSearchText('');
-    setTypeFilter('');
+    setSystemFilter('');
     setPaginationModel({ page: 0, pageSize: 10 });
   };
 
@@ -167,8 +170,8 @@ const PipelineList = () => {
     setTimeout(() => setSuccess(''), 2000);
   };
 
-  const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
-    setTypeFilter(event.target.value);
+  const handleSystemFilterChange = (event: SelectChangeEvent<string>) => {
+    setSystemFilter(event.target.value);
     setPaginationModel({ ...paginationModel, page: 0 });
   };
 
@@ -188,10 +191,10 @@ const PipelineList = () => {
       transform: (value) => value ? `${value.toFixed(2)} km` : '-'
     },
     { 
-      header: t('pipeline.columns.diameter', 'Diameter'), 
-      key: 'diameter',
+      header: t('pipeline.columns.nominalDiameter', 'Diameter'), 
+      key: 'nominalDiameter',
       width: 15,
-      transform: (value) => value ? `${value}"` : '-'
+      transform: (value) => value || '-'
     }
   ];
 
@@ -374,17 +377,17 @@ const PipelineList = () => {
               />
 
               <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('pipeline.filterByType', 'Pipeline Type')}</InputLabel>
+                <InputLabel>{t('pipeline.filterBySystem', 'Pipeline System')}</InputLabel>
                 <Select
-                  value={typeFilter}
-                  onChange={handleTypeFilterChange}
-                  label={t('pipeline.filterByType', 'Pipeline Type')}
+                  value={systemFilter}
+                  onChange={handleSystemFilterChange}
+                  label={t('pipeline.filterBySystem', 'Pipeline System')}
                 >
-                  <MenuItem value="">{t('pipeline.allTypes', 'All Types')}</MenuItem>
+                  <MenuItem value="">{t('pipeline.allSystems', 'All Systems')}</MenuItem>
                 </Select>
               </FormControl>
 
-              {(searchText || typeFilter) && (
+              {(searchText || systemFilter) && (
                 <Button
                   variant="outlined"
                   startIcon={<FilterIcon />}
