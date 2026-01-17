@@ -1,10 +1,9 @@
 /**
- * Pipeline List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
+ * Pipeline List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
- * - Debounced global search
- * - Advanced filters with pipeline system
+ * - Server-side global search (no debounce needed)
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX
@@ -18,6 +17,7 @@
  * @updated 01-16-2026 - Optimized translation keys and populated system dropdown
  * @updated 01-16-2026 - Moved length to list.* and added pipelineSystem column
  * @updated 01-16-2026 - Use list.pipelineSystem consistently in headers and dropdown
+ * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -37,12 +37,8 @@ import {
   Chip,
   Tooltip,
   alpha,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
   Menu,
+  MenuItem,
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
@@ -52,7 +48,6 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Refresh as RefreshIcon,
-  FilterList as FilterIcon,
   FileDownload as ExportIcon,
   TableChart as CsvIcon,
   Description as ExcelIcon,
@@ -61,13 +56,12 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
-import { PipelineService, PipelineSystemService } from '../services';
-import { PipelineDTO, PipelineSystemDTO } from '../dto';
+import { PipelineService } from '../services';
+import { PipelineDTO } from '../dto';
 import { 
   exportToCSV, 
   exportToExcel, 
   exportToPDF,
-  getMultiLangDesignation,
   ExportColumn
 } from '@/shared/utils/exportUtils';
 
@@ -81,9 +75,6 @@ const PipelineList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [systemFilter, setSystemFilter] = useState<string>('');
-  const [pipelineSystems, setPipelineSystems] = useState<PipelineSystemDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -93,27 +84,9 @@ const PipelineList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
-  // Load pipeline systems on mount
-  useEffect(() => {
-    const loadPipelineSystems = async () => {
-      try {
-        const systems = await PipelineSystemService.getAllNoPagination();
-        setPipelineSystems(systems);
-      } catch (err) {
-        console.error('Failed to load pipeline systems:', err);
-      }
-    };
-    loadPipelineSystems();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
   useEffect(() => {
     loadData();
-  }, [paginationModel, sortModel, debouncedSearch, systemFilter]);
+  }, [paginationModel, sortModel, searchText]);
 
   const loadData = async () => {
     try {
@@ -127,19 +100,11 @@ const PipelineList = () => {
         sort: `${sortField},${sortDir}`
       };
 
-      const pageResponse = debouncedSearch 
-        ? await PipelineService.globalSearch(debouncedSearch, pageable)
+      const pageResponse = searchText
+        ? await PipelineService.globalSearch(searchText, pageable)
         : await PipelineService.getAll(pageable);
       
-      let filteredContent = pageResponse.content;
-      
-      if (systemFilter) {
-        filteredContent = filteredContent.filter((pipeline: PipelineDTO) => 
-          pipeline.pipelineSystem?.id?.toString() === systemFilter
-        );
-      }
-      
-      setPipelines(filteredContent);
+      setPipelines(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
@@ -173,21 +138,10 @@ const PipelineList = () => {
     }
   };
 
-  const handleClearFilters = () => {
-    setSearchText('');
-    setSystemFilter('');
-    setPaginationModel({ page: 0, pageSize: 10 });
-  };
-
   const handleRefresh = () => {
     loadData();
     setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
-  };
-
-  const handleSystemFilterChange = (event: SelectChangeEvent<string>) => {
-    setSystemFilter(event.target.value);
-    setPaginationModel({ ...paginationModel, page: 0 });
   };
 
   const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -397,48 +351,19 @@ const PipelineList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                placeholder={t('pipeline.searchPlaceholder', 'Search by code or name...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ flex: 1, minWidth: 300 }}
-              />
-
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('list.pipelineSystem', 'Pipeline System')}</InputLabel>
-                <Select
-                  value={systemFilter}
-                  onChange={handleSystemFilterChange}
-                  label={t('list.pipelineSystem', 'Pipeline System')}
-                >
-                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
-                  {pipelineSystems.map((system) => (
-                    <MenuItem key={system.id} value={system.id?.toString()}>
-                      {system.code} - {system.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {(searchText || systemFilter) && (
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterIcon />}
-                  onClick={handleClearFilters}
-                  sx={{ minWidth: 140 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Box>
+            <TextField
+              placeholder={t('pipeline.searchPlaceholder', 'Search by code or name...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
 
             <Divider />
 
