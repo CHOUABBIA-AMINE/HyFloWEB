@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - Fixed export transform signature
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
+ * @updated 01-17-2026 - Fixed: Added missing MenuItem import
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -37,6 +38,7 @@ import {
   Tooltip,
   alpha,
   Menu,
+  MenuItem,
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
