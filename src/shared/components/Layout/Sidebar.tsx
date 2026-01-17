@@ -14,6 +14,7 @@
  * @updated 01-09-2026 - Restructured menu: Created General section, moved Organization & Localization from Network
  * @updated 01-09-2026 - Removed Regions menu item (entity no longer exists)
  * @updated 01-16-2026 - Replaced HydrocarbonFields with ProcessingPlants (matches data model: ProcessingPlant contains ProductionFields)
+ * @updated 01-17-2026 - Updated processingPlants menu entry to use 'processingPlant.title' translation key
  */
 
 import {
@@ -184,7 +185,7 @@ const Sidebar = ({ open }: SidebarProps) => {
               path: '/network/core/pipelines',
             },
             {
-              titleKey: 'nav.processingPlants',
+              titleKey: 'processingPlant.title',
               icon: <PrecisionManufacturingIcon />,
               path: '/network/core/processing-plants',
             },

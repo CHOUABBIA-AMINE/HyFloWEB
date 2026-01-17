@@ -16,6 +16,7 @@
  * @updated 01-16-2026 - Updated with i18n translation keys aligned with Network Core pattern
  * @updated 01-16-2026 - Removed ID column
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
+ * @updated 01-17-2026 - Fixed subtitle to use translation key
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -304,7 +305,7 @@ const UserList = () => {
           </Stack>
         </Box>
         <Typography variant="body2" color="text.secondary">
-          {t('user.subtitle', 'Manage and organize user accounts')}
+          {t('user.subtitle', 'Manage user accounts')}
         </Typography>
       </Box>
 

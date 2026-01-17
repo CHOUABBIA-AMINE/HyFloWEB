@@ -16,6 +16,7 @@
  * @updated 01-16-2026 - Added full export functionality and i18n translation keys
  * @updated 01-16-2026 - Removed ID column
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
+ * @updated 01-17-2026 - Fixed subtitle to use translation key
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
