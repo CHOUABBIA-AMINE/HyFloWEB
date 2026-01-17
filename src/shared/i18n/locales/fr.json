@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Plateforme IAAS",
-    "description": "Gestion de l'Infrastructure en tant que Service"
+    "name": "Plateforme HyFlo",
+    "description": "Gestion de Flux d'Hydrocarbures"
   },
   "list": {
     "code": "Code",
@@ -89,7 +89,9 @@
     "filters": "Filtres",
     "clear": "Effacer",
     "total": "total",
-    "id": "ID"
+    "id": "ID",
+    "none": "Aucun",
+    "loading": "Chargement..."
   },
   "product": {
     "title": "Produits",
@@ -337,11 +339,11 @@
     "sections": {
       "basicInformation": "Informations de Base",
       "dimensionalSpecifications": "Spécifications Dimensionnelles",
-      "pressureSpecifications": "Spécifications de Pression",
+      "pressureSpecifications": "Spécifications de Pression (bar)",
       "capacitySpecifications": "Spécifications de Capacité",
       "materialCoating": "Matériau et Revêtement",
       "operationalDetails": "Détails Opérationnels",
-      "connectedFacilities": "Installations Connectées",
+      "connectedTerminals": "Terminaux Connectés",
       "importantDates": "Dates Importantes"
     },
     "fields": {
@@ -350,31 +352,41 @@
       "name": "Nom du Pipeline",
       "nameHelper": "3-100 caractères",
       "nominalDiameter": "Diamètre Nominal (po)",
-      "nominalDiameterHelper": "Diamètre du tuyau",
+      "nominalDiameterHelper": "Diamètre du tuyau en pouces",
       "nominalThickness": "Épaisseur Nominale (mm)",
-      "nominalThicknessHelper": "Épaisseur de paroi",
+      "nominalThicknessHelper": "Épaisseur de paroi en millimètres",
       "length": "Longueur (km)",
       "lengthHelper": "Longueur totale du pipeline en kilomètres",
       "nominalRoughness": "Rugosité Nominale (mm)",
       "nominalRoughnessHelper": "Rugosité de surface intérieure",
       "designMaxServicePressure": "Pression Maximale de Service de Conception",
+      "designMaxServicePressureHelper": "Pression maximale de conception",
       "operationalMaxServicePressure": "Pression Maximale de Service Opérationnelle",
+      "operationalMaxServicePressureHelper": "Pression maximale opérationnelle",
       "designMinServicePressure": "Pression Minimale de Service de Conception",
+      "designMinServicePressureHelper": "Pression minimale de conception",
       "operationalMinServicePressure": "Pression Minimale de Service Opérationnelle",
+      "operationalMinServicePressureHelper": "Pression minimale opérationnelle",
       "designCapacity": "Capacité de Conception",
       "designCapacityHelper": "Capacité de débit maximale conçue",
       "operationalCapacity": "Capacité Opérationnelle",
       "operationalCapacityHelper": "Capacité de débit opérationnelle actuelle",
       "nominalConstructionMaterial": "Matériau de Construction Nominal",
+      "nominalConstructionMaterialHelper": "Matériau principal du tuyau",
       "nominalExteriorCoating": "Revêtement Extérieur Nominal",
+      "nominalExteriorCoatingHelper": "Type de revêtement extérieur",
       "nominalInteriorCoating": "Revêtement Intérieur Nominal",
+      "nominalInteriorCoatingHelper": "Type de revêtement intérieur",
       "operationalStatus": "Statut Opérationnel",
       "operationalStatusHelper": "État opérationnel actuel",
       "vendor": "Fournisseur",
       "vendorHelper": "Entrepreneur/fournisseur du pipeline",
       "pipelineSystem": "Système de Pipeline",
-      "departureFacility": "Installation de Départ",
-      "arrivalFacility": "Installation d'Arrivée",
+      "pipelineSystemHelper": "Système de pipeline associé",
+      "departureTerminal": "Terminal de Départ",
+      "departureTerminalHelper": "Terminal de départ",
+      "arrivalTerminal": "Terminal d'Arrivée",
+      "arrivalTerminalHelper": "Terminal d'arrivée",
       "installationDate": "Date d'Installation",
       "installationDateHelper": "Quand le pipeline a été installé",
       "commissioningDate": "Date de Mise en Service",
@@ -383,13 +395,11 @@
       "decommissioningDateHelper": "Quand le pipeline a été retiré (si applicable)"
     },
     "validation": {
-      "nameRequired": "Le nom du pipeline doit contenir au moins 3 caractères",
-      "codeRequired": "Le code du pipeline doit contenir au moins 2 caractères",
+      "nameRequired": "Le nom du pipeline doit contenir au moins 2 caractères",
+      "codeRequired": "Le code du pipeline est requis",
       "lengthRequired": "La longueur doit être supérieure à 0",
       "operationalStatusRequired": "Le statut opérationnel est requis",
-      "vendorRequired": "Le fournisseur est requis",
-      "locationRequired": "L'emplacement est requis",
-      "pipelineTypeRequired": "Le type de pipeline est requis"
+      "vendorRequired": "Le fournisseur est requis"
     }
   },
   "pipelineSystem": {
@@ -406,55 +416,107 @@
     },
     "sections": {
       "basicInformation": "Informations de Base",
-      "classification": "Classification",
-      "organization": "Organisation",
-      "importantDates": "Dates Importantes"
+      "operational": "Détails Opérationnels"
     },
     "fields": {
       "code": "Code du Système",
       "codeHelper": "2-20 caractères",
       "name": "Nom du Système",
       "nameHelper": "3-100 caractères",
-      "product": "Produit",
-      "productHelper": "Type de produit transporté",
-      "structure": "Structure",
-      "structureHelper": "Unité organisationnelle",
-      "pipelineSystemType": "Type de Système",
-      "pipelineSystemTypeHelper": "Sélectionner le type de système",
       "operationalStatus": "Statut Opérationnel",
       "operationalStatusHelper": "État opérationnel actuel",
-      "installationDate": "Date d'Installation",
-      "installationDateHelper": "Quand le système a été installé",
-      "commissioningDate": "Date de Mise en Service",
-      "commissioningDateHelper": "Quand le système est devenu opérationnel",
-      "decommissioningDate": "Date de Mise Hors Service",
-      "decommissioningDateHelper": "Quand le système a été retiré (si applicable)"
+      "vendor": "Fournisseur",
+      "vendorHelper": "Opérateur/fournisseur du système"
     },
     "validation": {
-      "nameRequired": "Le nom du système doit contenir au moins 3 caractères",
+      "nameRequired": "Le nom du système doit contenir au moins 2 caractères",
       "codeRequired": "Le code du système doit contenir au moins 2 caractères",
-      "productRequired": "Le produit est requis",
-      "structureRequired": "La structure est requise",
-      "pipelineSystemTypeRequired": "Le type de système est requis",
-      "operationalStatusRequired": "Le statut opérationnel est requis"
+      "operationalStatusRequired": "Le statut opérationnel est requis",
+      "vendorRequired": "Le fournisseur est requis"
     }
   },
-  "hydrocarbonField": {
-    "title": "Champs d'Hydrocarbures",
-    "subtitle": "Gérer les infrastructures des champs d'hydrocarbures",
-    "searchPlaceholder": "Rechercher des champs d'hydrocarbures...",
+  "processingPlant": {
+    "title": "Usines de Traitement",
+    "subtitle": "Gérer les installations et opérations des usines de traitement",
+    "searchPlaceholder": "Rechercher des usines de traitement...",
     "createPage": {
-      "title": "Créer un Champ d'Hydrocarbures",
-      "subtitle": "Créer un nouveau champ d'hydrocarbures"
+      "title": "Créer une Usine de Traitement",
+      "subtitle": "Créer une nouvelle usine de traitement"
     },
     "editPage": {
-      "title": "Modifier le Champ d'Hydrocarbures",
-      "subtitle": "Mettre à jour les informations et détails du champ d'hydrocarbures"
+      "title": "Modifier l'Usine de Traitement",
+      "subtitle": "Mettre à jour les informations et détails de l'usine de traitement"
     },
     "sections": {
       "basicInformation": "Informations de Base",
-      "locationDetails": "Détails de Localisation",
-      "technicalDetails": "Détails Techniques",
+      "locationInformation": "Informations de Localisation",
+      "capacitySpecifications": "Spécifications de Capacité",
+      "organizationTechnical": "Organisation et Détails Techniques",
+      "importantDates": "Dates Importantes"
+    },
+    "fields": {
+      "code": "Code de l'Usine",
+      "codeHelper": "2-20 caractères",
+      "name": "Nom de l'Usine",
+      "nameHelper": "3-100 caractères",
+      "location": "Emplacement",
+      "locationHelper": "Sélectionner l'emplacement physique",
+      "placeName": "Nom du Lieu",
+      "placeNameHelper": "Max 100 caractères",
+      "latitude": "Latitude",
+      "latitudeHelper": "Degrés décimaux",
+      "longitude": "Longitude",
+      "longitudeHelper": "Degrés décimaux",
+      "elevation": "Altitude (m)",
+      "elevationHelper": "Mètres au-dessus du niveau de la mer",
+      "designCapacity": "Capacité de Conception",
+      "designCapacityHelper": "Capacité maximale de traitement conçue",
+      "operationalCapacity": "Capacité Opérationnelle",
+      "operationalCapacityHelper": "Capacité de traitement opérationnelle actuelle",
+      "structure": "Structure",
+      "structureHelper": "Unité organisationnelle",
+      "processingPlantType": "Type d'Usine",
+      "processingPlantTypeHelper": "Sélectionner le type d'usine",
+      "operationalStatus": "Statut Opérationnel",
+      "operationalStatusHelper": "État opérationnel actuel",
+      "vendor": "Fournisseur",
+      "vendorHelper": "Opérateur/fournisseur de l'usine",
+      "installationDate": "Date d'Installation",
+      "installationDateHelper": "Quand l'usine a été installée",
+      "commissioningDate": "Date de Mise en Service",
+      "commissioningDateHelper": "Quand l'usine est devenue opérationnelle",
+      "decommissioningDate": "Date de Mise Hors Service",
+      "decommissioningDateHelper": "Quand l'usine a été retirée (si applicable)"
+    },
+    "validation": {
+      "nameRequired": "Le nom de l'usine doit contenir au moins 3 caractères",
+      "codeRequired": "Le code de l'usine doit contenir au moins 2 caractères",
+      "placeNameRequired": "Le nom du lieu est requis",
+      "latitudeRequired": "La latitude est requise",
+      "longitudeRequired": "La longitude est requise",
+      "operationalStatusRequired": "Le statut opérationnel est requis",
+      "structureRequired": "La structure est requise",
+      "vendorRequired": "Le fournisseur est requis",
+      "locationRequired": "L'emplacement est requis",
+      "processingPlantTypeRequired": "Le type d'usine est requis"
+    }
+  },
+  "productionField": {
+    "title": "Champs de Production",
+    "subtitle": "Gérer les infrastructures et opérations des champs de production",
+    "searchPlaceholder": "Rechercher des champs de production...",
+    "createPage": {
+      "title": "Créer un Champ de Production",
+      "subtitle": "Créer un nouveau champ de production"
+    },
+    "editPage": {
+      "title": "Modifier le Champ de Production",
+      "subtitle": "Mettre à jour les informations et détails du champ de production"
+    },
+    "sections": {
+      "basicInformation": "Informations de Base",
+      "locationInformation": "Informations de Localisation",
+      "organizationTechnical": "Organisation et Détails Techniques",
       "importantDates": "Dates Importantes"
     },
     "fields": {
@@ -462,14 +524,24 @@
       "codeHelper": "2-20 caractères",
       "name": "Nom du Champ",
       "nameHelper": "3-100 caractères",
-      "fieldType": "Type de Champ",
-      "fieldTypeHelper": "Sélectionner le type de champ",
       "location": "Emplacement",
       "locationHelper": "Sélectionner l'emplacement physique",
-      "vendor": "Fournisseur",
-      "vendorHelper": "Société exploitante/fournisseur",
+      "placeName": "Nom du Lieu",
+      "placeNameHelper": "Max 100 caractères",
+      "latitude": "Latitude",
+      "latitudeHelper": "Degrés décimaux",
+      "longitude": "Longitude",
+      "longitudeHelper": "Degrés décimaux",
+      "elevation": "Altitude (m)",
+      "elevationHelper": "Mètres au-dessus du niveau de la mer",
+      "structure": "Structure",
+      "structureHelper": "Unité organisationnelle",
+      "productionFieldType": "Type de Champ",
+      "productionFieldTypeHelper": "Sélectionner le type de champ",
       "operationalStatus": "Statut Opérationnel",
       "operationalStatusHelper": "État opérationnel actuel",
+      "vendor": "Fournisseur",
+      "vendorHelper": "Opérateur/fournisseur du champ",
       "discoveryDate": "Date de Découverte",
       "discoveryDateHelper": "Quand le champ a été découvert",
       "productionStartDate": "Date de Début de Production",
@@ -480,10 +552,14 @@
     "validation": {
       "nameRequired": "Le nom du champ doit contenir au moins 3 caractères",
       "codeRequired": "Le code du champ doit contenir au moins 2 caractères",
-      "fieldTypeRequired": "Le type de champ est requis",
-      "locationRequired": "L'emplacement est requis",
+      "placeNameRequired": "Le nom du lieu est requis",
+      "latitudeRequired": "La latitude est requise",
+      "longitudeRequired": "La longitude est requise",
+      "operationalStatusRequired": "Le statut opérationnel est requis",
+      "structureRequired": "La structure est requise",
       "vendorRequired": "Le fournisseur est requis",
-      "operationalStatusRequired": "Le statut opérationnel est requis"
+      "locationRequired": "L'emplacement est requis",
+      "productionFieldTypeRequired": "Le type de champ est requis"
     }
   },
   "auth": {
@@ -531,7 +607,7 @@
     "vendors": "Fournisseurs",
     "core": "Cœur",
     "productionFields": "Champs de production",
-    "processingPlants": "Installation de traitement",
+    "processingPlants": "Usines de traitement",
     "pipelines": "Pipelines",
     "pipelineSystems": "Systèmes de pipeline",
     "stations": "Stations",
@@ -707,7 +783,7 @@
     "description": "Description"
   },
   "footer": {
-    "copyright": "© {{year}} Plateforme IAAS. Tous droits réservés."
+    "copyright": "© {{year}} Plateforme HyFlo. Tous droits réservés."
   },
   "errors": {
     "unauthorized": "Non autorisé",
