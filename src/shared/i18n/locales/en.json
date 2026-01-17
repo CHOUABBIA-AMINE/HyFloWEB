@@ -89,7 +89,9 @@
     "filters": "Filters",
     "clear": "Clear",
     "total": "total",
-    "id": "ID"
+    "id": "ID",
+    "none": "None",
+    "loading": "Loading..."
   },
   "product": {
     "title": "Products",
@@ -337,11 +339,11 @@
     "sections": {
       "basicInformation": "Basic Information",
       "dimensionalSpecifications": "Dimensional Specifications",
-      "pressureSpecifications": "Pressure Specifications",
+      "pressureSpecifications": "Pressure Specifications (bar)",
       "capacitySpecifications": "Capacity Specifications",
       "materialCoating": "Material & Coating",
       "operationalDetails": "Operational Details",
-      "connectedFacilities": "Connected Facilities",
+      "connectedTerminals": "Connected Terminals",
       "importantDates": "Important Dates"
     },
     "fields": {
@@ -350,31 +352,41 @@
       "name": "Pipeline Name",
       "nameHelper": "3-100 characters",
       "nominalDiameter": "Nominal Diameter (in)",
-      "nominalDiameterHelper": "Pipe diameter",
+      "nominalDiameterHelper": "Pipe diameter in inches",
       "nominalThickness": "Nominal Thickness (mm)",
-      "nominalThicknessHelper": "Wall thickness",
+      "nominalThicknessHelper": "Wall thickness in millimeters",
       "length": "Length (km)",
       "lengthHelper": "Total pipeline length in kilometers",
       "nominalRoughness": "Nominal Roughness (mm)",
       "nominalRoughnessHelper": "Interior surface roughness",
       "designMaxServicePressure": "Design Max Service Pressure",
+      "designMaxServicePressureHelper": "Maximum design pressure",
       "operationalMaxServicePressure": "Operational Max Service Pressure",
+      "operationalMaxServicePressureHelper": "Maximum operational pressure",
       "designMinServicePressure": "Design Min Service Pressure",
+      "designMinServicePressureHelper": "Minimum design pressure",
       "operationalMinServicePressure": "Operational Min Service Pressure",
+      "operationalMinServicePressureHelper": "Minimum operational pressure",
       "designCapacity": "Design Capacity",
-      "designCapacityHelper": "Maximum designed flow capacity",
+      "designCapacityHelper": "Maximum designed throughput capacity",
       "operationalCapacity": "Operational Capacity",
-      "operationalCapacityHelper": "Current operational flow capacity",
+      "operationalCapacityHelper": "Current operational throughput capacity",
       "nominalConstructionMaterial": "Nominal Construction Material",
+      "nominalConstructionMaterialHelper": "Primary pipe material",
       "nominalExteriorCoating": "Nominal Exterior Coating",
+      "nominalExteriorCoatingHelper": "Exterior coating type",
       "nominalInteriorCoating": "Nominal Interior Coating",
+      "nominalInteriorCoatingHelper": "Interior coating type",
       "operationalStatus": "Operational Status",
       "operationalStatusHelper": "Current operational state",
       "vendor": "Vendor",
       "vendorHelper": "Pipeline contractor/vendor",
       "pipelineSystem": "Pipeline System",
-      "departureFacility": "Departure Facility",
-      "arrivalFacility": "Arrival Facility",
+      "pipelineSystemHelper": "Associated pipeline system",
+      "departureTerminal": "Departure Terminal",
+      "departureTerminalHelper": "Starting terminal",
+      "arrivalTerminal": "Arrival Terminal",
+      "arrivalTerminalHelper": "Ending terminal",
       "installationDate": "Installation Date",
       "installationDateHelper": "When pipeline was installed",
       "commissioningDate": "Commissioning Date",
@@ -383,13 +395,11 @@
       "decommissioningDateHelper": "When pipeline was retired (if applicable)"
     },
     "validation": {
-      "nameRequired": "Pipeline name must be at least 3 characters",
-      "codeRequired": "Pipeline code must be at least 2 characters",
+      "nameRequired": "Pipeline name must be at least 2 characters",
+      "codeRequired": "Pipeline code is required",
       "lengthRequired": "Length must be greater than 0",
       "operationalStatusRequired": "Operational status is required",
-      "vendorRequired": "Vendor is required",
-      "locationRequired": "Location is required",
-      "pipelineTypeRequired": "Pipeline type is required"
+      "vendorRequired": "Vendor is required"
     }
   },
   "pipelineSystem": {
@@ -406,55 +416,107 @@
     },
     "sections": {
       "basicInformation": "Basic Information",
-      "classification": "Classification",
-      "organization": "Organization",
-      "importantDates": "Important Dates"
+      "operational": "Operational Details"
     },
     "fields": {
       "code": "System Code",
       "codeHelper": "2-20 characters",
       "name": "System Name",
       "nameHelper": "3-100 characters",
-      "product": "Product",
-      "productHelper": "Transported product type",
-      "structure": "Structure",
-      "structureHelper": "Organizational unit",
-      "pipelineSystemType": "System Type",
-      "pipelineSystemTypeHelper": "Select system type",
       "operationalStatus": "Operational Status",
       "operationalStatusHelper": "Current operational state",
-      "installationDate": "Installation Date",
-      "installationDateHelper": "When system was installed",
-      "commissioningDate": "Commissioning Date",
-      "commissioningDateHelper": "When system became operational",
-      "decommissioningDate": "Decommissioning Date",
-      "decommissioningDateHelper": "When system was retired (if applicable)"
+      "vendor": "Vendor",
+      "vendorHelper": "System operator/vendor"
     },
     "validation": {
-      "nameRequired": "System name must be at least 3 characters",
+      "nameRequired": "System name must be at least 2 characters",
       "codeRequired": "System code must be at least 2 characters",
-      "productRequired": "Product is required",
-      "structureRequired": "Structure is required",
-      "pipelineSystemTypeRequired": "System type is required",
-      "operationalStatusRequired": "Operational status is required"
+      "operationalStatusRequired": "Operational status is required",
+      "vendorRequired": "Vendor is required"
     }
   },
-  "hydrocarbonField": {
-    "title": "Hydrocarbon Fields",
-    "subtitle": "Manage hydrocarbon field infrastructure",
-    "searchPlaceholder": "Search hydrocarbon fields...",
+  "processingPlant": {
+    "title": "Processing Plants",
+    "subtitle": "Manage processing plant facilities and operations",
+    "searchPlaceholder": "Search processing plants...",
     "createPage": {
-      "title": "Create Hydrocarbon Field",
-      "subtitle": "Create a new hydrocarbon field"
+      "title": "Create Processing Plant",
+      "subtitle": "Create a new processing plant"
     },
     "editPage": {
-      "title": "Edit Hydrocarbon Field",
-      "subtitle": "Update hydrocarbon field information and details"
+      "title": "Edit Processing Plant",
+      "subtitle": "Update processing plant information and details"
     },
     "sections": {
       "basicInformation": "Basic Information",
-      "locationDetails": "Location Details",
-      "technicalDetails": "Technical Details",
+      "locationInformation": "Location Information",
+      "capacitySpecifications": "Capacity Specifications",
+      "organizationTechnical": "Organization & Technical Details",
+      "importantDates": "Important Dates"
+    },
+    "fields": {
+      "code": "Plant Code",
+      "codeHelper": "2-20 characters",
+      "name": "Plant Name",
+      "nameHelper": "3-100 characters",
+      "location": "Location",
+      "locationHelper": "Select the physical location",
+      "placeName": "Place Name",
+      "placeNameHelper": "Max 100 characters",
+      "latitude": "Latitude",
+      "latitudeHelper": "Decimal degrees",
+      "longitude": "Longitude",
+      "longitudeHelper": "Decimal degrees",
+      "elevation": "Elevation (m)",
+      "elevationHelper": "Meters above sea level",
+      "designCapacity": "Design Capacity",
+      "designCapacityHelper": "Maximum designed processing capacity",
+      "operationalCapacity": "Operational Capacity",
+      "operationalCapacityHelper": "Current operational processing capacity",
+      "structure": "Structure",
+      "structureHelper": "Organizational unit",
+      "processingPlantType": "Plant Type",
+      "processingPlantTypeHelper": "Select plant type",
+      "operationalStatus": "Operational Status",
+      "operationalStatusHelper": "Current operational state",
+      "vendor": "Vendor",
+      "vendorHelper": "Plant operator/vendor",
+      "installationDate": "Installation Date",
+      "installationDateHelper": "When plant was installed",
+      "commissioningDate": "Commissioning Date",
+      "commissioningDateHelper": "When plant became operational",
+      "decommissioningDate": "Decommissioning Date",
+      "decommissioningDateHelper": "When plant was retired (if applicable)"
+    },
+    "validation": {
+      "nameRequired": "Plant name must be at least 3 characters",
+      "codeRequired": "Plant code must be at least 2 characters",
+      "placeNameRequired": "Place name is required",
+      "latitudeRequired": "Latitude is required",
+      "longitudeRequired": "Longitude is required",
+      "operationalStatusRequired": "Operational status is required",
+      "structureRequired": "Structure is required",
+      "vendorRequired": "Vendor is required",
+      "locationRequired": "Location is required",
+      "processingPlantTypeRequired": "Plant type is required"
+    }
+  },
+  "productionField": {
+    "title": "Production Fields",
+    "subtitle": "Manage production field infrastructure and operations",
+    "searchPlaceholder": "Search production fields...",
+    "createPage": {
+      "title": "Create Production Field",
+      "subtitle": "Create a new production field"
+    },
+    "editPage": {
+      "title": "Edit Production Field",
+      "subtitle": "Update production field information and details"
+    },
+    "sections": {
+      "basicInformation": "Basic Information",
+      "locationInformation": "Location Information",
+      "organizationTechnical": "Organization & Technical Details",
       "importantDates": "Important Dates"
     },
     "fields": {
@@ -462,14 +524,24 @@
       "codeHelper": "2-20 characters",
       "name": "Field Name",
       "nameHelper": "3-100 characters",
-      "fieldType": "Field Type",
-      "fieldTypeHelper": "Select field type",
       "location": "Location",
       "locationHelper": "Select the physical location",
-      "vendor": "Vendor",
-      "vendorHelper": "Operating company/vendor",
+      "placeName": "Place Name",
+      "placeNameHelper": "Max 100 characters",
+      "latitude": "Latitude",
+      "latitudeHelper": "Decimal degrees",
+      "longitude": "Longitude",
+      "longitudeHelper": "Decimal degrees",
+      "elevation": "Elevation (m)",
+      "elevationHelper": "Meters above sea level",
+      "structure": "Structure",
+      "structureHelper": "Organizational unit",
+      "productionFieldType": "Field Type",
+      "productionFieldTypeHelper": "Select field type",
       "operationalStatus": "Operational Status",
       "operationalStatusHelper": "Current operational state",
+      "vendor": "Vendor",
+      "vendorHelper": "Field operator/vendor",
       "discoveryDate": "Discovery Date",
       "discoveryDateHelper": "When field was discovered",
       "productionStartDate": "Production Start Date",
@@ -480,10 +552,14 @@
     "validation": {
       "nameRequired": "Field name must be at least 3 characters",
       "codeRequired": "Field code must be at least 2 characters",
-      "fieldTypeRequired": "Field type is required",
-      "locationRequired": "Location is required",
+      "placeNameRequired": "Place name is required",
+      "latitudeRequired": "Latitude is required",
+      "longitudeRequired": "Longitude is required",
+      "operationalStatusRequired": "Operational status is required",
+      "structureRequired": "Structure is required",
       "vendorRequired": "Vendor is required",
-      "operationalStatusRequired": "Operational status is required"
+      "locationRequired": "Location is required",
+      "productionFieldTypeRequired": "Field type is required"
     }
   },
   "auth": {
