@@ -185,7 +185,7 @@ const Sidebar = ({ open }: SidebarProps) => {
               path: '/network/core/pipelines',
             },
             {
-              titleKey: 'processingPlant.title',
+              titleKey: 'nav.processingPlants',
               icon: <PrecisionManufacturingIcon />,
               path: '/network/core/processing-plants',
             },

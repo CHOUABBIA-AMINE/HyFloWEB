@@ -530,7 +530,8 @@
     "products": "Produits",
     "vendors": "Fournisseurs",
     "core": "Cœur",
-    "hydrocarbonFields": "Champs d'hydrocarbures",
+    "productionFields": "Champs de production",
+    "processingPlants": "Installation de traitement",
     "pipelines": "Pipelines",
     "pipelineSystems": "Systèmes de pipeline",
     "stations": "Stations",
@@ -680,6 +681,7 @@
   },
   "user": {
     "title": "Utilisateurs",
+    "subtitle": "Gestion et organisation des comptes utilisateurs",
     "searchPlaceholder": "Rechercher des utilisateurs...",
     "firstName": "Prénom",
     "lastName": "Nom",

@@ -530,7 +530,8 @@
     "products": "المنتجات",
     "vendors": "الموردون",
     "core": "الأساسي",
-    "hydrocarbonFields": "حقول الهيدروكربون",
+    "productionFields": "حقول الهيدروكربون",
+    "processingPlants": "حقول الهيدروكربون",
     "pipelines": "خطوط الأنابيب",
     "pipelineSystems": "أنظمة الأنابيب",
     "stations": "المحطات",
@@ -680,6 +681,7 @@
   },
   "user": {
     "title": "المستخدمون",
+    "subtitle": "المستخدمون",
     "searchPlaceholder": "البحث عن المستخدمين...",
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
