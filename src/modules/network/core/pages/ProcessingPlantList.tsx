@@ -1,10 +1,9 @@
 /**
- * ProcessingPlant List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
+ * ProcessingPlant List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
- * - Debounced global search
- * - Advanced filters with type dropdown
+ * - Server-side global search (no debounce needed)
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX with icons and tooltips
@@ -14,6 +13,7 @@
  * @created 01-15-2026
  * @updated 01-16-2026 - Upgraded to advanced pattern with all features
  * @updated 01-16-2026 - Optimized translation keys and populated type dropdown
+ * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -33,12 +33,8 @@ import {
   Chip,
   Tooltip,
   alpha,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
   Menu,
+  MenuItem,
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
@@ -48,7 +44,6 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Refresh as RefreshIcon,
-  FilterList as FilterIcon,
   FileDownload as ExportIcon,
   TableChart as CsvIcon,
   Description as ExcelIcon,
@@ -58,9 +53,7 @@ import {
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
 import { ProcessingPlantService } from '../services';
-import { ProcessingPlantTypeService } from '../../type/services';
 import { ProcessingPlantDTO } from '../dto';
-import { ProcessingPlantTypeDTO } from '../../type/dto';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -74,15 +67,11 @@ const ProcessingPlantList = () => {
   const navigate = useNavigate();
   const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
   
-  // State
   const [plants, setPlants] = useState<ProcessingPlantDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('');
-  const [plantTypes, setPlantTypes] = useState<ProcessingPlantTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -92,30 +81,9 @@ const ProcessingPlantList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
-  // Load processing plant types on mount
-  useEffect(() => {
-    const loadProcessingPlantTypes = async () => {
-      try {
-        const types = await ProcessingPlantTypeService.getAllNoPagination();
-        setPlantTypes(types);
-      } catch (err) {
-        console.error('Failed to load processing plant types:', err);
-      }
-    };
-    loadProcessingPlantTypes();
-  }, []);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
-  // Load data
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paginationModel, sortModel, debouncedSearch, typeFilter]);
+  }, [paginationModel, sortModel, searchText]);
 
   const loadData = async () => {
     try {
@@ -129,20 +97,11 @@ const ProcessingPlantList = () => {
         sort: `${sortField},${sortDir}`
       };
 
-      const pageResponse = debouncedSearch 
-        ? await ProcessingPlantService.globalSearch(debouncedSearch, pageable)
+      const pageResponse = searchText
+        ? await ProcessingPlantService.globalSearch(searchText, pageable)
         : await ProcessingPlantService.getAll(pageable);
       
-      let filteredContent = pageResponse.content;
-      
-      // Apply client-side type filter if needed
-      if (typeFilter) {
-        filteredContent = filteredContent.filter((plant: ProcessingPlantDTO) => 
-          plant.processingPlantType?.id?.toString() === typeFilter
-        );
-      }
-      
-      setPlants(filteredContent);
+      setPlants(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
@@ -176,24 +135,12 @@ const ProcessingPlantList = () => {
     }
   };
 
-  const handleClearFilters = () => {
-    setSearchText('');
-    setTypeFilter('');
-    setPaginationModel({ page: 0, pageSize: 10 });
-  };
-
   const handleRefresh = () => {
     loadData();
     setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
   };
 
-  const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
-    setTypeFilter(event.target.value);
-    setPaginationModel({ ...paginationModel, page: 0 });
-  };
-
-  // Export handlers
   const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -254,7 +201,6 @@ const ProcessingPlantList = () => {
     handleExportMenuClose();
   };
 
-  // Memoized columns with language support
   const columns: GridColDef[] = useMemo(() => [
     { 
       field: 'code', 
@@ -324,7 +270,6 @@ const ProcessingPlantList = () => {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h4" fontWeight={700} color="text.primary">
@@ -359,7 +304,6 @@ const ProcessingPlantList = () => {
         </Typography>
       </Box>
 
-      {/* Export Menu */}
       <Menu
         anchorEl={exportAnchorEl}
         open={Boolean(exportAnchorEl)}
@@ -389,7 +333,6 @@ const ProcessingPlantList = () => {
         </MenuItem>
       </Menu>
 
-      {/* Alerts */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
@@ -401,52 +344,22 @@ const ProcessingPlantList = () => {
         </Alert>
       )}
 
-      {/* Filters */}
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                placeholder={t('processingPlant.searchPlaceholder', 'Search by code or name...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ flex: 1, minWidth: 300 }}
-              />
-
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('list.type', 'Type')}</InputLabel>
-                <Select
-                  value={typeFilter}
-                  onChange={handleTypeFilterChange}
-                  label={t('list.type', 'Type')}
-                >
-                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
-                  {plantTypes.map((type) => (
-                    <MenuItem key={type.id} value={type.id?.toString()}>
-                      {getMultiLangDesignation(type, lang)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {(searchText || typeFilter) && (
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterIcon />}
-                  onClick={handleClearFilters}
-                  sx={{ minWidth: 140 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Box>
+            <TextField
+              placeholder={t('processingPlant.searchPlaceholder', 'Search by code or name...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
 
             <Divider />
 
@@ -459,7 +372,6 @@ const ProcessingPlantList = () => {
         </Box>
       </Paper>
 
-      {/* DataGrid */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
           rows={plants}
