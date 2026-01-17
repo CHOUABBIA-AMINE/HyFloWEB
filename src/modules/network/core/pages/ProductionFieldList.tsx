@@ -1,10 +1,9 @@
 /**
- * ProductionField List Page - ADVANCED PATTERN - OPTIMIZED TRANSLATION KEYS
+ * ProductionField List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
- * - Debounced global search
- * - Advanced filters
+ * - Server-side global search (no debounce needed)
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX
@@ -14,6 +13,7 @@
  * @created 01-15-2026
  * @updated 01-16-2026 - Upgraded to advanced pattern
  * @updated 01-16-2026 - Optimized translation keys and populated type dropdown
+ * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -33,12 +33,8 @@ import {
   Chip,
   Tooltip,
   alpha,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
   Menu,
+  MenuItem,
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
@@ -48,7 +44,6 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Refresh as RefreshIcon,
-  FilterList as FilterIcon,
   FileDownload as ExportIcon,
   TableChart as CsvIcon,
   Description as ExcelIcon,
@@ -58,9 +53,7 @@ import {
 import { DataGrid, GridColDef, GridPaginationModel, GridSortModel } from '@mui/x-data-grid';
 
 import { ProductionFieldService } from '../services';
-import { ProductionFieldTypeService } from '../../type/services';
 import { ProductionFieldDTO } from '../dto';
-import { ProductionFieldTypeDTO } from '../../type/dto';
 import { 
   exportToCSV, 
   exportToExcel, 
@@ -79,9 +72,6 @@ const ProductionFieldList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('');
-  const [fieldTypes, setFieldTypes] = useState<ProductionFieldTypeDTO[]>([]);
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -91,27 +81,9 @@ const ProductionFieldList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'code', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
-  // Load production field types on mount
-  useEffect(() => {
-    const loadProductionFieldTypes = async () => {
-      try {
-        const types = await ProductionFieldTypeService.getAllNoPagination();
-        setFieldTypes(types);
-      } catch (err) {
-        console.error('Failed to load production field types:', err);
-      }
-    };
-    loadProductionFieldTypes();
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
   useEffect(() => {
     loadData();
-  }, [paginationModel, sortModel, debouncedSearch, typeFilter]);
+  }, [paginationModel, sortModel, searchText]);
 
   const loadData = async () => {
     try {
@@ -125,19 +97,11 @@ const ProductionFieldList = () => {
         sort: `${sortField},${sortDir}`
       };
 
-      const pageResponse = debouncedSearch 
-        ? await ProductionFieldService.globalSearch(debouncedSearch, pageable)
+      const pageResponse = searchText
+        ? await ProductionFieldService.globalSearch(searchText, pageable)
         : await ProductionFieldService.getAll(pageable);
       
-      let filteredContent = pageResponse.content;
-      
-      if (typeFilter) {
-        filteredContent = filteredContent.filter((field: ProductionFieldDTO) => 
-          field.productionFieldType?.id?.toString() === typeFilter
-        );
-      }
-      
-      setFields(filteredContent);
+      setFields(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
       setError('');
     } catch (err: any) {
@@ -171,21 +135,10 @@ const ProductionFieldList = () => {
     }
   };
 
-  const handleClearFilters = () => {
-    setSearchText('');
-    setTypeFilter('');
-    setPaginationModel({ page: 0, pageSize: 10 });
-  };
-
   const handleRefresh = () => {
     loadData();
     setSuccess(t('message.refreshed', 'Data refreshed'));
     setTimeout(() => setSuccess(''), 2000);
-  };
-
-  const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
-    setTypeFilter(event.target.value);
-    setPaginationModel({ ...paginationModel, page: 0 });
   };
 
   const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -371,48 +324,19 @@ const ProductionFieldList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                placeholder={t('productionField.searchPlaceholder', 'Search by code or name...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ flex: 1, minWidth: 300 }}
-              />
-
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('list.type', 'Type')}</InputLabel>
-                <Select
-                  value={typeFilter}
-                  onChange={handleTypeFilterChange}
-                  label={t('list.type', 'Type')}
-                >
-                  <MenuItem value="">{t('list.all', 'All')}</MenuItem>
-                  {fieldTypes.map((type) => (
-                    <MenuItem key={type.id} value={type.id?.toString()}>
-                      {getMultiLangDesignation(type, lang)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {(searchText || typeFilter) && (
-                <Button
-                  variant="outlined"
-                  startIcon={<FilterIcon />}
-                  onClick={handleClearFilters}
-                  sx={{ minWidth: 140 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Box>
+            <TextField
+              placeholder={t('productionField.searchPlaceholder', 'Search by code or name...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
 
             <Divider />
 
