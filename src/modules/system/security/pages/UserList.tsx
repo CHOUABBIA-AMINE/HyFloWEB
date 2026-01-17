@@ -1,11 +1,10 @@
 /**
- * User List Page - ADVANCED PATTERN with Export & i18n
- * Advanced DataGrid with server-side pagination, search, filters, export, and polished UI
+ * User List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
+ * Advanced DataGrid with server-side pagination, search, export, and polished UI
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
- * - Debounced global search
- * - Advanced filters (status, role)
+ * - Server-side global search (no debounce needed)
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX
@@ -16,6 +15,7 @@
  * @updated 01-08-2026 - Fixed implicit any types
  * @updated 01-16-2026 - Updated with i18n translation keys aligned with Network Core pattern
  * @updated 01-16-2026 - Removed ID column
+ * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -30,10 +30,6 @@ import {
   Alert,
   TextField,
   InputAdornment,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Stack,
   Paper,
   Divider,
@@ -41,6 +37,7 @@ import {
   Menu,
   ListItemIcon,
   ListItemText,
+  MenuItem,
   alpha,
 } from '@mui/material';
 import {
@@ -48,7 +45,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon,
   FileDownload as ExportIcon,
   Refresh as RefreshIcon,
   TableChart as CsvIcon,
@@ -75,9 +71,6 @@ const UserList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  //const [statusFilter, setStatusFilter] = useState<string>('all');
-  //const [roleFilter, setRoleFilter] = useState<string>('all');
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -86,17 +79,10 @@ const UserList = () => {
   });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'username', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
-  const [allRoles, setAllRoles] = useState<string[]>([]);
-
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
-    return () => clearTimeout(timer);
-  }, [searchText]);
 
   useEffect(() => {
     loadUsers();
-  }, [paginationModel, sortModel, debouncedSearch ]);
+  }, [paginationModel, sortModel, searchText]);
 
   const loadUsers = async () => {
     try {
@@ -105,27 +91,12 @@ const UserList = () => {
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'username';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
-      let pageResponse;
+      const pageResponse = searchText
+        ? await userService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
+        : await userService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
       
-      if (debouncedSearch) {
-        pageResponse = await userService.search(debouncedSearch, paginationModel.page, paginationModel.pageSize, sortField, sortDir);
-      } else {
-        pageResponse = await userService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
-      }
-      
-      let filteredContent = pageResponse.content;
-      
-      setUsers(filteredContent);
+      setUsers(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
-      
-      const roles = new Set<string>();
-      pageResponse.content.forEach((user: UserDTO) => {
-        if (user.roles && Array.isArray(user.roles)) {
-          user.roles.forEach((role: { id: number; name: string }) => roles.add(role.name));
-        }
-      });
-      setAllRoles(Array.from(roles).sort());
-      
       setError('');
     } catch (err: any) {
       console.error('Failed to load users:', err);
@@ -240,11 +211,6 @@ const UserList = () => {
         setError(err.message || t('message.deleteError', 'Failed to delete item'));
       }
     }
-  };
-
-  const handleClearFilters = () => {
-    setSearchText('');
-    setPaginationModel({ page: 0, pageSize: 10 });
   };
 
   const handleRefresh = () => {
@@ -368,34 +334,19 @@ const UserList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-              <TextField
-                fullWidth
-                placeholder={t('user.searchPlaceholder', 'Search by username or email...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ) 
-                }}
-                sx={{ maxWidth: { md: 400 } }}
-              />
-
-
-              {(searchText ) && (
-                <Button 
-                  variant="outlined" 
-                  startIcon={<FilterIcon />} 
-                  onClick={handleClearFilters} 
-                  sx={{ minWidth: 150 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Stack>
+            <TextField
+              fullWidth
+              placeholder={t('user.searchPlaceholder', 'Search by username or email...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{ 
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ) 
+              }}
+            />
 
             <Divider />
 

@@ -1,12 +1,13 @@
 /**
- * Structure List Page - OPTIMIZED TRANSLATION KEYS
- * Hierarchical organizational structures with search and filters
+ * Structure List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
+ * Hierarchical organizational structures with search
  * 
  * @author CHOUABBIA Amine
  * @created 12-28-2025
  * @updated 01-08-2026 - Fixed type guard for MenuItem
  * @updated 01-08-2026 - Changed default pageSize to 10, added 5 to options
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
+ * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -28,11 +29,8 @@ import {
   ListItemText,
   MenuItem,
   alpha,
-  FormControl,
-  InputLabel,
-  Select,
-  SelectChangeEvent,
   Chip,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -49,42 +47,29 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 
-// Import from correct modules aligned with backend architecture
 import { StructureService } from '../services';
-import { StructureTypeService } from '../../type/services';
 import { StructureDTO } from '../dto/StructureDTO';
-import { StructureTypeDTO } from '../../type/dto';
 
 const StructureList = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   
-  // Data state
   const [structures, setStructures] = useState<StructureDTO[]>([]);
-  const [structureTypes, setStructureTypes] = useState<StructureTypeDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
-  // Pagination state
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: 10,
   });
   const [rowCount, setRowCount] = useState(0);
   
-  // Filter state
   const [searchText, setSearchText] = useState('');
-  const [selectedTypeId, setSelectedTypeId] = useState<string>('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  
-  // Export menu
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
 
-  // Get current language
   const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
 
-  // Helper to get designation based on current language
   const getDesignation = (item: any): string => {
     if (!item) return '';
     if (lang === 'ar') return item.designationAr || item.designationFr || item.designationEn || '';
@@ -92,63 +77,46 @@ const StructureList = () => {
     return item.designationFr || item.designationEn || item.designationAr || '';
   };
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchText);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
-  useEffect(() => {
-    loadStructureTypes();
-  }, []);
-
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedTypeId]);
-
-  const loadStructureTypes = async () => {
-    try {
-      const typesList = await StructureTypeService.getAllNoPagination();
-      setStructureTypes(typesList);
-    } catch (err: any) {
-      console.error('Failed to load structure types:', err);
-    }
-  };
+  }, [paginationModel.page, paginationModel.pageSize, searchText]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       
-      const response = await StructureService.getAll({
-        page: paginationModel.page,
-        size: paginationModel.pageSize,
-      });
-      
-      let structuresList = response.content || [];
-      
-      // Apply client-side filtering if search or type filter is active
-      if (debouncedSearch) {
-        const searchLower = debouncedSearch.toLowerCase();
-        structuresList = structuresList.filter((s: StructureDTO) => 
+      let structuresList: StructureDTO[] = [];
+      let total = 0;
+
+      if (searchText) {
+        const searchLower = searchText.toLowerCase();
+        const allResponse = await StructureService.getAll({
+          page: 0,
+          size: 1000,
+        });
+        
+        structuresList = (allResponse.content || []).filter((s: StructureDTO) => 
           s.code?.toLowerCase().includes(searchLower) ||
           s.designationFr?.toLowerCase().includes(searchLower) ||
           s.designationEn?.toLowerCase().includes(searchLower) ||
           s.designationAr?.toLowerCase().includes(searchLower)
         );
-      }
-      
-      if (selectedTypeId) {
-        structuresList = structuresList.filter((s: StructureDTO) => 
-          s.structureTypeId === Number(selectedTypeId)
-        );
+        
+        total = structuresList.length;
+        const start = paginationModel.page * paginationModel.pageSize;
+        const end = start + paginationModel.pageSize;
+        structuresList = structuresList.slice(start, end);
+      } else {
+        const response = await StructureService.getAll({
+          page: paginationModel.page,
+          size: paginationModel.pageSize,
+        });
+        structuresList = response.content || [];
+        total = response.totalElements || 0;
       }
       
       setStructures(structuresList);
-      setRowCount(response.totalElements || 0);
+      setRowCount(total);
       setError('');
     } catch (err: any) {
       console.error('Failed to load structures:', err);
@@ -164,7 +132,6 @@ const StructureList = () => {
     setPaginationModel(newModel);
   }, []);
 
-  // DataGrid columns
   const columns: GridColDef[] = [
     { 
       field: 'code', 
@@ -286,18 +253,6 @@ const StructureList = () => {
     setSuccess(t('message.refreshed', 'Data refreshed'));
   };
 
-  const handleTypeFilterChange = (event: SelectChangeEvent<string>) => {
-    setSelectedTypeId(event.target.value);
-    setPaginationModel({ ...paginationModel, page: 0 }); // Reset to first page
-  };
-
-  const handleClearFilters = () => {
-    setSearchText('');
-    setSelectedTypeId('');
-    setPaginationModel({ ...paginationModel, page: 0 });
-  };
-
-  // Export handlers
   const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -323,7 +278,6 @@ const StructureList = () => {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h4" fontWeight={700} color="text.primary">
@@ -358,7 +312,6 @@ const StructureList = () => {
         </Typography>
       </Box>
 
-      {/* Export Menu */}
       <Menu
         anchorEl={exportAnchorEl}
         open={Boolean(exportAnchorEl)}
@@ -388,7 +341,6 @@ const StructureList = () => {
         </MenuItem>
       </Menu>
 
-      {/* Alerts */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
@@ -400,55 +352,24 @@ const StructureList = () => {
         </Alert>
       )}
 
-      {/* Filters */}
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                placeholder={t('structure.searchPlaceholder', 'Search by code or designation...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ flex: 1, minWidth: 300 }}
-              />
+            <TextField
+              placeholder={t('structure.searchPlaceholder', 'Search by code or designation...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
 
-              <FormControl sx={{ minWidth: 200 }}>
-                <InputLabel>{t('list.filterByType', 'Filter by Type')}</InputLabel>
-                <Select
-                  value={selectedTypeId}
-                  onChange={handleTypeFilterChange}
-                  label={t('list.filterByType', 'Filter by Type')}
-                >
-                  <MenuItem value="">
-                    {t('list.allTypes', 'All Types')}
-                  </MenuItem>
-                  {structureTypes
-                    .filter(type => type.id !== undefined)
-                    .map((type) => (
-                      <MenuItem key={type.id} value={type.id!.toString()}>
-                        {getDesignation(type)}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-
-              {(searchText || selectedTypeId) && (
-                <Button
-                  variant="outlined"
-                  onClick={handleClearFilters}
-                  sx={{ minWidth: 120 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Box>
+            <Divider />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
@@ -459,7 +380,6 @@ const StructureList = () => {
         </Box>
       </Paper>
 
-      {/* DataGrid */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
           rows={structures}

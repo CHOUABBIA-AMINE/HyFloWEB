@@ -1,5 +1,5 @@
 /**
- * Employee List Page - OPTIMIZED TRANSLATION KEYS
+ * Employee List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
  * Displays paginated list of employees with search and CRUD operations
  * 
  * @author CHOUABBIA Amine
@@ -8,6 +8,7 @@
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
+ * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,6 +30,7 @@ import {
   ListItemIcon,
   ListItemText,
   alpha,
+  Divider,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -50,56 +52,37 @@ const EmployeeList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // Data state
   const [employees, setEmployees] = useState<EmployeeDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Pagination state
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: 0,
     pageSize: 10,
   });
   const [rowCount, setRowCount] = useState(0);
 
-  // Filter state
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-
-  // Export menu
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchText);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchText]);
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch]);
+  }, [paginationModel.page, paginationModel.pageSize, searchText]);
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      let response;
-      if (debouncedSearch) {
-        response = await EmployeeService.globalSearch(debouncedSearch, {
-          page: paginationModel.page,
-          size: paginationModel.pageSize,
-        });
-      } else {
-        response = await EmployeeService.getAll({
-          page: paginationModel.page,
-          size: paginationModel.pageSize,
-        });
-      }
+      const response = searchText
+        ? await EmployeeService.globalSearch(searchText, {
+            page: paginationModel.page,
+            size: paginationModel.pageSize,
+          })
+        : await EmployeeService.getAll({
+            page: paginationModel.page,
+            size: paginationModel.pageSize,
+          });
 
       setEmployees(response.content || []);
       setRowCount(response.totalElements || 0);
@@ -128,7 +111,6 @@ const EmployeeList = () => {
     }
   };
 
-  // DataGrid columns
   const columns: GridColDef[] = [
     {
       field: 'registrationNumber',
@@ -220,12 +202,6 @@ const EmployeeList = () => {
     setSuccess(t('message.refreshed', 'Data refreshed'));
   };
 
-  const handleClearFilters = () => {
-    setSearchText('');
-    setPaginationModel({ ...paginationModel, page: 0 });
-  };
-
-  // Export handlers
   const handleExportMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -251,7 +227,6 @@ const EmployeeList = () => {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -289,7 +264,6 @@ const EmployeeList = () => {
         </Typography>
       </Box>
 
-      {/* Export Menu */}
       <Menu
         anchorEl={exportAnchorEl}
         open={Boolean(exportAnchorEl)}
@@ -319,7 +293,6 @@ const EmployeeList = () => {
         </MenuItem>
       </Menu>
 
-      {/* Alerts */}
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
           {error}
@@ -331,35 +304,24 @@ const EmployeeList = () => {
         </Alert>
       )}
 
-      {/* Filters */}
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <TextField
-                placeholder={t('employee.searchPlaceholder', 'Search by registration number or name...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ flex: 1, minWidth: 300 }}
-              />
+            <TextField
+              placeholder={t('employee.searchPlaceholder', 'Search by registration number or name...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              fullWidth
+            />
 
-              {searchText && (
-                <Button
-                  variant="outlined"
-                  onClick={handleClearFilters}
-                  sx={{ minWidth: 120 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Box>
+            <Divider />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
@@ -370,7 +332,6 @@ const EmployeeList = () => {
         </Box>
       </Paper>
 
-      {/* DataGrid */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
           rows={employees}

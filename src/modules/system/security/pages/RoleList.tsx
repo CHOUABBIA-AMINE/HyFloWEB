@@ -1,10 +1,10 @@
 /**
- * Role List Page - ADVANCED PATTERN with Export & i18n
- * Advanced DataGrid with server-side pagination, search, filters, export, and polished UI
+ * Role List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
+ * Advanced DataGrid with server-side pagination, search, export, and polished UI
  * 
  * Features:
  * - Server-side pagination (default: 10, options: 5, 10, 15)
- * - Debounced global search
+ * - Server-side global search (no debounce needed)
  * - Export to CSV/Excel/PDF
  * - Multi-language support (Fr/En/Ar)
  * - Professional UI/UX
@@ -15,6 +15,7 @@
  * @updated 01-08-2026 - Removed export (requires role-specific utils)
  * @updated 01-16-2026 - Added full export functionality and i18n translation keys
  * @updated 01-16-2026 - Removed ID column
+ * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -44,7 +45,6 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon,
   Refresh as RefreshIcon,
   FileDownload as ExportIcon,
   TableChart as CsvIcon,
@@ -71,7 +71,6 @@ const RoleList = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
   
   const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
@@ -81,15 +80,9 @@ const RoleList = () => {
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
-  // Debounce search
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchText), 500);
-    return () => clearTimeout(timer);
-  }, [searchText]);
-
   useEffect(() => {
     loadRoles();
-  }, [paginationModel, sortModel, debouncedSearch]);
+  }, [paginationModel, sortModel, searchText]);
 
   const loadRoles = async () => {
     try {
@@ -98,13 +91,9 @@ const RoleList = () => {
       const sortField = sortModel.length > 0 ? sortModel[0].field : 'name';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
-      let pageResponse;
-      
-      if (debouncedSearch) {
-        pageResponse = await roleService.search(debouncedSearch, paginationModel.page, paginationModel.pageSize, sortField, sortDir);
-      } else {
-        pageResponse = await roleService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
-      }
+      const pageResponse = searchText
+        ? await roleService.search(searchText, paginationModel.page, paginationModel.pageSize, sortField, sortDir)
+        : await roleService.getPage(paginationModel.page, paginationModel.pageSize, sortField, sortDir);
       
       setRoles(pageResponse.content);
       setTotalRows(pageResponse.totalElements);
@@ -221,11 +210,6 @@ const RoleList = () => {
         setError(err.message || t('message.deleteError', 'Failed to delete item'));
       }
     }
-  };
-
-  const handleClearFilters = () => {
-    setSearchText('');
-    setPaginationModel({ page: 0, pageSize: 10 });
   };
 
   const handleRefresh = () => {
@@ -346,33 +330,22 @@ const RoleList = () => {
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems="center">
-              <TextField
-                fullWidth
-                placeholder={t('role.searchPlaceholder', 'Search roles by name or description...')}
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                InputProps={{ 
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ) 
-                }}
-                sx={{ maxWidth: { md: 400 } }}
-              />
-              {searchText && (
-                <Button 
-                  variant="outlined" 
-                  startIcon={<FilterIcon />} 
-                  onClick={handleClearFilters} 
-                  sx={{ minWidth: 150 }}
-                >
-                  {t('action.clearFilters', 'Clear Filters')}
-                </Button>
-              )}
-            </Stack>
+            <TextField
+              fullWidth
+              placeholder={t('role.searchPlaceholder', 'Search roles by name or description...')}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{ 
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ) 
+              }}
+            />
+
             <Divider />
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="body2" color="text.secondary" fontWeight={500}>
                 {totalRows} {t('list.results', 'results')}
