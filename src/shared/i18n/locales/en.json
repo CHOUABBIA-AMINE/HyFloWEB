@@ -661,7 +661,6 @@
     "commissioned": "Commissioned",
     "discovered": "Discovered",
     "operationalStatus": "Operational Status",
-    "description": "Description",
     "units": "units",
     "meters": "m",
     "cubicMeters": "m³",
