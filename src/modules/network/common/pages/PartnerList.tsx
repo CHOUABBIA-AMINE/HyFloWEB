@@ -18,6 +18,7 @@
  * @updated 01-16-2026 - Moved common field keys to list.* namespace
  * @updated 01-16-2026 - Fixed partner type dropdown to load actual data
  * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
+ * @updated 01-17-2026 - Fixed: Added missing MenuItem import
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -38,6 +39,7 @@ import {
   Tooltip,
   alpha,
   Menu,
+  MenuItem,
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
