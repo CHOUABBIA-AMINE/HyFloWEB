@@ -29,6 +29,10 @@
       "descriptionHelper": "تفاصيل وملاحظات إضافية",
       "operationalStatus": "الحالة التشغيلية",
       "operationalStatusHelper": "الحالة التشغيلية الحالية",
+	  "product": "المنتج",
+      "status": "الحالة",
+      "capacity": "السعة",
+      "capacityHelper": "السعة أو الإنتاجية القصوى",
       "vendor": "المورد",
       "vendorHelper": "مورد المعدات",
       "structure": "الهيكل",
@@ -333,12 +337,20 @@
     "title": "مصانع المعالجة",
     "subtitle": "إدارة مرافق وعمليات مصانع المعالجة",
     "searchPlaceholder": "البحث عن مصانع المعالجة...",
+	"selectedLocation": "تفاصيل الموقع المحدد",
     "fields": {
       "processingPlantType": "نوع المصنع",
       "processingPlantTypeHelper": "اختر نوع المصنع"
     },
     "tabs": {
+      "generalInformation": "المعلومات العامة",
+      "productionFields": "حقول الإنتاج",
       "productionFieldsSupplied": "حقول الإنتاج التي تغذيها هذه المحطة"
+    },
+	"warnings": {
+      "noStructures": "لم يتم العثور على هياكل تنظيمية. الرجاء إنشاء الهياكل أولاً.",
+      "noLocations": "لم يتم العثور على مواقع. الرجاء إنشاء المواقع أولاً.",
+      "noTypes": "لم يتم العثور على أنواع مصانع معالجة. الرجاء إنشاء الأنواع أولاً."
     },
     "validation": {
       "processingPlantTypeRequired": "نوع المصنع مطلوب"

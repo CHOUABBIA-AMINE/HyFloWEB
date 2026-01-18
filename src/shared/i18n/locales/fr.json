@@ -33,6 +33,8 @@
       "descriptionHelper": "Détails et notes supplémentaires",
       "operationalStatus": "Statut Opérationnel",
       "operationalStatusHelper": "État opérationnel actuel",
+	  "product": "Produit",
+      "status": "Statut",
       "vendor": "Fournisseur",
       "vendorHelper": "Fournisseur d'équipement",
       "structure": "Structure",
