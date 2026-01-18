@@ -1,0 +1,528 @@
+{
+  "app": {
+    "name": "HyFlo Platform",
+    "description": "Hydrocarbon Flow Management"
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "legend": "Legend",
+    "filters": "Filters",
+    "clear": "Clear",
+    "total": "total",
+    "id": "ID",
+    "loading": "Loading...",
+    "back": "Back",
+    "fields": {
+      "code": "Code",
+      "codeHelper": "Unique identifier code (2-20 characters)",
+      "name": "Name",
+      "nameHelper": "Full name or designation (3-100 characters)",
+      "shortName": "Short Name",
+      "shortNameHelper": "Abbreviated name (2-20 characters)",
+      "description": "Description",
+      "descriptionHelper": "Additional details and notes",
+      "operationalStatus": "Operational Status",
+      "operationalStatusHelper": "Current operational state",
+      "vendor": "Vendor",
+      "vendorHelper": "Equipment vendor or supplier",
+      "structure": "Structure",
+      "structureHelper": "Organizational unit",
+      "location": "Location",
+      "locationHelper": "Physical location",
+      "country": "Country",
+      "countryHelper": "Country of origin or operation",
+      "installationDate": "Installation Date",
+      "installationDateHelper": "When equipment was installed (YYYY-MM-DD)",
+      "commissioningDate": "Commissioning Date",
+      "commissioningDateHelper": "When facility became operational (YYYY-MM-DD)",
+      "decommissioningDate": "Decommissioning Date",
+      "decommissioningDateHelper": "When facility was retired (YYYY-MM-DD)",
+      "latitude": "Latitude",
+      "latitudeHelper": "Decimal degrees (-90 to 90)",
+      "longitude": "Longitude",
+      "longitudeHelper": "Decimal degrees (-180 to 180)",
+      "elevation": "Elevation (m)",
+      "elevationHelper": "Meters above sea level",
+      "placeName": "Place Name",
+      "placeNameHelper": "Descriptive location name (max 100 characters)",
+      "designationFr": "Designation (French)",
+      "designationFrHelper": "Required - French designation",
+      "designationEn": "Designation (English)",
+      "designationEnHelper": "Optional - English designation",
+      "designationAr": "Designation (Arabic)",
+      "designationArHelper": "Optional - Arabic designation"
+    },
+    "sections": {
+      "basicInformation": "Basic Information",
+      "locationInformation": "Location Information",
+      "organizationTechnical": "Organization & Technical Details",
+      "technicalDetails": "Technical Details",
+      "importantDates": "Important Dates",
+      "designations": "Multilingual Designations",
+      "capacitySpecifications": "Capacity Specifications",
+      "operationalDetails": "Operational Details"
+    },
+    "validation": {
+      "required": "{{field}} is required",
+      "minLength": "{{field}} must be at least {{min}} characters",
+      "maxLength": "{{field}} must not exceed {{max}} characters",
+      "minValue": "{{field}} must be at least {{min}}",
+      "maxValue": "{{field}} must not exceed {{max}}",
+      "positive": "{{field}} must be greater than 0",
+      "invalidFormat": "Invalid {{field}} format",
+      "dateFormat": "Date must be in YYYY-MM-DD format",
+      "emailInvalid": "Invalid email address",
+      "formInvalid": "Please fill in all required fields",
+      "codeRequired": "Code is required",
+      "nameRequired": "Name is required",
+      "designationFrRequired": "French designation is required"
+    },
+    "page": {
+      "createTitle": "Create {{entity}}",
+      "createSubtitle": "Add a new {{entity}}",
+      "editTitle": "Edit {{entity}}",
+      "editSubtitle": "Update {{entity}} information"
+    }
+  },
+  "list": {
+    "code": "Code",
+    "designation": "Designation",
+    "name": "Name",
+    "description": "Description",
+    "type": "Type",
+    "status": "Status",
+    "location": "Location",
+    "actions": "Actions",
+    "country": "Country",
+    "vendor": "Vendor",
+    "structure": "Structure",
+    "product": "Product",
+    "shortName": "Short Name",
+    "fullName": "Full Name",
+    "searchPlaceholder": "Search...",
+    "filterByType": "Filter by Type",
+    "filterByStatus": "Filter by Status",
+    "allTypes": "All Types",
+    "allStatuses": "All Statuses",
+    "results": "results",
+    "noData": "No data available",
+    "loading": "Loading...",
+    "pipelineSystem": "Pipeline System",
+    "length": "Length",
+    "all": "All",
+    "username": "Username",
+    "email": "Email",
+    "roles": "Roles",
+    "permissions": "Permissions",
+    "users": "Users",
+    "noPermissions": "No permissions",
+    "noUsers": "No users"
+  },
+  "action": {
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "refresh": "Refresh",
+    "export": "Export",
+    "exportCSV": "Export CSV",
+    "exportExcel": "Export Excel",
+    "exportPDF": "Export PDF",
+    "confirmDelete": "Are you sure you want to delete this item?",
+    "clearFilters": "Clear Filters",
+    "search": "Search",
+    "add": "Add",
+    "view": "View",
+    "update": "Update",
+    "submit": "Submit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm"
+  },
+  "message": {
+    "deleteSuccess": "Item deleted successfully",
+    "deleteError": "Failed to delete item",
+    "createSuccess": "Item created successfully",
+    "createError": "Failed to create item",
+    "updateSuccess": "Item updated successfully",
+    "updateError": "Failed to update item",
+    "saveError": "Failed to save item",
+    "errorLoading": "Failed to load data",
+    "errorLoadingFormData": "Failed to load form data",
+    "refreshed": "Data refreshed",
+    "exportedCSV": "Exported to CSV",
+    "exportedExcel": "Exported to Excel",
+    "exportedPDF": "Exported to PDF",
+    "deleting": "Deleting...",
+    "deleted": "Deleted",
+    "success": "Success",
+    "error": "Error"
+  },
+  "product": {
+    "title": "Products",
+    "subtitle": "Manage hydrocarbon products and materials",
+    "searchPlaceholder": "Search products...",
+    "allProducts": "All Products",
+    "hazardousOnly": "Hazardous Only",
+    "nonHazardousOnly": "Non-Hazardous Only",
+    "filterByHazardous": "Hazardous Status",
+    "fields": {
+      "density": "Density (kg/m³)",
+      "densityHelper": "Product density in kilograms per cubic meter",
+      "viscosity": "Viscosity (cP)",
+      "viscosityHelper": "Product viscosity in centipoise",
+      "flashPoint": "Flash Point (°C)",
+      "flashPointHelper": "Temperature at which vapor ignites",
+      "sulfurContent": "Sulfur Content (%)",
+      "sulfurContentHelper": "Percentage of sulfur content",
+      "isHazardous": "Hazardous Material",
+      "isHazardousHelper": "Mark if this product is classified as hazardous"
+    }
+  },
+  "partner": {
+    "title": "Partners",
+    "subtitle": "Manage business partners and collaborators",
+    "searchPlaceholder": "Search partners...",
+    "fields": {
+      "partnerType": "Partner Type",
+      "partnerTypeHelper": "Select the type of partnership"
+    },
+    "validation": {
+      "partnerTypeRequired": "Partner type is required"
+    }
+  },
+  "vendor": {
+    "title": "Vendors",
+    "subtitle": "Manage equipment vendors and suppliers",
+    "searchPlaceholder": "Search vendors...",
+    "fields": {
+      "vendorType": "Vendor Type",
+      "vendorTypeHelper": "Select vendor classification"
+    },
+    "validation": {
+      "vendorTypeRequired": "Vendor type is required"
+    }
+  },
+  "station": {
+    "title": "Stations",
+    "subtitle": "Manage station infrastructure and equipment",
+    "searchPlaceholder": "Search stations...",
+    "fields": {
+      "stationType": "Station Type",
+      "stationTypeHelper": "Select station type",
+      "pipelineSystem": "Pipeline System",
+      "pipelineSystemHelper": "Associated pipeline system"
+    },
+    "validation": {
+      "stationTypeRequired": "Station type is required",
+      "pipelineSystemRequired": "Pipeline system is required"
+    }
+  },
+  "terminal": {
+    "title": "Terminals",
+    "subtitle": "Manage terminal facilities and operations",
+    "searchPlaceholder": "Search terminals...",
+    "fields": {
+      "terminalType": "Terminal Type",
+      "terminalTypeHelper": "Select terminal type"
+    },
+    "validation": {
+      "terminalTypeRequired": "Terminal type is required"
+    }
+  },
+  "pipeline": {
+    "title": "Pipelines",
+    "subtitle": "Manage pipeline infrastructure and routes",
+    "searchPlaceholder": "Search pipelines...",
+    "sections": {
+      "dimensionalSpecifications": "Dimensional Specifications",
+      "pressureSpecifications": "Pressure Specifications (bar)",
+      "materialCoating": "Material & Coating",
+      "connectedTerminals": "Connected Terminals"
+    },
+    "fields": {
+      "nominalDiameter": "Nominal Diameter (in)",
+      "nominalDiameterHelper": "Pipe diameter in inches",
+      "nominalThickness": "Nominal Thickness (mm)",
+      "nominalThicknessHelper": "Wall thickness in millimeters",
+      "length": "Length (km)",
+      "lengthHelper": "Total pipeline length in kilometers",
+      "nominalRoughness": "Nominal Roughness (mm)",
+      "nominalRoughnessHelper": "Interior surface roughness",
+      "designMaxServicePressure": "Design Max Service Pressure",
+      "designMaxServicePressureHelper": "Maximum design pressure",
+      "operationalMaxServicePressure": "Operational Max Service Pressure",
+      "operationalMaxServicePressureHelper": "Maximum operational pressure",
+      "designMinServicePressure": "Design Min Service Pressure",
+      "designMinServicePressureHelper": "Minimum design pressure",
+      "operationalMinServicePressure": "Operational Min Service Pressure",
+      "operationalMinServicePressureHelper": "Minimum operational pressure",
+      "designCapacity": "Design Capacity",
+      "designCapacityHelper": "Maximum designed throughput capacity",
+      "operationalCapacity": "Operational Capacity",
+      "operationalCapacityHelper": "Current operational throughput capacity",
+      "nominalConstructionMaterial": "Nominal Construction Material",
+      "nominalConstructionMaterialHelper": "Primary pipe material",
+      "nominalExteriorCoating": "Nominal Exterior Coating",
+      "nominalExteriorCoatingHelper": "Exterior coating type",
+      "nominalInteriorCoating": "Nominal Interior Coating",
+      "nominalInteriorCoatingHelper": "Interior coating type",
+      "pipelineSystem": "Pipeline System",
+      "pipelineSystemHelper": "Associated pipeline system",
+      "departureTerminal": "Departure Terminal",
+      "departureTerminalHelper": "Starting terminal",
+      "arrivalTerminal": "Arrival Terminal",
+      "arrivalTerminalHelper": "Ending terminal"
+    },
+    "validation": {
+      "lengthRequired": "Length must be greater than 0"
+    }
+  },
+  "pipelineSystem": {
+    "title": "Pipeline Systems",
+    "subtitle": "Manage integrated pipeline system networks",
+    "searchPlaceholder": "Search pipeline systems..."
+  },
+  "processingPlant": {
+    "title": "Processing Plants",
+    "subtitle": "Manage processing plant facilities and operations",
+    "searchPlaceholder": "Search processing plants...",
+    "fields": {
+      "processingPlantType": "Plant Type",
+      "processingPlantTypeHelper": "Select plant type"
+    },
+    "validation": {
+      "processingPlantTypeRequired": "Plant type is required"
+    }
+  },
+  "productionField": {
+    "title": "Production Fields",
+    "subtitle": "Manage production field infrastructure and operations",
+    "searchPlaceholder": "Search production fields...",
+    "fields": {
+      "productionFieldType": "Field Type",
+      "productionFieldTypeHelper": "Select field type",
+      "discoveryDate": "Discovery Date",
+      "discoveryDateHelper": "When field was discovered (YYYY-MM-DD)",
+      "productionStartDate": "Production Start Date",
+      "productionStartDateHelper": "When production began (YYYY-MM-DD)",
+      "productionEndDate": "Production End Date",
+      "productionEndDateHelper": "When production ended (YYYY-MM-DD)"
+    },
+    "validation": {
+      "productionFieldTypeRequired": "Field type is required"
+    }
+  },
+  "structure": {
+    "title": "Organizational Structures",
+    "subtitle": "Manage organizational structures and hierarchies",
+    "searchPlaceholder": "Search by code or designation...",
+    "parentStructure": "Parent Structure",
+    "noParent": "No parent (root structure)",
+    "root": "Root",
+    "selectType": "Select type",
+    "fields": {
+      "structureType": "Structure Type"
+    },
+    "validation": {
+      "typeRequired": "Structure type is required"
+    },
+    "tabs": {
+      "generalInformation": "General Information",
+      "jobs": "Jobs"
+    },
+    "createSuccess": "Structure created successfully",
+    "updateSuccess": "Structure updated successfully",
+    "saveError": "Failed to save structure",
+    "errorLoading": "Failed to load structure",
+    "errorLoadingFormData": "Failed to load form data"
+  },
+  "job": {
+    "title": "Jobs",
+    "titleInStructure": "Jobs in this Structure",
+    "subtitle": "Manage job positions",
+    "subtitleInStructure": "Manage job positions for this structure",
+    "dialog": {
+      "createTitle": "Create Job",
+      "createSubtitle": "Add a new job position",
+      "editTitle": "Edit Job",
+      "editSubtitle": "Update job position details"
+    },
+    "sections": {
+      "assignment": "Assignment"
+    },
+    "fields": {
+      "structure": "Structure",
+      "structureHelper": "Select the organizational structure",
+      "structureLocked": "Structure is set by parent"
+    },
+    "validation": {
+      "structureRequired": "Structure is required"
+    }
+  },
+  "employee": {
+    "title": "Employees",
+    "subtitle": "Manage employee records and information",
+    "searchPlaceholder": "Search by name or registration number...",
+    "firstNameAr": "First Name (Arabic)",
+    "lastNameAr": "Last Name (Arabic)",
+    "firstNameLt": "First Name (Latin)",
+    "lastNameLt": "Last Name (Latin)",
+    "birthDate": "Birth Date",
+    "birthPlace": "Birth Place",
+    "registrationNumber": "Registration Number",
+    "job": "Job",
+    "militaryRank": "Military Rank"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "signIn": "Sign In",
+    "signingIn": "Signing In...",
+    "username": "Username",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "contactAdmin": "Contact Administrator",
+    "loginFailed": "Login failed. Please check your credentials.",
+    "logoutSuccess": "Logged out successfully"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "passwordChanged": "Password changed successfully",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "updateProfile": "Update Profile",
+    "profileUpdated": "Profile updated successfully"
+  },
+  "nav": {
+    "home": "Home",
+    "general": "General",
+    "workspace": "Workspace",
+    "dashboard": "Dashboard",
+    "map": "Infrastructure Map",
+    "pipelineMap": "Pipeline Map",
+    "organization": "Organization",
+    "structures": "Structures",
+    "employees": "Employees",
+    "localization": "Localization",
+    "locations": "Locations",
+    "network": "Network",
+    "common": "Common",
+    "partners": "Partners",
+    "products": "Products",
+    "vendors": "Vendors",
+    "core": "Core",
+    "productionFields": "Production Fields",
+    "processingPlants": "Processing Plants",
+    "pipelines": "Pipelines",
+    "pipelineSystems": "Pipeline Systems",
+    "stations": "Stations",
+    "terminals": "Terminals",
+    "system": "System",
+    "security": "Security",
+    "users": "Users",
+    "roles": "Roles",
+    "groups": "Groups",
+    "permissions": "Permissions",
+    "auth": "Authentication",
+    "sessions": "Sessions",
+    "audit": "Audit",
+    "logs": "Logs",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "map": {
+    "title": "Infrastructure Map",
+    "description": "Interactive map showing stations, terminals, hydrocarbon fields, and pipelines",
+    "layers": "Map Layers",
+    "hoverToExpand": "Hover to expand",
+    "clickToToggle": "Click to toggle layers",
+    "showStations": "Stations",
+    "showTerminals": "Terminals",
+    "showHydrocarbonFields": "Hydrocarbon Fields",
+    "showPipelines": "Pipelines",
+    "clickToEdit": "Click marker to edit",
+    "station": "Station",
+    "terminal": "Terminal",
+    "hydrocarbonField": "Hydrocarbon Field",
+    "coordinates": "Coordinates",
+    "elevation": "Elevation",
+    "capacity": "Capacity",
+    "storage": "Storage",
+    "reserves": "Reserves",
+    "commissioned": "Commissioned",
+    "discovered": "Discovered",
+    "operationalStatus": "Operational Status",
+    "units": "units",
+    "meters": "m",
+    "cubicMeters": "m³",
+    "network": {
+      "offline": "Network Offline",
+      "online": "Network Online"
+    },
+    "tiles": {
+      "online": "Online",
+      "offline": "Offline",
+      "notAvailable": "Offline tiles not available",
+      "offlineOnly": "Network is offline - using local tiles",
+      "offlineNotAvailable": "Offline tiles are not available",
+      "switchToOnline": "Switch to online map tiles",
+      "switchToOffline": "Switch to offline map tiles"
+    }
+  },
+  "user": {
+    "title": "Users",
+    "subtitle": "Manage and organize user accounts",
+    "searchPlaceholder": "Search by username or email...",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "username": "Username",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "roles": "Roles",
+    "groups": "Groups",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "lastLogin": "Last Login",
+    "filterByStatus": "Filter by Status",
+    "filterByRole": "Filter by Role"
+  },
+  "role": {
+    "title": "Roles",
+    "subtitle": "Manage roles and permissions",
+    "searchPlaceholder": "Search roles by name or description...",
+    "permissions": "Permissions",
+    "description": "Description"
+  },
+  "group": {
+    "title": "Groups",
+    "subtitle": "Manage user groups",
+    "searchPlaceholder": "Search groups by name or description...",
+    "users": "Users",
+    "description": "Description"
+  },
+  "footer": {
+    "copyright": "© {{year}} HyFlo Platform. All rights reserved."
+  },
+  "errors": {
+    "unauthorized": "Unauthorized",
+    "forbidden": "You don't have permission to access this resource.",
+    "notFound": "Page not found",
+    "serverError": "Server error occurred",
+    "networkError": "Network error. Please check your connection."
+  }
+}
