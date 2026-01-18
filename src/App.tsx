@@ -13,6 +13,7 @@
  * @updated 01-08-2026 - Added type assertion for stylis plugins
  * @updated 01-08-2026 - Fixed Product edit route to include /edit suffix
  * @updated 01-15-2026 - Replaced HydrocarbonField with ProductionField
+ * @updated 01-19-2026 - Added Location routes
  */
 
 import { useEffect, useMemo } from 'react';
@@ -49,6 +50,7 @@ import {
 } from './modules/network/core/pages';
 import { NetworkMapPage, GeoDebugPage, PipelineMapPage } from './modules/network/geo/pages';
 import { StructureList, StructureEdit, EmployeeList, EmployeeEdit } from './modules/general/organization';
+import { LocationList, LocationEdit } from './modules/general/localization/pages';
 
 // Network Common
 import ProductList from './modules/network/common/pages/ProductList';
@@ -262,6 +264,38 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                </Route>
+
+                {/* General Module - Protected */}
+                <Route path="general">
+                  {/* Localization */}
+                  <Route path="localization">
+                    {/* Locations */}
+                    <Route
+                      path="locations"
+                      element={
+                        <ProtectedRoute>
+                          <LocationList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="locations/create"
+                      element={
+                        <ProtectedRoute>
+                          <LocationEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="locations/:locationId/edit"
+                      element={
+                        <ProtectedRoute>
+                          <LocationEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Route>
                 </Route>
 
                 {/* Network Module - Protected */}
