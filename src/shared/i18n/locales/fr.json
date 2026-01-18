@@ -1,0 +1,528 @@
+{
+  "app": {
+    "name": "Plateforme HyFlo",
+    "description": "Gestion de Flux d'Hydrocarbures"
+  },
+  "common": {
+    "yes": "Oui",
+    "no": "Non",
+    "all": "Tous",
+    "none": "Aucun",
+    "legend": "Légende",
+    "filters": "Filtres",
+    "clear": "Effacer",
+    "total": "total",
+    "id": "ID",
+    "loading": "Chargement...",
+    "back": "Retour",
+    "fields": {
+      "code": "Code",
+      "codeHelper": "Code identifiant unique (2-20 caractères)",
+      "name": "Nom",
+      "nameHelper": "Nom complet ou désignation (3-100 caractères)",
+      "shortName": "Nom Court",
+      "shortNameHelper": "Nom abrégé (2-20 caractères)",
+      "description": "Description",
+      "descriptionHelper": "Détails et notes supplémentaires",
+      "operationalStatus": "Statut Opérationnel",
+      "operationalStatusHelper": "État opérationnel actuel",
+      "vendor": "Fournisseur",
+      "vendorHelper": "Fournisseur d'équipement",
+      "structure": "Structure",
+      "structureHelper": "Unité organisationnelle",
+      "location": "Emplacement",
+      "locationHelper": "Localisation physique",
+      "country": "Pays",
+      "countryHelper": "Pays d'origine ou d'opération",
+      "installationDate": "Date d'Installation",
+      "installationDateHelper": "Quand l'équipement a été installé (AAAA-MM-JJ)",
+      "commissioningDate": "Date de Mise en Service",
+      "commissioningDateHelper": "Quand l'installation est devenue opérationnelle (AAAA-MM-JJ)",
+      "decommissioningDate": "Date de Mise Hors Service",
+      "decommissioningDateHelper": "Quand l'installation a été retirée (AAAA-MM-JJ)",
+      "latitude": "Latitude",
+      "latitudeHelper": "Degrés décimaux (-90 à 90)",
+      "longitude": "Longitude",
+      "longitudeHelper": "Degrés décimaux (-180 à 180)",
+      "elevation": "Altitude (m)",
+      "elevationHelper": "Mètres au-dessus du niveau de la mer",
+      "placeName": "Nom du Lieu",
+      "placeNameHelper": "Nom de localisation descriptif (max 100 caractères)",
+      "designationFr": "Désignation (Français)",
+      "designationFrHelper": "Obligatoire - Désignation française",
+      "designationEn": "Désignation (Anglais)",
+      "designationEnHelper": "Optionnel - Désignation anglaise",
+      "designationAr": "Désignation (Arabe)",
+      "designationArHelper": "Optionnel - Désignation arabe"
+    },
+    "sections": {
+      "basicInformation": "Informations de Base",
+      "locationInformation": "Informations de Localisation",
+      "organizationTechnical": "Organisation et Détails Techniques",
+      "technicalDetails": "Détails Techniques",
+      "importantDates": "Dates Importantes",
+      "designations": "Désignations Multilingues",
+      "capacitySpecifications": "Spécifications de Capacité",
+      "operationalDetails": "Détails Opérationnels"
+    },
+    "validation": {
+      "required": "{{field}} est requis",
+      "minLength": "{{field}} doit contenir au moins {{min}} caractères",
+      "maxLength": "{{field}} ne doit pas dépasser {{max}} caractères",
+      "minValue": "{{field}} doit être au moins {{min}}",
+      "maxValue": "{{field}} ne doit pas dépasser {{max}}",
+      "positive": "{{field}} doit être supérieur à 0",
+      "invalidFormat": "Format {{field}} invalide",
+      "dateFormat": "La date doit être au format AAAA-MM-JJ",
+      "emailInvalid": "Adresse e-mail invalide",
+      "formInvalid": "Veuillez remplir tous les champs obligatoires",
+      "codeRequired": "Le code est requis",
+      "nameRequired": "Le nom est requis",
+      "designationFrRequired": "La désignation française est requise"
+    },
+    "page": {
+      "createTitle": "Créer {{entity}}",
+      "createSubtitle": "Ajouter un nouveau {{entity}}",
+      "editTitle": "Modifier {{entity}}",
+      "editSubtitle": "Mettre à jour les informations de {{entity}}"
+    }
+  },
+  "list": {
+    "code": "Code",
+    "designation": "Désignation",
+    "name": "Nom",
+    "description": "Description",
+    "type": "Type",
+    "status": "Statut",
+    "location": "Emplacement",
+    "actions": "Actions",
+    "country": "Pays",
+    "vendor": "Fournisseur",
+    "structure": "Structure",
+    "product": "Produit",
+    "shortName": "Nom Court",
+    "fullName": "Nom Complet",
+    "searchPlaceholder": "Rechercher...",
+    "filterByType": "Filtrer par Type",
+    "filterByStatus": "Filtrer par Statut",
+    "allTypes": "Tous les Types",
+    "allStatuses": "Tous les Statuts",
+    "results": "résultats",
+    "noData": "Aucune donnée disponible",
+    "loading": "Chargement...",
+    "pipelineSystem": "Système de Pipeline",
+    "length": "Longueur",
+    "all": "Tous",
+    "username": "Nom d'utilisateur",
+    "email": "E-mail",
+    "roles": "Rôles",
+    "permissions": "Autorisations",
+    "users": "Utilisateurs",
+    "noPermissions": "Aucune autorisation",
+    "noUsers": "Aucun utilisateur"
+  },
+  "action": {
+    "create": "Créer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "cancel": "Annuler",
+    "refresh": "Actualiser",
+    "export": "Exporter",
+    "exportCSV": "Exporter CSV",
+    "exportExcel": "Exporter Excel",
+    "exportPDF": "Exporter PDF",
+    "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément ?",
+    "clearFilters": "Effacer les Filtres",
+    "search": "Rechercher",
+    "add": "Ajouter",
+    "view": "Voir",
+    "update": "Mettre à jour",
+    "submit": "Soumettre",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "confirm": "Confirmer"
+  },
+  "message": {
+    "deleteSuccess": "Élément supprimé avec succès",
+    "deleteError": "Échec de la suppression de l'élément",
+    "createSuccess": "Élément créé avec succès",
+    "createError": "Échec de la création de l'élément",
+    "updateSuccess": "Élément mis à jour avec succès",
+    "updateError": "Échec de la mise à jour de l'élément",
+    "saveError": "Échec de l'enregistrement de l'élément",
+    "errorLoading": "Échec du chargement des données",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire",
+    "refreshed": "Données actualisées",
+    "exportedCSV": "Exporté en CSV",
+    "exportedExcel": "Exporté en Excel",
+    "exportedPDF": "Exporté en PDF",
+    "deleting": "Suppression...",
+    "deleted": "Supprimé",
+    "success": "Succès",
+    "error": "Erreur"
+  },
+  "product": {
+    "title": "Produits",
+    "subtitle": "Gérer les produits d'hydrocarbures et matériaux",
+    "searchPlaceholder": "Rechercher des produits...",
+    "allProducts": "Tous les Produits",
+    "hazardousOnly": "Dangereux Seulement",
+    "nonHazardousOnly": "Non Dangereux Seulement",
+    "filterByHazardous": "Statut Dangereux",
+    "fields": {
+      "density": "Densité (kg/m³)",
+      "densityHelper": "Densité du produit en kilogrammes par mètre cube",
+      "viscosity": "Viscosité (cP)",
+      "viscosityHelper": "Viscosité du produit en centipoise",
+      "flashPoint": "Point d'Éclair (°C)",
+      "flashPointHelper": "Température d'inflammation de la vapeur",
+      "sulfurContent": "Teneur en Soufre (%)",
+      "sulfurContentHelper": "Pourcentage de teneur en soufre",
+      "isHazardous": "Matière Dangereuse",
+      "isHazardousHelper": "Cocher si ce produit est classé comme dangereux"
+    }
+  },
+  "partner": {
+    "title": "Partenaires",
+    "subtitle": "Gérer les partenaires commerciaux et collaborateurs",
+    "searchPlaceholder": "Rechercher des partenaires...",
+    "fields": {
+      "partnerType": "Type de Partenaire",
+      "partnerTypeHelper": "Sélectionner le type de partenariat"
+    },
+    "validation": {
+      "partnerTypeRequired": "Le type de partenaire est requis"
+    }
+  },
+  "vendor": {
+    "title": "Fournisseurs",
+    "subtitle": "Gérer les fournisseurs d'équipements et prestataires",
+    "searchPlaceholder": "Rechercher des fournisseurs...",
+    "fields": {
+      "vendorType": "Type de Fournisseur",
+      "vendorTypeHelper": "Sélectionner la classification du fournisseur"
+    },
+    "validation": {
+      "vendorTypeRequired": "Le type de fournisseur est requis"
+    }
+  },
+  "station": {
+    "title": "Stations",
+    "subtitle": "Gérer les infrastructures et équipements de stations",
+    "searchPlaceholder": "Rechercher des stations...",
+    "fields": {
+      "stationType": "Type de Station",
+      "stationTypeHelper": "Sélectionner le type de station",
+      "pipelineSystem": "Système de Pipeline",
+      "pipelineSystemHelper": "Système de pipeline associé"
+    },
+    "validation": {
+      "stationTypeRequired": "Le type de station est requis",
+      "pipelineSystemRequired": "Le système de pipeline est requis"
+    }
+  },
+  "terminal": {
+    "title": "Terminaux",
+    "subtitle": "Gérer les installations et opérations des terminaux",
+    "searchPlaceholder": "Rechercher des terminaux...",
+    "fields": {
+      "terminalType": "Type de Terminal",
+      "terminalTypeHelper": "Sélectionner le type de terminal"
+    },
+    "validation": {
+      "terminalTypeRequired": "Le type de terminal est requis"
+    }
+  },
+  "pipeline": {
+    "title": "Pipelines",
+    "subtitle": "Gérer les infrastructures et tracés des pipelines",
+    "searchPlaceholder": "Rechercher des pipelines...",
+    "sections": {
+      "dimensionalSpecifications": "Spécifications Dimensionnelles",
+      "pressureSpecifications": "Spécifications de Pression (bar)",
+      "materialCoating": "Matériau et Revêtement",
+      "connectedTerminals": "Terminaux Connectés"
+    },
+    "fields": {
+      "nominalDiameter": "Diamètre Nominal (po)",
+      "nominalDiameterHelper": "Diamètre du tuyau en pouces",
+      "nominalThickness": "Épaisseur Nominale (mm)",
+      "nominalThicknessHelper": "Épaisseur de paroi en millimètres",
+      "length": "Longueur (km)",
+      "lengthHelper": "Longueur totale du pipeline en kilomètres",
+      "nominalRoughness": "Rugosité Nominale (mm)",
+      "nominalRoughnessHelper": "Rugosité de surface intérieure",
+      "designMaxServicePressure": "Pression Maximale de Service de Conception",
+      "designMaxServicePressureHelper": "Pression maximale de conception",
+      "operationalMaxServicePressure": "Pression Maximale de Service Opérationnelle",
+      "operationalMaxServicePressureHelper": "Pression maximale opérationnelle",
+      "designMinServicePressure": "Pression Minimale de Service de Conception",
+      "designMinServicePressureHelper": "Pression minimale de conception",
+      "operationalMinServicePressure": "Pression Minimale de Service Opérationnelle",
+      "operationalMinServicePressureHelper": "Pression minimale opérationnelle",
+      "designCapacity": "Capacité de Conception",
+      "designCapacityHelper": "Capacité de débit maximale conçue",
+      "operationalCapacity": "Capacité Opérationnelle",
+      "operationalCapacityHelper": "Capacité de débit opérationnelle actuelle",
+      "nominalConstructionMaterial": "Matériau de Construction Nominal",
+      "nominalConstructionMaterialHelper": "Matériau principal du tuyau",
+      "nominalExteriorCoating": "Revêtement Extérieur Nominal",
+      "nominalExteriorCoatingHelper": "Type de revêtement extérieur",
+      "nominalInteriorCoating": "Revêtement Intérieur Nominal",
+      "nominalInteriorCoatingHelper": "Type de revêtement intérieur",
+      "pipelineSystem": "Système de Pipeline",
+      "pipelineSystemHelper": "Système de pipeline associé",
+      "departureTerminal": "Terminal de Départ",
+      "departureTerminalHelper": "Terminal de départ",
+      "arrivalTerminal": "Terminal d'Arrivée",
+      "arrivalTerminalHelper": "Terminal d'arrivée"
+    },
+    "validation": {
+      "lengthRequired": "La longueur doit être supérieure à 0"
+    }
+  },
+  "pipelineSystem": {
+    "title": "Systèmes de Pipeline",
+    "subtitle": "Gérer les réseaux de systèmes de pipelines intégrés",
+    "searchPlaceholder": "Rechercher des systèmes de pipeline..."
+  },
+  "processingPlant": {
+    "title": "Usines de Traitement",
+    "subtitle": "Gérer les installations et opérations des usines de traitement",
+    "searchPlaceholder": "Rechercher des usines de traitement...",
+    "fields": {
+      "processingPlantType": "Type d'Usine",
+      "processingPlantTypeHelper": "Sélectionner le type d'usine"
+    },
+    "validation": {
+      "processingPlantTypeRequired": "Le type d'usine est requis"
+    }
+  },
+  "productionField": {
+    "title": "Champs de Production",
+    "subtitle": "Gérer les infrastructures et opérations des champs de production",
+    "searchPlaceholder": "Rechercher des champs de production...",
+    "fields": {
+      "productionFieldType": "Type de Champ",
+      "productionFieldTypeHelper": "Sélectionner le type de champ",
+      "discoveryDate": "Date de Découverte",
+      "discoveryDateHelper": "Quand le champ a été découvert (AAAA-MM-JJ)",
+      "productionStartDate": "Date de Début de Production",
+      "productionStartDateHelper": "Quand la production a commencé (AAAA-MM-JJ)",
+      "productionEndDate": "Date de Fin de Production",
+      "productionEndDateHelper": "Quand la production s'est terminée (AAAA-MM-JJ)"
+    },
+    "validation": {
+      "productionFieldTypeRequired": "Le type de champ est requis"
+    }
+  },
+  "structure": {
+    "title": "Structures Organisationnelles",
+    "subtitle": "Gérer les structures organisationnelles et les hiérarchies",
+    "searchPlaceholder": "Rechercher par code ou désignation...",
+    "parentStructure": "Structure Parente",
+    "noParent": "Pas de parent (structure racine)",
+    "root": "Racine",
+    "selectType": "Sélectionner le type",
+    "fields": {
+      "structureType": "Type de Structure"
+    },
+    "validation": {
+      "typeRequired": "Le type de structure est requis"
+    },
+    "tabs": {
+      "generalInformation": "Informations Générales",
+      "jobs": "Postes"
+    },
+    "createSuccess": "Structure créée avec succès",
+    "updateSuccess": "Structure mise à jour avec succès",
+    "saveError": "Échec de l'enregistrement de la structure",
+    "errorLoading": "Échec du chargement de la structure",
+    "errorLoadingFormData": "Échec du chargement des données du formulaire"
+  },
+  "job": {
+    "title": "Postes",
+    "titleInStructure": "Postes dans cette Structure",
+    "subtitle": "Gérer les postes de travail",
+    "subtitleInStructure": "Gérer les postes pour cette structure",
+    "dialog": {
+      "createTitle": "Créer un Poste",
+      "createSubtitle": "Ajouter un nouveau poste",
+      "editTitle": "Modifier le Poste",
+      "editSubtitle": "Mettre à jour les détails du poste"
+    },
+    "sections": {
+      "assignment": "Affectation"
+    },
+    "fields": {
+      "structure": "Structure",
+      "structureHelper": "Sélectionner la structure organisationnelle",
+      "structureLocked": "Structure définie par le parent"
+    },
+    "validation": {
+      "structureRequired": "La structure est requise"
+    }
+  },
+  "employee": {
+    "title": "Employés",
+    "subtitle": "Gérer les dossiers et informations des employés",
+    "searchPlaceholder": "Rechercher par nom ou numéro d'enregistrement...",
+    "firstNameAr": "Prénom en Arabe",
+    "lastNameAr": "Nom de Famille en Arabe",
+    "firstNameLt": "Prénom en Latin",
+    "lastNameLt": "Nom de Famille en Latin",
+    "birthDate": "Date de Naissance",
+    "birthPlace": "Lieu de Naissance",
+    "registrationNumber": "Numéro d'Enregistrement",
+    "job": "Poste",
+    "militaryRank": "Rang Militaire"
+  },
+  "auth": {
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "signIn": "Se connecter",
+    "signingIn": "Connexion en cours...",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié?",
+    "noAccount": "Vous n'avez pas de compte?",
+    "contactAdmin": "Contacter l'administrateur",
+    "loginFailed": "Échec de la connexion. Veuillez vérifier vos identifiants.",
+    "logoutSuccess": "Déconnexion réussie"
+  },
+  "profile": {
+    "title": "Mon profil",
+    "personalInfo": "Informations personnelles",
+    "changePassword": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordChanged": "Mot de passe changé avec succès",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "updateProfile": "Mettre à jour le profil",
+    "profileUpdated": "Profil mis à jour avec succès"
+  },
+  "nav": {
+    "home": "Accueil",
+    "general": "Général",
+    "workspace": "Espace de travail",
+    "dashboard": "Tableau de bord",
+    "map": "Carte d'infrastructure",
+    "pipelineMap": "Carte des Pipelines",
+    "organization": "Organisation",
+    "structures": "Structures",
+    "employees": "Employés",
+    "localization": "Localisation",
+    "locations": "Emplacements",
+    "network": "Réseau",
+    "common": "Commun",
+    "partners": "Partenaires",
+    "products": "Produits",
+    "vendors": "Fournisseurs",
+    "core": "Cœur",
+    "productionFields": "Champs de production",
+    "processingPlants": "Usines de traitement",
+    "pipelines": "Pipelines",
+    "pipelineSystems": "Systèmes de pipeline",
+    "stations": "Stations",
+    "terminals": "Terminaux",
+    "system": "Système",
+    "security": "Sécurité",
+    "users": "Utilisateurs",
+    "roles": "Rôles",
+    "groups": "Groupes",
+    "permissions": "Permissions",
+    "auth": "Authentification",
+    "sessions": "Sessions",
+    "audit": "Audit",
+    "logs": "Journaux",
+    "settings": "Paramètres",
+    "profile": "Profil"
+  },
+  "map": {
+    "title": "Carte d'infrastructure",
+    "description": "Carte interactive montrant les stations, les terminaux, les champs d'hydrocarbures et les pipelines",
+    "layers": "Couches de carte",
+    "hoverToExpand": "Survoler pour développer",
+    "clickToToggle": "Cliquer pour basculer les couches",
+    "showStations": "Stations",
+    "showTerminals": "Terminaux",
+    "showHydrocarbonFields": "Champs d'hydrocarbures",
+    "showPipelines": "Pipelines",
+    "clickToEdit": "Cliquer sur le marqueur pour modifier",
+    "station": "Station",
+    "terminal": "Terminal",
+    "hydrocarbonField": "Champ d'hydrocarbures",
+    "coordinates": "Coordonnées",
+    "elevation": "Altitude",
+    "capacity": "Capacité",
+    "storage": "Stockage",
+    "reserves": "Réserves",
+    "commissioned": "Mise en service",
+    "discovered": "Découvert",
+    "operationalStatus": "État opérationnel",
+    "units": "unités",
+    "meters": "m",
+    "cubicMeters": "m³",
+    "network": {
+      "offline": "Réseau hors ligne",
+      "online": "Réseau en ligne"
+    },
+    "tiles": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "notAvailable": "Tuiles hors ligne non disponibles",
+      "offlineOnly": "Le réseau est hors ligne - utilisation des tuiles locales",
+      "offlineNotAvailable": "Les tuiles hors ligne ne sont pas disponibles",
+      "switchToOnline": "Passer aux tuiles de carte en ligne",
+      "switchToOffline": "Passer aux tuiles de carte hors ligne"
+    }
+  },
+  "user": {
+    "title": "Utilisateurs",
+    "subtitle": "Gestion et organisation des comptes utilisateurs",
+    "searchPlaceholder": "Rechercher par nom d'utilisateur ou e-mail...",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "email": "Email",
+    "username": "Nom d'utilisateur",
+    "enabled": "Activé",
+    "disabled": "Désactivé",
+    "roles": "Rôles",
+    "groups": "Groupes",
+    "createdAt": "Créé le",
+    "updatedAt": "Modifié le",
+    "lastLogin": "Dernière connexion",
+    "filterByStatus": "Filtrer par Statut",
+    "filterByRole": "Filtrer par Rôle"
+  },
+  "role": {
+    "title": "Rôles",
+    "subtitle": "Gérer les rôles et permissions",
+    "searchPlaceholder": "Rechercher des rôles par nom ou description...",
+    "permissions": "Permissions",
+    "description": "Description"
+  },
+  "group": {
+    "title": "Groupes",
+    "subtitle": "Gérer les groupes d'utilisateurs",
+    "searchPlaceholder": "Rechercher des groupes par nom ou description...",
+    "users": "Utilisateurs",
+    "description": "Description"
+  },
+  "footer": {
+    "copyright": "© {{year}} Plateforme HyFlo. Tous droits réservés."
+  },
+  "errors": {
+    "unauthorized": "Non autorisé",
+    "forbidden": "Vous n'avez pas la permission d'accéder à cette ressource.",
+    "notFound": "Page non trouvée",
+    "serverError": "Une erreur serveur s'est produite",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion."
+  }
+}
