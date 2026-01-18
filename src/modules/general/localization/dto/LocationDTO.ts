@@ -23,7 +23,9 @@ export interface LocationDTO {
 
   // Core fields
   sequence: number; // @NotBlank (required)
-  placeName: string; // @NotBlank, max 10 chars (renamed from 'code' in U-005)
+  designationAr: string; //
+  designationEN: string; // 
+  designationFr: string; // @NotBlank, max 100 chars (renamed from 'code' in U-005)
   latitude: number; // @NotNull (required)
   longitude: number; // @NotNull (required)
   elevation?: number; // Optional
@@ -54,10 +56,20 @@ export const validateLocationDTO = (data: Partial<LocationDTO>): string[] => {
   }
   
   // Place name validation (renamed from 'code')
-  if (!data.placeName) {
+  if (data.designationAr.length > 100) {
+    errors.push("Designation (Ar) must not exceed 100 characters");
+  }
+  
+  // Place name validation (renamed from 'code')
+  if (data.designationEn.length > 100) {
+    errors.push("Designation (En) must not exceed 100 characters");
+  }
+  
+  // Place name validation (renamed from 'code')
+  if (!data.designationFr) {
     errors.push("Place name is required");
-  } else if (data.placeName.length > 10) {
-    errors.push("Place name must not exceed 10 characters");
+  } else if (data.designationFr.length > 100) {
+    errors.push("Place name must not exceed 100 characters");
   }
   
   // Latitude validation

@@ -152,7 +152,9 @@ export const mapToLocationDTO = (data: any): LocationDTO => {
   return {
     id: data.id,
     sequence: data.sequence,
-    placeName: data.placeName,  // U-005: renamed from 'code'
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
     latitude: data.latitude,
     longitude: data.longitude,
     elevation: data.elevation,
@@ -171,7 +173,9 @@ export const mapFromLocationDTO = (data: Partial<LocationDTO>): any => {
   return {
     id: data.id,
     sequence: data.sequence,
-    placeName: data.placeName,  // U-005: renamed from 'code'
+    designationAr: data.designationAr,
+    designationEn: data.designationEn,
+    designationFr: data.designationFr,
     latitude: data.latitude,
     longitude: data.longitude,
     elevation: data.elevation,
