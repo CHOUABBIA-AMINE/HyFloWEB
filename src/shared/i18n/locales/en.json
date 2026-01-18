@@ -541,7 +541,10 @@
     "subtitle": "Manage roles and permissions",
     "searchPlaceholder": "Search roles by name or description...",
     "permissions": "Permissions",
-    "description": "Description"
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the role and its purpose",
+    "selectPermissions": "Select permissions",
+    "selectedPermissionsCount": "Selected Permissions: {{count}}"
   },
   "group": {
     "title": "Groups",
