@@ -174,6 +174,16 @@ const Sidebar = ({ open }: SidebarProps) => {
           titleKey: 'nav.core',
           icon: <AccountTreeIcon />,
           children: [
+			{
+			  titleKey: 'nav.productionFields',  // ADD THIS NEW ENTRY
+			  icon: <OilBarrelIcon />,           // Or use a different icon
+			  path: '/network/core/production-fields',
+			},
+            {
+              titleKey: 'nav.processingPlants',
+              icon: <PrecisionManufacturingIcon />,
+              path: '/network/core/processing-plants',
+            },
             {
               titleKey: 'nav.pipelineSystems',
               icon: <AccountTreeIcon />,
@@ -183,11 +193,6 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.pipelines',
               icon: <AccountTreeIcon />,
               path: '/network/core/pipelines',
-            },
-            {
-              titleKey: 'nav.processingPlants',
-              icon: <PrecisionManufacturingIcon />,
-              path: '/network/core/processing-plants',
             },
             {
               titleKey: 'nav.stations',

@@ -562,7 +562,13 @@
     "updatedAt": "Modifié le",
     "lastLogin": "Dernière connexion",
     "filterByStatus": "Filtrer par Statut",
-    "filterByRole": "Filtrer par Rôle"
+    "filterByRole": "Filtrer par Rôle",
+	"usernameCannotChange": "Le nom d'utilisateur ne peut pas être modifié",
+	"enabledDescription": "L'utilisateur peut se connecter et accéder au système",
+	"disabledDescription": "Le compte utilisateur est désactivé",
+	"rolesAndGroups": "Rôles et Groupes",
+	"selectRoles": "Sélectionner les rôles",
+	"selectGroups": "Sélectionner les groupes"
   },
   "role": {
     "title": "Rôles",

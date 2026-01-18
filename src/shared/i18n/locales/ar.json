@@ -560,7 +560,13 @@
     "updatedAt": "تاريخ التحديث",
     "lastLogin": "آخر تسجيل دخول",
     "filterByStatus": "تصفية حسب الحالة",
-    "filterByRole": "تصفية حسب الدور"
+    "filterByRole": "تصفية حسب الدور",
+	"usernameCannotChange": "لا يمكن تغيير اسم المستخدم",
+	"enabledDescription": "يمكن للمستخدم تسجيل الدخول والوصول إلى النظام",
+	"disabledDescription": "حساب المستخدم معطل",
+	"rolesAndGroups": "الأدوار والمجموعات",
+	"selectRoles": "اختر الأدوار",
+	"selectGroups": "اختر المجموعات"
   },
   "role": {
     "title": "الأدوار",
