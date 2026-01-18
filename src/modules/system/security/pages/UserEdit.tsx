@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-22-2025
  * @updated 01-08-2026 - Fixed type inference for roles/groups
+ * @updated 01-18-2026 - Optimized to use common translation keys
  */
 
 import { useState, useEffect } from 'react';
@@ -98,7 +99,7 @@ const UserEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -109,22 +110,22 @@ const UserEdit = () => {
 
     // Username validation
     if (!user.username || user.username.trim().length < 3) {
-      errors.username = 'Username must be at least 3 characters';
+      errors.username = t('common.validation.minLength', { field: t('user.username'), min: 3 });
     }
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!user.email || !emailRegex.test(user.email)) {
-      errors.email = 'Valid email is required';
+      errors.email = t('common.validation.emailInvalid');
     }
 
     // Password validation (only for create mode)
     if (!isEditMode) {
       if (!password || password.length < 8) {
-        errors.password = 'Password must be at least 8 characters';
+        errors.password = t('profile.passwordTooShort');
       }
       if (password !== confirmPassword) {
-        errors.confirmPassword = 'Passwords do not match';
+        errors.confirmPassword = t('profile.passwordMismatch');
       }
     }
 
@@ -182,7 +183,7 @@ const UserEdit = () => {
       navigate('/security/users');
     } catch (err: any) {
       console.error('Failed to save user:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save user');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -212,10 +213,16 @@ const UserEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('user.editUser') : t('user.createUser')}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('user.title') })
+            : t('common.page.createTitle', { entity: t('user.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update user information and permissions' : 'Create a new user account'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('user.title') })
+            : t('common.page.createSubtitle', { entity: t('user.title') })
+          }
         </Typography>
       </Box>
 
@@ -233,7 +240,7 @@ const UserEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('common.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -247,7 +254,7 @@ const UserEdit = () => {
                     required
                     disabled={isEditMode}
                     error={!!validationErrors.username}
-                    helperText={validationErrors.username || (isEditMode ? 'Username cannot be changed' : '')}
+                    helperText={validationErrors.username || (isEditMode ? t('user.usernameCannotChange') : '')}
                   />
                 </Grid>
 
@@ -279,7 +286,7 @@ const UserEdit = () => {
                           {t('user.enabled')}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {user.enabled ? 'User can login and access the system' : 'User account is disabled'}
+                          {user.enabled ? t('user.enabledDescription') : t('user.disabledDescription')}
                         </Typography>
                       </Box>
                     }
@@ -294,7 +301,7 @@ const UserEdit = () => {
             <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
               <Box sx={{ p: 2.5 }}>
                 <Typography variant="h6" fontWeight={600} gutterBottom>
-                  Password
+                  {t('auth.password')}
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
                 
@@ -313,7 +320,7 @@ const UserEdit = () => {
                       }}
                       required
                       error={!!validationErrors.password}
-                      helperText={validationErrors.password || 'Minimum 8 characters'}
+                      helperText={validationErrors.password || t('profile.passwordTooShort')}
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -332,7 +339,7 @@ const UserEdit = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
-                      label="Confirm Password"
+                      label={t('profile.confirmPassword')}
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => {
@@ -367,7 +374,7 @@ const UserEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Roles & Groups
+                {t('user.rolesAndGroups')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -383,7 +390,7 @@ const UserEdit = () => {
                       <TextField
                         {...params}
                         label={t('user.roles')}
-                        placeholder="Select roles"
+                        placeholder={t('user.selectRoles')}
                       />
                     )}
                     renderTags={(value, getTagProps) =>
@@ -409,7 +416,7 @@ const UserEdit = () => {
                       <TextField
                         {...params}
                         label={t('user.groups')}
-                        placeholder="Select groups"
+                        placeholder={t('user.selectGroups')}
                       />
                     )}
                     renderTags={(value, getTagProps) =>
@@ -448,7 +455,7 @@ const UserEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
