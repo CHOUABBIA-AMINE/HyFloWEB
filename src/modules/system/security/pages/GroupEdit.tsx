@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-23-2025
  * @updated 01-08-2026 - Fixed type inference for users
+ * @updated 01-18-2026 - Optimized to use common translation keys
  */
 
 import { useState, useEffect } from 'react';
@@ -87,7 +88,7 @@ const GroupEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ const GroupEdit = () => {
 
     // Name validation
     if (!group.name || group.name.trim().length < 2) {
-      errors.name = 'Group name must be at least 2 characters';
+      errors.name = t('common.validation.minLength', { field: t('common.fields.name'), min: 2 });
     }
 
     setValidationErrors(errors);
@@ -145,7 +146,7 @@ const GroupEdit = () => {
       navigate('/security/groups');
     } catch (err: any) {
       console.error('Failed to save group:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save group');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -175,10 +176,16 @@ const GroupEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('group.editGroup') : t('group.createGroup')}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('group.title') })
+            : t('common.page.createTitle', { entity: t('group.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update group information and user assignments' : 'Create a new group with user assignments'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('group.title') })
+            : t('common.page.createSubtitle', { entity: t('group.title') })
+          }
         </Typography>
       </Box>
 
@@ -196,7 +203,7 @@ const GroupEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('common.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -204,24 +211,24 @@ const GroupEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('group.name')}
+                    label={t('common.fields.name')}
                     value={group.name || ''}
                     onChange={handleChange('name')}
                     required
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name}
+                    helperText={validationErrors.name || t('common.fields.nameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label={t('group.description')}
+                    label={t('common.fields.description')}
                     value={group.description || ''}
                     onChange={handleChange('description')}
                     multiline
                     rows={3}
-                    placeholder="Describe the group and its purpose"
+                    placeholder={t('group.descriptionPlaceholder')}
                   />
                 </Grid>
               </Grid>
@@ -232,7 +239,7 @@ const GroupEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Users
+                {t('group.users')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -248,7 +255,7 @@ const GroupEdit = () => {
                       <TextField
                         {...params}
                         label={t('group.users')}
-                        placeholder="Select users"
+                        placeholder={t('group.selectUsers')}
                       />
                     )}
                     renderTags={(value, getTagProps) =>
@@ -267,7 +274,7 @@ const GroupEdit = () => {
                   <Grid item xs={12}>
                     <Alert severity="info" icon={false}>
                       <Typography variant="body2" fontWeight={500} gutterBottom>
-                        Selected Users: {group.users.length}
+                        {t('group.selectedUsersCount', { count: group.users.length })}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
                         {group.users.map((user) => (
@@ -307,7 +314,7 @@ const GroupEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
