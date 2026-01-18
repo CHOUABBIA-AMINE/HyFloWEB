@@ -18,6 +18,7 @@
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
  * @updated 01-17-2026 - Fixed: Added missing MenuItem import
+ * @updated 01-18-2026 - Fixed translation keys to use common.yes/no and product.fields pattern
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -166,16 +167,16 @@ const ProductList = () => {
       { header: t('list.code', 'Code'), key: 'code', width: 15 },
       { header: t('list.designation', 'Designation'), key: 'designation', width: 35 },
       { 
-        header: t('product.density', 'Density'), 
+        header: t('product.fields.density', 'Density'), 
         key: 'density',
         width: 15,
         transform: (value: any) => value ? `${value}` : '-'
       },
       { 
-        header: t('product.isHazardous', 'Hazardous'), 
+        header: t('product.fields.isHazardous', 'Hazardous'), 
         key: 'isHazardous',
         width: 15,
-        transform: (value: any) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
+        transform: (value: any) => value ? t('common.yes', 'Yes') : t('common.no', 'No')
       }
     ];
 
@@ -199,16 +200,16 @@ const ProductList = () => {
       { header: t('list.code', 'Code'), key: 'code', width: 15 },
       { header: t('list.designation', 'Designation'), key: 'designation', width: 35 },
       { 
-        header: t('product.density', 'Density'), 
+        header: t('product.fields.density', 'Density'), 
         key: 'density',
         width: 15,
         transform: (value: any) => value ? `${value}` : '-'
       },
       { 
-        header: t('product.isHazardous', 'Hazardous'), 
+        header: t('product.fields.isHazardous', 'Hazardous'), 
         key: 'isHazardous',
         width: 15,
-        transform: (value: any) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
+        transform: (value: any) => value ? t('common.yes', 'Yes') : t('common.no', 'No')
       }
     ];
 
@@ -232,16 +233,16 @@ const ProductList = () => {
       { header: t('list.code', 'Code'), key: 'code', width: 15 },
       { header: t('list.designation', 'Designation'), key: 'designation', width: 35 },
       { 
-        header: t('product.density', 'Density'), 
+        header: t('product.fields.density', 'Density'), 
         key: 'density',
         width: 15,
         transform: (value: any) => value ? `${value}` : '-'
       },
       { 
-        header: t('product.isHazardous', 'Hazardous'), 
+        header: t('product.fields.isHazardous', 'Hazardous'), 
         key: 'isHazardous',
         width: 15,
-        transform: (value: any) => value ? t('product.yes', 'Yes') : t('product.no', 'No')
+        transform: (value: any) => value ? t('common.yes', 'Yes') : t('common.no', 'No')
       }
     ];
 
@@ -282,7 +283,7 @@ const ProductList = () => {
     },
     {
       field: 'density',
-      headerName: t('product.density', 'Density'),
+      headerName: t('product.fields.density', 'Density'),
       width: 120,
       align: 'right',
       headerAlign: 'right',
@@ -294,13 +295,13 @@ const ProductList = () => {
     },
     {
       field: 'isHazardous',
-      headerName: t('product.isHazardous', 'Hazardous'),
+      headerName: t('product.fields.isHazardous', 'Hazardous'),
       width: 140,
       align: 'center',
       headerAlign: 'center',
       renderCell: (params) => (
         <Chip
-          label={params.value ? t('product.yes', 'Yes') : t('product.no', 'No')}
+          label={params.value ? t('common.yes', 'Yes') : t('common.no', 'No')}
           size="small"
           color={params.value ? 'error' : 'success'}
           variant="outlined"
