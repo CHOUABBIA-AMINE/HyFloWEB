@@ -14,7 +14,11 @@
     "total": "total",
     "id": "ID",
     "loading": "Loading...",
+    "saving": "Saving...",
+    "save": "Save",
+    "cancel": "Cancel",
     "back": "Back",
+    "actions": "Actions",
     "fields": {
       "code": "Code",
       "codeHelper": "Unique identifier code (2-20 characters)",
@@ -48,6 +52,13 @@
       "elevationHelper": "Meters above sea level",
       "placeName": "Place Name",
       "placeNameHelper": "Descriptive location name (max 100 characters)",
+      "place": "Place",
+      "locality": "Locality",
+      "district": "District",
+      "state": "State",
+      "capacity": "Capacity",
+      "capacityHelper": "Maximum capacity or throughput",
+      "status": "Status",
       "designationFr": "Designation (French)",
       "designationFrHelper": "Required - French designation",
       "designationEn": "Designation (English)",
@@ -72,6 +83,7 @@
       "minValue": "{{field}} must be at least {{min}}",
       "maxValue": "{{field}} must not exceed {{max}}",
       "positive": "{{field}} must be greater than 0",
+      "positiveNumber": "{{field}} must be a positive number",
       "invalidFormat": "Invalid {{field}} format",
       "dateFormat": "Date must be in YYYY-MM-DD format",
       "emailInvalid": "Invalid email address",
@@ -85,6 +97,11 @@
       "createSubtitle": "Add a new {{entity}}",
       "editTitle": "Edit {{entity}}",
       "editSubtitle": "Update {{entity}} information"
+    },
+    "errors": {
+      "loadingDataFailed": "Failed to load data",
+      "loadingFailed": "Failed to load",
+      "savingFailed": "Failed to save"
     }
   },
   "list": {
@@ -294,7 +311,19 @@
     "title": "Processing Plants",
     "subtitle": "Manage processing plant facilities and operations",
     "searchPlaceholder": "Search processing plants...",
+    "selectedLocation": "Selected Location Details",
+    "tabs": {
+      "generalInformation": "General Information",
+      "productionFields": "Production Fields",
+      "productionFieldsSupplied": "Production Fields Supplied by this Plant"
+    },
+    "warnings": {
+      "noStructures": "No organizational structures found. Please create structures first.",
+      "noLocations": "No locations found. Please create locations first.",
+      "noTypes": "No processing plant types found. Please create types first."
+    },
     "fields": {
+      "type": "Processing Plant Type",
       "processingPlantType": "Plant Type",
       "processingPlantTypeHelper": "Select plant type"
     },
@@ -491,10 +520,16 @@
     "lastName": "Last Name",
     "email": "Email",
     "username": "Username",
+    "usernameCannotChange": "Username cannot be changed",
     "enabled": "Enabled",
     "disabled": "Disabled",
+    "enabledDescription": "User can login and access the system",
+    "disabledDescription": "User account is disabled",
     "roles": "Roles",
     "groups": "Groups",
+    "rolesAndGroups": "Roles & Groups",
+    "selectRoles": "Select roles",
+    "selectGroups": "Select groups",
     "createdAt": "Created At",
     "updatedAt": "Updated At",
     "lastLogin": "Last Login",
