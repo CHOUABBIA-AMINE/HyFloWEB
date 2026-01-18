@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-23-2025
  * @updated 01-08-2026 - Fixed type inference for permissions
+ * @updated 01-18-2026 - Optimized to use common translation keys
  */
 
 import { useState, useEffect } from 'react';
@@ -83,7 +84,7 @@ const RoleEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -94,7 +95,7 @@ const RoleEdit = () => {
 
     // Name validation
     if (!role.name || role.name.trim().length < 2) {
-      errors.name = 'Role name must be at least 2 characters';
+      errors.name = t('common.validation.minLength', { field: t('common.fields.name'), min: 2 });
     }
 
     setValidationErrors(errors);
@@ -141,7 +142,7 @@ const RoleEdit = () => {
       navigate('/security/roles');
     } catch (err: any) {
       console.error('Failed to save role:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save role');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -171,10 +172,16 @@ const RoleEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('role.editRole') : t('role.createRole')}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('role.title') })
+            : t('common.page.createTitle', { entity: t('role.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update role information and permissions' : 'Create a new role with permissions'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('role.title') })
+            : t('common.page.createSubtitle', { entity: t('role.title') })
+          }
         </Typography>
       </Box>
 
@@ -192,7 +199,7 @@ const RoleEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('common.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -200,24 +207,24 @@ const RoleEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('role.name')}
+                    label={t('common.fields.name')}
                     value={role.name || ''}
                     onChange={handleChange('name')}
                     required
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name}
+                    helperText={validationErrors.name || t('common.fields.nameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label={t('role.description')}
+                    label={t('common.fields.description')}
                     value={role.description || ''}
                     onChange={handleChange('description')}
                     multiline
                     rows={3}
-                    placeholder="Describe the role and its purpose"
+                    placeholder={t('role.descriptionPlaceholder')}
                   />
                 </Grid>
               </Grid>
@@ -228,7 +235,7 @@ const RoleEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Permissions
+                {t('role.permissions')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -244,7 +251,7 @@ const RoleEdit = () => {
                       <TextField
                         {...params}
                         label={t('role.permissions')}
-                        placeholder="Select permissions"
+                        placeholder={t('role.selectPermissions')}
                       />
                     )}
                     renderTags={(value, getTagProps) =>
@@ -277,7 +284,7 @@ const RoleEdit = () => {
                   <Grid item xs={12}>
                     <Alert severity="info" icon={false}>
                       <Typography variant="body2" fontWeight={500} gutterBottom>
-                        Selected Permissions: {role.permissions.length}
+                        {t('role.selectedPermissionsCount', { count: role.permissions.length })}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
                         {role.permissions.map((permission) => (
@@ -317,7 +324,7 @@ const RoleEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
