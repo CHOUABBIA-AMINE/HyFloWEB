@@ -551,7 +551,10 @@
     "subtitle": "Manage user groups",
     "searchPlaceholder": "Search groups by name or description...",
     "users": "Users",
-    "description": "Description"
+    "description": "Description",
+    "descriptionPlaceholder": "Describe the group and its purpose",
+    "selectUsers": "Select users",
+    "selectedUsersCount": "Selected Users: {{count}}"
   },
   "footer": {
     "copyright": "© {{year}} HyFlo Platform. All rights reserved."
