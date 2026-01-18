@@ -8,6 +8,7 @@
  * @created 01-01-2026
  * @updated 01-08-2026
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-18-2026 - Fixed translation key: common.actions → list.actions
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -308,7 +309,7 @@ const PipelineSystemEdit = () => {
     },
     {
       field: 'actions',
-      headerName: t('common.actions'),
+      headerName: t('list.actions'),
       width: 110,
       align: 'center',
       sortable: false,
