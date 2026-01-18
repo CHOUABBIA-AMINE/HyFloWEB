@@ -7,6 +7,7 @@
  * @updated 01-16-2026 - Added tabs with Production Fields DataGrid integration
  * @updated 01-16-2026 - Fixed property names: designationEn instead of nameEn
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-18-2026 - Fixed all hardcoded designationEn references to use i18n-based designation selector
  */
 
 import { useState, useEffect } from 'react';
@@ -53,10 +54,23 @@ function TabPanel(props: TabPanelProps) {
 }
 
 const ProcessingPlantEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { plantId } = useParams<{ plantId: string }>();
   const isEditMode = !!plantId;
+
+  // Utility function to get localized designation based on current language
+  const getLocalizedDesignation = (entity: any): string => {
+    if (!entity) return '';
+    
+    const currentLanguage = i18n.language;
+    const designationKey = currentLanguage === 'ar' ? 'designationAr' 
+      : currentLanguage === 'fr' ? 'designationFr' 
+      : 'designationEn';
+    
+    // Return selected language designation or fallback to designationFr, then code
+    return entity[designationKey] || entity.designationFr || entity.code || '';
+  };
 
   // Tab state
   const [activeTab, setActiveTab] = useState(0);
@@ -325,7 +339,7 @@ const ProcessingPlantEdit = () => {
       renderCell: (params) => {
         const row = params.row as ProductionFieldDTO;
         if (row.operationalStatus) {
-          return <>{row.operationalStatus.designationEn || row.operationalStatus.designationFr || row.operationalStatus.code}</>;
+          return <>{getLocalizedDesignation(row.operationalStatus)}</>;
         }
         return <>{row.operationalStatusId}</>;
       },
@@ -454,7 +468,7 @@ const ProcessingPlantEdit = () => {
                           {structures.length > 0 ? (
                             structures.map((struct) => (
                               <MenuItem key={struct.id} value={struct.id}>
-                                {struct.name || struct.designationEn || struct.code}
+                                {struct.name || getLocalizedDesignation(struct)}
                               </MenuItem>
                             ))
                           ) : (
@@ -487,10 +501,10 @@ const ProcessingPlantEdit = () => {
                               <MenuItem key={loc.id} value={loc.id}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <LocationIcon fontSize="small" color="action" />
-                                  <span>{loc.placeName || loc.name}</span>
+                                  <span>{getLocalizedDesignation(loc)}</span>
                                   {loc.locality && (
                                     <Chip 
-                                      label={loc.locality.designationFr || loc.locality.designationEn} 
+                                      label={getLocalizedDesignation(loc.locality)} 
                                       size="small" 
                                       variant="outlined"
                                     />
@@ -514,14 +528,16 @@ const ProcessingPlantEdit = () => {
                             <Grid container spacing={1.5} alignItems="flex-end">
                               <Grid item xs={6} sm={3} md={2}>
                                 <Typography variant="caption" color="text.secondary">{t('common.fields.place')}</Typography>
-                                <Typography variant="body2" fontWeight={500} fontSize="0.875rem">{selectedLocation.placeName}</Typography>
+                                <Typography variant="body2" fontWeight={500} fontSize="0.875rem">
+                                  {getLocalizedDesignation(selectedLocation)}
+                                </Typography>
                               </Grid>
 
                               {selectedLocation.locality && (
                                 <Grid item xs={6} sm={3} md={2}>
                                   <Typography variant="caption" color="text.secondary">{t('common.fields.locality')}</Typography>
                                   <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
-                                    {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr}
+                                    {getLocalizedDesignation(selectedLocation.locality)}
                                   </Typography>
                                 </Grid>
                               )}
@@ -530,7 +546,7 @@ const ProcessingPlantEdit = () => {
                                 <Grid item xs={6} sm={3} md={2}>
                                   <Typography variant="caption" color="text.secondary">{t('common.fields.district')}</Typography>
                                   <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
-                                    {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr}
+                                    {getLocalizedDesignation(selectedLocation.locality.district)}
                                   </Typography>
                                 </Grid>
                               )}
@@ -539,7 +555,7 @@ const ProcessingPlantEdit = () => {
                                 <Grid item xs={6} sm={3} md={2}>
                                   <Typography variant="caption" color="text.secondary">{t('common.fields.state')}</Typography>
                                   <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
-                                    {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr}
+                                    {getLocalizedDesignation(selectedLocation.locality.district.state)}
                                   </Typography>
                                 </Grid>
                               )}
@@ -585,7 +601,7 @@ const ProcessingPlantEdit = () => {
                           {operationalStatuses.length > 0 ? (
                             operationalStatuses.map((status) => (
                               <MenuItem key={status.id} value={status.id}>
-                                {status.designationEn || status.designationFr || status.code}
+                                {getLocalizedDesignation(status)}
                               </MenuItem>
                             ))
                           ) : (
@@ -623,7 +639,7 @@ const ProcessingPlantEdit = () => {
                           {processingPlantTypes.length > 0 ? (
                             processingPlantTypes.map((type) => (
                               <MenuItem key={type.id} value={type.id}>
-                                {type.nameEn || type.code}
+                                {getLocalizedDesignation(type)}
                               </MenuItem>
                             ))
                           ) : (
