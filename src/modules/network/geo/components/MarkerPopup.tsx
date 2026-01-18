@@ -4,10 +4,11 @@
  * Updated for U-006 schema (location reference) and localized names
  * 
  * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
+ * Updated: 01-19-2026 - Fixed placeName to use localized designations (designationFr/En/Ar)
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-16-2026
+ * @updated 01-19-2026
  */
 
 import React from 'react';
@@ -87,6 +88,24 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
 
   const typeName = getTypeName();
 
+  // Helper to get localized location name from LocationDTO
+  const getLocationName = (location: any) => {
+    if (!location) return 'N/A';
+    
+    // Use designationAr if language is 'ar' and designationAr is not null
+    if (currentLanguage === 'ar' && location.designationAr) {
+      return location.designationAr;
+    }
+    
+    // Use designationEn if language is 'en' and designationEn is not null
+    if (currentLanguage === 'en' && location.designationEn) {
+      return location.designationEn;
+    }
+    
+    // Otherwise use default designation (designationFr)
+    return location.designationFr || 'N/A';
+  };
+
   // Get coordinates based on entity type (U-006 schema)
   const getCoordinates = () => {
     if (stationData?.location) {
@@ -94,7 +113,7 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
       return {
         latitude: stationData.location.latitude || 0,
         longitude: stationData.location.longitude || 0,
-        placeName: stationData.location.placeName || 'N/A',
+        placeName: getLocationName(stationData.location),
         elevation: stationData.location.elevation
       };
     }
@@ -103,7 +122,7 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
       return {
         latitude: terminalData.location.latitude || 0,
         longitude: terminalData.location.longitude || 0,
-        placeName: terminalData.location.placeName || 'N/A',
+        placeName: getLocationName(terminalData.location),
         elevation: terminalData.location.elevation
       };
     }
@@ -112,7 +131,7 @@ export const MarkerPopup: React.FC<MarkerPopupProps> = ({ data, type }) => {
       return {
         latitude: fieldData.location.latitude || 0,
         longitude: fieldData.location.longitude || 0,
-        placeName: fieldData.location.placeName || 'N/A',
+        placeName: getLocationName(fieldData.location),
         elevation: fieldData.location.elevation
       };
     }
