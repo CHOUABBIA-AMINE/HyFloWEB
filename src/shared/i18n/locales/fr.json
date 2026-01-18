@@ -14,7 +14,14 @@
     "total": "total",
     "id": "ID",
     "loading": "Chargement...",
+    "saving": "Enregistrement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
     "back": "Retour",
+    "actions": {
+      "selectOne": "Sélectionner un",
+      "selectNone": "Aucun"
+    },
     "fields": {
       "code": "Code",
       "codeHelper": "Code identifiant unique (2-20 caractères)",
@@ -48,6 +55,12 @@
       "elevationHelper": "Mètres au-dessus du niveau de la mer",
       "placeName": "Nom du Lieu",
       "placeNameHelper": "Nom de localisation descriptif (max 100 caractères)",
+      "place": "Lieu",
+      "locality": "Localité",
+      "district": "District",
+      "state": "Wilaya",
+      "capacity": "Capacité",
+      "capacityHelper": "Capacité ou débit maximal",
       "designationFr": "Désignation (Français)",
       "designationFrHelper": "Obligatoire - Désignation française",
       "designationEn": "Désignation (Anglais)",
@@ -63,15 +76,18 @@
       "importantDates": "Dates Importantes",
       "designations": "Désignations Multilingues",
       "capacitySpecifications": "Spécifications de Capacité",
-      "operationalDetails": "Détails Opérationnels"
+      "operationalDetails": "Détails Opérationnels",
+      "classification": "Classification"
     },
     "validation": {
       "required": "{{field}} est requis",
       "minLength": "{{field}} doit contenir au moins {{min}} caractères",
       "maxLength": "{{field}} ne doit pas dépasser {{max}} caractères",
+      "lengthBetween": "{{field}} doit contenir entre {{min}} et {{max}} caractères",
       "minValue": "{{field}} doit être au moins {{min}}",
       "maxValue": "{{field}} ne doit pas dépasser {{max}}",
       "positive": "{{field}} doit être supérieur à 0",
+      "positiveNumber": "{{field}} doit être un nombre positif",
       "invalidFormat": "Format {{field}} invalide",
       "dateFormat": "La date doit être au format AAAA-MM-JJ",
       "emailInvalid": "Adresse e-mail invalide",
@@ -85,6 +101,16 @@
       "createSubtitle": "Ajouter un nouveau {{entity}}",
       "editTitle": "Modifier {{entity}}",
       "editSubtitle": "Mettre à jour les informations de {{entity}}"
+    },
+    "errors": {
+      "loadingDataFailed": "Échec du chargement des données",
+      "loadingFailed": "Échec du chargement",
+      "savingFailed": "Échec de l'enregistrement",
+      "validationFailed": "Veuillez remplir tous les champs obligatoires"
+    },
+    "messages": {
+      "createSuccess": "Créé avec succès",
+      "updateSuccess": "Mis à jour avec succès"
     }
   },
   "list": {
@@ -214,6 +240,7 @@
     "title": "Stations",
     "subtitle": "Gérer les infrastructures et équipements de stations",
     "searchPlaceholder": "Rechercher des stations...",
+    "selectedLocation": "Détails de l'Emplacement Sélectionné",
     "fields": {
       "stationType": "Type de Station",
       "stationTypeHelper": "Sélectionner le type de station",
@@ -223,18 +250,25 @@
     "validation": {
       "stationTypeRequired": "Le type de station est requis",
       "pipelineSystemRequired": "Le système de pipeline est requis"
+    },
+    "warnings": {
+      "noLocations": "Aucun emplacement trouvé. Veuillez créer des emplacements d'abord."
     }
   },
   "terminal": {
     "title": "Terminaux",
     "subtitle": "Gérer les installations et opérations des terminaux",
     "searchPlaceholder": "Rechercher des terminaux...",
+    "selectedLocation": "Détails de l'Emplacement Sélectionné",
     "fields": {
       "terminalType": "Type de Terminal",
       "terminalTypeHelper": "Sélectionner le type de terminal"
     },
     "validation": {
       "terminalTypeRequired": "Le type de terminal est requis"
+    },
+    "warnings": {
+      "noLocations": "Aucun emplacement trouvé. Veuillez créer des emplacements d'abord."
     }
   },
   "pipeline": {
@@ -242,8 +276,11 @@
     "subtitle": "Gérer les infrastructures et tracés des pipelines",
     "searchPlaceholder": "Rechercher des pipelines...",
     "sections": {
+      "dimensionalSpecs": "Spécifications Dimensionnelles",
       "dimensionalSpecifications": "Spécifications Dimensionnelles",
+      "pressureSpecs": "Spécifications de Pression (bar)",
       "pressureSpecifications": "Spécifications de Pression (bar)",
+      "capacitySpecs": "Spécifications de Capacité",
       "materialCoating": "Matériau et Revêtement",
       "connectedTerminals": "Terminaux Connectés"
     },
@@ -288,13 +325,30 @@
   "pipelineSystem": {
     "title": "Systèmes de Pipeline",
     "subtitle": "Gérer les réseaux de systèmes de pipelines intégrés",
-    "searchPlaceholder": "Rechercher des systèmes de pipeline..."
+    "searchPlaceholder": "Rechercher des systèmes de pipeline...",
+    "tabs": {
+      "generalInformation": "Informations Générales",
+      "pipelines": "Pipelines",
+      "pipelinesInSystem": "Pipelines dans le Système"
+    }
   },
   "processingPlant": {
     "title": "Usines de Traitement",
     "subtitle": "Gérer les installations et opérations des usines de traitement",
     "searchPlaceholder": "Rechercher des usines de traitement...",
+    "selectedLocation": "Détails de l'Emplacement Sélectionné",
+    "tabs": {
+      "generalInformation": "Informations Générales",
+      "productionFields": "Champs de Production",
+      "productionFieldsSupplied": "Champs de Production Alimentés par cette Usine"
+    },
+    "warnings": {
+      "noStructures": "Aucune structure organisationnelle trouvée. Veuillez créer des structures d'abord.",
+      "noLocations": "Aucun emplacement trouvé. Veuillez créer des emplacements d'abord.",
+      "noTypes": "Aucun type d'usine de traitement trouvé. Veuillez créer des types d'abord."
+    },
     "fields": {
+      "type": "Type d'Usine de Traitement",
       "processingPlantType": "Type d'Usine",
       "processingPlantTypeHelper": "Sélectionner le type d'usine"
     },
@@ -307,8 +361,11 @@
     "subtitle": "Gérer les infrastructures et opérations des champs de production",
     "searchPlaceholder": "Rechercher des champs de production...",
     "fields": {
+      "type": "Type de Champ",
       "productionFieldType": "Type de Champ",
       "productionFieldTypeHelper": "Sélectionner le type de champ",
+      "processingPlant": "Usine de Traitement",
+      "processingPlantHelper": "Sélectionner l'usine de traitement associée (optionnel)",
       "discoveryDate": "Date de Découverte",
       "discoveryDateHelper": "Quand le champ a été découvert (AAAA-MM-JJ)",
       "productionStartDate": "Date de Début de Production",
@@ -328,8 +385,12 @@
     "noParent": "Pas de parent (structure racine)",
     "root": "Racine",
     "selectType": "Sélectionner le type",
+    "sections": {
+      "organizationalHierarchy": "Hiérarchie Organisationnelle"
+    },
     "fields": {
-      "structureType": "Type de Structure"
+      "structureType": "Type de Structure",
+      "parentStructure": "Structure Parente"
     },
     "validation": {
       "typeRequired": "Le type de structure est requis"
