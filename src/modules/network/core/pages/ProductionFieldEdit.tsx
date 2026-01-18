@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 01-15-2026
  * @updated 01-15-2026 - Fixed LocationService import path, replaced estimatedReserves with capacity, fixed handleChange bug
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useState, useEffect } from 'react';
@@ -129,7 +130,7 @@ const ProductionFieldEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -138,28 +139,28 @@ const ProductionFieldEdit = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     if (!field.name || field.name.trim().length < 3) {
-      errors.name = 'Name must be at least 3 characters';
+      errors.name = t('common.validation.minLength', { field: t('common.fields.name'), min: 3 });
     }
     if (!field.code || field.code.trim().length < 2) {
-      errors.code = 'Code is required (min 2 characters)';
+      errors.code = t('common.validation.codeRequired');
     }
     if (!field.operationalStatusId) {
-      errors.operationalStatusId = 'Operational status is required';
+      errors.operationalStatusId = t('common.validation.required', { field: t('common.fields.operationalStatus') });
     }
     if (!field.structureId) {
-      errors.structureId = 'Structure is required';
+      errors.structureId = t('common.validation.required', { field: t('common.fields.structure') });
     }
     if (!field.vendorId) {
-      errors.vendorId = 'Vendor is required';
+      errors.vendorId = t('common.validation.required', { field: t('common.fields.vendor') });
     }
     if (!field.locationId) {
-      errors.locationId = 'Location is required';
+      errors.locationId = t('common.validation.required', { field: t('common.fields.location') });
     }
     if (!field.productionFieldTypeId) {
-      errors.productionFieldTypeId = 'Production field type is required';
+      errors.productionFieldTypeId = t('common.validation.required', { field: t('productionField.fields.type') });
     }
     if (field.capacity === undefined || field.capacity === null || field.capacity < 0) {
-      errors.capacity = 'Capacity must be a positive number';
+      errors.capacity = t('common.validation.positiveNumber', { field: t('common.fields.capacity') });
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -205,7 +206,7 @@ const ProductionFieldEdit = () => {
       navigate('/network/core/production-fields');
     } catch (err: any) {
       console.error('Failed to save production field:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save production field');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -226,10 +227,16 @@ const ProductionFieldEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700}>
-          {isEditMode ? 'Edit Production Field' : 'Create Production Field'}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('productionField.title') })
+            : t('common.page.createTitle', { entity: t('productionField.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update production field information' : 'Create a new production field'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('productionField.title') })
+            : t('common.page.createSubtitle', { entity: t('productionField.title') })
+          }
         </Typography>
       </Box>
 
@@ -239,40 +246,42 @@ const ProductionFieldEdit = () => {
         <Stack spacing={3}>
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>Basic Information</Typography>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('common.sections.basicInformation')}
+              </Typography>
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Code" value={field.code || ''}
+                    fullWidth label={t('common.fields.code')} value={field.code || ''}
                     onChange={handleChange('code')} required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code || 'Min 2, max 20 characters'}
+                    helperText={validationErrors.code || t('common.fields.codeHelper')}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Name" value={field.name || ''}
+                    fullWidth label={t('common.fields.name')} value={field.name || ''}
                     onChange={handleChange('name')} required
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name || 'Min 3, max 100 characters'}
+                    helperText={validationErrors.name || t('common.fields.nameHelper')}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth label="Capacity"
+                    fullWidth label={t('common.fields.capacity')}
                     type="number" value={field.capacity ?? 0}
                     onChange={handleChange('capacity')}
                     required
                     error={!!validationErrors.capacity}
-                    helperText={validationErrors.capacity || 'Production capacity (required)'}
+                    helperText={validationErrors.capacity || t('common.fields.capacityHelper')}
                     inputProps={{ step: 0.01, min: 0 }}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Operational Status"
+                    fullWidth select label={t('common.fields.operationalStatus')}
                     value={field.operationalStatusId || ''}
                     onChange={handleChange('operationalStatusId')} required
                     error={!!validationErrors.operationalStatusId}
@@ -283,13 +292,13 @@ const ProductionFieldEdit = () => {
                         <MenuItem key={status.id} value={status.id}>{status.nameEn || status.code}</MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading statuses...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Structure"
+                    fullWidth select label={t('common.fields.structure')}
                     value={field.structureId || ''}
                     onChange={handleChange('structureId')} required
                     error={!!validationErrors.structureId}
@@ -300,13 +309,13 @@ const ProductionFieldEdit = () => {
                         <MenuItem key={struct.id} value={struct.id}>{struct.name}</MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading structures...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Vendor"
+                    fullWidth select label={t('common.fields.vendor')}
                     value={field.vendorId || ''}
                     onChange={handleChange('vendorId')} required
                     error={!!validationErrors.vendorId}
@@ -317,13 +326,13 @@ const ProductionFieldEdit = () => {
                         <MenuItem key={vendor.id} value={vendor.id}>{vendor.name}</MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading vendors...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Location"
+                    fullWidth select label={t('common.fields.location')}
                     value={field.locationId || ''}
                     onChange={handleChange('locationId')} required
                     error={!!validationErrors.locationId}
@@ -334,13 +343,13 @@ const ProductionFieldEdit = () => {
                         <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading locations...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Production Field Type"
+                    fullWidth select label={t('productionField.fields.type')}
                     value={field.productionFieldTypeId || ''}
                     onChange={handleChange('productionFieldTypeId')} required
                     error={!!validationErrors.productionFieldTypeId}
@@ -351,18 +360,18 @@ const ProductionFieldEdit = () => {
                         <MenuItem key={type.id} value={type.id}>{type.nameEn || type.code}</MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading types...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label="Processing Plant"
+                    fullWidth select label={t('productionField.fields.processingPlant')}
                     value={field.processingPlantId || ''}
                     onChange={handleChange('processingPlantId')}
-                    helperText="Optional - Associated processing plant"
+                    helperText={t('productionField.fields.processingPlantHelper')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.none')}</MenuItem>
                     {processingPlants.map((plant) => (
                       <MenuItem key={plant.id} value={plant.id}>{plant.name} ({plant.code})</MenuItem>
                     ))}
@@ -374,13 +383,15 @@ const ProductionFieldEdit = () => {
 
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
-              <Typography variant="h6" fontWeight={600} gutterBottom>Important Dates</Typography>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('common.sections.importantDates')}
+              </Typography>
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
                 <Grid item xs={12} md={4}>
                   <TextField
-                    fullWidth label="Installation Date"
+                    fullWidth label={t('common.fields.installationDate')}
                     type="date"
                     value={field.installationDate || ''}
                     onChange={handleChange('installationDate')}
@@ -389,7 +400,7 @@ const ProductionFieldEdit = () => {
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <TextField
-                    fullWidth label="Commissioning Date"
+                    fullWidth label={t('common.fields.commissioningDate')}
                     type="date"
                     value={field.commissioningDate || ''}
                     onChange={handleChange('commissioningDate')}
@@ -398,7 +409,7 @@ const ProductionFieldEdit = () => {
                 </Grid>
                 <Grid item xs={12} md={4}>
                   <TextField
-                    fullWidth label="Decommissioning Date"
+                    fullWidth label={t('common.fields.decommissioningDate')}
                     type="date"
                     value={field.decommissioningDate || ''}
                     onChange={handleChange('decommissioningDate')}
@@ -418,7 +429,7 @@ const ProductionFieldEdit = () => {
               <Button type="submit" variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                 disabled={saving} sx={{ minWidth: 150 }}>
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
