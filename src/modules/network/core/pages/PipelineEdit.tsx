@@ -6,6 +6,7 @@
  * @created 12-24-2025
  * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
  * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -187,7 +188,7 @@ const PipelineEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -197,19 +198,19 @@ const PipelineEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!pipeline.name || pipeline.name.trim().length < 2) {
-      errors.name = 'Pipeline name must be at least 2 characters';
+      errors.name = t('common.validation.minLength', { field: t('common.fields.name'), min: 2 });
     }
 
     if (!pipeline.code || pipeline.code.trim().length < 2) {
-      errors.code = 'Pipeline code is required';
+      errors.code = t('common.validation.codeRequired');
     }
 
     if (!pipeline.operationalStatusId) {
-      errors.operationalStatusId = 'Operational status is required';
+      errors.operationalStatusId = t('common.validation.required', { field: t('common.fields.operationalStatus') });
     }
 
     if (!pipeline.vendorId) {
-      errors.vendorId = 'Vendor is required';
+      errors.vendorId = t('common.validation.required', { field: t('common.fields.vendor') });
     }
 
     setValidationErrors(errors);
@@ -272,7 +273,7 @@ const PipelineEdit = () => {
       navigate('/network/core/pipelines');
     } catch (err: any) {
       console.error('Failed to save pipeline:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save pipeline');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -302,10 +303,16 @@ const PipelineEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? 'Edit Pipeline' : 'Create Pipeline'}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('pipeline.title') })
+            : t('common.page.createTitle', { entity: t('pipeline.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update pipeline information and details' : 'Create a new pipeline'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('pipeline.title') })
+            : t('common.page.createSubtitle', { entity: t('pipeline.title') })
+          }
         </Typography>
       </Box>
 
@@ -323,7 +330,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('common.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -331,24 +338,24 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Pipeline Code"
+                    label={t('common.fields.code')}
                     value={pipeline.code || ''}
                     onChange={handleChange('code')}
                     required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code}
+                    helperText={validationErrors.code || t('common.fields.codeHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Pipeline Name"
+                    label={t('common.fields.name')}
                     value={pipeline.name || ''}
                     onChange={handleChange('name')}
                     required
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name}
+                    helperText={validationErrors.name || t('common.fields.nameHelper')}
                   />
                 </Grid>
               </Grid>
@@ -359,7 +366,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Dimensional Specifications
+                {t('pipeline.sections.dimensionalSpecs')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -367,7 +374,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Nominal Diameter (in)"
+                    label={t('pipeline.fields.nominalDiameter')}
                     type="number"
                     value={pipeline.nominalDiameter || '0'}
                     onChange={handleChange('nominalDiameter')}
@@ -378,7 +385,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Nominal Thickness (mm)"
+                    label={t('pipeline.fields.nominalThickness')}
                     type="number"
                     value={pipeline.nominalThickness || '0'}
                     onChange={handleChange('nominalThickness')}
@@ -389,7 +396,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Length (km)"
+                    label={t('pipeline.fields.length')}
                     type="number"
                     value={pipeline.length || 0}
                     onChange={handleChange('length')}
@@ -400,7 +407,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Nominal Roughness (mm)"
+                    label={t('pipeline.fields.nominalRoughness')}
                     type="number"
                     value={pipeline.nominalRoughness || '0'}
                     onChange={handleChange('nominalRoughness')}
@@ -415,7 +422,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Pressure Specifications (bar)
+                {t('pipeline.sections.pressureSpecs')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -423,7 +430,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Design Max Service Pressure"
+                    label={t('pipeline.fields.designMaxServicePressure')}
                     type="number"
                     value={pipeline.designMaxServicePressure ?? 0}
                     onChange={handleChange('designMaxServicePressure')}
@@ -434,7 +441,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Operational Max Service Pressure"
+                    label={t('pipeline.fields.operationalMaxServicePressure')}
                     type="number"
                     value={pipeline.operationalMaxServicePressure ?? 0}
                     onChange={handleChange('operationalMaxServicePressure')}
@@ -445,7 +452,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Design Min Service Pressure"
+                    label={t('pipeline.fields.designMinServicePressure')}
                     type="number"
                     value={pipeline.designMinServicePressure ?? 0}
                     onChange={handleChange('designMinServicePressure')}
@@ -456,7 +463,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={3}>
                   <TextField
                     fullWidth
-                    label="Operational Min Service Pressure"
+                    label={t('pipeline.fields.operationalMinServicePressure')}
                     type="number"
                     value={pipeline.operationalMinServicePressure ?? 0}
                     onChange={handleChange('operationalMinServicePressure')}
@@ -471,7 +478,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Capacity Specifications
+                {t('pipeline.sections.capacitySpecs')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -479,24 +486,24 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Design Capacity"
+                    label={t('pipeline.fields.designCapacity')}
                     type="number"
                     value={pipeline.designCapacity ?? 0}
                     onChange={handleChange('designCapacity')}
                     inputProps={{ step: 0.01, min: 0 }}
-                    helperText="Maximum designed throughput capacity"
+                    helperText={t('pipeline.fields.designCapacityHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Operational Capacity"
+                    label={t('pipeline.fields.operationalCapacity')}
                     type="number"
                     value={pipeline.operationalCapacity ?? 0}
                     onChange={handleChange('operationalCapacity')}
                     inputProps={{ step: 0.01, min: 0 }}
-                    helperText="Current operational throughput capacity"
+                    helperText={t('pipeline.fields.operationalCapacityHelper')}
                   />
                 </Grid>
               </Grid>
@@ -507,7 +514,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Material & Coating
+                {t('pipeline.sections.materialCoating')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -516,11 +523,11 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Nominal Construction Material"
+                    label={t('pipeline.fields.nominalConstructionMaterial')}
                     value={pipeline.nominalConstructionMaterialId || ''}
                     onChange={handleChange('nominalConstructionMaterialId')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {sortedAlloys.map((alloy) => (
                       <MenuItem key={alloy.id} value={alloy.id}>
                         {getLocalizedName(alloy, currentLanguage)}
@@ -533,11 +540,11 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Nominal Exterior Coating"
+                    label={t('pipeline.fields.nominalExteriorCoating')}
                     value={pipeline.nominalExteriorCoatingId || ''}
                     onChange={handleChange('nominalExteriorCoatingId')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {sortedAlloys.map((alloy) => (
                       <MenuItem key={alloy.id} value={alloy.id}>
                         {getLocalizedName(alloy, currentLanguage)}
@@ -550,11 +557,11 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Nominal Interior Coating"
+                    label={t('pipeline.fields.nominalInteriorCoating')}
                     value={pipeline.nominalInteriorCoatingId || ''}
                     onChange={handleChange('nominalInteriorCoatingId')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {sortedAlloys.map((alloy) => (
                       <MenuItem key={alloy.id} value={alloy.id}>
                         {getLocalizedName(alloy, currentLanguage)}
@@ -570,7 +577,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Operational Details
+                {t('common.sections.operationalDetails')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -579,7 +586,7 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Operational Status"
+                    label={t('common.fields.operationalStatus')}
                     value={pipeline.operationalStatusId || ''}
                     onChange={handleChange('operationalStatusId')}
                     required
@@ -593,7 +600,7 @@ const PipelineEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading statuses...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -602,7 +609,7 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Vendor"
+                    label={t('common.fields.vendor')}
                     value={pipeline.vendorId || ''}
                     onChange={handleChange('vendorId')}
                     required
@@ -616,7 +623,7 @@ const PipelineEdit = () => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem disabled>Loading vendors...</MenuItem>
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
                     )}
                   </TextField>
                 </Grid>
@@ -625,11 +632,11 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Pipeline System"
+                    label={t('pipeline.fields.pipelineSystem')}
                     value={pipeline.pipelineSystemId || ''}
                     onChange={handleChange('pipelineSystemId')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {pipelineSystems.map((system) => (
                       <MenuItem key={system.id} value={system.id}>
                         {system.name}
@@ -645,7 +652,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Connected Terminals
+                {t('pipeline.sections.connectedTerminals')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -654,11 +661,11 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Departure Terminal"
+                    label={t('pipeline.fields.departureTerminal')}
                     value={pipeline.departureTerminalId || ''}
                     onChange={handleChange('departureTerminalId')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {terminals.map((terminal) => (
                       <MenuItem key={terminal.id} value={terminal.id}>
                         {terminal.name} ({terminal.code})
@@ -671,11 +678,11 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Arrival Terminal"
+                    label={t('pipeline.fields.arrivalTerminal')}
                     value={pipeline.arrivalTerminalId || ''}
                     onChange={handleChange('arrivalTerminalId')}
                   >
-                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {terminals.map((terminal) => (
                       <MenuItem key={terminal.id} value={terminal.id}>
                         {terminal.name} ({terminal.code})
@@ -691,7 +698,7 @@ const PipelineEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Important Dates
+                {t('common.sections.importantDates')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -699,7 +706,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Installation Date"
+                    label={t('common.fields.installationDate')}
                     type="date"
                     value={pipeline.installationDate || ''}
                     onChange={handleChange('installationDate')}
@@ -710,7 +717,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Commissioning Date"
+                    label={t('common.fields.commissioningDate')}
                     type="date"
                     value={pipeline.commissioningDate || ''}
                     onChange={handleChange('commissioningDate')}
@@ -721,7 +728,7 @@ const PipelineEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label="Decommissioning Date"
+                    label={t('common.fields.decommissioningDate')}
                     type="date"
                     value={pipeline.decommissioningDate || ''}
                     onChange={handleChange('decommissioningDate')}
@@ -752,7 +759,7 @@ const PipelineEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>

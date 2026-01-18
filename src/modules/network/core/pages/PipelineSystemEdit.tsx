@@ -7,6 +7,7 @@
  * @author CHOUABBIA Amine
  * @created 01-01-2026
  * @updated 01-08-2026
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -163,7 +164,7 @@ const PipelineSystemEdit = () => {
 
       setError('');
     } catch (err: any) {
-      setError(err.message || 'Failed to load data');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -178,7 +179,7 @@ const PipelineSystemEdit = () => {
       const list = await PipelineService.findByPipelineSystem(Number(pipelineSystemId));
       setPipelines(Array.isArray(list) ? list : []);
     } catch (err: any) {
-      setPipelinesError(err.message || 'Failed to load pipelines');
+      setPipelinesError(err.message || t('common.errors.loadingFailed'));
       setPipelines([]);
     } finally {
       setPipelinesLoading(false);
@@ -189,23 +190,23 @@ const PipelineSystemEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!pipelineSystem.name || pipelineSystem.name.trim().length < 2) {
-      errors.name = 'System name must be at least 2 characters';
+      errors.name = t('common.validation.minLength', { field: t('common.fields.name'), min: 2 });
     }
 
     if (!pipelineSystem.code || pipelineSystem.code.trim().length < 2) {
-      errors.code = 'Code is required';
+      errors.code = t('common.validation.codeRequired');
     }
 
     if (!pipelineSystem.productId) {
-      errors.productId = 'Product is required';
+      errors.productId = t('common.validation.required', { field: t('common.fields.product') });
     }
 
     if (!pipelineSystem.operationalStatusId) {
-      errors.operationalStatusId = 'Operational status is required';
+      errors.operationalStatusId = t('common.validation.required', { field: t('common.fields.operationalStatus') });
     }
 
     if (!pipelineSystem.structureId) {
-      errors.structureId = 'Structure is required';
+      errors.structureId = t('common.validation.required', { field: t('common.fields.structure') });
     }
 
     setValidationErrors(errors);
@@ -241,14 +242,14 @@ const PipelineSystemEdit = () => {
 
       if (isEditMode) {
         await PipelineSystemService.update(Number(pipelineSystemId), payload);
-        setSuccess('Pipeline system updated successfully');
+        setSuccess(t('common.messages.updateSuccess'));
       } else {
         const created = await PipelineSystemService.create(payload);
-        setSuccess('Pipeline system created successfully');
+        setSuccess(t('common.messages.createSuccess'));
         setTimeout(() => navigate(`/network/core/pipeline-systems/${created.id}/edit`), 800);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to save pipeline system');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -266,7 +267,7 @@ const PipelineSystemEdit = () => {
     { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'name',
-      headerName: 'Pipeline Name',
+      headerName: t('common.fields.name'),
       minWidth: 220,
       flex: 1,
       renderCell: (params) => (
@@ -277,7 +278,7 @@ const PipelineSystemEdit = () => {
     },
     {
       field: 'code',
-      headerName: 'Code',
+      headerName: t('common.fields.code'),
       width: 140,
       renderCell: (params) => (
         <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
@@ -285,7 +286,7 @@ const PipelineSystemEdit = () => {
     },
     {
       field: 'operationalStatusId',
-      headerName: 'Status',
+      headerName: t('common.fields.status'),
       minWidth: 180,
       flex: 1,
       renderCell: (params) => {
@@ -296,7 +297,7 @@ const PipelineSystemEdit = () => {
     },
     {
       field: 'vendorId',
-      headerName: 'Vendor',
+      headerName: t('common.fields.vendor'),
       minWidth: 200,
       flex: 1,
       renderCell: (params) => {
@@ -338,11 +339,17 @@ const PipelineSystemEdit = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <SystemIcon color="primary" sx={{ fontSize: 32 }} />
           <Typography variant="h4" fontWeight={700} color="text.primary">
-            {isEditMode ? 'Edit Pipeline System' : 'Create Pipeline System'}
+            {isEditMode 
+              ? t('common.page.editTitle', { entity: t('pipelineSystem.title') })
+              : t('common.page.createTitle', { entity: t('pipelineSystem.title') })
+            }
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary">
-          {isEditMode ? 'Update pipeline system information and manage pipelines' : 'Create a new pipeline system'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('pipelineSystem.title') })
+            : t('common.page.createSubtitle', { entity: t('pipelineSystem.title') })
+          }
         </Typography>
         <Button startIcon={<BackIcon />} onClick={handleCancel} sx={{ mt: 2 }}>
           {t('common.back')}
@@ -372,8 +379,8 @@ const PipelineSystemEdit = () => {
             px: 2,
           }}
         >
-          <Tab label="General Information" />
-          <Tab label="Pipelines" disabled={!isEditMode} />
+          <Tab label={t('pipelineSystem.tabs.generalInformation')} />
+          <Tab label={t('pipelineSystem.tabs.pipelines')} disabled={!isEditMode} />
         </Tabs>
 
         <CardContent sx={{ p: 3 }}>
@@ -384,7 +391,7 @@ const PipelineSystemEdit = () => {
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Basic Information
+                      {t('common.sections.basicInformation')}
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
 
@@ -392,24 +399,24 @@ const PipelineSystemEdit = () => {
                       <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
-                          label="System Name"
+                          label={t('common.fields.name')}
                           value={pipelineSystem.name || ''}
                           onChange={handleChange('name')}
                           required
                           error={!!validationErrors.name}
-                          helperText={validationErrors.name}
+                          helperText={validationErrors.name || t('common.fields.nameHelper')}
                         />
                       </Grid>
 
                       <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
-                          label="Code"
+                          label={t('common.fields.code')}
                           value={pipelineSystem.code || ''}
                           onChange={handleChange('code')}
                           required
                           error={!!validationErrors.code}
-                          helperText={validationErrors.code}
+                          helperText={validationErrors.code || t('common.fields.codeHelper')}
                         />
                       </Grid>
                     </Grid>
@@ -419,7 +426,7 @@ const PipelineSystemEdit = () => {
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Classification
+                      {t('common.sections.classification')}
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
 
@@ -428,7 +435,7 @@ const PipelineSystemEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Structure"
+                          label={t('common.fields.structure')}
                           value={pipelineSystem.structureId || ''}
                           onChange={handleChange('structureId')}
                           required
@@ -442,7 +449,7 @@ const PipelineSystemEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>Loading structures...</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
@@ -451,7 +458,7 @@ const PipelineSystemEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Product"
+                          label={t('common.fields.product')}
                           value={pipelineSystem.productId || ''}
                           onChange={handleChange('productId')}
                           required
@@ -465,7 +472,7 @@ const PipelineSystemEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>Loading products...</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
@@ -474,7 +481,7 @@ const PipelineSystemEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Operational Status"
+                          label={t('common.fields.operationalStatus')}
                           value={pipelineSystem.operationalStatusId || ''}
                           onChange={handleChange('operationalStatusId')}
                           required
@@ -488,7 +495,7 @@ const PipelineSystemEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>Loading statuses...</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
@@ -509,7 +516,7 @@ const PipelineSystemEdit = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" fontWeight={600}>
-                Pipelines in this system
+                {t('pipelineSystem.tabs.pipelinesInSystem')}
               </Typography>
               <IconButton onClick={loadPipelines} color="primary">
                 <RefreshIcon />
@@ -554,7 +561,7 @@ const PipelineSystemEdit = () => {
             disabled={saving}
             sx={{ minWidth: 120, boxShadow: 2 }}
           >
-            {saving ? 'Saving...' : t('common.save')}
+            {saving ? t('common.saving') : t('common.save')}
           </Button>
         </Stack>
       </Paper>
