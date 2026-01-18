@@ -15,6 +15,7 @@
  * @updated 01-09-2026 - Removed Regions menu item (entity no longer exists)
  * @updated 01-16-2026 - Replaced HydrocarbonFields with ProcessingPlants (matches data model: ProcessingPlant contains ProductionFields)
  * @updated 01-17-2026 - Updated processingPlants menu entry to use 'processingPlant.title' translation key
+ * @updated 01-19-2026 - Added Locations menu item under General > Localization
  */
 
 import {
@@ -46,6 +47,7 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FactoryIcon from '@mui/icons-material/Factory';
 import OilBarrelIcon from '@mui/icons-material/OilBarrel';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PlaceIcon from '@mui/icons-material/Place';
 import CorporateFareIcon from '@mui/icons-material/CorporateFare';
 import BadgeIcon from '@mui/icons-material/Badge';
 import HomeIcon from '@mui/icons-material/Home';
@@ -138,8 +140,8 @@ const Sidebar = ({ open }: SidebarProps) => {
           children: [
             {
               titleKey: 'nav.locations',
-              icon: <LocationOnIcon />,
-              path: '/localization/locations',
+              icon: <PlaceIcon />,
+              path: '/general/localization/locations',
             },
           ],
         },
@@ -174,11 +176,11 @@ const Sidebar = ({ open }: SidebarProps) => {
           titleKey: 'nav.core',
           icon: <AccountTreeIcon />,
           children: [
-			{
-			  titleKey: 'nav.productionFields',  // ADD THIS NEW ENTRY
-			  icon: <OilBarrelIcon />,           // Or use a different icon
-			  path: '/network/core/production-fields',
-			},
+            {
+              titleKey: 'nav.productionFields',
+              icon: <OilBarrelIcon />,
+              path: '/network/core/production-fields',
+            },
             {
               titleKey: 'nav.processingPlants',
               icon: <PrecisionManufacturingIcon />,
