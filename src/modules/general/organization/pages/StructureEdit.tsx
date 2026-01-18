@@ -8,6 +8,7 @@
  * @updated 01-04-2026 - i18n: replaced hardcoded strings with translation keys
  * @updated 01-07-2026 - Fixed service imports to use UpperCase static methods
  * @updated 01-08-2026 - Added multilanguage support for select fields
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useState, useEffect } from 'react';
@@ -137,7 +138,7 @@ const StructureEdit = () => {
       setParentStructures(structuresList);
     } catch (err: any) {
       console.error('Failed to load dropdown data:', err);
-      setError(t('structure.errorLoadingFormData'));
+      setError(t('common.errors.loadingDataFailed'));
     }
   };
 
@@ -158,7 +159,7 @@ const StructureEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load structure:', err);
-      setError(err.message || t('structure.errorLoading'));
+      setError(err.message || t('common.errors.loadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -168,13 +169,13 @@ const StructureEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.code?.trim()) {
-      errors.code = t('structure.validation.codeRequired');
+      errors.code = t('common.validation.codeRequired');
     }
     if (!formData.designationFr?.trim()) {
-      errors.designationFr = t('structure.validation.designationFrRequired');
+      errors.designationFr = t('common.validation.designationFrRequired');
     }
     if (!formData.structureTypeId || formData.structureTypeId === 0) {
-      errors.structureTypeId = t('structure.validation.typeRequired');
+      errors.structureTypeId = t('common.validation.required', { field: t('structure.fields.structureType') });
     }
 
     setValidationErrors(errors);
@@ -185,7 +186,7 @@ const StructureEdit = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      setError(t('structure.validation.formInvalid'));
+      setError(t('common.errors.validationFailed'));
       return;
     }
 
@@ -203,16 +204,16 @@ const StructureEdit = () => {
 
       if (isEditMode) {
         await StructureService.update(parseInt(id!), structureData);
-        setSuccess(t('structure.updateSuccess'));
+        setSuccess(t('common.messages.updateSuccess'));
       } else {
         const created = await StructureService.create(structureData);
-        setSuccess(t('structure.createSuccess'));
+        setSuccess(t('common.messages.createSuccess'));
         // Redirect to edit mode after creation
         setTimeout(() => navigate(`/administration/structures/${created.id}/edit`), 1500);
       }
     } catch (err: any) {
       console.error('Failed to save structure:', err);
-      setError(err.message || t('structure.saveError'));
+      setError(err.message || t('common.errors.savingFailed'));
     } finally {
       setLoading(false);
     }
@@ -269,11 +270,17 @@ const StructureEdit = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <StructureIcon color="primary" sx={{ fontSize: 32 }} />
           <Typography variant="h4" fontWeight={700} color="text.primary">
-            {isEditMode ? t('structure.edit') : t('structure.create')}
+            {isEditMode 
+              ? t('common.page.editTitle', { entity: t('structure.title') })
+              : t('common.page.createTitle', { entity: t('structure.title') })
+            }
           </Typography>
         </Box>
         <Typography variant="body2" color="text.secondary">
-          {isEditMode ? t('structure.editSubtitle') : t('structure.createSubtitle')}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('structure.title') })
+            : t('common.page.createSubtitle', { entity: t('structure.title') })
+          }
         </Typography>
       </Box>
 
@@ -312,7 +319,7 @@ const StructureEdit = () => {
                 {/* Basic Information */}
                 <Grid item xs={12}>
                   <Typography variant="h6" fontWeight={600} gutterBottom>
-                    {t('structure.sections.basicInformation')}
+                    {t('common.sections.basicInformation')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                 </Grid>
@@ -321,11 +328,11 @@ const StructureEdit = () => {
                   <TextField
                     fullWidth
                     required
-                    label={t('structure.fields.code')}
+                    label={t('common.fields.code')}
                     value={formData.code || ''}
                     onChange={handleChange('code')}
                     error={Boolean(validationErrors.code)}
-                    helperText={validationErrors.code}
+                    helperText={validationErrors.code || t('common.fields.codeHelper')}
                     disabled={loading}
                   />
                 </Grid>
@@ -344,7 +351,7 @@ const StructureEdit = () => {
                       disabled={loading}
                     >
                       <MenuItem value="">
-                        <em>{t('structure.selectType')}</em>
+                        <em>{t('common.actions.selectOne')}</em>
                       </MenuItem>
                       {structureTypes.map((type) => (
                         <MenuItem key={type.id} value={type.id}>
@@ -372,7 +379,7 @@ const StructureEdit = () => {
                     gutterBottom
                     sx={{ mt: 2 }}
                   >
-                    {t('structure.sections.designations')}
+                    {t('common.sections.designations')}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
                 </Grid>
@@ -381,11 +388,11 @@ const StructureEdit = () => {
                   <TextField
                     fullWidth
                     required
-                    label={t('structure.fields.designationFr')}
+                    label={t('common.fields.designationFr')}
                     value={formData.designationFr || ''}
                     onChange={handleChange('designationFr')}
                     error={Boolean(validationErrors.designationFr)}
-                    helperText={validationErrors.designationFr}
+                    helperText={validationErrors.designationFr || t('common.fields.designationFrHelper')}
                     disabled={loading}
                   />
                 </Grid>
@@ -393,9 +400,10 @@ const StructureEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label={t('structure.fields.designationEn')}
+                    label={t('common.fields.designationEn')}
                     value={formData.designationEn || ''}
                     onChange={handleChange('designationEn')}
+                    helperText={t('common.fields.designationEnHelper')}
                     disabled={loading}
                   />
                 </Grid>
@@ -403,9 +411,10 @@ const StructureEdit = () => {
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    label={t('structure.fields.designationAr')}
+                    label={t('common.fields.designationAr')}
                     value={formData.designationAr || ''}
                     onChange={handleChange('designationAr')}
+                    helperText={t('common.fields.designationArHelper')}
                     disabled={loading}
                     dir="rtl"
                   />

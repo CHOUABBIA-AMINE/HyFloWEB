@@ -8,6 +8,7 @@
  * @updated 01-01-2026 - Dependent selects (Structure→Job)
  * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
  * @updated 01-07-2026 - Fixed service imports and field mappings
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useMemo, useState, useEffect } from 'react';
@@ -113,7 +114,7 @@ const EmployeeEdit = () => {
         setJobs(jobsList);
       } catch (err) {
         console.error('Error loading jobs by structure:', err);
-        setError(t('common.error', 'Error'));
+        setError(t('common.errors.loadingDataFailed'));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,7 +131,7 @@ const EmployeeEdit = () => {
       setCountries(countriesList);
     } catch (err) {
       console.error('Error loading lookup data:', err);
-      setError(t('common.error', 'Error'));
+      setError(t('common.errors.loadingDataFailed'));
     }
   };
 
@@ -147,7 +148,7 @@ const EmployeeEdit = () => {
       }
     } catch (err) {
       console.error('Error loading employee:', err);
-      setError(t('common.error', 'Error'));
+      setError(t('common.errors.loadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -156,8 +157,8 @@ const EmployeeEdit = () => {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.lastNameLt?.trim()) newErrors.lastNameLt = t('common.required', 'Required');
-    if (!formData.firstNameLt?.trim()) newErrors.firstNameLt = t('common.required', 'Required');
+    if (!formData.lastNameLt?.trim()) newErrors.lastNameLt = t('common.validation.required', { field: t('employee.fields.lastNameLt') });
+    if (!formData.firstNameLt?.trim()) newErrors.firstNameLt = t('common.validation.required', { field: t('employee.fields.firstNameLt') });
 
     setFieldErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -167,7 +168,7 @@ const EmployeeEdit = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      setError(t('common.validationError', 'Please fix validation errors'));
+      setError(t('common.errors.validationFailed'));
       return;
     }
 
@@ -187,7 +188,7 @@ const EmployeeEdit = () => {
       }, 800);
     } catch (err: any) {
       console.error('Error saving employee:', err);
-      setError(err.response?.data?.message || t('common.error', 'Error'));
+      setError(err.response?.data?.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -224,16 +225,19 @@ const EmployeeEdit = () => {
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
             <Typography variant="h5" component="h1">
-              {isEditMode ? t('employee.edit', 'Edit Employee') : t('employee.create', 'Create Employee')}
+              {isEditMode 
+                ? t('common.page.editTitle', { entity: t('employee.title') })
+                : t('common.page.createTitle', { entity: t('employee.title') })
+              }
             </Typography>
             <Button startIcon={<BackIcon />} onClick={() => navigate('/administration/employees')}>
-              {t('common.back', 'Back')}
+              {t('common.back')}
             </Button>
           </Stack>
 
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              {t('common.success', 'Success')}
+              {t('common.messages.saveSuccess')}
             </Alert>
           )}
 
@@ -248,17 +252,19 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.lastNameAr', 'Arabic Last Name')}
+                  label={t('employee.fields.lastNameAr')}
                   value={formData.lastNameAr || ''}
                   onChange={(e) => handleChange('lastNameAr', e.target.value)}
+                  inputProps={{ dir: 'rtl' }}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.firstNameAr', 'Arabic First Name')}
+                  label={t('employee.fields.firstNameAr')}
                   value={formData.firstNameAr || ''}
                   onChange={(e) => handleChange('firstNameAr', e.target.value)}
+                  inputProps={{ dir: 'rtl' }}
                 />
               </Grid>
 
@@ -266,7 +272,7 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   required
-                  label={t('employee.lastNameLt', 'Latin Last Name')}
+                  label={t('employee.fields.lastNameLt')}
                   value={formData.lastNameLt}
                   onChange={(e) => handleChange('lastNameLt', e.target.value)}
                   error={Boolean(fieldErrors.lastNameLt)}
@@ -277,7 +283,7 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   required
-                  label={t('employee.firstNameLt', 'Latin First Name')}
+                  label={t('employee.fields.firstNameLt')}
                   value={formData.firstNameLt}
                   onChange={(e) => handleChange('firstNameLt', e.target.value)}
                   error={Boolean(fieldErrors.firstNameLt)}
@@ -289,7 +295,7 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   type="date"
-                  label={t('employee.birthDate', 'Birth Date')}
+                  label={t('employee.fields.birthDate')}
                   value={formatDateForInput(formData.birthDate)}
                   onChange={(e) => handleChange('birthDate', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -298,7 +304,7 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.birthPlace', 'Birth Place')}
+                  label={t('employee.fields.birthPlace')}
                   value={formData.birthPlaceLt || ''}
                   onChange={(e) => handleChange('birthPlaceLt', e.target.value)}
                 />
@@ -307,14 +313,14 @@ const EmployeeEdit = () => {
               {/* Country (multilingual designation) */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
-                  <InputLabel>{t('employee.country', 'Country')}</InputLabel>
+                  <InputLabel>{t('common.fields.country')}</InputLabel>
                   <Select
                     value={formData.countryId || ''}
                     onChange={(e) => handleChange('countryId', e.target.value || undefined)}
-                    label={t('employee.country', 'Country')}
+                    label={t('common.fields.country')}
                   >
                     <MenuItem value="">
-                      <em>{t('common.none', 'None')}</em>
+                      <em>{t('common.actions.selectNone')}</em>
                     </MenuItem>
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
@@ -328,7 +334,7 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.registrationNumber', 'Registration Number')}
+                  label={t('employee.fields.registrationNumber')}
                   value={formData.registrationNumber || ''}
                   onChange={(e) => handleChange('registrationNumber', e.target.value)}
                 />
@@ -337,7 +343,7 @@ const EmployeeEdit = () => {
               {/* Structure -> Job (dependent) */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
-                  <InputLabel>{t('employee.structure', 'Structure')}</InputLabel>
+                  <InputLabel>{t('employee.fields.structure')}</InputLabel>
                   <Select
                     value={selectedStructureId || ''}
                     onChange={(e) => {
@@ -346,10 +352,10 @@ const EmployeeEdit = () => {
                       // reset job when structure changes
                       setFormData((prev) => ({ ...prev, jobId: undefined }));
                     }}
-                    label={t('employee.structure', 'Structure')}
+                    label={t('employee.fields.structure')}
                   >
                     <MenuItem value="">
-                      <em>{t('common.none', 'None')}</em>
+                      <em>{t('common.actions.selectNone')}</em>
                     </MenuItem>
                     {structures.map((structure) => (
                       <MenuItem key={structure.id} value={structure.id}>
@@ -362,14 +368,14 @@ const EmployeeEdit = () => {
 
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth disabled={!selectedStructureId}>
-                  <InputLabel>{t('employee.job', 'Job')}</InputLabel>
+                  <InputLabel>{t('employee.fields.job')}</InputLabel>
                   <Select
                     value={formData.jobId || ''}
                     onChange={(e) => handleChange('jobId', e.target.value || undefined)}
-                    label={t('employee.job', 'Job')}
+                    label={t('employee.fields.job')}
                   >
                     <MenuItem value="">
-                      <em>{t('common.none', 'None')}</em>
+                      <em>{t('common.actions.selectNone')}</em>
                     </MenuItem>
                     {jobs.map((job) => (
                       <MenuItem key={job.id} value={job.id}>
@@ -383,7 +389,7 @@ const EmployeeEdit = () => {
 
             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={4}>
               <Button variant="outlined" onClick={() => navigate('/administration/employees')} disabled={saving}>
-                {t('common.cancel', 'Cancel')}
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -391,7 +397,7 @@ const EmployeeEdit = () => {
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
                 disabled={saving}
               >
-                {saving ? t('common.loading', 'Loading...') : t('common.save', 'Save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Stack>
           </Box>

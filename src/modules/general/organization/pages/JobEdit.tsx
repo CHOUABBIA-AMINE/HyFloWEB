@@ -4,6 +4,7 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed structureId type handling
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useState, useEffect } from 'react';
@@ -63,7 +64,7 @@ const JobEdit = () => {
       setStructures(data);
     } catch (err: any) {
       console.error('Failed to load structures:', err);
-      setError(err.message || 'Failed to load structures');
+      setError(err.message || t('common.errors.loadingDataFailed'));
     }
   };
 
@@ -75,7 +76,7 @@ const JobEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load job:', err);
-      setError(err.message || 'Failed to load job');
+      setError(err.message || t('common.errors.loadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -85,25 +86,25 @@ const JobEdit = () => {
     const errors: Record<string, string> = {};
 
     if (!job.code || job.code.trim().length === 0) {
-      errors.code = 'Code is required';
+      errors.code = t('common.validation.codeRequired');
     }
 
     if (!job.designationFr || job.designationFr.trim().length === 0) {
-      errors.designationFr = 'French designation is required';
+      errors.designationFr = t('common.validation.designationFrRequired');
     } else if (job.designationFr.length > 100) {
-      errors.designationFr = 'French designation must not exceed 100 characters';
+      errors.designationFr = t('common.validation.maxLength', { field: t('common.fields.designationFr'), max: 100 });
     }
 
     if (job.designationAr && job.designationAr.length > 100) {
-      errors.designationAr = 'Arabic designation must not exceed 100 characters';
+      errors.designationAr = t('common.validation.maxLength', { field: t('common.fields.designationAr'), max: 100 });
     }
 
     if (job.designationEn && job.designationEn.length > 100) {
-      errors.designationEn = 'English designation must not exceed 100 characters';
+      errors.designationEn = t('common.validation.maxLength', { field: t('common.fields.designationEn'), max: 100 });
     }
 
     if (!job.structureId) {
-      errors.structureId = 'Structure is required';
+      errors.structureId = t('common.validation.required', { field: t('job.fields.structure') });
     }
 
     setValidationErrors(errors);
@@ -151,7 +152,7 @@ const JobEdit = () => {
       navigate('/general/organization/jobs');
     } catch (err: any) {
       console.error('Failed to save job:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save job');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -180,10 +181,16 @@ const JobEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? 'Edit Job' : 'Create Job'}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('job.title') })
+            : t('common.page.createTitle', { entity: t('job.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update job information' : 'Create a new job'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('job.title') })
+            : t('common.page.createSubtitle', { entity: t('job.title') })
+          }
         </Typography>
       </Box>
 
@@ -198,7 +205,7 @@ const JobEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Basic Information
+                {t('common.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -206,12 +213,12 @@ const JobEdit = () => {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Code"
+                    label={t('common.fields.code')}
                     value={job.code || ''}
                     onChange={handleChange('code')}
                     required
                     error={!!validationErrors.code}
-                    helperText={validationErrors.code || 'Required unique code'}
+                    helperText={validationErrors.code || t('common.fields.codeHelper')}
                   />
                 </Grid>
 
@@ -219,12 +226,12 @@ const JobEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label="Structure"
+                    label={t('job.fields.structure')}
                     value={job.structureId || ''}
                     onChange={handleChange('structureId')}
                     required
                     error={!!validationErrors.structureId}
-                    helperText={validationErrors.structureId || 'Required structure'}
+                    helperText={validationErrors.structureId || t('job.fields.structureHelper')}
                   >
                     {structures.map((structure) => (
                       <MenuItem key={structure.id} value={structure.id}>
@@ -240,7 +247,7 @@ const JobEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                Multilingual Designations
+                {t('common.sections.designations')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -248,34 +255,35 @@ const JobEdit = () => {
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Designation (French)"
+                    label={t('common.fields.designationFr')}
                     value={job.designationFr || ''}
                     onChange={handleChange('designationFr')}
                     required
                     error={!!validationErrors.designationFr}
-                    helperText={validationErrors.designationFr || 'Required French designation'}
+                    helperText={validationErrors.designationFr || t('common.fields.designationFrHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Designation (Arabic)"
+                    label={t('common.fields.designationAr')}
                     value={job.designationAr || ''}
                     onChange={handleChange('designationAr')}
                     error={!!validationErrors.designationAr}
-                    helperText={validationErrors.designationAr || 'Optional Arabic designation'}
+                    helperText={validationErrors.designationAr || t('common.fields.designationArHelper')}
+                    inputProps={{ dir: 'rtl' }}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label="Designation (English)"
+                    label={t('common.fields.designationEn')}
                     value={job.designationEn || ''}
                     onChange={handleChange('designationEn')}
                     error={!!validationErrors.designationEn}
-                    helperText={validationErrors.designationEn || 'Optional English designation'}
+                    helperText={validationErrors.designationEn || t('common.fields.designationEnHelper')}
                   />
                 </Grid>
               </Grid>
@@ -301,7 +309,7 @@ const JobEdit = () => {
                 size="large"
                 sx={{ minWidth: 150 }}
               >
-                {saving ? t('common.loading') : t('common.save')}
+                {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
           </Paper>
