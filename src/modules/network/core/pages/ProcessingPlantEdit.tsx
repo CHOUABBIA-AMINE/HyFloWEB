@@ -8,6 +8,7 @@
  * @updated 01-16-2026 - Fixed property names: designationEn instead of nameEn
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-18-2026 - Fixed all hardcoded designationEn references to use i18n-based designation selector
+ * @updated 01-18-2026 - Changed location selector from dropdown to Autocomplete with search
  */
 
 import { useState, useEffect } from 'react';
@@ -16,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, TextField, Button, CircularProgress, Alert,
   Grid, Paper, Divider, Stack, MenuItem, Chip,
-  Card, CardContent, Tabs, Tab, IconButton
+  Card, CardContent, Tabs, Tab, IconButton, Autocomplete
 } from '@mui/material';
 import {
   Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
@@ -257,6 +258,15 @@ const ProcessingPlantEdit = () => {
     }
   };
 
+  const handleLocationChange = (_event: any, newValue: LocationDTO | null) => {
+    setSelectedLocation(newValue);
+    setPlant({ ...plant, locationId: newValue?.id || 0 });
+    
+    if (validationErrors.locationId) {
+      setValidationErrors({ ...validationErrors, locationId: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -489,33 +499,60 @@ const ProcessingPlantEdit = () => {
                     
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
-                        <TextField
-                          fullWidth select label={t('common.fields.location')}
-                          value={plant.locationId || ''}
-                          onChange={handleChange('locationId')} required
-                          error={!!validationErrors.locationId}
-                          helperText={validationErrors.locationId}
-                        >
-                          {locations.length > 0 ? (
-                            locations.map((loc) => (
-                              <MenuItem key={loc.id} value={loc.id}>
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                  <LocationIcon fontSize="small" color="action" />
-                                  <span>{getLocalizedDesignation(loc)}</span>
-                                  {loc.locality && (
-                                    <Chip 
-                                      label={getLocalizedDesignation(loc.locality)} 
-                                      size="small" 
-                                      variant="outlined"
-                                    />
+                        <Autocomplete
+                          value={selectedLocation}
+                          onChange={handleLocationChange}
+                          options={locations}
+                          getOptionLabel={(option) => getLocalizedDesignation(option)}
+                          isOptionEqualToValue={(option, value) => option.id === value?.id}
+                          loading={loading}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={t('common.fields.location')}
+                              required
+                              error={!!validationErrors.locationId}
+                              helperText={validationErrors.locationId || t('common.fields.locationHelper')}
+                              InputProps={{
+                                ...params.InputProps,
+                                startAdornment: (
+                                  <>
+                                    <LocationIcon fontSize="small" color="action" sx={{ ml: 1, mr: 0.5 }} />
+                                    {params.InputProps.startAdornment}
+                                  </>
+                                ),
+                              }}
+                            />
+                          )}
+                          renderOption={(props, option) => (
+                            <Box component="li" {...props} key={option.id}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                                <LocationIcon fontSize="small" color="action" />
+                                <Box sx={{ flex: 1 }}>
+                                  <Typography variant="body2" fontWeight={500}>
+                                    {getLocalizedDesignation(option)}
+                                  </Typography>
+                                  {option.locality && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      {getLocalizedDesignation(option.locality)}
+                                      {option.locality.district && ` • ${getLocalizedDesignation(option.locality.district)}`}
+                                      {option.locality.district?.state && ` • ${getLocalizedDesignation(option.locality.district.state)}`}
+                                    </Typography>
                                   )}
                                 </Box>
-                              </MenuItem>
-                            ))
-                          ) : (
-                            <MenuItem disabled>{t('common.loading')}</MenuItem>
+                                {option.locality && (
+                                  <Chip 
+                                    label={getLocalizedDesignation(option.locality)} 
+                                    size="small" 
+                                    variant="outlined"
+                                  />
+                                )}
+                              </Box>
+                            </Box>
                           )}
-                        </TextField>
+                          noOptionsText={t('list.noData')}
+                          loadingText={t('common.loading')}
+                        />
                       </Grid>
 
                       {selectedLocation && (
