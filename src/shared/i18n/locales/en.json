@@ -18,7 +18,10 @@
     "save": "Save",
     "cancel": "Cancel",
     "back": "Back",
-    "actions": "Actions",
+    "actions": {
+      "selectOne": "Select one",
+      "selectNone": "None"
+    },
     "fields": {
       "code": "Code",
       "codeHelper": "Unique identifier code (2-20 characters)",
@@ -104,7 +107,8 @@
     "errors": {
       "loadingDataFailed": "Failed to load data",
       "loadingFailed": "Failed to load",
-      "savingFailed": "Failed to save"
+      "savingFailed": "Failed to save",
+      "validationFailed": "Please fill in all required fields"
     },
     "messages": {
       "createSuccess": "Created successfully",
@@ -238,6 +242,7 @@
     "title": "Stations",
     "subtitle": "Manage station infrastructure and equipment",
     "searchPlaceholder": "Search stations...",
+    "selectedLocation": "Selected Location Details",
     "fields": {
       "stationType": "Station Type",
       "stationTypeHelper": "Select station type",
@@ -247,18 +252,25 @@
     "validation": {
       "stationTypeRequired": "Station type is required",
       "pipelineSystemRequired": "Pipeline system is required"
+    },
+    "warnings": {
+      "noLocations": "No locations found. Please create locations first."
     }
   },
   "terminal": {
     "title": "Terminals",
     "subtitle": "Manage terminal facilities and operations",
     "searchPlaceholder": "Search terminals...",
+    "selectedLocation": "Selected Location Details",
     "fields": {
       "terminalType": "Terminal Type",
       "terminalTypeHelper": "Select terminal type"
     },
     "validation": {
       "terminalTypeRequired": "Terminal type is required"
+    },
+    "warnings": {
+      "noLocations": "No locations found. Please create locations first."
     }
   },
   "pipeline": {
@@ -266,8 +278,11 @@
     "subtitle": "Manage pipeline infrastructure and routes",
     "searchPlaceholder": "Search pipelines...",
     "sections": {
+      "dimensionalSpecs": "Dimensional Specifications",
       "dimensionalSpecifications": "Dimensional Specifications",
+      "pressureSpecs": "Pressure Specifications (bar)",
       "pressureSpecifications": "Pressure Specifications (bar)",
+      "capacitySpecs": "Capacity Specifications",
       "materialCoating": "Material & Coating",
       "connectedTerminals": "Connected Terminals"
     },
@@ -348,8 +363,11 @@
     "subtitle": "Manage production field infrastructure and operations",
     "searchPlaceholder": "Search production fields...",
     "fields": {
+      "type": "Field Type",
       "productionFieldType": "Field Type",
       "productionFieldTypeHelper": "Select field type",
+      "processingPlant": "Processing Plant",
+      "processingPlantHelper": "Select associated processing plant (optional)",
       "discoveryDate": "Discovery Date",
       "discoveryDateHelper": "When field was discovered (YYYY-MM-DD)",
       "productionStartDate": "Production Start Date",
@@ -369,8 +387,12 @@
     "noParent": "No parent (root structure)",
     "root": "Root",
     "selectType": "Select type",
+    "sections": {
+      "organizationalHierarchy": "Organizational Hierarchy"
+    },
     "fields": {
-      "structureType": "Structure Type"
+      "structureType": "Structure Type",
+      "parentStructure": "Parent Structure"
     },
     "validation": {
       "typeRequired": "Structure type is required"
