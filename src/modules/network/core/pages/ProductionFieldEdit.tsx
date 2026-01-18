@@ -6,6 +6,7 @@
  * @created 01-15-2026
  * @updated 01-15-2026 - Fixed LocationService import path, replaced estimatedReserves with capacity, fixed handleChange bug
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-19-2026 - Fixed i18n for all references and converted location to Autocomplete
  */
 
 import { useState, useEffect } from 'react';
@@ -13,23 +14,38 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, TextField, Button, CircularProgress, Alert,
-  Grid, Paper, Divider, Stack, MenuItem
+  Grid, Paper, Divider, Stack, MenuItem, Chip, Autocomplete
 } from '@mui/material';
 import {
-  Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon
+  Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
+  LocationOn as LocationIcon
 } from '@mui/icons-material';
 import { ProductionFieldService, ProcessingPlantService } from '../services';
 import { OperationalStatusService, VendorService } from '../../common/services';
 import { ProductionFieldTypeService } from '../../type/services';
 import { StructureService } from '../../../general/organization/services';
 import { LocationService } from '../../../general/localization/services';
+import { LocationDTO } from '../../../general/localization/dto';
 import { ProductionFieldDTO } from '../dto/ProductionFieldDTO';
 
 const ProductionFieldEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { fieldId } = useParams<{ fieldId: string }>();
   const isEditMode = !!fieldId;
+
+  // Utility function to get localized designation based on current language
+  const getLocalizedDesignation = (entity: any): string => {
+    if (!entity) return '';
+    
+    const currentLanguage = i18n.language;
+    const designationKey = currentLanguage === 'ar' ? 'designationAr' 
+      : currentLanguage === 'fr' ? 'designationFr' 
+      : 'designationEn';
+    
+    // Return selected language designation or fallback to designationFr, then code
+    return entity[designationKey] || entity.designationFr || entity.code || '';
+  };
 
   const [field, setField] = useState<Partial<ProductionFieldDTO>>({
     code: '',
@@ -46,6 +62,7 @@ const ProductionFieldEdit = () => {
     decommissioningDate: undefined,
   });
 
+  const [selectedLocation, setSelectedLocation] = useState<LocationDTO | null>(null);
   const [structures, setStructures] = useState<any[]>([]);
   const [vendors, setVendors] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
@@ -126,7 +143,19 @@ const ProductionFieldEdit = () => {
         setProcessingPlants(plants);
       }
 
-      if (fieldData) setField(fieldData);
+      if (fieldData) {
+        setField(fieldData);
+        if (fieldData.location) {
+          setSelectedLocation(fieldData.location);
+        } else if (fieldData.locationId) {
+          try {
+            const loc = await LocationService.getById(fieldData.locationId);
+            setSelectedLocation(loc);
+          } catch (err) {
+            console.error('Failed to load location details:', err);
+          }
+        }
+      }
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
@@ -169,8 +198,23 @@ const ProductionFieldEdit = () => {
   const handleChange = (fieldName: keyof ProductionFieldDTO) => (e: any) => {
     const value = e.target.value;
     setField({ ...field, [fieldName]: value });
+    
+    if (fieldName === 'locationId') {
+      const loc = locations.find(l => l.id === Number(value));
+      setSelectedLocation(loc || null);
+    }
+    
     if (validationErrors[fieldName]) {
       setValidationErrors({ ...validationErrors, [fieldName]: '' });
+    }
+  };
+
+  const handleLocationChange = (_event: any, newValue: LocationDTO | null) => {
+    setSelectedLocation(newValue);
+    setField({ ...field, locationId: newValue?.id || 0 });
+    
+    if (validationErrors.locationId) {
+      setValidationErrors({ ...validationErrors, locationId: '' });
     }
   };
 
@@ -241,6 +285,11 @@ const ProductionFieldEdit = () => {
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
+      {locations.length === 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t('productionField.warnings.noLocations')}
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit}>
         <Stack spacing={3}>
@@ -289,7 +338,9 @@ const ProductionFieldEdit = () => {
                   >
                     {operationalStatuses.length > 0 ? (
                       operationalStatuses.map((status) => (
-                        <MenuItem key={status.id} value={status.id}>{status.nameEn || status.code}</MenuItem>
+                        <MenuItem key={status.id} value={status.id}>
+                          {getLocalizedDesignation(status)}
+                        </MenuItem>
                       ))
                     ) : (
                       <MenuItem disabled>{t('common.loading')}</MenuItem>
@@ -306,7 +357,9 @@ const ProductionFieldEdit = () => {
                   >
                     {structures.length > 0 ? (
                       structures.map((struct) => (
-                        <MenuItem key={struct.id} value={struct.id}>{struct.name}</MenuItem>
+                        <MenuItem key={struct.id} value={struct.id}>
+                          {struct.name || getLocalizedDesignation(struct)}
+                        </MenuItem>
                       ))
                     ) : (
                       <MenuItem disabled>{t('common.loading')}</MenuItem>
@@ -332,23 +385,6 @@ const ProductionFieldEdit = () => {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <TextField
-                    fullWidth select label={t('common.fields.location')}
-                    value={field.locationId || ''}
-                    onChange={handleChange('locationId')} required
-                    error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId}
-                  >
-                    {locations.length > 0 ? (
-                      locations.map((loc) => (
-                        <MenuItem key={loc.id} value={loc.id}>{loc.name}</MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>{t('common.loading')}</MenuItem>
-                    )}
-                  </TextField>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
                     fullWidth select label={t('productionField.fields.type')}
                     value={field.productionFieldTypeId || ''}
                     onChange={handleChange('productionFieldTypeId')} required
@@ -357,7 +393,9 @@ const ProductionFieldEdit = () => {
                   >
                     {productionFieldTypes.length > 0 ? (
                       productionFieldTypes.map((type) => (
-                        <MenuItem key={type.id} value={type.id}>{type.nameEn || type.code}</MenuItem>
+                        <MenuItem key={type.id} value={type.id}>
+                          {getLocalizedDesignation(type)}
+                        </MenuItem>
                       ))
                     ) : (
                       <MenuItem disabled>{t('common.loading')}</MenuItem>
@@ -377,6 +415,135 @@ const ProductionFieldEdit = () => {
                     ))}
                   </TextField>
                 </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('common.sections.locationInformation')}
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Autocomplete
+                    value={selectedLocation}
+                    onChange={handleLocationChange}
+                    options={locations}
+                    getOptionLabel={(option) => getLocalizedDesignation(option)}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    loading={loading}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('common.fields.location')}
+                        required
+                        error={!!validationErrors.locationId}
+                        helperText={validationErrors.locationId || t('common.fields.locationHelper')}
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <>
+                              <LocationIcon fontSize="small" color="action" sx={{ ml: 1, mr: 0.5 }} />
+                              {params.InputProps.startAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props} key={option.id}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                          <LocationIcon fontSize="small" color="action" />
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" fontWeight={500}>
+                              {getLocalizedDesignation(option)}
+                            </Typography>
+                            {option.locality && (
+                              <Typography variant="caption" color="text.secondary">
+                                {getLocalizedDesignation(option.locality)}
+                                {option.locality.district && ` • ${getLocalizedDesignation(option.locality.district)}`}
+                                {option.locality.district?.state && ` • ${getLocalizedDesignation(option.locality.district.state)}`}
+                              </Typography>
+                            )}
+                          </Box>
+                          {option.locality && (
+                            <Chip 
+                              label={getLocalizedDesignation(option.locality)} 
+                              size="small" 
+                              variant="outlined"
+                            />
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+                    noOptionsText={t('list.noData')}
+                    loadingText={t('common.loading')}
+                  />
+                </Grid>
+
+                {selectedLocation && (
+                  <Grid item xs={12}>
+                    <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50', borderStyle: 'dashed' }}>
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1, fontWeight: 600 }}>
+                        📍 {t('productionField.selectedLocation')}
+                      </Typography>
+                      
+                      <Grid container spacing={1.5} alignItems="flex-end">
+                        <Grid item xs={6} sm={3} md={2}>
+                          <Typography variant="caption" color="text.secondary">{t('common.fields.place')}</Typography>
+                          <Typography variant="body2" fontWeight={500} fontSize="0.875rem">
+                            {getLocalizedDesignation(selectedLocation)}
+                          </Typography>
+                        </Grid>
+
+                        {selectedLocation.locality && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">{t('common.fields.locality')}</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {getLocalizedDesignation(selectedLocation.locality)}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {selectedLocation.locality?.district && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">{t('common.fields.district')}</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {getLocalizedDesignation(selectedLocation.locality.district)}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        {selectedLocation.locality?.district?.state && (
+                          <Grid item xs={6} sm={3} md={2}>
+                            <Typography variant="caption" color="text.secondary">{t('common.fields.state')}</Typography>
+                            <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
+                              {getLocalizedDesignation(selectedLocation.locality.district.state)}
+                            </Typography>
+                          </Grid>
+                        )}
+
+                        <Grid item xs={4} sm={3} md={1.5}>
+                          <Typography variant="caption" color="text.secondary">{t('common.fields.latitude')}</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={4} sm={3} md={1.5}>
+                          <Typography variant="caption" color="text.secondary">{t('common.fields.longitude')}</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">{selectedLocation.longitude.toFixed(6)}°</Typography>
+                        </Grid>
+                        <Grid item xs={4} sm={3} md={1}>
+                          <Typography variant="caption" color="text.secondary">{t('common.fields.elevation')}</Typography>
+                          <Typography variant="body2" fontSize="0.875rem">
+                            {selectedLocation.elevation ? `${selectedLocation.elevation}m` : 'N/A'}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           </Paper>
@@ -423,12 +590,12 @@ const ProductionFieldEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
             <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
               <Button variant="outlined" startIcon={<CancelIcon />}
-                onClick={() => navigate('/network/core/production-fields')} disabled={saving}>
+                onClick={() => navigate('/network/core/production-fields')} disabled={saving} size="large">
                 {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained"
                 startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving} sx={{ minWidth: 150 }}>
+                disabled={saving || locations.length === 0} size="large" sx={{ minWidth: 150 }}>
                 {saving ? t('common.saving') : t('common.save')}
               </Button>
             </Box>
