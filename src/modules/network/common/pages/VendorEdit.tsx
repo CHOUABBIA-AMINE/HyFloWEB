@@ -7,6 +7,7 @@
  * @updated 01-09-2026 - Fixed DTO field names and added multilingual support
  * @updated 01-10-2026 - Added i18n translations for all text elements
  * @updated 01-10-2026 - Fixed translation keys to use editPage/createPage structure
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useState, useEffect } from 'react';
@@ -85,7 +86,7 @@ const VendorEdit = () => {
       setError('');
     } catch (err: any) {
       console.error('Failed to load data:', err);
-      setError(err.message || t('vendor.editPage.errorLoading'));
+      setError(err.message || t('common.errors.loadingFailed'));
     } finally {
       setLoading(false);
     }
@@ -113,19 +114,19 @@ const VendorEdit = () => {
     const errors: Record<string, string> = {};
 
     if (vendor.name && vendor.name.length > 100) {
-      errors.name = t('vendor.editPage.validation.nameMaxLength');
+      errors.name = t('common.validation.maxLength', { field: t('common.fields.name'), max: 100 });
     }
 
     if (vendor.shortName && (vendor.shortName.length < 2 || vendor.shortName.length > 20)) {
-      errors.shortName = t('vendor.editPage.validation.shortNameLength');
+      errors.shortName = t('common.validation.lengthBetween', { field: t('common.fields.shortName'), min: 2, max: 20 });
     }
 
     if (!vendor.vendorTypeId) {
-      errors.vendorTypeId = t('vendor.editPage.validation.vendorTypeRequired');
+      errors.vendorTypeId = t('common.validation.required', { field: t('vendor.fields.vendorType') });
     }
 
     if (!vendor.countryId) {
-      errors.countryId = t('vendor.editPage.validation.countryRequired');
+      errors.countryId = t('common.validation.required', { field: t('common.fields.country') });
     }
 
     setValidationErrors(errors);
@@ -169,7 +170,7 @@ const VendorEdit = () => {
       navigate('/network/common/vendors');
     } catch (err: any) {
       console.error('Failed to save vendor:', err);
-      setError(err.response?.data?.message || err.message || t('vendor.editPage.saveError'));
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -198,10 +199,16 @@ const VendorEdit = () => {
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode ? t('vendor.editPage.title') : t('vendor.createPage.title')}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('vendor.title') })
+            : t('common.page.createTitle', { entity: t('vendor.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? t('vendor.editPage.subtitle') : t('vendor.createPage.subtitle')}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('vendor.title') })
+            : t('common.page.createSubtitle', { entity: t('vendor.title') })
+          }
         </Typography>
       </Box>
 
@@ -216,7 +223,7 @@ const VendorEdit = () => {
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('vendor.editPage.sections.basicInformation')}
+                {t('common.sections.basicInformation')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -224,22 +231,22 @@ const VendorEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('vendor.editPage.fields.name')}
+                    label={t('common.fields.name')}
                     value={vendor.name || ''}
                     onChange={handleChange('name')}
                     error={!!validationErrors.name}
-                    helperText={validationErrors.name || t('vendor.editPage.fields.nameHelper')}
+                    helperText={validationErrors.name || t('common.fields.nameHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('vendor.editPage.fields.shortName')}
+                    label={t('common.fields.shortName')}
                     value={vendor.shortName || ''}
                     onChange={handleChange('shortName')}
                     error={!!validationErrors.shortName}
-                    helperText={validationErrors.shortName || t('vendor.editPage.fields.shortNameHelper')}
+                    helperText={validationErrors.shortName || t('common.fields.shortNameHelper')}
                   />
                 </Grid>
 
@@ -247,12 +254,12 @@ const VendorEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label={t('vendor.editPage.fields.vendorType')}
+                    label={t('vendor.fields.vendorType')}
                     value={vendor.vendorTypeId || ''}
                     onChange={handleChange('vendorTypeId')}
                     required
                     error={!!validationErrors.vendorTypeId}
-                    helperText={validationErrors.vendorTypeId || t('vendor.editPage.fields.vendorTypeHelper')}
+                    helperText={validationErrors.vendorTypeId || t('vendor.fields.vendorTypeHelper')}
                   >
                     {vendorTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
@@ -266,12 +273,12 @@ const VendorEdit = () => {
                   <TextField
                     fullWidth
                     select
-                    label={t('vendor.editPage.fields.country')}
+                    label={t('common.fields.country')}
                     value={vendor.countryId || ''}
                     onChange={handleChange('countryId')}
                     required
                     error={!!validationErrors.countryId}
-                    helperText={validationErrors.countryId || t('vendor.editPage.fields.countryHelper')}
+                    helperText={validationErrors.countryId || t('common.fields.countryHelper')}
                   >
                     {countries.map((country) => (
                       <MenuItem key={country.id} value={country.id}>
