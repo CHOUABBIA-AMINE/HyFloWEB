@@ -1,0 +1,528 @@
+{
+  "app": {
+    "name": "منصة HyFlo",
+    "description": "إدارة تدفق الهيدروكربونات"
+  },
+  "common": {
+    "yes": "نعم",
+    "no": "لا",
+    "all": "الكل",
+    "none": "لا شيء",
+    "legend": "المفتاح",
+    "filters": "المرشحات",
+    "clear": "مسح",
+    "total": "المجموع",
+    "id": "المعرف",
+    "loading": "جاري التحميل...",
+    "back": "رجوع",
+    "fields": {
+      "code": "الرمز",
+      "codeHelper": "رمز المعرف الفريد (2-20 حرف)",
+      "name": "الاسم",
+      "nameHelper": "الاسم الكامل أو التسمية (3-100 حرف)",
+      "shortName": "الاسم المختصر",
+      "shortNameHelper": "الاسم المختصر (2-20 حرف)",
+      "description": "الوصف",
+      "descriptionHelper": "تفاصيل وملاحظات إضافية",
+      "operationalStatus": "الحالة التشغيلية",
+      "operationalStatusHelper": "الحالة التشغيلية الحالية",
+      "vendor": "المورد",
+      "vendorHelper": "مورد المعدات",
+      "structure": "الهيكل",
+      "structureHelper": "الوحدة التنظيمية",
+      "location": "الموقع",
+      "locationHelper": "الموقع الفعلي",
+      "country": "البلد",
+      "countryHelper": "بلد المنشأ أو التشغيل",
+      "installationDate": "تاريخ التثبيت",
+      "installationDateHelper": "عندما تم تثبيت المعدات (سنة-شهر-يوم)",
+      "commissioningDate": "تاريخ التشغيل",
+      "commissioningDateHelper": "عندما أصبحت المنشأة تشغيلية (سنة-شهر-يوم)",
+      "decommissioningDate": "تاريخ إيقاف التشغيل",
+      "decommissioningDateHelper": "عندما تم إيقاف المنشأة (سنة-شهر-يوم)",
+      "latitude": "خط العرض",
+      "latitudeHelper": "الدرجات العشرية (-90 إلى 90)",
+      "longitude": "خط الطول",
+      "longitudeHelper": "الدرجات العشرية (-180 إلى 180)",
+      "elevation": "الارتفاع (م)",
+      "elevationHelper": "أمتار فوق مستوى سطح البحر",
+      "placeName": "اسم المكان",
+      "placeNameHelper": "اسم الموقع الوصفي (100 حرف كحد أقصى)",
+      "designationFr": "التسمية (فرنسي)",
+      "designationFrHelper": "مطلوب - التسمية بالفرنسية",
+      "designationEn": "التسمية (إنجليزي)",
+      "designationEnHelper": "اختياري - التسمية بالإنجليزية",
+      "designationAr": "التسمية (عربي)",
+      "designationArHelper": "اختياري - التسمية بالعربية"
+    },
+    "sections": {
+      "basicInformation": "المعلومات الأساسية",
+      "locationInformation": "معلومات الموقع",
+      "organizationTechnical": "التنظيم والتفاصيل التقنية",
+      "technicalDetails": "التفاصيل التقنية",
+      "importantDates": "التواريخ المهمة",
+      "designations": "التسميات متعددة اللغات",
+      "capacitySpecifications": "مواصفات السعة",
+      "operationalDetails": "التفاصيل التشغيلية"
+    },
+    "validation": {
+      "required": "{{field}} مطلوب",
+      "minLength": "{{field}} يجب أن يحتوي على {{min}} حرف على الأقل",
+      "maxLength": "{{field}} يجب ألا يتجاوز {{max}} حرف",
+      "minValue": "{{field}} يجب أن يكون {{min}} على الأقل",
+      "maxValue": "{{field}} يجب ألا يتجاوز {{max}}",
+      "positive": "{{field}} يجب أن يكون أكبر من 0",
+      "invalidFormat": "تنسيق {{field}} غير صالح",
+      "dateFormat": "يجب أن يكون التاريخ بتنسيق سنة-شهر-يوم",
+      "emailInvalid": "عنوان البريد الإلكتروني غير صالح",
+      "formInvalid": "يرجى ملء جميع الحقول المطلوبة",
+      "codeRequired": "الرمز مطلوب",
+      "nameRequired": "الاسم مطلوب",
+      "designationFrRequired": "التسمية الفرنسية مطلوبة"
+    },
+    "page": {
+      "createTitle": "إنشاء {{entity}}",
+      "createSubtitle": "إضافة {{entity}} جديد",
+      "editTitle": "تعديل {{entity}}",
+      "editSubtitle": "تحديث معلومات {{entity}}"
+    }
+  },
+  "list": {
+    "code": "الرمز",
+    "designation": "التسمية",
+    "name": "الاسم",
+    "description": "الوصف",
+    "type": "النوع",
+    "status": "الحالة",
+    "location": "الموقع",
+    "actions": "الإجراءات",
+    "country": "البلد",
+    "vendor": "المورد",
+    "structure": "الهيكل",
+    "product": "المنتج",
+    "shortName": "الاسم المختصر",
+    "fullName": "الاسم الكامل",
+    "searchPlaceholder": "بحث...",
+    "filterByType": "تصفية حسب النوع",
+    "filterByStatus": "تصفية حسب الحالة",
+    "allTypes": "جميع الأنواع",
+    "allStatuses": "جميع الحالات",
+    "results": "نتائج",
+    "noData": "لا توجد بيانات متاحة",
+    "loading": "جاري التحميل...",
+    "pipelineSystem": "نظام الأنابيب",
+    "length": "الطول",
+    "all": "الكل",
+    "username": "اسم المستخدم",
+    "email": "البريد الإلكتروني",
+    "roles": "الأدوار",
+    "permissions": "الصلاحيات",
+    "users": "المستخدمون",
+    "noPermissions": "لا توجد صلاحيات",
+    "noUsers": "لا يوجد مستخدمون"
+  },
+  "action": {
+    "create": "إنشاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "save": "حفظ",
+    "saving": "جاري الحفظ...",
+    "cancel": "إلغاء",
+    "refresh": "تحديث",
+    "export": "تصدير",
+    "exportCSV": "تصدير CSV",
+    "exportExcel": "تصدير Excel",
+    "exportPDF": "تصدير PDF",
+    "confirmDelete": "هل أنت متأكد من أنك تريد حذف هذا العنصر؟",
+    "clearFilters": "مسح المرشحات",
+    "search": "بحث",
+    "add": "إضافة",
+    "view": "عرض",
+    "update": "تحديث",
+    "submit": "إرسال",
+    "close": "إغلاق",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "confirm": "تأكيد"
+  },
+  "message": {
+    "deleteSuccess": "تم حذف العنصر بنجاح",
+    "deleteError": "فشل حذف العنصر",
+    "createSuccess": "تم إنشاء العنصر بنجاح",
+    "createError": "فشل إنشاء العنصر",
+    "updateSuccess": "تم تحديث العنصر بنجاح",
+    "updateError": "فشل تحديث العنصر",
+    "saveError": "فشل حفظ العنصر",
+    "errorLoading": "فشل تحميل البيانات",
+    "errorLoadingFormData": "فشل تحميل بيانات النموذج",
+    "refreshed": "تم تحديث البيانات",
+    "exportedCSV": "تم التصدير إلى CSV",
+    "exportedExcel": "تم التصدير إلى Excel",
+    "exportedPDF": "تم التصدير إلى PDF",
+    "deleting": "جاري الحذف...",
+    "deleted": "تم الحذف",
+    "success": "نجح",
+    "error": "خطأ"
+  },
+  "product": {
+    "title": "المنتجات",
+    "subtitle": "إدارة منتجات ومواد الهيدروكربون",
+    "searchPlaceholder": "البحث عن المنتجات...",
+    "allProducts": "جميع المنتجات",
+    "hazardousOnly": "الخطرة فقط",
+    "nonHazardousOnly": "غير الخطرة فقط",
+    "filterByHazardous": "حالة الخطورة",
+    "fields": {
+      "density": "الكثافة (كغ/م³)",
+      "densityHelper": "كثافة المنتج بالكيلوجرام لكل متر مكعب",
+      "viscosity": "اللزوجة (سنتيبواز)",
+      "viscosityHelper": "لزوجة المنتج بالسنتيبواز",
+      "flashPoint": "نقطة الوميض (°س)",
+      "flashPointHelper": "درجة حرارة اشتعال البخار",
+      "sulfurContent": "محتوى الكبريت (%)",
+      "sulfurContentHelper": "نسبة محتوى الكبريت",
+      "isHazardous": "مادة خطرة",
+      "isHazardousHelper": "تحديد ما إذا كان هذا المنتج مصنف كمادة خطرة"
+    }
+  },
+  "partner": {
+    "title": "الشركاء",
+    "subtitle": "إدارة الشركاء التجاريين والمتعاونين",
+    "searchPlaceholder": "البحث عن الشركاء...",
+    "fields": {
+      "partnerType": "نوع الشريك",
+      "partnerTypeHelper": "اختر نوع الشراكة"
+    },
+    "validation": {
+      "partnerTypeRequired": "نوع الشريك مطلوب"
+    }
+  },
+  "vendor": {
+    "title": "الموردون",
+    "subtitle": "إدارة موردي المعدات ومقدمي الخدمات",
+    "searchPlaceholder": "البحث عن الموردين...",
+    "fields": {
+      "vendorType": "نوع المورد",
+      "vendorTypeHelper": "اختر تصنيف المورد"
+    },
+    "validation": {
+      "vendorTypeRequired": "نوع المورد مطلوب"
+    }
+  },
+  "station": {
+    "title": "المحطات",
+    "subtitle": "إدارة البنية التحتية ومعدات المحطات",
+    "searchPlaceholder": "البحث عن المحطات...",
+    "fields": {
+      "stationType": "نوع المحطة",
+      "stationTypeHelper": "اختر نوع المحطة",
+      "pipelineSystem": "نظام الأنابيب",
+      "pipelineSystemHelper": "نظام الأنابيب المرتبط"
+    },
+    "validation": {
+      "stationTypeRequired": "نوع المحطة مطلوب",
+      "pipelineSystemRequired": "نظام الأنابيب مطلوب"
+    }
+  },
+  "terminal": {
+    "title": "المحطات الطرفية",
+    "subtitle": "إدارة مرافق وعمليات المحطات الطرفية",
+    "searchPlaceholder": "البحث عن المحطات الطرفية...",
+    "fields": {
+      "terminalType": "نوع المحطة الطرفية",
+      "terminalTypeHelper": "اختر نوع المحطة الطرفية"
+    },
+    "validation": {
+      "terminalTypeRequired": "نوع المحطة الطرفية مطلوب"
+    }
+  },
+  "pipeline": {
+    "title": "خطوط الأنابيب",
+    "subtitle": "إدارة البنية التحتية ومسارات خطوط الأنابيب",
+    "searchPlaceholder": "البحث عن خطوط الأنابيب...",
+    "sections": {
+      "dimensionalSpecifications": "المواصفات الأبعادية",
+      "pressureSpecifications": "مواصفات الضغط (بار)",
+      "materialCoating": "المادة والطلاء",
+      "connectedTerminals": "المحطات الطرفية المتصلة"
+    },
+    "fields": {
+      "nominalDiameter": "القطر الاسمي (بوصة)",
+      "nominalDiameterHelper": "قطر الأنبوب بالبوصة",
+      "nominalThickness": "السماكة الاسمية (مم)",
+      "nominalThicknessHelper": "سمك الجدار بالمليمتر",
+      "length": "الطول (كم)",
+      "lengthHelper": "الطول الإجمالي لخط الأنابيب بالكيلومترات",
+      "nominalRoughness": "الخشونة الاسمية (مم)",
+      "nominalRoughnessHelper": "خشونة السطح الداخلي",
+      "designMaxServicePressure": "أقصى ضغط خدمة تصميمي",
+      "designMaxServicePressureHelper": "أقصى ضغط تصميمي",
+      "operationalMaxServicePressure": "أقصى ضغط خدمة تشغيلي",
+      "operationalMaxServicePressureHelper": "أقصى ضغط تشغيلي",
+      "designMinServicePressure": "أدنى ضغط خدمة تصميمي",
+      "designMinServicePressureHelper": "أدنى ضغط تصميمي",
+      "operationalMinServicePressure": "أدنى ضغط خدمة تشغيلي",
+      "operationalMinServicePressureHelper": "أدنى ضغط تشغيلي",
+      "designCapacity": "السعة التصميمية",
+      "designCapacityHelper": "أقصى سعة تدفق مصممة",
+      "operationalCapacity": "السعة التشغيلية",
+      "operationalCapacityHelper": "سعة التدفق التشغيلية الحالية",
+      "nominalConstructionMaterial": "مادة البناء الاسمية",
+      "nominalConstructionMaterialHelper": "المادة الأساسية للأنبوب",
+      "nominalExteriorCoating": "الطلاء الخارجي الاسمي",
+      "nominalExteriorCoatingHelper": "نوع الطلاء الخارجي",
+      "nominalInteriorCoating": "الطلاء الداخلي الاسمي",
+      "nominalInteriorCoatingHelper": "نوع الطلاء الداخلي",
+      "pipelineSystem": "نظام الأنابيب",
+      "pipelineSystemHelper": "نظام الأنابيب المرتبط",
+      "departureTerminal": "المحطة الطرفية المغادرة",
+      "departureTerminalHelper": "المحطة الطرفية الابتدائية",
+      "arrivalTerminal": "المحطة الطرفية الوصول",
+      "arrivalTerminalHelper": "المحطة الطرفية النهائية"
+    },
+    "validation": {
+      "lengthRequired": "يجب أن يكون الطول أكبر من 0"
+    }
+  },
+  "pipelineSystem": {
+    "title": "أنظمة الأنابيب",
+    "subtitle": "إدارة شبكات أنظمة الأنابيب المتكاملة",
+    "searchPlaceholder": "البحث عن أنظمة الأنابيب..."
+  },
+  "processingPlant": {
+    "title": "مصانع المعالجة",
+    "subtitle": "إدارة مرافق وعمليات مصانع المعالجة",
+    "searchPlaceholder": "البحث عن مصانع المعالجة...",
+    "fields": {
+      "processingPlantType": "نوع المصنع",
+      "processingPlantTypeHelper": "اختر نوع المصنع"
+    },
+    "validation": {
+      "processingPlantTypeRequired": "نوع المصنع مطلوب"
+    }
+  },
+  "productionField": {
+    "title": "حقول الإنتاج",
+    "subtitle": "إدارة البنية التحتية وعمليات حقول الإنتاج",
+    "searchPlaceholder": "البحث عن حقول الإنتاج...",
+    "fields": {
+      "productionFieldType": "نوع الحقل",
+      "productionFieldTypeHelper": "اختر نوع الحقل",
+      "discoveryDate": "تاريخ الاكتشاف",
+      "discoveryDateHelper": "عندما تم اكتشاف الحقل (سنة-شهر-يوم)",
+      "productionStartDate": "تاريخ بداية الإنتاج",
+      "productionStartDateHelper": "عندما بدأ الإنتاج (سنة-شهر-يوم)",
+      "productionEndDate": "تاريخ نهاية الإنتاج",
+      "productionEndDateHelper": "عندما انتهى الإنتاج (سنة-شهر-يوم)"
+    },
+    "validation": {
+      "productionFieldTypeRequired": "نوع الحقل مطلوب"
+    }
+  },
+  "structure": {
+    "title": "الهياكل التنظيمية",
+    "subtitle": "إدارة الهياكل التنظيمية والتسلسلات الهرمية",
+    "searchPlaceholder": "البحث بالرمز أو التسمية...",
+    "parentStructure": "الهيكل الأب",
+    "noParent": "لا يوجد أب (هيكل جذر)",
+    "root": "الجذر",
+    "selectType": "اختر النوع",
+    "fields": {
+      "structureType": "نوع الهيكل"
+    },
+    "validation": {
+      "typeRequired": "نوع الهيكل مطلوب"
+    },
+    "tabs": {
+      "generalInformation": "المعلومات العامة",
+      "jobs": "الوظائف"
+    },
+    "createSuccess": "تم إنشاء الهيكل بنجاح",
+    "updateSuccess": "تم تحديث الهيكل بنجاح",
+    "saveError": "فشل حفظ الهيكل",
+    "errorLoading": "فشل تحميل الهيكل",
+    "errorLoadingFormData": "فشل تحميل بيانات النموذج"
+  },
+  "job": {
+    "title": "الوظائف",
+    "titleInStructure": "الوظائف في هذا الهيكل",
+    "subtitle": "إدارة المناصب الوظيفية",
+    "subtitleInStructure": "إدارة الوظائف لهذا الهيكل",
+    "dialog": {
+      "createTitle": "إنشاء وظيفة",
+      "createSubtitle": "إضافة منصب وظيفي جديد",
+      "editTitle": "تعديل الوظيفة",
+      "editSubtitle": "تحديث تفاصيل الوظيفة"
+    },
+    "sections": {
+      "assignment": "التعيين"
+    },
+    "fields": {
+      "structure": "الهيكل",
+      "structureHelper": "اختر الهيكل التنظيمي",
+      "structureLocked": "الهيكل محدد من قبل الأب"
+    },
+    "validation": {
+      "structureRequired": "الهيكل مطلوب"
+    }
+  },
+  "employee": {
+    "title": "الموظفون",
+    "subtitle": "إدارة سجلات ومعلومات الموظفين",
+    "searchPlaceholder": "البحث بالاسم أو رقم التسجيل...",
+    "firstNameAr": "الاسم الأول بالعربية",
+    "lastNameAr": "اسم العائلة بالعربية",
+    "firstNameLt": "الاسم الأول باللاتينية",
+    "lastNameLt": "اسم العائلة باللاتينية",
+    "birthDate": "تاريخ الميلاد",
+    "birthPlace": "مكان الميلاد",
+    "registrationNumber": "رقم التسجيل",
+    "job": "الوظيفة",
+    "militaryRank": "الرتبة العسكرية"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "logout": "تسجيل الخروج",
+    "signIn": "تسجيل الدخول",
+    "signingIn": "جاري تسجيل الدخول...",
+    "username": "اسم المستخدم",
+    "password": "كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "contactAdmin": "اتصل بالمسؤول",
+    "loginFailed": "فشل تسجيل الدخول. يرجى التحقق من بيانات الاعتماد.",
+    "logoutSuccess": "تم تسجيل الخروج بنجاح"
+  },
+  "profile": {
+    "title": "ملفي الشخصي",
+    "personalInfo": "المعلومات الشخصية",
+    "changePassword": "تغيير كلمة المرور",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordChanged": "تم تغيير كلمة المرور بنجاح",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين",
+    "passwordTooShort": "يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل",
+    "updateProfile": "تحديث الملف الشخصي",
+    "profileUpdated": "تم تحديث الملف الشخصي بنجاح"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "general": "عام",
+    "workspace": "مساحة العمل",
+    "dashboard": "لوحة التحكم",
+    "map": "خريطة البنية التحتية",
+    "pipelineMap": "خريطة خطوط الأنابيب",
+    "organization": "المنظمة",
+    "structures": "الهياكل",
+    "employees": "الموظفون",
+    "localization": "الترجمة",
+    "locations": "المواقع",
+    "network": "الشبكة",
+    "common": "مشترك",
+    "partners": "الشركاء",
+    "products": "المنتجات",
+    "vendors": "الموردون",
+    "core": "الأساسي",
+    "productionFields": "حقول الإنتاج",
+    "processingPlants": "مصانع المعالجة",
+    "pipelines": "خطوط الأنابيب",
+    "pipelineSystems": "أنظمة الأنابيب",
+    "stations": "المحطات",
+    "terminals": "المحطات الطرفية",
+    "system": "النظام",
+    "security": "الأمان",
+    "users": "المستخدمون",
+    "roles": "الأدوار",
+    "groups": "المجموعات",
+    "permissions": "الصلاحيات",
+    "auth": "المصادقة",
+    "sessions": "الجلسات",
+    "audit": "المراجعة",
+    "logs": "السجلات",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي"
+  },
+  "map": {
+    "title": "خريطة البنية التحتية",
+    "description": "خريطة تفاعلية تعرض المحطات والمحطات الطرفية وحقول الهيدروكربون وخطوط الأنابيب",
+    "layers": "طبقات الخريطة",
+    "hoverToExpand": "مرر للتوسيع",
+    "clickToToggle": "انقر للتبديل بين الطبقات",
+    "showStations": "المحطات",
+    "showTerminals": "المحطات الطرفية",
+    "showHydrocarbonFields": "حقول الهيدروكربون",
+    "showPipelines": "خطوط الأنابيب",
+    "clickToEdit": "انقر على العلامة للتعديل",
+    "station": "محطة",
+    "terminal": "محطة طرفية",
+    "hydrocarbonField": "حقل هيدروكربون",
+    "coordinates": "الإحداثيات",
+    "elevation": "الارتفاع",
+    "capacity": "السعة",
+    "storage": "التخزين",
+    "reserves": "الاحتياطيات",
+    "commissioned": "تم التشغيل",
+    "discovered": "تم الاكتشاف",
+    "operationalStatus": "الحالة التشغيلية",
+    "units": "وحدات",
+    "meters": "م",
+    "cubicMeters": "م³",
+    "network": {
+      "offline": "الشبكة غير متصلة",
+      "online": "الشبكة متصلة"
+    },
+    "tiles": {
+      "online": "متصل",
+      "offline": "غير متصل",
+      "notAvailable": "البلاطات غير المتصلة غير متاحة",
+      "offlineOnly": "الشبكة غير متصلة - استخدام البلاطات المحلية",
+      "offlineNotAvailable": "البلاطات غير المتصلة غير متاحة",
+      "switchToOnline": "التبديل إلى بلاطات الخريطة المتصلة",
+      "switchToOffline": "التبديل إلى بلاطات الخريطة غير المتصلة"
+    }
+  },
+  "user": {
+    "title": "المستخدمون",
+    "subtitle": "إدارة وتنظيم حسابات المستخدمين",
+    "searchPlaceholder": "البحث باسم المستخدم أو البريد الإلكتروني...",
+    "firstName": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "email": "البريد الإلكتروني",
+    "username": "اسم المستخدم",
+    "enabled": "مفعل",
+    "disabled": "معطل",
+    "roles": "الأدوار",
+    "groups": "المجموعات",
+    "createdAt": "تاريخ الإنشاء",
+    "updatedAt": "تاريخ التحديث",
+    "lastLogin": "آخر تسجيل دخول",
+    "filterByStatus": "تصفية حسب الحالة",
+    "filterByRole": "تصفية حسب الدور"
+  },
+  "role": {
+    "title": "الأدوار",
+    "subtitle": "إدارة الأدوار والصلاحيات",
+    "searchPlaceholder": "البحث عن الأدوار بالاسم أو الوصف...",
+    "permissions": "الصلاحيات",
+    "description": "الوصف"
+  },
+  "group": {
+    "title": "المجموعات",
+    "subtitle": "إدارة مجموعات المستخدمين",
+    "searchPlaceholder": "البحث عن المجموعات بالاسم أو الوصف...",
+    "users": "المستخدمون",
+    "description": "الوصف"
+  },
+  "footer": {
+    "copyright": "© {{year}} منصة HyFlo. جميع الحقوق محفوظة."
+  },
+  "errors": {
+    "unauthorized": "غير مصرح",
+    "forbidden": "ليس لديك إذن للوصول إلى هذا المورد.",
+    "notFound": "الصفحة غير موجودة",
+    "serverError": "حدث خطأ في الخادم",
+    "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك."
+  }
+}
