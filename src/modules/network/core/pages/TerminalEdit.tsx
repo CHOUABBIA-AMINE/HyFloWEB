@@ -10,6 +10,7 @@
  * @updated 01-16-2026 - Reorganized to single row: Place, Locality, District, State, Coordinates
  * @updated 01-16-2026 - Moved Structure field before Location section
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-19-2026 - Fixed i18n for location references and converted to Autocomplete
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -17,7 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box, Typography, TextField, Button, CircularProgress, Alert,
-  Grid, Paper, Divider, Stack, MenuItem, Chip,
+  Grid, Paper, Divider, Stack, MenuItem, Chip, Autocomplete
 } from '@mui/material';
 import {
   Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
@@ -39,6 +40,18 @@ const TerminalEdit = () => {
   const isEditMode = !!terminalId;
 
   const currentLanguage = i18n.language || 'en';
+
+  // Utility function to get localized designation based on current language
+  const getLocalizedDesignation = (entity: any): string => {
+    if (!entity) return '';
+    
+    const designationKey = currentLanguage === 'ar' ? 'designationAr' 
+      : currentLanguage === 'fr' ? 'designationFr' 
+      : 'designationEn';
+    
+    // Return selected language designation or fallback to designationFr, then code
+    return entity[designationKey] || entity.designationFr || entity.code || '';
+  };
 
   const [terminal, setTerminal] = useState<Partial<TerminalDTO>>({
     name: '',
@@ -181,6 +194,15 @@ const TerminalEdit = () => {
     }
   };
 
+  const handleLocationChange = (_event: any, newValue: LocationDTO | null) => {
+    setSelectedLocation(newValue);
+    setTerminal({ ...terminal, locationId: newValue?.id || 0 });
+    
+    if (validationErrors.locationId) {
+      setValidationErrors({ ...validationErrors, locationId: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -315,29 +337,60 @@ const TerminalEdit = () => {
               
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <TextField
-                    fullWidth select label={t('common.fields.location')}
-                    value={terminal.locationId || ''}
-                    onChange={handleChange('locationId')} required
-                    error={!!validationErrors.locationId}
-                    helperText={validationErrors.locationId}
-                  >
-                    {locations.length > 0 ? (
-                      locations.map((location) => (
-                        <MenuItem key={location.id} value={location.id}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <LocationIcon fontSize="small" color="action" />
-                            <span>{location.placeName}</span>
-                            {location.locality && (
-                              <Chip label={location.locality.designationFr || location.locality.designationEn} size="small" variant="outlined" />
+                  <Autocomplete
+                    value={selectedLocation}
+                    onChange={handleLocationChange}
+                    options={locations}
+                    getOptionLabel={(option) => getLocalizedDesignation(option)}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    loading={loading}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('common.fields.location')}
+                        required
+                        error={!!validationErrors.locationId}
+                        helperText={validationErrors.locationId || t('common.fields.locationHelper')}
+                        InputProps={{
+                          ...params.InputProps,
+                          startAdornment: (
+                            <>
+                              <LocationIcon fontSize="small" color="action" sx={{ ml: 1, mr: 0.5 }} />
+                              {params.InputProps.startAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props} key={option.id}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                          <LocationIcon fontSize="small" color="action" />
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="body2" fontWeight={500}>
+                              {getLocalizedDesignation(option)}
+                            </Typography>
+                            {option.locality && (
+                              <Typography variant="caption" color="text.secondary">
+                                {getLocalizedDesignation(option.locality)}
+                                {option.locality.district && ` • ${getLocalizedDesignation(option.locality.district)}`}
+                                {option.locality.district?.state && ` • ${getLocalizedDesignation(option.locality.district.state)}`}
+                              </Typography>
                             )}
                           </Box>
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>{t('common.loading')}</MenuItem>
+                          {option.locality && (
+                            <Chip 
+                              label={getLocalizedDesignation(option.locality)} 
+                              size="small" 
+                              variant="outlined"
+                            />
+                          )}
+                        </Box>
+                      </Box>
                     )}
-                  </TextField>
+                    noOptionsText={t('list.noData')}
+                    loadingText={t('common.loading')}
+                  />
                 </Grid>
 
                 {selectedLocation && (
@@ -350,32 +403,38 @@ const TerminalEdit = () => {
                       <Grid container spacing={1.5} alignItems="flex-end">
                         <Grid item xs={6} sm={3} md={2}>
                           <Typography variant="caption" color="text.secondary">{t('common.fields.place')}</Typography>
-                          <Typography variant="body2" fontWeight={500} fontSize="0.875rem">{selectedLocation.placeName}</Typography>
+                          <Typography variant="body2" fontWeight={500} fontSize="0.875rem">
+                            {getLocalizedDesignation(selectedLocation)}
+                          </Typography>
                         </Grid>
+
                         {selectedLocation.locality && (
                           <Grid item xs={6} sm={3} md={2}>
                             <Typography variant="caption" color="text.secondary">{t('common.fields.locality')}</Typography>
                             <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
-                              {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr}
+                              {getLocalizedDesignation(selectedLocation.locality)}
                             </Typography>
                           </Grid>
                         )}
+
                         {selectedLocation.locality?.district && (
                           <Grid item xs={6} sm={3} md={2}>
                             <Typography variant="caption" color="text.secondary">{t('common.fields.district')}</Typography>
                             <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
-                              {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr}
+                              {getLocalizedDesignation(selectedLocation.locality.district)}
                             </Typography>
                           </Grid>
                         )}
+
                         {selectedLocation.locality?.district?.state && (
                           <Grid item xs={6} sm={3} md={2}>
                             <Typography variant="caption" color="text.secondary">{t('common.fields.state')}</Typography>
                             <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
-                              {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr}
+                              {getLocalizedDesignation(selectedLocation.locality.district.state)}
                             </Typography>
                           </Grid>
                         )}
+
                         <Grid item xs={4} sm={3} md={1.5}>
                           <Typography variant="caption" color="text.secondary">{t('common.fields.latitude')}</Typography>
                           <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
