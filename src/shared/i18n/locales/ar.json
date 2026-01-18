@@ -15,6 +15,9 @@
     "id": "المعرف",
     "loading": "جاري التحميل...",
     "back": "رجوع",
+    "save": "حفظ",
+    "saving": "جاري الحفظ...",
+    "cancel": "إلغاء",
     "fields": {
       "code": "الرمز",
       "codeHelper": "رمز المعرف الفريد (2-20 حرف)",
@@ -46,8 +49,12 @@
       "longitudeHelper": "الدرجات العشرية (-180 إلى 180)",
       "elevation": "الارتفاع (م)",
       "elevationHelper": "أمتار فوق مستوى سطح البحر",
+      "place": "المكان",
       "placeName": "اسم المكان",
       "placeNameHelper": "اسم الموقع الوصفي (100 حرف كحد أقصى)",
+      "locality": "المنطقة",
+      "district": "الدائرة",
+      "state": "الولاية",
       "designationFr": "التسمية (فرنسي)",
       "designationFrHelper": "مطلوب - التسمية بالفرنسية",
       "designationEn": "التسمية (إنجليزي)",
@@ -62,13 +69,19 @@
       "technicalDetails": "التفاصيل التقنية",
       "importantDates": "التواريخ المهمة",
       "designations": "التسميات متعددة اللغات",
+      "classification": "التصنيف",
       "capacitySpecifications": "مواصفات السعة",
       "operationalDetails": "التفاصيل التشغيلية"
+    },
+    "actions": {
+      "selectOne": "اختر واحداً",
+      "selectNone": "لا شيء"
     },
     "validation": {
       "required": "{{field}} مطلوب",
       "minLength": "{{field}} يجب أن يحتوي على {{min}} حرف على الأقل",
       "maxLength": "{{field}} يجب ألا يتجاوز {{max}} حرف",
+      "lengthBetween": "{{field}} يجب أن يحتوي على ما بين {{min}} و {{max}} حرفًا",
       "minValue": "{{field}} يجب أن يكون {{min}} على الأقل",
       "maxValue": "{{field}} يجب ألا يتجاوز {{max}}",
       "positive": "{{field}} يجب أن يكون أكبر من 0",
@@ -79,6 +92,16 @@
       "codeRequired": "الرمز مطلوب",
       "nameRequired": "الاسم مطلوب",
       "designationFrRequired": "التسمية الفرنسية مطلوبة"
+    },
+    "messages": {
+      "createSuccess": "تم الإنشاء بنجاح",
+      "updateSuccess": "تم التحديث بنجاح"
+    },
+    "errors": {
+      "loadingDataFailed": "فشل تحميل البيانات",
+      "loadingFailed": "فشل التحميل",
+      "savingFailed": "فشل الحفظ",
+      "validationFailed": "فشل التحقق من الصحة"
     },
     "page": {
       "createTitle": "إنشاء {{entity}}",
@@ -214,11 +237,15 @@
     "title": "المحطات",
     "subtitle": "إدارة البنية التحتية ومعدات المحطات",
     "searchPlaceholder": "البحث عن المحطات...",
+    "selectedLocation": "تفاصيل الموقع المحدد",
     "fields": {
       "stationType": "نوع المحطة",
       "stationTypeHelper": "اختر نوع المحطة",
       "pipelineSystem": "نظام الأنابيب",
       "pipelineSystemHelper": "نظام الأنابيب المرتبط"
+    },
+    "warnings": {
+      "noLocations": "لم يتم العثور على مواقع. الرجاء إنشاء المواقع أولاً."
     },
     "validation": {
       "stationTypeRequired": "نوع المحطة مطلوب",
@@ -229,9 +256,13 @@
     "title": "المحطات الطرفية",
     "subtitle": "إدارة مرافق وعمليات المحطات الطرفية",
     "searchPlaceholder": "البحث عن المحطات الطرفية...",
+    "selectedLocation": "تفاصيل الموقع المحدد",
     "fields": {
       "terminalType": "نوع المحطة الطرفية",
       "terminalTypeHelper": "اختر نوع المحطة الطرفية"
+    },
+    "warnings": {
+      "noLocations": "لم يتم العثور على مواقع. الرجاء إنشاء المواقع أولاً."
     },
     "validation": {
       "terminalTypeRequired": "نوع المحطة الطرفية مطلوب"
@@ -243,7 +274,10 @@
     "searchPlaceholder": "البحث عن خطوط الأنابيب...",
     "sections": {
       "dimensionalSpecifications": "المواصفات الأبعادية",
+      "dimensionalSpecs": "المواصفات البعدية",
       "pressureSpecifications": "مواصفات الضغط (بار)",
+      "pressureSpecs": "مواصفات الضغط (بار)",
+      "capacitySpecs": "مواصفات السعة",
       "materialCoating": "المادة والطلاء",
       "connectedTerminals": "المحطات الطرفية المتصلة"
     },
@@ -288,7 +322,12 @@
   "pipelineSystem": {
     "title": "أنظمة الأنابيب",
     "subtitle": "إدارة شبكات أنظمة الأنابيب المتكاملة",
-    "searchPlaceholder": "البحث عن أنظمة الأنابيب..."
+    "searchPlaceholder": "البحث عن أنظمة الأنابيب...",
+    "tabs": {
+      "generalInformation": "المعلومات العامة",
+      "pipelines": "خطوط الأنابيب",
+      "pipelinesInSystem": "خطوط الأنابيب في النظام"
+    }
   },
   "processingPlant": {
     "title": "مصانع المعالجة",
@@ -297,6 +336,9 @@
     "fields": {
       "processingPlantType": "نوع المصنع",
       "processingPlantTypeHelper": "اختر نوع المصنع"
+    },
+    "tabs": {
+      "productionFieldsSupplied": "حقول الإنتاج التي تغذيها هذه المحطة"
     },
     "validation": {
       "processingPlantTypeRequired": "نوع المصنع مطلوب"
@@ -308,7 +350,10 @@
     "searchPlaceholder": "البحث عن حقول الإنتاج...",
     "fields": {
       "productionFieldType": "نوع الحقل",
+      "type": "نوع الحقل",
       "productionFieldTypeHelper": "اختر نوع الحقل",
+      "processingPlant": "محطة المعالجة",
+      "processingPlantHelper": "حدد محطة المعالجة المرتبطة (اختياري)",
       "discoveryDate": "تاريخ الاكتشاف",
       "discoveryDateHelper": "عندما تم اكتشاف الحقل (سنة-شهر-يوم)",
       "productionStartDate": "تاريخ بداية الإنتاج",
@@ -329,7 +374,11 @@
     "root": "الجذر",
     "selectType": "اختر النوع",
     "fields": {
-      "structureType": "نوع الهيكل"
+      "structureType": "نوع الهيكل",
+      "parentStructure": "الهيكل الأصلي"
+    },
+    "sections": {
+      "organizationalHierarchy": "التسلسل الهرمي التنظيمي"
     },
     "validation": {
       "typeRequired": "نوع الهيكل مطلوب"
