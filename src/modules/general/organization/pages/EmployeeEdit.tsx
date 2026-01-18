@@ -9,6 +9,7 @@
  * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
  * @updated 01-07-2026 - Fixed service imports and field mappings
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-18-2026 - Fixed translation key paths to match established pattern
  */
 
 import { useMemo, useState, useEffect } from 'react';
@@ -157,8 +158,8 @@ const EmployeeEdit = () => {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.lastNameLt?.trim()) newErrors.lastNameLt = t('common.validation.required', { field: t('employee.fields.lastNameLt') });
-    if (!formData.firstNameLt?.trim()) newErrors.firstNameLt = t('common.validation.required', { field: t('employee.fields.firstNameLt') });
+    if (!formData.lastNameLt?.trim()) newErrors.lastNameLt = t('common.validation.required', { field: t('employee.lastNameLt') });
+    if (!formData.firstNameLt?.trim()) newErrors.firstNameLt = t('common.validation.required', { field: t('employee.firstNameLt') });
 
     setFieldErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -237,7 +238,7 @@ const EmployeeEdit = () => {
 
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
-              {t('common.messages.saveSuccess')}
+              {isEditMode ? t('common.messages.updateSuccess') : t('common.messages.createSuccess')}
             </Alert>
           )}
 
@@ -252,7 +253,7 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.fields.lastNameAr')}
+                  label={t('employee.lastNameAr')}
                   value={formData.lastNameAr || ''}
                   onChange={(e) => handleChange('lastNameAr', e.target.value)}
                   inputProps={{ dir: 'rtl' }}
@@ -261,7 +262,7 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.fields.firstNameAr')}
+                  label={t('employee.firstNameAr')}
                   value={formData.firstNameAr || ''}
                   onChange={(e) => handleChange('firstNameAr', e.target.value)}
                   inputProps={{ dir: 'rtl' }}
@@ -272,7 +273,7 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   required
-                  label={t('employee.fields.lastNameLt')}
+                  label={t('employee.lastNameLt')}
                   value={formData.lastNameLt}
                   onChange={(e) => handleChange('lastNameLt', e.target.value)}
                   error={Boolean(fieldErrors.lastNameLt)}
@@ -283,7 +284,7 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   required
-                  label={t('employee.fields.firstNameLt')}
+                  label={t('employee.firstNameLt')}
                   value={formData.firstNameLt}
                   onChange={(e) => handleChange('firstNameLt', e.target.value)}
                   error={Boolean(fieldErrors.firstNameLt)}
@@ -295,7 +296,7 @@ const EmployeeEdit = () => {
                 <TextField
                   fullWidth
                   type="date"
-                  label={t('employee.fields.birthDate')}
+                  label={t('employee.birthDate')}
                   value={formatDateForInput(formData.birthDate)}
                   onChange={(e) => handleChange('birthDate', e.target.value)}
                   InputLabelProps={{ shrink: true }}
@@ -304,7 +305,7 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.fields.birthPlace')}
+                  label={t('employee.birthPlace')}
                   value={formData.birthPlaceLt || ''}
                   onChange={(e) => handleChange('birthPlaceLt', e.target.value)}
                 />
@@ -334,7 +335,7 @@ const EmployeeEdit = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.fields.registrationNumber')}
+                  label={t('employee.registrationNumber')}
                   value={formData.registrationNumber || ''}
                   onChange={(e) => handleChange('registrationNumber', e.target.value)}
                 />
@@ -343,7 +344,7 @@ const EmployeeEdit = () => {
               {/* Structure -> Job (dependent) */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
-                  <InputLabel>{t('employee.fields.structure')}</InputLabel>
+                  <InputLabel>{t('common.fields.structure')}</InputLabel>
                   <Select
                     value={selectedStructureId || ''}
                     onChange={(e) => {
@@ -352,7 +353,7 @@ const EmployeeEdit = () => {
                       // reset job when structure changes
                       setFormData((prev) => ({ ...prev, jobId: undefined }));
                     }}
-                    label={t('employee.fields.structure')}
+                    label={t('common.fields.structure')}
                   >
                     <MenuItem value="">
                       <em>{t('common.actions.selectNone')}</em>
@@ -368,11 +369,11 @@ const EmployeeEdit = () => {
 
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth disabled={!selectedStructureId}>
-                  <InputLabel>{t('employee.fields.job')}</InputLabel>
+                  <InputLabel>{t('employee.job')}</InputLabel>
                   <Select
                     value={formData.jobId || ''}
                     onChange={(e) => handleChange('jobId', e.target.value || undefined)}
-                    label={t('employee.fields.job')}
+                    label={t('employee.job')}
                   >
                     <MenuItem value="">
                       <em>{t('common.actions.selectNone')}</em>
