@@ -30,6 +30,7 @@
       "descriptionHelper": "Additional details and notes",
       "operationalStatus": "Operational Status",
       "operationalStatusHelper": "Current operational state",
+      "product": "Product",
       "vendor": "Vendor",
       "vendorHelper": "Equipment vendor or supplier",
       "structure": "Structure",
@@ -74,12 +75,14 @@
       "importantDates": "Important Dates",
       "designations": "Multilingual Designations",
       "capacitySpecifications": "Capacity Specifications",
-      "operationalDetails": "Operational Details"
+      "operationalDetails": "Operational Details",
+      "classification": "Classification"
     },
     "validation": {
       "required": "{{field}} is required",
       "minLength": "{{field}} must be at least {{min}} characters",
       "maxLength": "{{field}} must not exceed {{max}} characters",
+      "lengthBetween": "{{field}} must be between {{min}} and {{max}} characters",
       "minValue": "{{field}} must be at least {{min}}",
       "maxValue": "{{field}} must not exceed {{max}}",
       "positive": "{{field}} must be greater than 0",
@@ -102,6 +105,10 @@
       "loadingDataFailed": "Failed to load data",
       "loadingFailed": "Failed to load",
       "savingFailed": "Failed to save"
+    },
+    "messages": {
+      "createSuccess": "Created successfully",
+      "updateSuccess": "Updated successfully"
     }
   },
   "list": {
@@ -305,7 +312,12 @@
   "pipelineSystem": {
     "title": "Pipeline Systems",
     "subtitle": "Manage integrated pipeline system networks",
-    "searchPlaceholder": "Search pipeline systems..."
+    "searchPlaceholder": "Search pipeline systems...",
+    "tabs": {
+      "generalInformation": "General Information",
+      "pipelines": "Pipelines",
+      "pipelinesInSystem": "Pipelines in System"
+    }
   },
   "processingPlant": {
     "title": "Processing Plants",
