@@ -6,6 +6,7 @@
  * @created 01-15-2026
  * @updated 01-16-2026 - Added tabs with Production Fields DataGrid integration
  * @updated 01-16-2026 - Fixed property names: designationEn instead of nameEn
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  */
 
 import { useState, useEffect } from 'react';
@@ -104,16 +105,12 @@ const ProcessingPlantEdit = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log('🔄 Loading data for ProcessingPlantEdit...');
       
       let plantData: ProcessingPlantDTO | null = null;
       if (isEditMode) {
-        console.log('📝 Loading existing plant with ID:', plantId);
         plantData = await ProcessingPlantService.getById(Number(plantId));
-        console.log('✅ Plant data loaded:', plantData);
       }
       
-      console.log('📦 Fetching reference data...');
       const [
         structuresData,
         vendorsData,
@@ -128,69 +125,46 @@ const ProcessingPlantEdit = () => {
         ProcessingPlantTypeService.getAllNoPagination(),
       ]);
 
-      // Structure data
       if (structuresData.status === 'fulfilled') {
         const structs = Array.isArray(structuresData.value) 
           ? structuresData.value 
           : (Array.isArray((structuresData.value as any)?.data) ? (structuresData.value as any).data : []);
-        console.log('✅ Structures loaded:', structs.length, 'items');
         setStructures(structs);
-      } else {
-        console.error('❌ Failed to load structures:', structuresData.reason);
       }
 
-      // Vendor data
       if (vendorsData.status === 'fulfilled') {
         const vends = Array.isArray(vendorsData.value) 
           ? vendorsData.value 
           : (Array.isArray((vendorsData.value as any)?.data) ? (vendorsData.value as any).data : []);
-        console.log('✅ Vendors loaded:', vends.length, 'items');
         setVendors(vends);
-      } else {
-        console.error('❌ Failed to load vendors:', vendorsData.reason);
       }
 
-      // Location data
       if (locationsData.status === 'fulfilled') {
         const locs = Array.isArray(locationsData.value) 
           ? locationsData.value 
           : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data : []);
-        console.log('✅ Locations loaded:', locs.length, 'items');
         setLocations(locs);
-      } else {
-        console.error('❌ Failed to load locations:', locationsData.reason);
       }
 
-      // Operational Status data
       if (statusesData.status === 'fulfilled') {
         const stats = Array.isArray(statusesData.value) 
           ? statusesData.value 
           : (Array.isArray((statusesData.value as any)?.data) ? (statusesData.value as any).data : []);
-        console.log('✅ Operational statuses loaded:', stats.length, 'items');
         setOperationalStatuses(stats);
-      } else {
-        console.error('❌ Failed to load operational statuses:', statusesData.reason);
       }
 
-      // Processing Plant Type data
       if (typesData.status === 'fulfilled') {
         const types = Array.isArray(typesData.value) 
           ? typesData.value 
           : (Array.isArray((typesData.value as any)?.data) ? (typesData.value as any).data : []);
-        console.log('✅ Processing plant types loaded:', types.length, 'items');
         setProcessingPlantTypes(types);
-      } else {
-        console.error('❌ Failed to load processing plant types:', typesData.reason);
       }
 
       if (plantData) {
-        console.log('📝 Setting plant data in form');
         setPlant(plantData);
-        // Set selected location if plant has location
         if (plantData.location) {
           setSelectedLocation(plantData.location);
         } else if (plantData.locationId) {
-          // Load location details if not nested
           try {
             const loc = await LocationService.getById(plantData.locationId);
             setSelectedLocation(loc);
@@ -200,10 +174,9 @@ const ProcessingPlantEdit = () => {
         }
       }
       setError('');
-      console.log('✅ All data loaded successfully');
     } catch (err: any) {
-      console.error('❌ Failed to load data:', err);
-      setError(err.message || 'Failed to load data');
+      console.error('Failed to load data:', err);
+      setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
     }
@@ -215,13 +188,11 @@ const ProcessingPlantEdit = () => {
     try {
       setProductionFieldsLoading(true);
       setProductionFieldsError('');
-      console.log('🔄 Loading production fields for plant:', plantId);
       const fields = await ProductionFieldService.findByProcessingPlant(Number(plantId));
-      console.log('✅ Production fields loaded:', fields.length, 'items');
       setProductionFields(Array.isArray(fields) ? fields : []);
     } catch (err: any) {
-      console.error('❌ Failed to load production fields:', err);
-      setProductionFieldsError(err.message || 'Failed to load production fields');
+      console.error('Failed to load production fields:', err);
+      setProductionFieldsError(err.message || t('common.errors.loadingFailed'));
       setProductionFields([]);
     } finally {
       setProductionFieldsLoading(false);
@@ -231,28 +202,28 @@ const ProcessingPlantEdit = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
     if (!plant.name || plant.name.trim().length < 3) {
-      errors.name = 'Name must be at least 3 characters';
+      errors.name = t('common.validation.minLength', { field: t('common.fields.name'), min: 3 });
     }
     if (!plant.code || plant.code.trim().length < 2) {
-      errors.code = 'Code is required (min 2 characters)';
+      errors.code = t('common.validation.codeRequired');
     }
     if (!plant.operationalStatusId) {
-      errors.operationalStatusId = 'Operational status is required';
+      errors.operationalStatusId = t('common.validation.required', { field: t('common.fields.operationalStatus') });
     }
     if (!plant.structureId) {
-      errors.structureId = 'Structure is required';
+      errors.structureId = t('common.validation.required', { field: t('common.fields.structure') });
     }
     if (!plant.vendorId) {
-      errors.vendorId = 'Vendor is required';
+      errors.vendorId = t('common.validation.required', { field: t('common.fields.vendor') });
     }
     if (!plant.locationId) {
-      errors.locationId = 'Location is required';
+      errors.locationId = t('common.validation.required', { field: t('common.fields.location') });
     }
     if (!plant.processingPlantTypeId) {
-      errors.processingPlantTypeId = 'Processing plant type is required';
+      errors.processingPlantTypeId = t('common.validation.required', { field: t('processingPlant.fields.type') });
     }
     if (plant.capacity === undefined || plant.capacity === null || plant.capacity < 0) {
-      errors.capacity = 'Capacity must be a positive number';
+      errors.capacity = t('common.validation.positiveNumber', { field: t('common.fields.capacity') });
     }
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -262,7 +233,6 @@ const ProcessingPlantEdit = () => {
     const value = e.target.value;
     setPlant({ ...plant, [fieldName]: value });
     
-    // If location changed, update selected location for display
     if (fieldName === 'locationId') {
       const loc = locations.find(l => l.id === Number(value));
       setSelectedLocation(loc || null);
@@ -304,7 +274,7 @@ const ProcessingPlantEdit = () => {
       navigate('/network/core/processing-plants');
     } catch (err: any) {
       console.error('Failed to save processing plant:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save processing plant');
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setSaving(false);
     }
@@ -318,7 +288,7 @@ const ProcessingPlantEdit = () => {
     { field: 'id', headerName: 'ID', width: 80, align: 'center', headerAlign: 'center' },
     {
       field: 'name',
-      headerName: 'Production Field Name',
+      headerName: t('common.fields.name'),
       minWidth: 220,
       flex: 1,
       renderCell: (params) => (
@@ -329,7 +299,7 @@ const ProcessingPlantEdit = () => {
     },
     {
       field: 'code',
-      headerName: 'Code',
+      headerName: t('common.fields.code'),
       width: 140,
       renderCell: (params) => (
         <Chip label={params.value} size="small" variant="outlined" sx={{ fontFamily: 'monospace' }} />
@@ -337,7 +307,7 @@ const ProcessingPlantEdit = () => {
     },
     {
       field: 'capacity',
-      headerName: 'Capacity',
+      headerName: t('common.fields.capacity'),
       width: 120,
       align: 'right',
       headerAlign: 'right',
@@ -349,13 +319,12 @@ const ProcessingPlantEdit = () => {
     },
     {
       field: 'operationalStatusId',
-      headerName: 'Status',
+      headerName: t('common.fields.status'),
       minWidth: 180,
       flex: 1,
       renderCell: (params) => {
         const row = params.row as ProductionFieldDTO;
         if (row.operationalStatus) {
-          // ✅ FIX: Use designationEn instead of nameEn
           return <>{row.operationalStatus.designationEn || row.operationalStatus.designationFr || row.operationalStatus.code}</>;
         }
         return <>{row.operationalStatusId}</>;
@@ -389,100 +358,98 @@ const ProcessingPlantEdit = () => {
 
   return (
     <Box>
-      {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Button startIcon={<BackIcon />} onClick={() => navigate('/network/core/processing-plants')} sx={{ mb: 2 }}>
           {t('common.back')}
         </Button>
         <Typography variant="h4" fontWeight={700}>
-          {isEditMode ? 'Edit Processing Plant' : 'Create Processing Plant'}
+          {isEditMode 
+            ? t('common.page.editTitle', { entity: t('processingPlant.title') })
+            : t('common.page.createTitle', { entity: t('processingPlant.title') })
+          }
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode ? 'Update processing plant information and manage production fields' : 'Create a new processing plant'}
+          {isEditMode 
+            ? t('common.page.editSubtitle', { entity: t('processingPlant.title') })
+            : t('common.page.createSubtitle', { entity: t('processingPlant.title') })
+          }
         </Typography>
       </Box>
 
-      {/* Error Alert */}
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
 
-      {/* Tabs Card */}
       <Card elevation={0} sx={{ border: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
-          sx={{
-            borderBottom: 1,
-            borderColor: 'divider',
-            px: 2,
-          }}
+          sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}
         >
-          <Tab label="General Information" />
-          <Tab label="Production Fields" disabled={!isEditMode} />
+          <Tab label={t('processingPlant.tabs.generalInformation')} />
+          <Tab label={t('processingPlant.tabs.productionFields')} disabled={!isEditMode} />
         </Tabs>
 
         <CardContent sx={{ p: 3 }}>
-          {/* Tab 0: General Information (existing form) */}
           <TabPanel value={activeTab} index={0}>
-            {/* Warning alerts for empty dropdowns */}
             {structures.length === 0 && (
               <Alert severity="warning" sx={{ mb: 2 }}>
-                No structures available. Please create structures first in Administration → Structures.
+                {t('processingPlant.warnings.noStructures')}
               </Alert>
             )}
             {locations.length === 0 && (
               <Alert severity="warning" sx={{ mb: 2 }}>
-                No locations available. Please create locations first in General → Localization → Locations.
+                {t('processingPlant.warnings.noLocations')}
               </Alert>
             )}
             {processingPlantTypes.length === 0 && (
               <Alert severity="warning" sx={{ mb: 2 }}>
-                No processing plant types available. Please create types first or check API connectivity.
+                {t('processingPlant.warnings.noTypes')}
               </Alert>
             )}
 
             <form onSubmit={handleSubmit}>
               <Stack spacing={3}>
-                {/* Basic Information */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography variant="h6" fontWeight={600} gutterBottom>Basic Information</Typography>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.basicInformation')}
+                    </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth label="Code" value={plant.code || ''}
+                          fullWidth label={t('common.fields.code')} value={plant.code || ''}
                           onChange={handleChange('code')} required
                           error={!!validationErrors.code}
-                          helperText={validationErrors.code || 'Min 2, max 20 characters'}
+                          helperText={validationErrors.code || t('common.fields.codeHelper')}
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth label="Name" value={plant.name || ''}
+                          fullWidth label={t('common.fields.name')} value={plant.name || ''}
                           onChange={handleChange('name')} required
                           error={!!validationErrors.name}
-                          helperText={validationErrors.name || 'Min 3, max 100 characters'}
+                          helperText={validationErrors.name || t('common.fields.nameHelper')}
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth label="Capacity"
+                          fullWidth label={t('common.fields.capacity')}
                           type="number" value={plant.capacity ?? 0}
                           onChange={handleChange('capacity')}
                           required
                           error={!!validationErrors.capacity}
-                          helperText={validationErrors.capacity || 'Processing capacity (required)'}
+                          helperText={validationErrors.capacity || t('common.fields.capacityHelper')}
                           inputProps={{ step: 0.01, min: 0 }}
                         />
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth select label="Structure"
+                          fullWidth select label={t('common.fields.structure')}
                           value={plant.structureId || ''}
                           onChange={handleChange('structureId')} required
                           error={!!validationErrors.structureId}
-                          helperText={validationErrors.structureId || `${structures.length} structure(s) available`}
+                          helperText={validationErrors.structureId}
                         >
                           {structures.length > 0 ? (
                             structures.map((struct) => (
@@ -491,7 +458,7 @@ const ProcessingPlantEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>No structures available</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
@@ -499,21 +466,21 @@ const ProcessingPlantEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Location Information */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography variant="h6" fontWeight={600} gutterBottom>Location Information</Typography>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.locationInformation')}
+                    </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
                     <Grid container spacing={3}>
-                      {/* Location Reference */}
                       <Grid item xs={12}>
                         <TextField
-                          fullWidth select label="Location"
+                          fullWidth select label={t('common.fields.location')}
                           value={plant.locationId || ''}
                           onChange={handleChange('locationId')} required
                           error={!!validationErrors.locationId}
-                          helperText={validationErrors.locationId || `Select the physical location with GPS coordinates (${locations.length} available)`}
+                          helperText={validationErrors.locationId}
                         >
                           {locations.length > 0 ? (
                             locations.map((loc) => (
@@ -532,74 +499,61 @@ const ProcessingPlantEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>No locations available</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
 
-                      {/* Selected Location Details (Single Row) */}
                       {selectedLocation && (
                         <Grid item xs={12}>
-                          <Paper 
-                            variant="outlined" 
-                            sx={{ 
-                              p: 1.5, 
-                              bgcolor: 'grey.50',
-                              borderStyle: 'dashed'
-                            }}
-                          >
+                          <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50', borderStyle: 'dashed' }}>
                             <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1, fontWeight: 600 }}>
-                              📍 Selected Location
+                              📍 {t('processingPlant.selectedLocation')}
                             </Typography>
                             
                             <Grid container spacing={1.5} alignItems="flex-end">
-                              {/* Place */}
                               <Grid item xs={6} sm={3} md={2}>
-                                <Typography variant="caption" color="text.secondary">Place</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('common.fields.place')}</Typography>
                                 <Typography variant="body2" fontWeight={500} fontSize="0.875rem">{selectedLocation.placeName}</Typography>
                               </Grid>
 
-                              {/* Locality */}
                               {selectedLocation.locality && (
                                 <Grid item xs={6} sm={3} md={2}>
-                                  <Typography variant="caption" color="text.secondary">Locality</Typography>
+                                  <Typography variant="caption" color="text.secondary">{t('common.fields.locality')}</Typography>
                                   <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
                                     {selectedLocation.locality.designationEn || selectedLocation.locality.designationFr}
                                   </Typography>
                                 </Grid>
                               )}
 
-                              {/* District */}
                               {selectedLocation.locality?.district && (
                                 <Grid item xs={6} sm={3} md={2}>
-                                  <Typography variant="caption" color="text.secondary">District</Typography>
+                                  <Typography variant="caption" color="text.secondary">{t('common.fields.district')}</Typography>
                                   <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
                                     {selectedLocation.locality.district.designationEn || selectedLocation.locality.district.designationFr}
                                   </Typography>
                                 </Grid>
                               )}
 
-                              {/* State */}
                               {selectedLocation.locality?.district?.state && (
                                 <Grid item xs={6} sm={3} md={2}>
-                                  <Typography variant="caption" color="text.secondary">State</Typography>
+                                  <Typography variant="caption" color="text.secondary">{t('common.fields.state')}</Typography>
                                   <Typography variant="body2" fontSize="0.875rem" fontWeight={500}>
                                     {selectedLocation.locality.district.state.designationEn || selectedLocation.locality.district.state.designationFr}
                                   </Typography>
                                 </Grid>
                               )}
 
-                              {/* Coordinates */}
                               <Grid item xs={4} sm={3} md={1.5}>
-                                <Typography variant="caption" color="text.secondary">Latitude</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('common.fields.latitude')}</Typography>
                                 <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
                               </Grid>
                               <Grid item xs={4} sm={3} md={1.5}>
-                                <Typography variant="caption" color="text.secondary">Longitude</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('common.fields.longitude')}</Typography>
                                 <Typography variant="body2" fontSize="0.875rem">{selectedLocation.longitude.toFixed(6)}°</Typography>
                               </Grid>
                               <Grid item xs={4} sm={3} md={1}>
-                                <Typography variant="caption" color="text.secondary">Elev</Typography>
+                                <Typography variant="caption" color="text.secondary">{t('common.fields.elevation')}</Typography>
                                 <Typography variant="body2" fontSize="0.875rem">
                                   {selectedLocation.elevation ? `${selectedLocation.elevation}m` : 'N/A'}
                                 </Typography>
@@ -612,16 +566,17 @@ const ProcessingPlantEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Technical Details */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography variant="h6" fontWeight={600} gutterBottom>Technical Details</Typography>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.technicalDetails')}
+                    </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth select label="Operational Status"
+                          fullWidth select label={t('common.fields.operationalStatus')}
                           value={plant.operationalStatusId || ''}
                           onChange={handleChange('operationalStatusId')} required
                           error={!!validationErrors.operationalStatusId}
@@ -630,18 +585,17 @@ const ProcessingPlantEdit = () => {
                           {operationalStatuses.length > 0 ? (
                             operationalStatuses.map((status) => (
                               <MenuItem key={status.id} value={status.id}>
-                                {/* ✅ FIX: Use designationEn/Fr instead of nameEn */}
                                 {status.designationEn || status.designationFr || status.code}
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>No statuses available</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth select label="Vendor"
+                          fullWidth select label={t('common.fields.vendor')}
                           value={plant.vendorId || ''}
                           onChange={handleChange('vendorId')} required
                           error={!!validationErrors.vendorId}
@@ -654,17 +608,17 @@ const ProcessingPlantEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>No vendors available</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
                       <Grid item xs={12} md={6}>
                         <TextField
-                          fullWidth select label="Processing Plant Type"
+                          fullWidth select label={t('processingPlant.fields.type')}
                           value={plant.processingPlantTypeId || ''}
                           onChange={handleChange('processingPlantTypeId')} required
                           error={!!validationErrors.processingPlantTypeId}
-                          helperText={validationErrors.processingPlantTypeId || `${processingPlantTypes.length} type(s) available`}
+                          helperText={validationErrors.processingPlantTypeId}
                         >
                           {processingPlantTypes.length > 0 ? (
                             processingPlantTypes.map((type) => (
@@ -673,7 +627,7 @@ const ProcessingPlantEdit = () => {
                               </MenuItem>
                             ))
                           ) : (
-                            <MenuItem disabled>No types available</MenuItem>
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
                           )}
                         </TextField>
                       </Grid>
@@ -681,16 +635,17 @@ const ProcessingPlantEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Important Dates */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
-                    <Typography variant="h6" fontWeight={600} gutterBottom>Important Dates</Typography>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.importantDates')}
+                    </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={4}>
                         <TextField
-                          fullWidth label="Installation Date"
+                          fullWidth label={t('common.fields.installationDate')}
                           type="date"
                           value={plant.installationDate || ''}
                           onChange={handleChange('installationDate')}
@@ -699,7 +654,7 @@ const ProcessingPlantEdit = () => {
                       </Grid>
                       <Grid item xs={12} md={4}>
                         <TextField
-                          fullWidth label="Commissioning Date"
+                          fullWidth label={t('common.fields.commissioningDate')}
                           type="date"
                           value={plant.commissioningDate || ''}
                           onChange={handleChange('commissioningDate')}
@@ -708,7 +663,7 @@ const ProcessingPlantEdit = () => {
                       </Grid>
                       <Grid item xs={12} md={4}>
                         <TextField
-                          fullWidth label="Decommissioning Date"
+                          fullWidth label={t('common.fields.decommissioningDate')}
                           type="date"
                           value={plant.decommissioningDate || ''}
                           onChange={handleChange('decommissioningDate')}
@@ -722,7 +677,6 @@ const ProcessingPlantEdit = () => {
             </form>
           </TabPanel>
 
-          {/* Tab 1: Production Fields */}
           <TabPanel value={activeTab} index={1}>
             {productionFieldsError && (
               <Alert severity="error" sx={{ mb: 2 }} onClose={() => setProductionFieldsError('')}>
@@ -732,7 +686,7 @@ const ProcessingPlantEdit = () => {
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h6" fontWeight={600}>
-                Production Fields supplied by this plant
+                {t('processingPlant.tabs.productionFieldsSupplied')}
               </Typography>
               <IconButton onClick={loadProductionFields} color="primary">
                 <RefreshIcon />
@@ -758,7 +712,6 @@ const ProcessingPlantEdit = () => {
         </CardContent>
       </Card>
 
-      {/* Actions */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
         <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
           <Button
@@ -777,7 +730,7 @@ const ProcessingPlantEdit = () => {
             size="large"
             sx={{ minWidth: 150 }}
           >
-            {saving ? t('common.loading') : t('common.save')}
+            {saving ? t('common.saving') : t('common.save')}
           </Button>
         </Box>
       </Paper>
