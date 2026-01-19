@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - Removed ID column
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
  * @updated 01-17-2026 - Fixed subtitle to use translation key
+ * @updated 01-19-2026 - Aligned with GroupDTO changes: users -> roles
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -141,8 +142,8 @@ const GroupList = () => {
       ),
     },
     {
-      field: 'users',
-      headerName: t('list.users', 'Users'),
+      field: 'roles',
+      headerName: t('list.roles', 'Roles'),
       minWidth: 180,
       flex: 1,
       sortable: false,
@@ -150,7 +151,7 @@ const GroupList = () => {
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', py: 0.5 }}>
           {params.value && Array.isArray(params.value) ? (
             <Chip 
-              label={`${params.value.length} ${t('list.users', 'users')}`} 
+              label={`${params.value.length} ${t('list.roles', 'roles')}`} 
               size="small" 
               variant="outlined" 
               color="primary" 
@@ -158,7 +159,7 @@ const GroupList = () => {
             />
           ) : (
             <Typography variant="caption" color="text.disabled">
-              {t('list.noUsers', 'No users')}
+              {t('list.noRoles', 'No roles')}
             </Typography>
           )}
         </Box>
@@ -229,10 +230,10 @@ const GroupList = () => {
     { header: t('list.name', 'Name'), key: 'name', width: 25 },
     { header: t('list.description', 'Description'), key: 'description', width: 50 },
     { 
-      header: t('list.users', 'Users'), 
-      key: 'users',
+      header: t('list.roles', 'Roles'), 
+      key: 'roles',
       width: 25,
-      transform: (value) => value && Array.isArray(value) ? `${value.length} users` : '0'
+      transform: (value) => value && Array.isArray(value) ? `${value.length} roles` : '0'
     }
   ];
 
