@@ -3,9 +3,10 @@
  * Comprehensive form for creating and editing groups
  * 
  * @author CHOUABBIA Amine
- * @created 12-23-2025
- * @updated 01-08-2026 - Fixed type inference for users
+ * @updated 01-19-2026 - Fixed Chip key prop warning in Autocomplete
  * @updated 01-18-2026 - Optimized to use common translation keys
+ * @updated 01-08-2026 - Fixed type inference for users
+ * @created 12-23-2025
  */
 
 import { useState, useEffect } from 'react';
@@ -259,13 +260,17 @@ const GroupEdit = () => {
                       />
                     )}
                     renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip
-                          label={option.username}
-                          {...getTagProps({ index })}
-                          size="small"
-                        />
-                      ))
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+                        return (
+                          <Chip
+                            key={key}
+                            label={option.username}
+                            {...tagProps}
+                            size="small"
+                          />
+                        );
+                      })
                     }
                   />
                 </Grid>
