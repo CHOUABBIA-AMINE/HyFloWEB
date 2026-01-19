@@ -59,6 +59,8 @@
       "locality": "المنطقة",
       "district": "الدائرة",
       "state": "الولاية",
+      "sequence": "التسلسل",
+      "sequenceHelper": "الترتيب الرقمي أو الأولوية",
       "designationFr": "التسمية (فرنسي)",
       "designationFrHelper": "مطلوب - التسمية بالفرنسية",
       "designationEn": "التسمية (إنجليزي)",
@@ -122,6 +124,8 @@
     "type": "النوع",
     "status": "الحالة",
     "location": "الموقع",
+    "locality": "المنطقة",
+    "sequence": "التسلسل",
     "actions": "الإجراءات",
     "country": "البلد",
     "vendor": "المورد",
@@ -191,6 +195,11 @@
     "deleted": "تم الحذف",
     "success": "نجح",
     "error": "خطأ"
+  },
+  "location": {
+    "title": "المواقع",
+    "subtitle": "إدارة المواقع والأماكن الجغرافية",
+    "searchPlaceholder": "البحث بالرمز أو التسمية أو المنطقة..."
   },
   "product": {
     "title": "المنتجات",
