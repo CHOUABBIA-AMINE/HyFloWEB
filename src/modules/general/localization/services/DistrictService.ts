@@ -11,6 +11,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-15-2026
+ * @updated 01-19-2026 - Changed endpoint from /by-state/ to /state/
  * @updated 01-16-2026 - Fixed hierarchy (District belongs to State)
  */
 
@@ -96,9 +97,10 @@ export class DistrictService {
 
   /**
    * Find districts by state ID
+   * Backend endpoint: /general/localization/district/state/{stateId}
    */
   static async findByState(stateId: number): Promise<DistrictDTO[]> {
-    const response = await axiosInstance.get<DistrictDTO[]>(`${BASE_URL}/by-state/${stateId}`);
+    const response = await axiosInstance.get<DistrictDTO[]>(`${BASE_URL}/state/${stateId}`);
     return response.data;
   }
 }
