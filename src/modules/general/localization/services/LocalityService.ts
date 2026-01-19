@@ -100,7 +100,7 @@ export class LocalityService {
    * Find localities by district ID
    */
   static async findByDistrict(districtId: number): Promise<LocalityDTO[]> {
-    const response = await axiosInstance.get<LocalityDTO[]>(`${BASE_URL}/by-district/${districtId}`);
+    const response = await axiosInstance.get<LocalityDTO[]>(`${BASE_URL}/district/${districtId}`);
     return response.data;
   }
 }
