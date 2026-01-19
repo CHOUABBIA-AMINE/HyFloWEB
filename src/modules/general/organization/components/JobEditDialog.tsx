@@ -2,9 +2,10 @@
  * Job Edit Dialog Component
  * 
  * @author CHOUABBIA Amine
- * @created 01-06-2026
- * @updated 01-08-2026 - Added structureId prop for pre-setting structure
+ * @updated 01-19-2026 - Removed hardcoded fallback text from translation keys
  * @updated 01-08-2026 - Added comprehensive multilanguage support
+ * @updated 01-08-2026 - Added structureId prop for pre-setting structure
+ * @created 01-06-2026
  */
 
 import { useState, useEffect } from 'react';
@@ -114,15 +115,15 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
     const errors: Record<string, string> = {};
 
     if (!formData.code || formData.code.trim().length === 0) {
-      errors.code = t('job.validation.codeRequired', 'Code is required');
+      errors.code = t('common.validation.codeRequired');
     }
 
     if (!formData.designationFr || formData.designationFr.trim().length === 0) {
-      errors.designationFr = t('job.validation.designationFrRequired', 'French designation is required');
+      errors.designationFr = t('common.validation.designationFrRequired');
     }
 
     if (!formData.structureId) {
-      errors.structureId = t('job.validation.structureRequired', 'Structure is required');
+      errors.structureId = t('common.validation.required', { field: t('job.fields.structure') });
     }
 
     setValidationErrors(errors);
@@ -133,7 +134,7 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
     e.preventDefault();
     
     if (!validateForm()) {
-      setError(t('job.validation.formInvalid', 'Please fill in all required fields'));
+      setError(t('common.errors.validationFailed'));
       return;
     }
 
@@ -161,7 +162,7 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
       onClose();
     } catch (err: any) {
       console.error('Failed to save job:', err);
-      setError(err.response?.data?.message || err.message || t('job.saveError', 'Failed to save job'));
+      setError(err.response?.data?.message || err.message || t('common.errors.savingFailed'));
     } finally {
       setLoading(false);
     }
@@ -174,13 +175,13 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
           <Box>
             <Typography variant="h6" fontWeight={600}>
               {job 
-                ? t('job.dialog.editTitle', 'Edit Job')
-                : t('job.dialog.createTitle', 'Create Job')}
+                ? t('job.dialog.editTitle')
+                : t('job.dialog.createTitle')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               {job 
-                ? t('job.dialog.editSubtitle', 'Update job position details')
-                : t('job.dialog.createSubtitle', 'Add a new job position')}
+                ? t('job.dialog.editSubtitle')
+                : t('job.dialog.createSubtitle')}
             </Typography>
           </Box>
         </DialogTitle>
@@ -194,57 +195,57 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
 
           <TextField
             fullWidth
-            label={t('job.fields.code', 'Code')}
+            label={t('common.fields.code')}
             value={formData.code || ''}
             onChange={handleChange('code')}
             required
             error={!!validationErrors.code}
-            helperText={validationErrors.code || t('job.fields.codeHelper', 'Unique job code')}
+            helperText={validationErrors.code || t('common.fields.codeHelper')}
             sx={{ mb: 2, mt: 1 }}
           />
 
           <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1, mt: 2 }}>
-            {t('job.sections.designations', 'Job Designations')}
+            {t('common.sections.designations')}
           </Typography>
 
           <TextField
             fullWidth
-            label={t('job.fields.designationFr', 'Designation (French)')}
+            label={t('common.fields.designationFr')}
             value={formData.designationFr || ''}
             onChange={handleChange('designationFr')}
             required
             error={!!validationErrors.designationFr}
-            helperText={validationErrors.designationFr || t('job.fields.designationFrHelper', 'Required')}
+            helperText={validationErrors.designationFr || t('common.fields.designationFrHelper')}
             sx={{ mb: 2 }}
           />
 
           <TextField
             fullWidth
-            label={t('job.fields.designationAr', 'Designation (Arabic)')}
+            label={t('common.fields.designationEn')}
+            value={formData.designationEn || ''}
+            onChange={handleChange('designationEn')}
+            helperText={t('common.fields.designationEnHelper')}
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            fullWidth
+            label={t('common.fields.designationAr')}
             value={formData.designationAr || ''}
             onChange={handleChange('designationAr')}
-            helperText={t('job.fields.designationArHelper', 'Optional')}
+            helperText={t('common.fields.designationArHelper')}
             inputProps={{ dir: 'rtl' }}
             sx={{ mb: 2 }}
           />
 
-          <TextField
-            fullWidth
-            label={t('job.fields.designationEn', 'Designation (English)')}
-            value={formData.designationEn || ''}
-            onChange={handleChange('designationEn')}
-            helperText={t('job.fields.designationEnHelper', 'Optional')}
-            sx={{ mb: 2 }}
-          />
-
           <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1, mt: 2 }}>
-            {t('job.sections.assignment', 'Assignment')}
+            {t('job.sections.assignment')}
           </Typography>
 
           <TextField
             fullWidth
             select
-            label={t('job.fields.structure', 'Structure')}
+            label={t('job.fields.structure')}
             value={formData.structureId || ''}
             onChange={handleChange('structureId')}
             required
@@ -253,8 +254,8 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
             helperText={
               validationErrors.structureId || 
               (structureId 
-                ? t('job.fields.structureLocked', 'Structure is set by parent')
-                : t('job.fields.structureHelper', 'Select the organizational structure'))
+                ? t('job.fields.structureLocked')
+                : t('job.fields.structureHelper'))
             }
             sx={{ mb: 2 }}
           >
@@ -272,7 +273,7 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
             disabled={loading}
             variant="outlined"
           >
-            {t('common.cancel', 'Cancel')}
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"
@@ -280,7 +281,7 @@ const JobEditDialog = ({ open, job, structureId, structures: providedStructures,
             disabled={loading}
             startIcon={loading && <CircularProgress size={20} />}
           >
-            {loading ? t('common.saving', 'Saving...') : t('common.save', 'Save')}
+            {loading ? t('common.saving') : t('common.save')}
           </Button>
         </DialogActions>
       </form>
