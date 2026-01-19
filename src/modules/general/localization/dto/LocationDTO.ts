@@ -23,7 +23,6 @@ export interface LocationDTO {
   id?: number;
 
   // Core fields
-  sequence: number; // @NotBlank (required)
   designationAr: string; //
   designationEn: string; // Fixed: lowercase 'n' to match backend
   designationFr: string; // @NotBlank, max 100 chars (renamed from 'code' in U-005)
@@ -50,13 +49,6 @@ export interface LocationDTO {
  */
 export const validateLocationDTO = (data: Partial<LocationDTO>): string[] => {
   const errors: string[] = [];
-  
-  // Sequence validation
-  if (data.sequence === undefined || data.sequence === null) {
-    errors.push("Sequence is required");
-  } else if (data.sequence < 0) {
-    errors.push("Sequence must be a non-negative number");
-  }
   
   // Place name validation (renamed from 'code')
   if (data.designationAr && data.designationAr.length > 100) {

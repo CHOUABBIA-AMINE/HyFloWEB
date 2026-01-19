@@ -151,7 +151,6 @@ export const mapToLocationDTO = (data: any): LocationDTO => {
 
   return {
     id: data.id,
-    sequence: data.sequence,
     designationAr: data.designationAr,
     designationEn: data.designationEn,
     designationFr: data.designationFr,
@@ -172,7 +171,6 @@ export const mapToLocationDTO = (data: any): LocationDTO => {
 export const mapFromLocationDTO = (data: Partial<LocationDTO>): any => {
   return {
     id: data.id,
-    sequence: data.sequence,
     designationAr: data.designationAr,
     designationEn: data.designationEn,
     designationFr: data.designationFr,

@@ -98,7 +98,6 @@ export const ERROR_MESSAGES = {
   LONGITUDE_INVALID: 'Longitude must be between -180 and 180',
   COORDINATES_INVALID: 'Coordinates are invalid',
   PLACE_NAME_INVALID: 'Place name must not exceed 10 characters',  // Added
-  SEQUENCE_REQUIRED: 'Sequence is required',  // Added
   NOT_FOUND: 'Location not found',
   ALREADY_EXISTS: 'Location already exists',
   ZONE_NAME_EXISTS: 'Zone with this name already exists',
