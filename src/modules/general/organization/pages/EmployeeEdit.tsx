@@ -4,12 +4,18 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
- * @updated 01-01-2026 - Align routes and translation keys
- * @updated 01-01-2026 - Dependent selects (Structure→Job)
- * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
- * @updated 01-07-2026 - Fixed service imports and field mappings
+ * @updated 01-19-2026 - Confirmed alignment with EmployeeDTO (Locality fields)
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-18-2026 - Fixed translation key paths to match established pattern
+ * @updated 01-07-2026 - Fixed service imports and field mappings
+ * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
+ * @updated 01-01-2026 - Dependent selects (Structure→Job)
+ * @updated 01-01-2026 - Align routes and translation keys
+ * 
+ * Note: EmployeeDTO now uses LocalityDTO instead of StateDTO for:
+ * - birthLocalityId / birthLocality (optional)
+ * - addressLocalityId / addressLocality (optional)
+ * These fields are available but not currently displayed in the form.
  */
 
 import { useMemo, useState, useEffect } from 'react';
