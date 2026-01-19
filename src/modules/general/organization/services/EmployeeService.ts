@@ -6,9 +6,11 @@
  * Provides CRUD operations and search functionality for employees.
  * Employees represent persons who work in jobs within structures.
  * 
+ * Note: For picture uploads, use FileService from system/utility module
+ * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
- * @updated 01-19-2026 - Added uploadPicture method for file uploads
+ * @updated 01-19-2026 - Removed picture upload methods (use FileService instead)
  * @updated 01-02-2026
  */
 
@@ -64,34 +66,6 @@ export class EmployeeService {
    */
   static async update(id: number, dto: EmployeeDTO): Promise<EmployeeDTO> {
     const response = await axiosInstance.put<EmployeeDTO>(`${BASE_URL}/${id}`, dto);
-    return response.data;
-  }
-
-  /**
-   * Upload picture for employee
-   * Separate endpoint for file upload
-   */
-  static async uploadPicture(id: number, file: File): Promise<EmployeeDTO> {
-    const formData = new FormData();
-    formData.append('picture', file);
-    
-    const response = await axiosInstance.post<EmployeeDTO>(
-      `${BASE_URL}/${id}/picture`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-    return response.data;
-  }
-
-  /**
-   * Delete employee picture
-   */
-  static async deletePicture(id: number): Promise<EmployeeDTO> {
-    const response = await axiosInstance.delete<EmployeeDTO>(`${BASE_URL}/${id}/picture`);
     return response.data;
   }
 
