@@ -3,9 +3,10 @@
  * Comprehensive form for creating and editing roles
  * 
  * @author CHOUABBIA Amine
- * @created 12-23-2025
- * @updated 01-08-2026 - Fixed type inference for permissions
+ * @updated 01-19-2026 - Fixed TypeScript errors: Handle optional id in DTOs
  * @updated 01-18-2026 - Optimized to use common translation keys
+ * @updated 01-06-2026 - Enhanced with professional UI and autocomplete for permissions
+ * @created 12-23-2025
  */
 
 import { useState, useEffect } from 'react';
@@ -69,11 +70,19 @@ const RoleEdit = () => {
     try {
       setLoading(true);
       
-      // Load permissions with explicit type
+      // Load permissions
       const permissionsData = await permissionService.getAll().catch(() => [] as PermissionDTO[]);
-
-      // permissionsData is already properly typed as PermissionDTO[]
-      setAvailablePermissions(permissionsData);
+      
+      // Map to PermissionOption format, filtering out items without id
+      const permissionOptions: PermissionOption[] = permissionsData
+        .filter((perm: PermissionDTO) => perm.id !== undefined)
+        .map((perm: PermissionDTO) => ({
+          id: perm.id!,
+          name: perm.name,
+          description: perm.description,
+        }));
+      
+      setAvailablePermissions(permissionOptions);
 
       // Load role if editing
       if (isEditMode) {
@@ -113,7 +122,13 @@ const RoleEdit = () => {
   };
 
   const handlePermissionsChange = (_event: any, newValue: PermissionOption[]) => {
-    setRole({ ...role, permissions: newValue });
+    // Convert PermissionOption[] to PermissionDTO[] for the DTO
+    const permissionDTOs: PermissionDTO[] = newValue.map(option => ({
+      id: option.id,
+      name: option.name,
+      description: option.description,
+    }));
+    setRole({ ...role, permissions: permissionDTOs });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,6 +174,15 @@ const RoleEdit = () => {
       </Box>
     );
   }
+
+  // Convert role.permissions to PermissionOption[] for the Autocomplete component
+  const selectedPermissions: PermissionOption[] = (role.permissions || [])
+    .filter(perm => perm.id !== undefined)
+    .map(perm => ({
+      id: perm.id!,
+      name: perm.name,
+      description: perm.description,
+    }));
 
   return (
     <Box>
@@ -245,8 +269,9 @@ const RoleEdit = () => {
                     multiple
                     options={availablePermissions}
                     getOptionLabel={(option) => option.name}
-                    value={role.permissions || []}
+                    value={selectedPermissions}
                     onChange={handlePermissionsChange}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -255,16 +280,20 @@ const RoleEdit = () => {
                       />
                     )}
                     renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip
-                          label={option.name}
-                          {...getTagProps({ index })}
-                          size="small"
-                        />
-                      ))
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+                        return (
+                          <Chip
+                            key={`permission-chip-${option.id}`}
+                            label={option.name}
+                            {...tagProps}
+                            size="small"
+                          />
+                        );
+                      })
                     }
                     renderOption={(props, option) => (
-                      <li {...props}>
+                      <li {...props} key={`permission-option-${option.id}`}>
                         <Box>
                           <Typography variant="body2" fontWeight={500}>
                             {option.name}
@@ -280,16 +309,16 @@ const RoleEdit = () => {
                   />
                 </Grid>
 
-                {role.permissions && role.permissions.length > 0 && (
+                {selectedPermissions && selectedPermissions.length > 0 && (
                   <Grid item xs={12}>
                     <Alert severity="info" icon={false}>
                       <Typography variant="body2" fontWeight={500} gutterBottom>
-                        {t('role.selectedPermissionsCount', { count: role.permissions.length })}
+                        {t('role.selectedPermissionsCount', { count: selectedPermissions.length })}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
-                        {role.permissions.map((permission) => (
+                        {selectedPermissions.map((permission) => (
                           <Chip
-                            key={permission.id}
+                            key={`selected-permission-${permission.id}`}
                             label={permission.name}
                             size="small"
                             variant="outlined"

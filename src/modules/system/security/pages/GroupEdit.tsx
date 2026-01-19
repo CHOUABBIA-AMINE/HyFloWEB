@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing groups
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-19-2026 - Fixed TypeScript errors: Handle optional id in DTOs
  * @updated 01-19-2026 - Fixed duplicate key warning by using role.id for Chip keys
  * @updated 01-19-2026 - Aligned with GroupDTO changes: users -> roles
  * @updated 01-19-2026 - Fixed Chip key prop warning in Autocomplete
@@ -75,12 +76,14 @@ const GroupEdit = () => {
       // Load roles with explicit type
       const rolesData = await roleService.getAll().catch(() => [] as RoleDTO[]);
 
-      // Map to RoleOption format
-      const roleOptions = rolesData.map((role: RoleDTO) => ({
-        id: role.id,
-        name: role.name,
-        description: role.description,
-      }));
+      // Map to RoleOption format, filtering out items without id
+      const roleOptions: RoleOption[] = rolesData
+        .filter((role: RoleDTO) => role.id !== undefined)
+        .map((role: RoleDTO) => ({
+          id: role.id!,
+          name: role.name,
+          description: role.description,
+        }));
 
       setAvailableRoles(roleOptions);
 
@@ -122,7 +125,13 @@ const GroupEdit = () => {
   };
 
   const handleRolesChange = (_event: any, newValue: RoleOption[]) => {
-    setGroup({ ...group, roles: newValue });
+    // Convert RoleOption[] to RoleDTO[] for the DTO
+    const roleDTOs: RoleDTO[] = newValue.map(option => ({
+      id: option.id,
+      name: option.name,
+      description: option.description,
+    }));
+    setGroup({ ...group, roles: roleDTOs });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -168,6 +177,15 @@ const GroupEdit = () => {
       </Box>
     );
   }
+
+  // Convert group.roles to RoleOption[] for the Autocomplete component
+  const selectedRoles: RoleOption[] = (group.roles || [])
+    .filter(role => role.id !== undefined)
+    .map(role => ({
+      id: role.id!,
+      name: role.name,
+      description: role.description,
+    }));
 
   return (
     <Box>
@@ -254,7 +272,7 @@ const GroupEdit = () => {
                     multiple
                     options={availableRoles}
                     getOptionLabel={(option) => option.name}
-                    value={group.roles || []}
+                    value={selectedRoles}
                     onChange={handleRolesChange}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     renderInput={(params) => (
@@ -294,14 +312,14 @@ const GroupEdit = () => {
                   />
                 </Grid>
 
-                {group.roles && group.roles.length > 0 && (
+                {selectedRoles && selectedRoles.length > 0 && (
                   <Grid item xs={12}>
                     <Alert severity="info" icon={false}>
                       <Typography variant="body2" fontWeight={500} gutterBottom>
-                        {t('group.selectedRolesCount', { count: group.roles.length })}
+                        {t('group.selectedRolesCount', { count: selectedRoles.length })}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
-                        {group.roles.map((role) => (
+                        {selectedRoles.map((role) => (
                           <Chip
                             key={`selected-role-${role.id}`}
                             label={role.name}

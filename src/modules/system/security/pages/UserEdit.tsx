@@ -3,9 +3,10 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
- * @created 12-22-2025
- * @updated 01-08-2026 - Fixed type inference for roles/groups
+ * @updated 01-19-2026 - Fixed TypeScript errors: Handle optional id in DTOs
  * @updated 01-18-2026 - Optimized to use common translation keys
+ * @updated 01-06-2026 - Enhanced with professional UI and role/group management
+ * @created 12-22-2025
  */
 
 import { useState, useEffect } from 'react';
@@ -13,33 +14,39 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   TextField,
   Button,
   CircularProgress,
   Alert,
   Grid,
-  FormControlLabel,
-  Switch,
   Paper,
   Divider,
   Stack,
   Chip,
   Autocomplete,
-  InputAdornment,
-  IconButton,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
-  Visibility,
-  VisibilityOff,
 } from '@mui/icons-material';
 import { userService, roleService, groupService } from '../services';
 import { UserDTO, RoleDTO, GroupDTO } from '../dto';
+
+interface RoleOption {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+interface GroupOption {
+  id: number;
+  name: string;
+  description?: string;
+}
 
 const UserEdit = () => {
   const { t } = useTranslation();
@@ -51,20 +58,15 @@ const UserEdit = () => {
   const [user, setUser] = useState<Partial<UserDTO>>({
     username: '',
     email: '',
+    password: '',
     enabled: true,
     roles: [],
     groups: [],
   });
 
-  // Password state (only for create mode)
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   // Available options
-  const [availableRoles, setAvailableRoles] = useState<RoleDTO[]>([]);
-  const [availableGroups, setAvailableGroups] = useState<GroupDTO[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<RoleOption[]>([]);
+  const [availableGroups, setAvailableGroups] = useState<GroupOption[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -80,15 +82,31 @@ const UserEdit = () => {
     try {
       setLoading(true);
       
-      // Load roles and groups with explicit types
+      // Load roles and groups
       const [rolesData, groupsData] = await Promise.all([
         roleService.getAll().catch(() => [] as RoleDTO[]),
         groupService.getAll().catch(() => [] as GroupDTO[]),
       ]);
 
-      // rolesData and groupsData are already properly typed as RoleDTO[] and GroupDTO[]
-      setAvailableRoles(rolesData);
-      setAvailableGroups(groupsData);
+      // Map to option formats, filtering out items without id
+      const roleOptions: RoleOption[] = rolesData
+        .filter((role: RoleDTO) => role.id !== undefined)
+        .map((role: RoleDTO) => ({
+          id: role.id!,
+          name: role.name,
+          description: role.description,
+        }));
+
+      const groupOptions: GroupOption[] = groupsData
+        .filter((group: GroupDTO) => group.id !== undefined)
+        .map((group: GroupDTO) => ({
+          id: group.id!,
+          name: group.name,
+          description: group.description,
+        }));
+
+      setAvailableRoles(roleOptions);
+      setAvailableGroups(groupOptions);
 
       // Load user if editing
       if (isEditMode) {
@@ -116,17 +134,12 @@ const UserEdit = () => {
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!user.email || !emailRegex.test(user.email)) {
-      errors.email = t('common.validation.emailInvalid');
+      errors.email = t('common.validation.invalidEmail');
     }
 
     // Password validation (only for create mode)
-    if (!isEditMode) {
-      if (!password || password.length < 8) {
-        errors.password = t('profile.passwordTooShort');
-      }
-      if (password !== confirmPassword) {
-        errors.confirmPassword = t('profile.passwordMismatch');
-      }
+    if (!isEditMode && (!user.password || user.password.length < 6)) {
+      errors.password = t('common.validation.minLength', { field: t('user.password'), min: 6 });
     }
 
     setValidationErrors(errors);
@@ -143,12 +156,24 @@ const UserEdit = () => {
     }
   };
 
-  const handleRolesChange = (_event: any, newValue: RoleDTO[]) => {
-    setUser({ ...user, roles: newValue });
+  const handleRolesChange = (_event: any, newValue: RoleOption[]) => {
+    // Convert RoleOption[] to RoleDTO[] for the DTO
+    const roleDTOs: RoleDTO[] = newValue.map(option => ({
+      id: option.id,
+      name: option.name,
+      description: option.description,
+    }));
+    setUser({ ...user, roles: roleDTOs });
   };
 
-  const handleGroupsChange = (_event: any, newValue: GroupDTO[]) => {
-    setUser({ ...user, groups: newValue });
+  const handleGroupsChange = (_event: any, newValue: GroupOption[]) => {
+    // Convert GroupOption[] to GroupDTO[] for the DTO
+    const groupDTOs: GroupDTO[] = newValue.map(option => ({
+      id: option.id,
+      name: option.name,
+      description: option.description,
+    }));
+    setUser({ ...user, groups: groupDTOs });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -164,15 +189,9 @@ const UserEdit = () => {
 
       const userData: any = {
         ...user,
-        // Convert role/group objects to IDs if needed
         roleIds: user.roles?.map(r => r.id),
         groupIds: user.groups?.map(g => g.id),
       };
-
-      // Add password for create mode
-      if (!isEditMode) {
-        userData.password = password;
-      }
 
       if (isEditMode) {
         await userService.update(Number(userId), userData);
@@ -200,6 +219,23 @@ const UserEdit = () => {
       </Box>
     );
   }
+
+  // Convert DTOs to Option types for Autocomplete components
+  const selectedRoles: RoleOption[] = (user.roles || [])
+    .filter(role => role.id !== undefined)
+    .map(role => ({
+      id: role.id!,
+      name: role.name,
+      description: role.description,
+    }));
+
+  const selectedGroups: GroupOption[] = (user.groups || [])
+    .filter(group => group.id !== undefined)
+    .map(group => ({
+      id: group.id!,
+      name: group.name,
+      description: group.description,
+    }));
 
   return (
     <Box>
@@ -252,17 +288,16 @@ const UserEdit = () => {
                     value={user.username || ''}
                     onChange={handleChange('username')}
                     required
-                    disabled={isEditMode}
                     error={!!validationErrors.username}
-                    helperText={validationErrors.username || (isEditMode ? t('user.usernameCannotChange') : '')}
+                    helperText={validationErrors.username}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('user.email')}
                     type="email"
+                    label={t('user.email')}
                     value={user.email || ''}
                     onChange={handleChange('email')}
                     required
@@ -271,167 +306,111 @@ const UserEdit = () => {
                   />
                 </Grid>
 
+                {!isEditMode && (
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="password"
+                      label={t('user.password')}
+                      value={user.password || ''}
+                      onChange={handleChange('password')}
+                      required
+                      error={!!validationErrors.password}
+                      helperText={validationErrors.password}
+                    />
+                  </Grid>
+                )}
+
                 <Grid item xs={12}>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={user.enabled || false}
                         onChange={handleChange('enabled')}
-                        color="success"
                       />
                     }
-                    label={
-                      <Box>
-                        <Typography variant="body2" fontWeight={500}>
-                          {t('user.enabled')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {user.enabled ? t('user.enabledDescription') : t('user.disabledDescription')}
-                        </Typography>
-                      </Box>
-                    }
+                    label={t('user.enabled')}
                   />
                 </Grid>
               </Grid>
             </Box>
           </Paper>
 
-          {/* Password (Create Mode Only) */}
-          {!isEditMode && (
-            <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
-              <Box sx={{ p: 2.5 }}>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  {t('auth.password')}
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
-                
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label={t('auth.password')}
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (validationErrors.password) {
-                          setValidationErrors({ ...validationErrors, password: '' });
-                        }
-                      }}
-                      required
-                      error={!!validationErrors.password}
-                      helperText={validationErrors.password || t('profile.passwordTooShort')}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton
-                              onClick={() => setShowPassword(!showPassword)}
-                              edge="end"
-                            >
-                              {showPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label={t('profile.confirmPassword')}
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      value={confirmPassword}
-                      onChange={(e) => {
-                        setConfirmPassword(e.target.value);
-                        if (validationErrors.confirmPassword) {
-                          setValidationErrors({ ...validationErrors, confirmPassword: '' });
-                        }
-                      }}
-                      required
-                      error={!!validationErrors.confirmPassword}
-                      helperText={validationErrors.confirmPassword}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton
-                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                              edge="end"
-                            >
-                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Box>
-            </Paper>
-          )}
-
-          {/* Roles & Groups */}
+          {/* Roles */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('user.rolesAndGroups')}
+                {t('user.roles')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Autocomplete
-                    multiple
-                    options={availableRoles}
-                    getOptionLabel={(option) => option.name}
-                    value={user.roles || []}
-                    onChange={handleRolesChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={t('user.roles')}
-                        placeholder={t('user.selectRoles')}
-                      />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip
-                          label={option.name}
-                          {...getTagProps({ index })}
-                          size="small"
-                        />
-                      ))
-                    }
+              <Autocomplete
+                multiple
+                options={availableRoles}
+                getOptionLabel={(option) => option.name}
+                value={selectedRoles}
+                onChange={handleRolesChange}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={t('user.selectRoles')}
+                    placeholder={t('user.selectRolesPlaceholder')}
                   />
-                </Grid>
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        key={`role-chip-${option.id}`}
+                        label={option.name}
+                        {...tagProps}
+                        size="small"
+                      />
+                    );
+                  })
+                }
+              />
+            </Box>
+          </Paper>
 
-                <Grid item xs={12} md={6}>
-                  <Autocomplete
-                    multiple
-                    options={availableGroups}
-                    getOptionLabel={(option) => option.name}
-                    value={user.groups || []}
-                    onChange={handleGroupsChange}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={t('user.groups')}
-                        placeholder={t('user.selectGroups')}
-                      />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip
-                          label={option.name}
-                          {...getTagProps({ index })}
-                          size="small"
-                          variant="outlined"
-                        />
-                      ))
-                    }
+          {/* Groups */}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('user.groups')}
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Autocomplete
+                multiple
+                options={availableGroups}
+                getOptionLabel={(option) => option.name}
+                value={selectedGroups}
+                onChange={handleGroupsChange}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={t('user.selectGroups')}
+                    placeholder={t('user.selectGroupsPlaceholder')}
                   />
-                </Grid>
-              </Grid>
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index });
+                    return (
+                      <Chip
+                        key={`group-chip-${option.id}`}
+                        label={option.name}
+                        {...tagProps}
+                        size="small"
+                      />
+                    );
+                  })
+                }
+              />
             </Box>
           </Paper>
 
