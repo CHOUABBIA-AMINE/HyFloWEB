@@ -33,7 +33,7 @@
       "descriptionHelper": "Détails et notes supplémentaires",
       "operationalStatus": "Statut Opérationnel",
       "operationalStatusHelper": "État opérationnel actuel",
-	  "product": "Produit",
+      "product": "Produit",
       "status": "Statut",
       "vendor": "Fournisseur",
       "vendorHelper": "Fournisseur d'équipement",
@@ -63,6 +63,8 @@
       "state": "Wilaya",
       "capacity": "Capacité",
       "capacityHelper": "Capacité ou débit maximal",
+      "sequence": "Séquence",
+      "sequenceHelper": "Ordre numérique ou priorité",
       "designationFr": "Désignation (Français)",
       "designationFrHelper": "Obligatoire - Désignation française",
       "designationEn": "Désignation (Anglais)",
@@ -123,6 +125,8 @@
     "type": "Type",
     "status": "Statut",
     "location": "Emplacement",
+    "locality": "Localité",
+    "sequence": "Séquence",
     "actions": "Actions",
     "country": "Pays",
     "vendor": "Fournisseur",
@@ -192,6 +196,11 @@
     "deleted": "Supprimé",
     "success": "Succès",
     "error": "Erreur"
+  },
+  "location": {
+    "title": "Emplacements",
+    "subtitle": "Gérer les emplacements et lieux géographiques",
+    "searchPlaceholder": "Rechercher par code, désignation ou localité..."
   },
   "product": {
     "title": "Produits",
@@ -563,26 +572,32 @@
     "lastLogin": "Dernière connexion",
     "filterByStatus": "Filtrer par Statut",
     "filterByRole": "Filtrer par Rôle",
-	"usernameCannotChange": "Le nom d'utilisateur ne peut pas être modifié",
-	"enabledDescription": "L'utilisateur peut se connecter et accéder au système",
-	"disabledDescription": "Le compte utilisateur est désactivé",
-	"rolesAndGroups": "Rôles et Groupes",
-	"selectRoles": "Sélectionner les rôles",
-	"selectGroups": "Sélectionner les groupes"
+    "usernameCannotChange": "Le nom d'utilisateur ne peut pas être modifié",
+    "enabledDescription": "L'utilisateur peut se connecter et accéder au système",
+    "disabledDescription": "Le compte utilisateur est désactivé",
+    "rolesAndGroups": "Rôles et Groupes",
+    "selectRoles": "Sélectionner les rôles",
+    "selectGroups": "Sélectionner les groupes"
   },
   "role": {
     "title": "Rôles",
     "subtitle": "Gérer les rôles et permissions",
     "searchPlaceholder": "Rechercher des rôles par nom ou description...",
     "permissions": "Permissions",
-    "description": "Description"
+    "description": "Description",
+    "descriptionPlaceholder": "Décrire le rôle et son objectif",
+    "selectPermissions": "Sélectionner les permissions",
+    "selectedPermissionsCount": "Permissions Sélectionnées : {{count}}"
   },
   "group": {
     "title": "Groupes",
     "subtitle": "Gérer les groupes d'utilisateurs",
     "searchPlaceholder": "Rechercher des groupes par nom ou description...",
     "users": "Utilisateurs",
-    "description": "Description"
+    "description": "Description",
+    "descriptionPlaceholder": "Décrire le groupe et son objectif",
+    "selectUsers": "Sélectionner les utilisateurs",
+    "selectedUsersCount": "Utilisateurs Sélectionnés : {{count}}"
   },
   "footer": {
     "copyright": "© {{year}} Plateforme HyFlo. Tous droits réservés."
