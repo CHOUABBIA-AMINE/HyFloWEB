@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Reorganized layout: Country after names, State/District/Locality in one row
  * @updated 01-19-2026 - Added cascading State→District→Locality selectors for birth and address
  * @updated 01-19-2026 - Added missing fields: birthPlaceAr, addressAr, addressLt, localities
  * @updated 01-19-2026 - Confirmed alignment with EmployeeDTO (Locality fields)
@@ -13,6 +14,14 @@
  * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
  * @updated 01-01-2026 - Dependent selects (Structure→Job)
  * @updated 01-01-2026 - Align routes and translation keys
+ * 
+ * Required Translation Keys:
+ * - employee.birthLocality
+ * - employee.addressLocality
+ * - employee.birthPlaceAr
+ * - employee.birthPlaceLt (or employee.birthPlace)
+ * - employee.addressAr
+ * - employee.addressLt
  */
 
 import { useMemo, useState, useEffect } from 'react';
@@ -431,6 +440,27 @@ const EmployeeEdit = () => {
                 />
               </Grid>
 
+              {/* Country - Directly below names in one row */}
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>{t('common.fields.country')}</InputLabel>
+                  <Select
+                    value={formData.countryId || ''}
+                    onChange={(e) => handleChange('countryId', e.target.value || undefined)}
+                    label={t('common.fields.country')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {countries.map((country) => (
+                      <MenuItem key={country.id} value={country.id}>
+                        {getDesignation(country)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
               {/* Birth Information Section */}
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -450,8 +480,8 @@ const EmployeeEdit = () => {
                 />
               </Grid>
 
-              {/* Birth Location Cascading: State → District → Locality */}
-              <Grid item xs={12} md={6}>
+              {/* Birth Location Cascading: State → District → Locality in ONE ROW */}
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
                   <InputLabel>{t('common.fields.state')}</InputLabel>
                   <Select
@@ -476,7 +506,7 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth disabled={!birthStateId}>
                   <InputLabel>{t('common.fields.district')}</InputLabel>
                   <Select
@@ -500,7 +530,7 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth disabled={!birthDistrictId}>
                   <InputLabel>{t('employee.birthLocality')}</InputLabel>
                   <Select
@@ -547,8 +577,8 @@ const EmployeeEdit = () => {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
 
-              {/* Address Location Cascading: State → District → Locality */}
-              <Grid item xs={12} md={6}>
+              {/* Address Location Cascading: State → District → Locality in ONE ROW */}
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth>
                   <InputLabel>{t('common.fields.state')}</InputLabel>
                   <Select
@@ -573,7 +603,7 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth disabled={!addressStateId}>
                   <InputLabel>{t('common.fields.district')}</InputLabel>
                   <Select
@@ -597,7 +627,7 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12} md={4}>
                 <FormControl fullWidth disabled={!addressDistrictId}>
                   <InputLabel>{t('employee.addressLocality')}</InputLabel>
                   <Select
@@ -611,26 +641,6 @@ const EmployeeEdit = () => {
                     {addressLocalities.map((locality) => (
                       <MenuItem key={locality.id} value={locality.id}>
                         {getDesignation(locality)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('common.fields.country')}</InputLabel>
-                  <Select
-                    value={formData.countryId || ''}
-                    onChange={(e) => handleChange('countryId', e.target.value || undefined)}
-                    label={t('common.fields.country')}
-                  >
-                    <MenuItem value="">
-                      <em>{t('common.actions.selectNone')}</em>
-                    </MenuItem>
-                    {countries.map((country) => (
-                      <MenuItem key={country.id} value={country.id}>
-                        {getDesignation(country)}
                       </MenuItem>
                     ))}
                   </Select>
