@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Adjusted picture layout: next to names, clickable avatar area
  * @updated 01-19-2026 - Added picture upload field with preview
  * @updated 01-19-2026 - Fixed layout: Birth Date separate, State/District/Locality on own row
  * @updated 01-19-2026 - Reorganized layout: Country after names, State/District/Locality in one row
@@ -19,8 +20,7 @@
  * 
  * Required Translation Keys:
  * - employee.picture
- * - employee.uploadPicture
- * - employee.changePicture
+ * - employee.clickToUpload
  * - employee.birthLocality
  * - employee.addressLocality
  * - employee.birthPlaceAr
@@ -50,12 +50,13 @@ import {
   Divider,
   Avatar,
   IconButton,
+  Tooltip,
 } from '@mui/material';
 import { 
   Save as SaveIcon, 
   ArrowBack as BackIcon,
-  PhotoCamera as PhotoCameraIcon,
   Delete as DeleteIcon,
+  PhotoCamera as PhotoCameraIcon,
 } from '@mui/icons-material';
 import {
   EmployeeService,
@@ -341,7 +342,12 @@ const EmployeeEdit = () => {
     }
   };
 
-  const handleRemovePicture = () => {
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleRemovePicture = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setPictureFile(null);
     setPicturePreview(null);
     if (fileInputRef.current) {
@@ -468,93 +474,116 @@ const EmployeeEdit = () => {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
 
-              {/* Picture Upload */}
-              <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Avatar
-                    src={picturePreview || undefined}
-                    sx={{ width: 120, height: 120 }}
-                  >
-                    {!picturePreview && (
-                      <Typography variant="h3" color="text.secondary">
-                        {formData.firstNameLt?.[0]?.toUpperCase() || '?'}
-                      </Typography>
-                    )}
-                  </Avatar>
-                  <Box>
-                    <input
-                      ref={fileInputRef}
-                      accept="image/*"
-                      type="file"
-                      hidden
-                      onChange={handlePictureChange}
-                      id="picture-upload"
-                    />
-                    <Stack direction="row" spacing={1}>
-                      <label htmlFor="picture-upload">
-                        <Button
-                          variant="outlined"
-                          component="span"
-                          startIcon={<PhotoCameraIcon />}
-                        >
-                          {picturePreview ? t('employee.changePicture') : t('employee.uploadPicture')}
-                        </Button>
-                      </label>
-                      {picturePreview && (
-                        <IconButton color="error" onClick={handleRemovePicture}>
-                          <DeleteIcon />
-                        </IconButton>
+              {/* Picture - Left side */}
+              <Grid item xs={12} md={2}>
+                <input
+                  ref={fileInputRef}
+                  accept="image/*"
+                  type="file"
+                  hidden
+                  onChange={handlePictureChange}
+                  id="picture-upload"
+                />
+                <Box sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Tooltip title={t('employee.clickToUpload')}>
+                    <Avatar
+                      src={picturePreview || undefined}
+                      sx={{ 
+                        width: 140, 
+                        height: 140,
+                        cursor: 'pointer',
+                        transition: 'opacity 0.2s',
+                        '&:hover': {
+                          opacity: 0.8,
+                        },
+                        border: '2px dashed',
+                        borderColor: 'divider',
+                      }}
+                      onClick={handleAvatarClick}
+                    >
+                      {!picturePreview && (
+                        <Box sx={{ textAlign: 'center' }}>
+                          <PhotoCameraIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            {formData.firstNameLt?.[0]?.toUpperCase() || '?'}
+                          </Typography>
+                        </Box>
                       )}
-                    </Stack>
-                    <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-                      {t('common.validation.maxFileSize', { size: '5MB' })}
-                    </Typography>
-                  </Box>
+                    </Avatar>
+                  </Tooltip>
+                  {picturePreview && (
+                    <IconButton
+                      color="error"
+                      size="small"
+                      onClick={handleRemovePicture}
+                      sx={{
+                        position: 'absolute',
+                        top: -8,
+                        right: -8,
+                        bgcolor: 'background.paper',
+                        boxShadow: 1,
+                        '&:hover': {
+                          bgcolor: 'error.light',
+                          color: 'white',
+                        },
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  )}
                 </Box>
+                <Typography variant="caption" color="text.secondary" display="block" mt={1} textAlign="center">
+                  {t('common.validation.maxFileSize', { size: '5MB' })}
+                </Typography>
               </Grid>
 
-              {/* Arabic Names */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('employee.lastNameAr')}
-                  value={formData.lastNameAr || ''}
-                  onChange={(e) => handleChange('lastNameAr', e.target.value)}
-                  inputProps={{ dir: 'rtl' }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label={t('employee.firstNameAr')}
-                  value={formData.firstNameAr || ''}
-                  onChange={(e) => handleChange('firstNameAr', e.target.value)}
-                  inputProps={{ dir: 'rtl' }}
-                />
-              </Grid>
+              {/* Names - Right side (2 rows) */}
+              <Grid item xs={12} md={10}>
+                <Grid container spacing={2}>
+                  {/* Arabic Names Row */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label={t('employee.lastNameAr')}
+                      value={formData.lastNameAr || ''}
+                      onChange={(e) => handleChange('lastNameAr', e.target.value)}
+                      inputProps={{ dir: 'rtl' }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label={t('employee.firstNameAr')}
+                      value={formData.firstNameAr || ''}
+                      onChange={(e) => handleChange('firstNameAr', e.target.value)}
+                      inputProps={{ dir: 'rtl' }}
+                    />
+                  </Grid>
 
-              {/* Latin Names (Required) */}
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label={t('employee.lastNameLt')}
-                  value={formData.lastNameLt}
-                  onChange={(e) => handleChange('lastNameLt', e.target.value)}
-                  error={Boolean(fieldErrors.lastNameLt)}
-                  helperText={fieldErrors.lastNameLt}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  required
-                  label={t('employee.firstNameLt')}
-                  value={formData.firstNameLt}
-                  onChange={(e) => handleChange('firstNameLt', e.target.value)}
-                  error={Boolean(fieldErrors.firstNameLt)}
-                  helperText={fieldErrors.firstNameLt}
-                />
+                  {/* Latin Names Row (Required) */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label={t('employee.lastNameLt')}
+                      value={formData.lastNameLt}
+                      onChange={(e) => handleChange('lastNameLt', e.target.value)}
+                      error={Boolean(fieldErrors.lastNameLt)}
+                      helperText={fieldErrors.lastNameLt}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label={t('employee.firstNameLt')}
+                      value={formData.firstNameLt}
+                      onChange={(e) => handleChange('firstNameLt', e.target.value)}
+                      error={Boolean(fieldErrors.firstNameLt)}
+                      helperText={fieldErrors.firstNameLt}
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
 
               {/* Country - Directly below names in one row */}
