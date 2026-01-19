@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Adjusted picture layout: next to 3 rows (Ar names, Lt names, Country)
  * @updated 01-19-2026 - Adjusted picture layout: next to names, clickable avatar area
  * @updated 01-19-2026 - Added picture upload field with preview
  * @updated 01-19-2026 - Fixed layout: Birth Date separate, State/District/Locality on own row
@@ -474,7 +475,7 @@ const EmployeeEdit = () => {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
 
-              {/* Picture - Left side */}
+              {/* Left Column: Picture (spans 3 rows height) */}
               <Grid item xs={12} md={2}>
                 <input
                   ref={fileInputRef}
@@ -537,11 +538,11 @@ const EmployeeEdit = () => {
                 </Typography>
               </Grid>
 
-              {/* Names - Right side (2 rows) */}
+              {/* Right Column: 3 rows - Arabic Names, Latin Names, Country */}
               <Grid item xs={12} md={10}>
                 <Grid container spacing={2}>
-                  {/* Arabic Names Row */}
-                  <Grid item xs={12} md={6}>
+                  {/* Row 1: Arabic Names */}
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label={t('employee.lastNameAr')}
@@ -550,7 +551,7 @@ const EmployeeEdit = () => {
                       inputProps={{ dir: 'rtl' }}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label={t('employee.firstNameAr')}
@@ -560,8 +561,8 @@ const EmployeeEdit = () => {
                     />
                   </Grid>
 
-                  {/* Latin Names Row (Required) */}
-                  <Grid item xs={12} md={6}>
+                  {/* Row 2: Latin Names (Required) */}
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       required
@@ -572,7 +573,7 @@ const EmployeeEdit = () => {
                       helperText={fieldErrors.lastNameLt}
                     />
                   </Grid>
-                  <Grid item xs={12} md={6}>
+                  <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       required
@@ -583,28 +584,28 @@ const EmployeeEdit = () => {
                       helperText={fieldErrors.firstNameLt}
                     />
                   </Grid>
-                </Grid>
-              </Grid>
 
-              {/* Country - Directly below names in one row */}
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('common.fields.country')}</InputLabel>
-                  <Select
-                    value={formData.countryId || ''}
-                    onChange={(e) => handleChange('countryId', e.target.value || undefined)}
-                    label={t('common.fields.country')}
-                  >
-                    <MenuItem value="">
-                      <em>{t('common.actions.selectNone')}</em>
-                    </MenuItem>
-                    {countries.map((country) => (
-                      <MenuItem key={country.id} value={country.id}>
-                        {getDesignation(country)}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                  {/* Row 3: Country */}
+                  <Grid item xs={12}>
+                    <FormControl fullWidth>
+                      <InputLabel>{t('common.fields.country')}</InputLabel>
+                      <Select
+                        value={formData.countryId || ''}
+                        onChange={(e) => handleChange('countryId', e.target.value || undefined)}
+                        label={t('common.fields.country')}
+                      >
+                        <MenuItem value="">
+                          <em>{t('common.actions.selectNone')}</em>
+                        </MenuItem>
+                        {countries.map((country) => (
+                          <MenuItem key={country.id} value={country.id}>
+                            {getDesignation(country)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
               </Grid>
 
               {/* Birth Information Section */}
