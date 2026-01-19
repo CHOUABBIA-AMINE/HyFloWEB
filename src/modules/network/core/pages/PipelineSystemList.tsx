@@ -2,23 +2,23 @@
  * Pipeline System List Page - SIMPLIFIED PATTERN - SERVER-SIDE SEARCH ONLY
  * 
  * Features:
- * - Server-side pagination (default: 10, options: 5, 10, 15) ✅
+ * - Server-side pagination (default: 10, options: 5, 10, 15) ✓
  * - Server-side global search (no debounce needed)
  * - Export to CSV/Excel/PDF
- * - Multi-language support (Fr/En/Ar) ✅
+ * - Multi-language support (Fr/En/Ar) ✓
  * - Professional UI/UX
- * - Comprehensive i18n - 100% coverage ✅
+ * - Comprehensive i18n - 100% coverage ✓
  * 
  * @author CHOUABBIA Amine
- * @updated 01-07-2026 - Fixed service imports
- * @updated 01-10-2026 - Applied i18n, removed ID column
- * @updated 01-16-2026 - Upgraded to advanced pattern
- * @updated 01-16-2026 - VERIFIED: Pagination [5,10,15] and full i18n
- * @updated 01-16-2026 - FIXED: Property access for operationalStatus
- * @updated 01-16-2026 - Optimized translation keys and populated status dropdown
- * @updated 01-16-2026 - Moved structure, status, product to list.* namespace
- * @updated 01-16-2026 - Use list.status consistently in headers and dropdown
+ * @updated 01-19-2026 - Use structure designation fields instead of code
  * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
+ * @updated 01-16-2026 - Moved structure, status, product to list.* namespace
+ * @updated 01-16-2026 - Optimized translation keys and populated status dropdown
+ * @updated 01-16-2026 - FIXED: Property access for operationalStatus
+ * @updated 01-16-2026 - VERIFIED: Pagination [5,10,15] and full i18n
+ * @updated 01-16-2026 - Upgraded to advanced pattern
+ * @updated 01-10-2026 - Applied i18n, removed ID column
+ * @updated 01-07-2026 - Fixed service imports
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -159,7 +159,7 @@ const PipelineSystemList = () => {
       header: t('list.structure', 'Structure'), 
       key: 'structure',
       width: 15,
-      transform: (value) => value?.code || '-'
+      transform: (value) => getMultiLangDesignation(value, lang)
     },
     { 
       header: t('list.product', 'Product'), 
@@ -235,11 +235,11 @@ const PipelineSystemList = () => {
     { 
       field: 'structure', 
       headerName: t('list.structure', 'Structure'),
-      width: 140,
-      valueGetter: (params) => params.row.structure?.code || '-',
+      width: 180,
+      valueGetter: (params) => getMultiLangDesignation(params.row.structure, lang),
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary">
-          {params.value}
+          {params.value || '-'}
         </Typography>
       )
     },
