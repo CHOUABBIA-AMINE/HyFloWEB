@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing groups
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-19-2026 - Fixed duplicate key warning by using role.id for Chip keys
  * @updated 01-19-2026 - Aligned with GroupDTO changes: users -> roles
  * @updated 01-19-2026 - Fixed Chip key prop warning in Autocomplete
  * @updated 01-18-2026 - Optimized to use common translation keys
@@ -255,6 +256,7 @@ const GroupEdit = () => {
                     getOptionLabel={(option) => option.name}
                     value={group.roles || []}
                     onChange={handleRolesChange}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
                     renderInput={(params) => (
                       <TextField
                         {...params}
@@ -267,7 +269,7 @@ const GroupEdit = () => {
                         const { key, ...tagProps } = getTagProps({ index });
                         return (
                           <Chip
-                            key={key}
+                            key={`role-chip-${option.id}`}
                             label={option.name}
                             {...tagProps}
                             size="small"
@@ -276,7 +278,7 @@ const GroupEdit = () => {
                       })
                     }
                     renderOption={(props, option) => (
-                      <li {...props}>
+                      <li {...props} key={`role-option-${option.id}`}>
                         <Box>
                           <Typography variant="body2" fontWeight={500}>
                             {option.name}
@@ -301,7 +303,7 @@ const GroupEdit = () => {
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
                         {group.roles.map((role) => (
                           <Chip
-                            key={role.id}
+                            key={`selected-role-${role.id}`}
                             label={role.name}
                             size="small"
                             variant="outlined"
