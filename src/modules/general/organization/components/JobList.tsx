@@ -3,6 +3,7 @@
  * Can be used standalone or embedded in Structure pages with structureId filter
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-19-2026 - Aligned translation keys with translation files
  * @updated 01-19-2026 - Fixed translation keys to use proper namespaces without fallback text
  * @updated 01-09-2026 - Matched DataGrid column header styling with StructureList
  * @updated 01-09-2026 - Aligned header styling with StructureList
@@ -148,7 +149,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
       await loadJobs();
     } catch (err: any) {
       console.error('Failed to delete job:', err);
-      setError(err.response?.data?.message || err.message || t('common.errors.deleteFailed'));
+      setError(err.response?.data?.message || err.message || t('message.deleteError'));
     } finally {
       setLoading(false);
     }
@@ -157,13 +158,13 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
   const columns: GridColDef<JobDTO>[] = [
     {
       field: 'code',
-      headerName: t('common.fields.code'),
+      headerName: t('list.code'),
       flex: 1,
       minWidth: 120,
     },
     {
       field: 'designation',
-      headerName: t('common.fields.designation'),
+      headerName: t('list.designation'),
       flex: 2,
       minWidth: 200,
       valueGetter: (params: any) => getLocalizedDesignation(params.row),
@@ -175,7 +176,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
     },
     ...(!structureId ? [{
       field: 'structureId' as const,
-      headerName: t('job.fields.structure'),
+      headerName: t('list.structure'),
       flex: 1.5,
       minWidth: 150,
       valueGetter: (params: any) => {
@@ -190,7 +191,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
     }] : []),
     {
       field: 'actions',
-      headerName: t('common.actions'),
+      headerName: t('list.actions'),
       width: 120,
       align: 'center',
       headerAlign: 'center',
@@ -201,7 +202,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
             size="small"
             color="primary"
             onClick={() => handleEdit(params.row)}
-            title={t('common.edit')}
+            title={t('action.edit')}
           >
             <EditIcon fontSize="small" />
           </IconButton>
@@ -210,7 +211,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
             color="error"
             onClick={() => params.row.id && handleDeleteClick(params.row.id)}
             disabled={!params.row.id}
-            title={t('common.delete')}
+            title={t('action.delete')}
           >
             <DeleteIcon fontSize="small" />
           </IconButton>
@@ -239,7 +240,7 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
               onClick={handleCreate}
               sx={{ borderRadius: 2, boxShadow: 2 }}
             >
-              {t('common.create')}
+              {t('action.create')}
             </Button>
           )}
         </Box>
@@ -292,18 +293,18 @@ const JobList = ({ structureId, onEdit, onAdd, refreshTrigger }: JobListProps) =
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       >
-        <DialogTitle>{t('common.confirmDelete')}</DialogTitle>
+        <DialogTitle>{t('action.delete')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {t('job.confirmDeleteMessage')}
+            {t('action.confirmDelete')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>
-            {t('common.cancel')}
+            {t('action.cancel')}
           </Button>
           <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-            {t('common.delete')}
+            {t('action.delete')}
           </Button>
         </DialogActions>
       </Dialog>
