@@ -10,13 +10,14 @@
  * - Comprehensive i18n
  * 
  * @author CHOUABBIA Amine
- * @updated 01-07-2026 - Fixed service imports
- * @updated 01-10-2026 - Applied i18n, removed ID column
- * @updated 01-16-2026 - Upgraded to advanced pattern
- * @updated 01-16-2026 - Fixed property path: location.placeName
- * @updated 01-16-2026 - Optimized translation keys and added type dropdown
- * @updated 01-16-2026 - Moved location to list.* namespace
+ * @updated 01-19-2026 - Use location designation fields instead of placeName
  * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
+ * @updated 01-16-2026 - Moved location to list.* namespace
+ * @updated 01-16-2026 - Optimized translation keys and added type dropdown
+ * @updated 01-16-2026 - Fixed property path: location.placeName
+ * @updated 01-16-2026 - Upgraded to advanced pattern
+ * @updated 01-10-2026 - Applied i18n, removed ID column
+ * @updated 01-07-2026 - Fixed service imports
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -157,7 +158,7 @@ const TerminalList = () => {
       header: t('list.location', 'Location'), 
       key: 'location',
       width: 25,
-      transform: (value: any) => value?.placeName || '-'
+      transform: (value: any) => getMultiLangDesignation(value, lang)
     },
     { 
       header: t('list.type', 'Type'), 
@@ -229,10 +230,10 @@ const TerminalList = () => {
       headerName: t('list.location', 'Location'),
       minWidth: 200,
       flex: 1,
-      valueGetter: (params) => params.row.location?.placeName || '-',
+      valueGetter: (params) => getMultiLangDesignation(params.row.location, lang),
       renderCell: (params) => (
         <Typography variant="body2" color="text.secondary">
-          {params.value}
+          {params.value || '-'}
         </Typography>
       )
     },
