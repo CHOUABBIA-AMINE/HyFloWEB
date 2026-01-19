@@ -74,6 +74,10 @@
     },
     "sections": {
       "basicInformation": "Informations de Base",
+      "personalInformation": "Informations Personnelles",
+      "birthInformation": "Informations de Naissance",
+      "addressInformation": "Informations d'Adresse",
+      "employmentInformation": "Informations d'Emploi",
       "locationInformation": "Informations de Localisation",
       "organizationTechnical": "Organisation et Détails Techniques",
       "technicalDetails": "Détails Techniques",
@@ -441,18 +445,30 @@
     }
   },
   "employee": {
-    "title": "Employés",
+    "title": "Employé",
     "subtitle": "Gérer les dossiers et informations des employés",
     "searchPlaceholder": "Rechercher par nom ou numéro d'enregistrement...",
-    "firstNameAr": "Prénom en Arabe",
-    "lastNameAr": "Nom de Famille en Arabe",
-    "firstNameLt": "Prénom en Latin",
-    "lastNameLt": "Nom de Famille en Latin",
+    "firstNameAr": "Prénom (Arabe)",
+    "lastNameAr": "Nom (Arabe)",
+    "firstNameLt": "Prénom (Latin)",
+    "lastNameLt": "Nom (Latin)",
     "birthDate": "Date de Naissance",
     "birthPlace": "Lieu de Naissance",
+    "birthPlaceAr": "Lieu de Naissance (Arabe)",
+    "birthPlaceLt": "Lieu de Naissance (Latin)",
+    "birthLocality": "Localité de Naissance",
+    "addressLocality": "Localité d'Adresse",
+    "addressAr": "Adresse (Arabe)",
+    "addressLt": "Adresse (Latin)",
     "registrationNumber": "Numéro d'Enregistrement",
     "job": "Poste",
-    "militaryRank": "Rang Militaire"
+    "militaryRank": "Rang Militaire",
+    "password": "Mot de passe",
+    "enabled": "Activé",
+    "selectRoles": "Sélectionner les Rôles",
+    "selectRolesPlaceholder": "Choisir les rôles pour cet employé",
+    "selectGroups": "Sélectionner les Groupes",
+    "selectGroupsPlaceholder": "Choisir les groupes pour cet employé"
   },
   "auth": {
     "login": "Connexion",
@@ -557,13 +573,14 @@
     }
   },
   "user": {
-    "title": "Utilisateurs",
+    "title": "Utilisateur",
     "subtitle": "Gestion et organisation des comptes utilisateurs",
     "searchPlaceholder": "Rechercher par nom d'utilisateur ou e-mail...",
     "firstName": "Prénom",
     "lastName": "Nom",
     "email": "Email",
     "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
     "enabled": "Activé",
     "disabled": "Désactivé",
     "roles": "Rôles",
@@ -578,10 +595,12 @@
     "disabledDescription": "Le compte utilisateur est désactivé",
     "rolesAndGroups": "Rôles et Groupes",
     "selectRoles": "Sélectionner les rôles",
-    "selectGroups": "Sélectionner les groupes"
+    "selectGroups": "Sélectionner les groupes",
+    "selectRolesPlaceholder": "Choisir les rôles pour cet utilisateur",
+    "selectGroupsPlaceholder": "Choisir les groupes pour cet utilisateur"
   },
   "role": {
-    "title": "Rôles",
+    "title": "Rôle",
     "subtitle": "Gérer les rôles et permissions",
     "searchPlaceholder": "Rechercher des rôles par nom ou description...",
     "permissions": "Permissions",
@@ -591,7 +610,7 @@
     "selectedPermissionsCount": "Permissions Sélectionnées : {{count}}"
   },
   "group": {
-    "title": "Groupes",
+    "title": "Groupe",
     "subtitle": "Gérer les groupes d'utilisateurs",
     "searchPlaceholder": "Rechercher des groupes par nom ou description...",
     "users": "Utilisateurs",
