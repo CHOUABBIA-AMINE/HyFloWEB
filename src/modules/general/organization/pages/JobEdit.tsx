@@ -2,9 +2,10 @@
  * Job Edit/Create Page
  * 
  * @author CHOUABBIA Amine
- * @created 01-06-2026
- * @updated 01-08-2026 - Fixed structureId type handling
+ * @updated 01-19-2026 - Fixed translation keys for code and designation fields
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-08-2026 - Fixed structureId type handling
+ * @created 01-06-2026
  */
 
 import { useState, useEffect } from 'react';
@@ -32,10 +33,11 @@ import { JobService, StructureService } from '../services';
 import { JobDTO, StructureDTO } from '../dto';
 
 const JobEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { jobId } = useParams<{ jobId: string }>();
   const isEditMode = !!jobId;
+  const currentLanguage = i18n.language || 'en';
 
   const [job, setJob] = useState<Partial<JobDTO>>({
     code: '',
@@ -50,6 +52,23 @@ const JobEdit = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  /**
+   * Get localized designation based on current language
+   * Falls back to French -> English -> Arabic if current language not available
+   */
+  const getLocalizedDesignation = (item: StructureDTO): string => {
+    if (!item) return '';
+    
+    if (currentLanguage === 'ar') {
+      return item.designationAr || item.designationFr || item.designationEn || '-';
+    }
+    if (currentLanguage === 'en') {
+      return item.designationEn || item.designationFr || item.designationAr || '-';
+    }
+    // Default to French
+    return item.designationFr || item.designationEn || item.designationAr || '-';
+  };
 
   useEffect(() => {
     loadStructures();
@@ -235,7 +254,7 @@ const JobEdit = () => {
                   >
                     {structures.map((structure) => (
                       <MenuItem key={structure.id} value={structure.id}>
-                        {structure.designationFr}
+                        {structure.code} - {getLocalizedDesignation(structure)}
                       </MenuItem>
                     ))}
                   </TextField>
@@ -267,23 +286,23 @@ const JobEdit = () => {
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('common.fields.designationAr')}
-                    value={job.designationAr || ''}
-                    onChange={handleChange('designationAr')}
-                    error={!!validationErrors.designationAr}
-                    helperText={validationErrors.designationAr || t('common.fields.designationArHelper')}
-                    inputProps={{ dir: 'rtl' }}
+                    label={t('common.fields.designationEn')}
+                    value={job.designationEn || ''}
+                    onChange={handleChange('designationEn')}
+                    error={!!validationErrors.designationEn}
+                    helperText={validationErrors.designationEn || t('common.fields.designationEnHelper')}
                   />
                 </Grid>
 
                 <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
-                    label={t('common.fields.designationEn')}
-                    value={job.designationEn || ''}
-                    onChange={handleChange('designationEn')}
-                    error={!!validationErrors.designationEn}
-                    helperText={validationErrors.designationEn || t('common.fields.designationEnHelper')}
+                    label={t('common.fields.designationAr')}
+                    value={job.designationAr || ''}
+                    onChange={handleChange('designationAr')}
+                    error={!!validationErrors.designationAr}
+                    helperText={validationErrors.designationAr || t('common.fields.designationArHelper')}
+                    inputProps={{ dir: 'rtl' }}
                   />
                 </Grid>
               </Grid>
