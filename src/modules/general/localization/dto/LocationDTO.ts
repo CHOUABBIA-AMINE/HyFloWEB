@@ -2,6 +2,7 @@
  * Location DTO - Localization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocationDTO
+ * Updated: 01-19-2026 - Fixed property name designationEN -> designationEn
  * Updated: 01-07-2026 - Synced with backend U-005 update
  * 
  * Backend Updates History:
@@ -24,8 +25,10 @@ export interface LocationDTO {
   // Core fields
   sequence: number; // @NotBlank (required)
   designationAr: string; //
-  designationEN: string; // 
+  designationEn: string; // Fixed: lowercase 'n' to match backend
   designationFr: string; // @NotBlank, max 100 chars (renamed from 'code' in U-005)
+  state: string; // State field
+  district: string; // District field
   latitude: number; // @NotNull (required)
   longitude: number; // @NotNull (required)
   elevation?: number; // Optional
@@ -56,12 +59,12 @@ export const validateLocationDTO = (data: Partial<LocationDTO>): string[] => {
   }
   
   // Place name validation (renamed from 'code')
-  if (data.designationAr.length > 100) {
+  if (data.designationAr && data.designationAr.length > 100) {
     errors.push("Designation (Ar) must not exceed 100 characters");
   }
   
   // Place name validation (renamed from 'code')
-  if (data.designationEn.length > 100) {
+  if (data.designationEn && data.designationEn.length > 100) {
     errors.push("Designation (En) must not exceed 100 characters");
   }
   
@@ -70,6 +73,16 @@ export const validateLocationDTO = (data: Partial<LocationDTO>): string[] => {
     errors.push("Place name is required");
   } else if (data.designationFr.length > 100) {
     errors.push("Place name must not exceed 100 characters");
+  }
+  
+  // State validation
+  if (!data.state) {
+    errors.push("State is required");
+  }
+  
+  // District validation (required if state is present)
+  if (data.state && !data.district) {
+    errors.push("District is required when state is specified");
   }
   
   // Latitude validation
