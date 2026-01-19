@@ -4,8 +4,14 @@
  * Based on PipelineSystemEdit.tsx pattern
  * Aligned with LocationDTO schema
  *
+ * Changes:
+ * - Removed sequence field (hardcoded on backend)
+ * - Added state, district fields with cascading enable
+ * - State -> District -> Locality hierarchy
+ *
  * @author CHOUABBIA Amine
  * @created 01-19-2026
+ * @updated 01-19-2026
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -47,10 +53,11 @@ const LocationEdit = () => {
 
   // Form state - aligned with LocationDTO
   const [location, setLocation] = useState<Partial<LocationDTO>>({
-    sequence: 0,
     designationFr: '',
     designationEn: '',
     designationAr: '',
+    state: '',
+    district: '',
     latitude: 0,
     longitude: 0,
     elevation: 0,
@@ -71,6 +78,19 @@ const LocationEdit = () => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationId]);
+
+  // Reset dependent fields when parent changes
+  useEffect(() => {
+    if (!location.state) {
+      setLocation((prev) => ({ ...prev, district: '', localityId: 0 }));
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (!location.district) {
+      setLocation((prev) => ({ ...prev, localityId: 0 }));
+    }
+  }, [location.district]);
 
   const sortedLocalities = useMemo(
     () => sortByLocalizedName(localities, currentLanguage),
@@ -114,8 +134,12 @@ const LocationEdit = () => {
       errors.designationFr = t('common.validation.minLength', { field: t('common.fields.designationFr'), min: 2 });
     }
 
-    if (location.sequence === undefined || location.sequence === null || location.sequence < 0) {
-      errors.sequence = t('common.validation.required', { field: 'Sequence' });
+    if (!location.state || location.state.trim().length === 0) {
+      errors.state = t('common.validation.required', { field: t('common.fields.state') });
+    }
+
+    if (location.state && (!location.district || location.district.trim().length === 0)) {
+      errors.district = t('common.validation.required', { field: t('common.fields.district') });
     }
 
     if (location.latitude === undefined || location.latitude === null) {
@@ -154,10 +178,11 @@ const LocationEdit = () => {
 
       const payload: LocationDTO = {
         id: isEditMode ? Number(locationId) : 0,
-        sequence: Number(location.sequence || 0),
         designationFr: String(location.designationFr || ''),
         designationEn: String(location.designationEn || ''),
         designationAr: String(location.designationAr || ''),
+        state: String(location.state || ''),
+        district: String(location.district || ''),
         latitude: Number(location.latitude),
         longitude: Number(location.longitude),
         elevation: location.elevation ? Number(location.elevation) : undefined,
@@ -268,19 +293,6 @@ const LocationEdit = () => {
                         helperText={t('common.fields.designationArHelper')}
                       />
                     </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        type="number"
-                        label="Sequence"
-                        value={location.sequence || 0}
-                        onChange={handleChange('sequence')}
-                        required
-                        error={!!validationErrors.sequence}
-                        helperText={validationErrors.sequence}
-                      />
-                    </Grid>
                   </Grid>
                 </Box>
               </Paper>
@@ -293,6 +305,68 @@ const LocationEdit = () => {
                   <Divider sx={{ mb: 3 }} />
 
                   <Grid container spacing={3}>
+                    {/* State - Always Enabled */}
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label={t('common.fields.state')}
+                        value={location.state || ''}
+                        onChange={handleChange('state')}
+                        required
+                        error={!!validationErrors.state}
+                        helperText={validationErrors.state || t('common.fields.state')}
+                      />
+                    </Grid>
+
+                    {/* District - Enabled only when State has value */}
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        label={t('common.fields.district')}
+                        value={location.district || ''}
+                        onChange={handleChange('district')}
+                        disabled={!location.state}
+                        required={!!location.state}
+                        error={!!validationErrors.district}
+                        helperText={
+                          validationErrors.district ||
+                          (!location.state
+                            ? `${t('common.fields.state')} required`
+                            : t('common.fields.district'))
+                        }
+                      />
+                    </Grid>
+
+                    {/* Locality - Enabled only when District has value */}
+                    <Grid item xs={12} md={4}>
+                      <TextField
+                        fullWidth
+                        select
+                        label={t('common.fields.locality')}
+                        value={location.localityId || ''}
+                        onChange={handleChange('localityId')}
+                        disabled={!location.district}
+                        helperText={
+                          !location.district
+                            ? `${t('common.fields.district')} required`
+                            : t('common.fields.locality')
+                        }
+                      >
+                        <MenuItem value="">
+                          <em>{t('common.none')}</em>
+                        </MenuItem>
+                        {sortedLocalities.length > 0 ? (
+                          sortedLocalities.map((locality) => (
+                            <MenuItem key={locality.id} value={locality.id}>
+                              {getLocalizedName(locality, currentLanguage)}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>{t('common.loading')}</MenuItem>
+                        )}
+                      </TextField>
+                    </Grid>
+
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
@@ -331,29 +405,6 @@ const LocationEdit = () => {
                         helperText={t('common.fields.elevationHelper')}
                         inputProps={{ step: 'any' }}
                       />
-                    </Grid>
-
-                    <Grid item xs={12} md={6}>
-                      <TextField
-                        fullWidth
-                        select
-                        label={t('common.fields.locality')}
-                        value={location.localityId || ''}
-                        onChange={handleChange('localityId')}
-                      >
-                        <MenuItem value="">
-                          <em>{t('common.none')}</em>
-                        </MenuItem>
-                        {sortedLocalities.length > 0 ? (
-                          sortedLocalities.map((locality) => (
-                            <MenuItem key={locality.id} value={locality.id}>
-                              {getLocalizedName(locality, currentLanguage)}
-                            </MenuItem>
-                          ))
-                        ) : (
-                          <MenuItem disabled>{t('common.loading')}</MenuItem>
-                        )}
-                      </TextField>
                     </Grid>
                   </Grid>
                 </Box>

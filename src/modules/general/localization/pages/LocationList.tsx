@@ -9,8 +9,13 @@
  * - Professional UI/UX
  * - Comprehensive i18n - 100% coverage
  *
+ * Changes:
+ * - Removed sequence column from list and export
+ * - Added state and district columns
+ *
  * @author CHOUABBIA Amine
  * @created 01-19-2026
+ * @updated 01-19-2026
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -75,7 +80,7 @@ const LocationList = () => {
     page: 0,
     pageSize: 10,
   });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'sequence', sort: 'asc' }]);
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'designationFr', sort: 'asc' }]);
   const [totalRows, setTotalRows] = useState(0);
 
   useEffect(() => {
@@ -85,7 +90,7 @@ const LocationList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const sortField = sortModel.length > 0 ? sortModel[0].field : 'sequence';
+      const sortField = sortModel.length > 0 ? sortModel[0].field : 'designationFr';
       const sortDir = sortModel.length > 0 ? sortModel[0].sort || 'asc' : 'asc';
 
       const pageable = {
@@ -145,32 +150,36 @@ const LocationList = () => {
   const handleExportMenuClose = () => setExportAnchorEl(null);
 
   const exportColumns: ExportColumn[] = [
-    { header: 'Sequence', key: 'sequence', width: 10 },
     {
       header: t('list.name', 'Name'),
       key: 'designationFr',
       width: 30,
     },
     {
-      header: t('common.fields.latitude', 'Latitude'),
-      key: 'latitude',
+      header: t('common.fields.state', 'State'),
+      key: 'state',
       width: 15,
     },
     {
-      header: t('common.fields.longitude', 'Longitude'),
-      key: 'longitude',
+      header: t('common.fields.district', 'District'),
+      key: 'district',
       width: 15,
-    },
-    {
-      header: t('common.fields.elevation', 'Elevation'),
-      key: 'elevation',
-      width: 10,
     },
     {
       header: t('list.locality', 'Locality'),
       key: 'locality',
       width: 20,
       transform: (value) => (value ? getMultiLangDesignation(value, lang) : '-'),
+    },
+    {
+      header: t('common.fields.latitude', 'Latitude'),
+      key: 'latitude',
+      width: 10,
+    },
+    {
+      header: t('common.fields.longitude', 'Longitude'),
+      key: 'longitude',
+      width: 10,
     },
   ];
 
@@ -214,14 +223,6 @@ const LocationList = () => {
   const columns: GridColDef[] = useMemo(
     () => [
       {
-        field: 'sequence',
-        headerName: 'Sequence',
-        width: 100,
-        renderCell: (params) => (
-          <Chip label={params.value} size="small" variant="outlined" sx={{ fontWeight: 600 }} />
-        ),
-      },
-      {
         field: 'designationFr',
         headerName: t('list.name', 'Name'),
         minWidth: 250,
@@ -233,6 +234,39 @@ const LocationList = () => {
               {params.value}
             </Typography>
           </Box>
+        ),
+      },
+      {
+        field: 'state',
+        headerName: t('common.fields.state', 'State'),
+        width: 150,
+        renderCell: (params) => (
+          <Typography variant="body2" color="text.secondary">
+            {params.value || '-'}
+          </Typography>
+        ),
+      },
+      {
+        field: 'district',
+        headerName: t('common.fields.district', 'District'),
+        width: 150,
+        renderCell: (params) => (
+          <Typography variant="body2" color="text.secondary">
+            {params.value || '-'}
+          </Typography>
+        ),
+      },
+      {
+        field: 'locality',
+        headerName: t('list.locality', 'Locality'),
+        minWidth: 180,
+        flex: 1,
+        valueGetter: (params) =>
+          params.row.locality ? getMultiLangDesignation(params.row.locality, lang) : '-',
+        renderCell: (params) => (
+          <Typography variant="body2" color="text.secondary">
+            {params.value}
+          </Typography>
         ),
       },
       {
@@ -252,29 +286,6 @@ const LocationList = () => {
         renderCell: (params) => (
           <Typography variant="body2" color="text.secondary">
             {params.value?.toFixed(6) || '-'}
-          </Typography>
-        ),
-      },
-      {
-        field: 'elevation',
-        headerName: t('common.fields.elevation', 'Elevation'),
-        width: 100,
-        renderCell: (params) => (
-          <Typography variant="body2" color="text.secondary">
-            {params.value ? `${params.value} m` : '-'}
-          </Typography>
-        ),
-      },
-      {
-        field: 'locality',
-        headerName: t('list.locality', 'Locality'),
-        minWidth: 180,
-        flex: 1,
-        valueGetter: (params) =>
-          params.row.locality ? getMultiLangDesignation(params.row.locality, lang) : '-',
-        renderCell: (params) => (
-          <Typography variant="body2" color="text.secondary">
-            {params.value}
           </Typography>
         ),
       },
