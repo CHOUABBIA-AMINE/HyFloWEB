@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Fixed: use FileService for picture upload, store pictureId
  * @updated 01-19-2026 - Fixed: separate picture upload endpoint from employee data
  * @updated 01-19-2026 - Adjusted picture layout: next to 3 rows (Ar names, Lt names, Country)
  * @updated 01-19-2026 - Adjusted picture layout: next to names, clickable avatar area
@@ -71,6 +72,7 @@ import {
   DistrictService,
   LocalityService 
 } from '../../localization/services';
+import { FileService } from '../../system/utility/services';
 import {
   EmployeeDTO,
   JobDTO,
@@ -121,6 +123,7 @@ const EmployeeEdit = () => {
     birthLocalityId: undefined,
     addressLocalityId: undefined,
     jobId: undefined,
+    pictureId: undefined,
   });
 
   // Lookup data
@@ -281,9 +284,10 @@ const EmployeeEdit = () => {
       const data = await EmployeeService.getById(Number(id));
       setFormData(data);
       
-      // If employee has a picture URL, set it as preview
-      if (data.pictureUrl) {
-        setPicturePreview(data.pictureUrl);
+      // If employee has a picture, load the preview URL
+      if (data.picture?.id) {
+        const pictureUrl = FileService.getFileUrl(data.picture.id);
+        setPicturePreview(pictureUrl);
       }
       
       // If employee has a job, load the job's structure and jobs for that structure
@@ -352,6 +356,7 @@ const EmployeeEdit = () => {
     e.stopPropagation();
     setPictureFile(null);
     setPicturePreview(null);
+    setFormData((prev) => ({ ...prev, pictureId: undefined }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -379,18 +384,23 @@ const EmployeeEdit = () => {
       setSaving(true);
       setError(null);
 
-      let savedEmployee: EmployeeDTO;
-
-      // Step 1: Save/update employee data (JSON)
-      if (isEditMode && id) {
-        savedEmployee = await EmployeeService.update(Number(id), formData);
-      } else {
-        savedEmployee = await EmployeeService.create(formData);
+      // Step 1: Upload picture if selected (using FileService)
+      let pictureId = formData.pictureId;
+      if (pictureFile) {
+        const uploadedFile = await FileService.upload(pictureFile, 'EMPLOYEE_PICTURE');
+        pictureId = uploadedFile.id;
       }
 
-      // Step 2: Upload picture if selected (separate endpoint)
-      if (pictureFile && savedEmployee.id) {
-        await EmployeeService.uploadPicture(savedEmployee.id, pictureFile);
+      // Step 2: Save/update employee data with pictureId
+      const employeeData: EmployeeDTO = {
+        ...formData,
+        pictureId,
+      };
+
+      if (isEditMode && id) {
+        await EmployeeService.update(Number(id), employeeData);
+      } else {
+        await EmployeeService.create(employeeData);
       }
 
       setSuccess(true);
