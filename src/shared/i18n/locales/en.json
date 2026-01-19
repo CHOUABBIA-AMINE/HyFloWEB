@@ -63,6 +63,8 @@
       "capacity": "Capacity",
       "capacityHelper": "Maximum capacity or throughput",
       "status": "Status",
+      "sequence": "Sequence",
+      "sequenceHelper": "Numeric order or priority",
       "designationFr": "Designation (French)",
       "designationFrHelper": "Required - French designation",
       "designationEn": "Designation (English)",
@@ -123,6 +125,8 @@
     "type": "Type",
     "status": "Status",
     "location": "Location",
+    "locality": "Locality",
+    "sequence": "Sequence",
     "actions": "Actions",
     "country": "Country",
     "vendor": "Vendor",
@@ -192,6 +196,11 @@
     "deleted": "Deleted",
     "success": "Success",
     "error": "Error"
+  },
+  "location": {
+    "title": "Locations",
+    "subtitle": "Manage geographic locations and places",
+    "searchPlaceholder": "Search by code, designation, or locality..."
   },
   "product": {
     "title": "Products",
