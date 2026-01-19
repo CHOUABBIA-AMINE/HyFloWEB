@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing groups
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-19-2026 - Aligned with GroupDTO changes: users -> roles
  * @updated 01-19-2026 - Fixed Chip key prop warning in Autocomplete
  * @updated 01-18-2026 - Optimized to use common translation keys
  * @updated 01-08-2026 - Fixed type inference for users
@@ -31,12 +32,13 @@ import {
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
 } from '@mui/icons-material';
-import { groupService, userService } from '../services';
-import { GroupDTO, UserDTO } from '../dto';
+import { groupService, roleService } from '../services';
+import { GroupDTO, RoleDTO } from '../dto';
 
-interface UserOption {
+interface RoleOption {
   id: number;
-  username: string;
+  name: string;
+  description?: string;
 }
 
 const GroupEdit = () => {
@@ -49,11 +51,11 @@ const GroupEdit = () => {
   const [group, setGroup] = useState<Partial<GroupDTO>>({
     name: '',
     description: '',
-    users: [],
+    roles: [],
   });
 
   // Available options
-  const [availableUsers, setAvailableUsers] = useState<UserOption[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<RoleOption[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -69,16 +71,17 @@ const GroupEdit = () => {
     try {
       setLoading(true);
       
-      // Load users with explicit type
-      const usersData = await userService.getAll().catch(() => [] as UserDTO[]);
+      // Load roles with explicit type
+      const rolesData = await roleService.getAll().catch(() => [] as RoleDTO[]);
 
-      // Map to UserOption format
-      const userOptions = usersData.map((user: UserDTO) => ({
-        id: user.id,
-        username: user.username,
+      // Map to RoleOption format
+      const roleOptions = rolesData.map((role: RoleDTO) => ({
+        id: role.id,
+        name: role.name,
+        description: role.description,
       }));
 
-      setAvailableUsers(userOptions);
+      setAvailableRoles(roleOptions);
 
       // Load group if editing
       if (isEditMode) {
@@ -117,8 +120,8 @@ const GroupEdit = () => {
     }
   };
 
-  const handleUsersChange = (_event: any, newValue: UserOption[]) => {
-    setGroup({ ...group, users: newValue });
+  const handleRolesChange = (_event: any, newValue: RoleOption[]) => {
+    setGroup({ ...group, roles: newValue });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,8 +137,8 @@ const GroupEdit = () => {
 
       const groupData: any = {
         ...group,
-        // Convert user objects to IDs if needed
-        userIds: group.users?.map(u => u.id),
+        // Convert role objects to IDs if needed
+        roleIds: group.roles?.map(r => r.id),
       };
 
       if (isEditMode) {
@@ -236,11 +239,11 @@ const GroupEdit = () => {
             </Box>
           </Paper>
 
-          {/* Users */}
+          {/* Roles */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('group.users')}
+                {t('group.roles')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -248,15 +251,15 @@ const GroupEdit = () => {
                 <Grid item xs={12}>
                   <Autocomplete
                     multiple
-                    options={availableUsers}
-                    getOptionLabel={(option) => option.username}
-                    value={group.users || []}
-                    onChange={handleUsersChange}
+                    options={availableRoles}
+                    getOptionLabel={(option) => option.name}
+                    value={group.roles || []}
+                    onChange={handleRolesChange}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label={t('group.users')}
-                        placeholder={t('group.selectUsers')}
+                        label={t('group.roles')}
+                        placeholder={t('group.selectRoles')}
                       />
                     )}
                     renderTags={(value, getTagProps) =>
@@ -265,27 +268,41 @@ const GroupEdit = () => {
                         return (
                           <Chip
                             key={key}
-                            label={option.username}
+                            label={option.name}
                             {...tagProps}
                             size="small"
                           />
                         );
                       })
                     }
+                    renderOption={(props, option) => (
+                      <li {...props}>
+                        <Box>
+                          <Typography variant="body2" fontWeight={500}>
+                            {option.name}
+                          </Typography>
+                          {option.description && (
+                            <Typography variant="caption" color="text.secondary">
+                              {option.description}
+                            </Typography>
+                          )}
+                        </Box>
+                      </li>
+                    )}
                   />
                 </Grid>
 
-                {group.users && group.users.length > 0 && (
+                {group.roles && group.roles.length > 0 && (
                   <Grid item xs={12}>
                     <Alert severity="info" icon={false}>
                       <Typography variant="body2" fontWeight={500} gutterBottom>
-                        {t('group.selectedUsersCount', { count: group.users.length })}
+                        {t('group.selectedRolesCount', { count: group.roles.length })}
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
-                        {group.users.map((user) => (
+                        {group.roles.map((role) => (
                           <Chip
-                            key={user.id}
-                            label={user.username}
+                            key={role.id}
+                            label={role.name}
                             size="small"
                             variant="outlined"
                             color="primary"
