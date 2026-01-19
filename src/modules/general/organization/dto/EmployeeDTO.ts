@@ -2,6 +2,7 @@
  * Employee DTO - Organization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.EmployeeDTO
+ * Updated: 01-19-2026 - Changed State to Locality (birthLocality, addressLocality)
  * Updated: 01-08-2026 - Fixed FileDTO import path
  * 
  * IMPORTANT: Backend uses FLAT structure (no inheritance from PersonDTO)
@@ -12,7 +13,7 @@
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
-import { StateDTO } from '../../localization/dto/StateDTO';
+import { LocalityDTO } from '../../localization/dto/LocalityDTO';
 import { CountryDTO } from '../../localization/dto/CountryDTO';
 import { JobDTO } from './JobDTO';
 import { FileDTO } from '../../../system/utility/dto/FileDTO';
@@ -42,15 +43,15 @@ export interface EmployeeDTO {
   registrationNumber?: string; // max 50 chars
 
   // Relationship IDs (from backend)
-  birthStateId?: number;
-  addressStateId?: number;
+  birthLocalityId?: number;
+  addressLocalityId?: number;
   countryId?: number;
   pictureId?: number;
   jobId?: number; // Employee-specific
 
   // Nested Objects (optional, populated in responses)
-  birthState?: StateDTO;
-  addressState?: StateDTO;
+  birthLocality?: LocalityDTO;
+  addressLocality?: LocalityDTO;
   country?: CountryDTO;
   picture?: FileDTO;
   job?: JobDTO; // Employee-specific

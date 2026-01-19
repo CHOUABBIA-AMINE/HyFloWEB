@@ -2,6 +2,7 @@
  * Person DTO - Organization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.organization.dto.PersonDTO
+ * Updated: 01-19-2026 - Changed State to Locality (birthLocality, addressLocality)
  * Updated: 01-08-2026 - Fixed FileDTO import path
  * 
  * UPDATE U-003: Arabic names are now OPTIONAL (not required)
@@ -9,7 +10,7 @@
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
-import { StateDTO } from '../../localization/dto/StateDTO';
+import { LocalityDTO } from '../../localization/dto/LocalityDTO';
 import { CountryDTO } from '../../localization/dto/CountryDTO';
 import { FileDTO } from '../../../system/utility/dto/FileDTO';
 
@@ -35,14 +36,14 @@ export interface PersonDTO {
   addressLt?: string; // max 200 chars
 
   // Relationship IDs (from backend)
-  birthStateId?: number;
-  addressStateId?: number;
+  birthLocalityId?: number;
+  addressLocalityId?: number;
   countryId?: number;
   pictureId?: number;
 
   // Nested Objects (optional, populated in responses)
-  birthState?: StateDTO;
-  addressState?: StateDTO;
+  birthLocality?: LocalityDTO;
+  addressLocality?: LocalityDTO;
   country?: CountryDTO;
   picture?: FileDTO;
 }
