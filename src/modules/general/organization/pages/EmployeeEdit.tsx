@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Added cascading State→District→Locality selectors for birth and address
  * @updated 01-19-2026 - Added missing fields: birthPlaceAr, addressAr, addressLt, localities
  * @updated 01-19-2026 - Confirmed alignment with EmployeeDTO (Locality fields)
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
@@ -40,13 +41,23 @@ import {
   StructureService,
   JobService,
 } from '../services';
-import { CountryService, LocalityService } from '../../localization/services';
+import { 
+  CountryService, 
+  StateService,
+  DistrictService,
+  LocalityService 
+} from '../../localization/services';
 import {
   EmployeeDTO,
   JobDTO,
   StructureDTO,
 } from '../dto';
-import { CountryDTO, LocalityDTO } from '../../localization/dto';
+import { 
+  CountryDTO, 
+  StateDTO,
+  DistrictDTO,
+  LocalityDTO 
+} from '../../localization/dto';
 
 type HasDesignation = {
   designationAr?: string;
@@ -87,7 +98,20 @@ const EmployeeEdit = () => {
   const [structures, setStructures] = useState<StructureDTO[]>([]);
   const [jobs, setJobs] = useState<JobDTO[]>([]);
   const [countries, setCountries] = useState<CountryDTO[]>([]);
-  const [localities, setLocalities] = useState<LocalityDTO[]>([]);
+  const [states, setStates] = useState<StateDTO[]>([]);
+  
+  // Cascading selectors for birth location
+  const [birthStateId, setBirthStateId] = useState<number | undefined>(undefined);
+  const [birthDistrictId, setBirthDistrictId] = useState<number | undefined>(undefined);
+  const [birthDistricts, setBirthDistricts] = useState<DistrictDTO[]>([]);
+  const [birthLocalities, setBirthLocalities] = useState<LocalityDTO[]>([]);
+  
+  // Cascading selectors for address location
+  const [addressStateId, setAddressStateId] = useState<number | undefined>(undefined);
+  const [addressDistrictId, setAddressDistrictId] = useState<number | undefined>(undefined);
+  const [addressDistricts, setAddressDistricts] = useState<DistrictDTO[]>([]);
+  const [addressLocalities, setAddressLocalities] = useState<LocalityDTO[]>([]);
+  
   const [selectedStructureId, setSelectedStructureId] = useState<number | undefined>(undefined);
 
   // Form validation
@@ -130,17 +154,91 @@ const EmployeeEdit = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStructureId]);
 
+  // Load birth districts when birth state changes
+  useEffect(() => {
+    if (!birthStateId) {
+      setBirthDistricts([]);
+      setBirthDistrictId(undefined);
+      setBirthLocalities([]);
+      return;
+    }
+
+    (async () => {
+      try {
+        const districts = await DistrictService.findByState(birthStateId);
+        setBirthDistricts(districts);
+      } catch (err) {
+        console.error('Error loading birth districts:', err);
+      }
+    })();
+  }, [birthStateId]);
+
+  // Load birth localities when birth district changes
+  useEffect(() => {
+    if (!birthDistrictId) {
+      setBirthLocalities([]);
+      setFormData((prev) => ({ ...prev, birthLocalityId: undefined }));
+      return;
+    }
+
+    (async () => {
+      try {
+        const localities = await LocalityService.findByDistrict(birthDistrictId);
+        setBirthLocalities(localities);
+      } catch (err) {
+        console.error('Error loading birth localities:', err);
+      }
+    })();
+  }, [birthDistrictId]);
+
+  // Load address districts when address state changes
+  useEffect(() => {
+    if (!addressStateId) {
+      setAddressDistricts([]);
+      setAddressDistrictId(undefined);
+      setAddressLocalities([]);
+      return;
+    }
+
+    (async () => {
+      try {
+        const districts = await DistrictService.findByState(addressStateId);
+        setAddressDistricts(districts);
+      } catch (err) {
+        console.error('Error loading address districts:', err);
+      }
+    })();
+  }, [addressStateId]);
+
+  // Load address localities when address district changes
+  useEffect(() => {
+    if (!addressDistrictId) {
+      setAddressLocalities([]);
+      setFormData((prev) => ({ ...prev, addressLocalityId: undefined }));
+      return;
+    }
+
+    (async () => {
+      try {
+        const localities = await LocalityService.findByDistrict(addressDistrictId);
+        setAddressLocalities(localities);
+      } catch (err) {
+        console.error('Error loading address localities:', err);
+      }
+    })();
+  }, [addressDistrictId]);
+
   const loadInitialLookupData = async () => {
     try {
-      const [structuresList, countriesList, localitiesList] = await Promise.all([
+      const [structuresList, countriesList, statesList] = await Promise.all([
         StructureService.getAllNoPagination(),
         CountryService.getAllNoPagination(),
-        LocalityService.getAllNoPagination(),
+        StateService.getAllNoPagination(),
       ]);
       
       setStructures(structuresList);
       setCountries(countriesList);
-      setLocalities(localitiesList);
+      setStates(statesList);
     } catch (err) {
       console.error('Error loading lookup data:', err);
       setError(t('common.errors.loadingDataFailed'));
@@ -157,6 +255,26 @@ const EmployeeEdit = () => {
       // If employee has a job, load the job's structure and jobs for that structure
       if (data.job && data.job.structureId) {
         setSelectedStructureId(data.job.structureId);
+      }
+
+      // Load cascading data for birth location if locality exists
+      if (data.birthLocality?.district?.stateId) {
+        const stateId = data.birthLocality.district.stateId;
+        setBirthStateId(stateId);
+        
+        if (data.birthLocality.districtId) {
+          setBirthDistrictId(data.birthLocality.districtId);
+        }
+      }
+
+      // Load cascading data for address location if locality exists
+      if (data.addressLocality?.district?.stateId) {
+        const stateId = data.addressLocality.district.stateId;
+        setAddressStateId(stateId);
+        
+        if (data.addressLocality.districtId) {
+          setAddressDistrictId(data.addressLocality.districtId);
+        }
       }
     } catch (err) {
       console.error('Error loading employee:', err);
@@ -332,8 +450,58 @@ const EmployeeEdit = () => {
                 />
               </Grid>
 
+              {/* Birth Location Cascading: State → District → Locality */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
+                  <InputLabel>{t('common.fields.state')}</InputLabel>
+                  <Select
+                    value={birthStateId || ''}
+                    onChange={(e) => {
+                      const stateId = e.target.value ? Number(e.target.value) : undefined;
+                      setBirthStateId(stateId);
+                      setBirthDistrictId(undefined);
+                      handleChange('birthLocalityId', undefined);
+                    }}
+                    label={t('common.fields.state')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {states.map((state) => (
+                      <MenuItem key={state.id} value={state.id}>
+                        {getDesignation(state)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth disabled={!birthStateId}>
+                  <InputLabel>{t('common.fields.district')}</InputLabel>
+                  <Select
+                    value={birthDistrictId || ''}
+                    onChange={(e) => {
+                      const districtId = e.target.value ? Number(e.target.value) : undefined;
+                      setBirthDistrictId(districtId);
+                      handleChange('birthLocalityId', undefined);
+                    }}
+                    label={t('common.fields.district')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {birthDistricts.map((district) => (
+                      <MenuItem key={district.id} value={district.id}>
+                        {getDesignation(district)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth disabled={!birthDistrictId}>
                   <InputLabel>{t('employee.birthLocality')}</InputLabel>
                   <Select
                     value={formData.birthLocalityId || ''}
@@ -343,7 +511,7 @@ const EmployeeEdit = () => {
                     <MenuItem value="">
                       <em>{t('common.actions.selectNone')}</em>
                     </MenuItem>
-                    {localities.map((locality) => (
+                    {birthLocalities.map((locality) => (
                       <MenuItem key={locality.id} value={locality.id}>
                         {getDesignation(locality)}
                       </MenuItem>
@@ -379,8 +547,58 @@ const EmployeeEdit = () => {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
 
+              {/* Address Location Cascading: State → District → Locality */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
+                  <InputLabel>{t('common.fields.state')}</InputLabel>
+                  <Select
+                    value={addressStateId || ''}
+                    onChange={(e) => {
+                      const stateId = e.target.value ? Number(e.target.value) : undefined;
+                      setAddressStateId(stateId);
+                      setAddressDistrictId(undefined);
+                      handleChange('addressLocalityId', undefined);
+                    }}
+                    label={t('common.fields.state')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {states.map((state) => (
+                      <MenuItem key={state.id} value={state.id}>
+                        {getDesignation(state)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth disabled={!addressStateId}>
+                  <InputLabel>{t('common.fields.district')}</InputLabel>
+                  <Select
+                    value={addressDistrictId || ''}
+                    onChange={(e) => {
+                      const districtId = e.target.value ? Number(e.target.value) : undefined;
+                      setAddressDistrictId(districtId);
+                      handleChange('addressLocalityId', undefined);
+                    }}
+                    label={t('common.fields.district')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {addressDistricts.map((district) => (
+                      <MenuItem key={district.id} value={district.id}>
+                        {getDesignation(district)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth disabled={!addressDistrictId}>
                   <InputLabel>{t('employee.addressLocality')}</InputLabel>
                   <Select
                     value={formData.addressLocalityId || ''}
@@ -390,7 +608,7 @@ const EmployeeEdit = () => {
                     <MenuItem value="">
                       <em>{t('common.actions.selectNone')}</em>
                     </MenuItem>
-                    {localities.map((locality) => (
+                    {addressLocalities.map((locality) => (
                       <MenuItem key={locality.id} value={locality.id}>
                         {getDesignation(locality)}
                       </MenuItem>
@@ -459,7 +677,7 @@ const EmployeeEdit = () => {
                 />
               </Grid>
 
-              {/* Structure -> Job (dependent) */}
+              {/* Structure → Job (dependent) */}
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>{t('common.fields.structure')}</InputLabel>
