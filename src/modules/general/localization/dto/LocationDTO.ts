@@ -2,6 +2,7 @@
  * Location DTO - Localization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocationDTO
+ * Updated: 01-19-2026 - Removed sequence field (was removed from backend)
  * Updated: 01-19-2026 - Removed state/district (derived from locality hierarchy)
  * Updated: 01-07-2026 - Synced with backend U-005 update
  * 
@@ -12,6 +13,7 @@
  *   • Renamed code → placeName
  *   • REMOVED facilityId (relationship inverted - Facility now has locationId)
  *   • Location is now an independent entity
+ * - U-006 (Jan 19, 2026): REMOVED sequence field from backend
  * 
  * Note: state and district are NOT stored in Location entity.
  * They are derived from: Location → Locality → District → State
@@ -41,6 +43,8 @@ export interface LocationDTO {
   
   // REMOVED in U-005: facilityId
   // Note: Relationship inverted - Facility now has locationId, not Location has facilityId
+  
+  // REMOVED in U-006: sequence field
   
   // NOTE: state and district are NOT fields in Location entity
   // They are derived from the hierarchy: Location → Locality → District → State

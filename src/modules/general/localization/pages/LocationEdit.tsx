@@ -4,9 +4,10 @@
  * Based on PipelineSystemEdit.tsx pattern
  * Aligned with LocationDTO schema
  *
- * Note: State and district are UI-only fields for filtering localities.
- * They are not saved to the Location entity - only localityId is saved.
- * The hierarchy is: Location → Locality → District → State
+ * Note: 
+ * - State and district are UI-only fields for filtering localities.
+ * - They are not saved to the Location entity - only localityId is saved.
+ * - The hierarchy is: Location → Locality → District → State
  *
  * @author CHOUABBIA Amine
  * @created 01-19-2026
@@ -200,7 +201,6 @@ const LocationEdit = () => {
 
       const payload: LocationDTO = {
         id: isEditMode ? Number(locationId) : 0,
-        sequence: Number(location.sequence || 0),
         designationFr: String(location.designationFr || ''),
         designationEn: String(location.designationEn || ''),
         designationAr: String(location.designationAr || ''),
