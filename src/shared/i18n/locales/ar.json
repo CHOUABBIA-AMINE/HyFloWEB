@@ -70,6 +70,10 @@
     },
     "sections": {
       "basicInformation": "المعلومات الأساسية",
+      "personalInformation": "المعلومات الشخصية",
+      "birthInformation": "معلومات الميلاد",
+      "addressInformation": "معلومات العنوان",
+      "employmentInformation": "معلومات التوظيف",
       "locationInformation": "معلومات الموقع",
       "organizationTechnical": "التنظيم والتفاصيل التقنية",
       "technicalDetails": "التفاصيل التقنية",
@@ -439,7 +443,7 @@
     }
   },
   "employee": {
-    "title": "الموظفون",
+    "title": "الموظف",
     "subtitle": "إدارة سجلات ومعلومات الموظفين",
     "searchPlaceholder": "البحث بالاسم أو رقم التسجيل...",
     "firstNameAr": "الاسم الأول بالعربية",
@@ -448,9 +452,21 @@
     "lastNameLt": "اسم العائلة باللاتينية",
     "birthDate": "تاريخ الميلاد",
     "birthPlace": "مكان الميلاد",
+    "birthPlaceAr": "مكان الميلاد (عربي)",
+    "birthPlaceLt": "مكان الميلاد (لاتيني)",
+    "birthLocality": "منطقة الميلاد",
+    "addressLocality": "منطقة العنوان",
+    "addressAr": "العنوان (عربي)",
+    "addressLt": "العنوان (لاتيني)",
     "registrationNumber": "رقم التسجيل",
     "job": "الوظيفة",
-    "militaryRank": "الرتبة العسكرية"
+    "militaryRank": "الرتبة العسكرية",
+    "password": "كلمة المرور",
+    "enabled": "مفعل",
+    "selectRoles": "اختر الأدوار",
+    "selectRolesPlaceholder": "اختر الأدوار لهذا الموظف",
+    "selectGroups": "اختر المجموعات",
+    "selectGroupsPlaceholder": "اختر المجموعات لهذا الموظف"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -555,13 +571,14 @@
     }
   },
   "user": {
-    "title": "المستخدمون",
+    "title": "المستخدم",
     "subtitle": "إدارة وتنظيم حسابات المستخدمين",
     "searchPlaceholder": "البحث باسم المستخدم أو البريد الإلكتروني...",
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
     "email": "البريد الإلكتروني",
     "username": "اسم المستخدم",
+    "password": "كلمة المرور",
     "enabled": "مفعل",
     "disabled": "معطل",
     "roles": "الأدوار",
@@ -576,10 +593,12 @@
 	"disabledDescription": "حساب المستخدم معطل",
 	"rolesAndGroups": "الأدوار والمجموعات",
 	"selectRoles": "اختر الأدوار",
-	"selectGroups": "اختر المجموعات"
+	"selectGroups": "اختر المجموعات",
+	"selectRolesPlaceholder": "اختر الأدوار لهذا المستخدم",
+	"selectGroupsPlaceholder": "اختر المجموعات لهذا المستخدم"
   },
   "role": {
-    "title": "الأدوار",
+    "title": "الدور",
     "subtitle": "إدارة الأدوار والصلاحيات",
     "searchPlaceholder": "البحث عن الأدوار بالاسم أو الوصف...",
     "permissions": "الصلاحيات",
@@ -589,7 +608,7 @@
     "selectedPermissionsCount": "الصلاحيات المحددة: {{count}}"
   },
   "group": {
-    "title": "المجموعات",
+    "title": "المجموعة",
     "subtitle": "إدارة مجموعات المستخدمين",
     "searchPlaceholder": "البحث عن المجموعات بالاسم أو الوصف...",
     "users": "المستخدمون",
