@@ -151,7 +151,8 @@
     "permissions": "Permissions",
     "users": "Users",
     "noPermissions": "No permissions",
-    "noUsers": "No users"
+    "noUsers": "No users",
+    "noRoles": "No roles"
   },
   "action": {
     "create": "Create",
@@ -594,10 +595,13 @@
     "subtitle": "Manage user groups",
     "searchPlaceholder": "Search groups by name or description...",
     "users": "Users",
+    "roles": "Roles",
     "description": "Description",
     "descriptionPlaceholder": "Describe the group and its purpose",
     "selectUsers": "Select users",
-    "selectedUsersCount": "Selected Users: {{count}}"
+    "selectRoles": "Select roles",
+    "selectedUsersCount": "Selected Users: {{count}}",
+    "selectedRolesCount": "Selected Roles: {{count}}"
   },
   "footer": {
     "copyright": "© {{year}} HyFlo Platform. All rights reserved."
