@@ -7,6 +7,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-08-2026
+ * @updated 01-19-2026 - Fixed getFileUrl to return full API URL
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -75,8 +76,10 @@ export class FileService {
 
   /**
    * Get file URL for display
+   * Returns full API URL including baseURL from axios instance
    */
   static getFileUrl(id: number): string {
-    return `${BASE_URL}/${id}/view`;
+    const baseURL = axiosInstance.defaults.baseURL || 'http://localhost:8080/hyflo/api';
+    return `${baseURL}${BASE_URL}/${id}/view`;
   }
 }
