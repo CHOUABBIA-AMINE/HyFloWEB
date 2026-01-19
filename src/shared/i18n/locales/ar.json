@@ -150,7 +150,8 @@
     "permissions": "الصلاحيات",
     "users": "المستخدمون",
     "noPermissions": "لا توجد صلاحيات",
-    "noUsers": "لا يوجد مستخدمون"
+    "noUsers": "لا يوجد مستخدمون",
+    "noRoles": "لا توجد أدوار"
   },
   "action": {
     "create": "إنشاء",
@@ -582,14 +583,23 @@
     "subtitle": "إدارة الأدوار والصلاحيات",
     "searchPlaceholder": "البحث عن الأدوار بالاسم أو الوصف...",
     "permissions": "الصلاحيات",
-    "description": "الوصف"
+    "description": "الوصف",
+    "descriptionPlaceholder": "وصف الدور والغرض منه",
+    "selectPermissions": "اختر الصلاحيات",
+    "selectedPermissionsCount": "الصلاحيات المحددة: {{count}}"
   },
   "group": {
     "title": "المجموعات",
     "subtitle": "إدارة مجموعات المستخدمين",
     "searchPlaceholder": "البحث عن المجموعات بالاسم أو الوصف...",
     "users": "المستخدمون",
-    "description": "الوصف"
+    "roles": "الأدوار",
+    "description": "الوصف",
+    "descriptionPlaceholder": "وصف المجموعة والغرض منها",
+    "selectUsers": "اختر المستخدمين",
+    "selectRoles": "اختر الأدوار",
+    "selectedUsersCount": "المستخدمون المحددون: {{count}}",
+    "selectedRolesCount": "الأدوار المحددة: {{count}}"
   },
   "footer": {
     "copyright": "© {{year}} منصة HyFlo. جميع الحقوق محفوظة."

@@ -151,7 +151,8 @@
     "permissions": "Autorisations",
     "users": "Utilisateurs",
     "noPermissions": "Aucune autorisation",
-    "noUsers": "Aucun utilisateur"
+    "noUsers": "Aucun utilisateur",
+    "noRoles": "Aucun rôle"
   },
   "action": {
     "create": "Créer",
@@ -594,10 +595,13 @@
     "subtitle": "Gérer les groupes d'utilisateurs",
     "searchPlaceholder": "Rechercher des groupes par nom ou description...",
     "users": "Utilisateurs",
+    "roles": "Rôles",
     "description": "Description",
     "descriptionPlaceholder": "Décrire le groupe et son objectif",
     "selectUsers": "Sélectionner les utilisateurs",
-    "selectedUsersCount": "Utilisateurs Sélectionnés : {{count}}"
+    "selectRoles": "Sélectionner les rôles",
+    "selectedUsersCount": "Utilisateurs Sélectionnés : {{count}}",
+    "selectedRolesCount": "Rôles Sélectionnés : {{count}}"
   },
   "footer": {
     "copyright": "© {{year}} Plateforme HyFlo. Tous droits réservés."
