@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Fixed FileService import path
  * @updated 01-19-2026 - Fixed: use FileService for picture upload, store pictureId
  * @updated 01-19-2026 - Fixed: separate picture upload endpoint from employee data
  * @updated 01-19-2026 - Adjusted picture layout: next to 3 rows (Ar names, Lt names, Country)
@@ -72,7 +73,7 @@ import {
   DistrictService,
   LocalityService 
 } from '../../localization/services';
-import { FileService } from '../../system/utility/services';
+import { FileService } from '../../../system/utility/services';
 import {
   EmployeeDTO,
   JobDTO,
