@@ -11,7 +11,7 @@
  *
  * Changes:
  * - Removed sequence column from list and export
- * - Added state and district columns
+ * - Display state and district from locality hierarchy
  *
  * @author CHOUABBIA Amine
  * @created 01-19-2026
@@ -63,6 +63,7 @@ import {
   getMultiLangDesignation,
   ExportColumn,
 } from '@/shared/utils/exportUtils';
+import { getLocalizedName } from '../utils/localizationUtils';
 
 const LocationList = () => {
   const { t, i18n } = useTranslation();
@@ -157,13 +158,15 @@ const LocationList = () => {
     },
     {
       header: t('common.fields.state', 'State'),
-      key: 'state',
+      key: 'locality',
       width: 15,
+      transform: (value) => value?.district?.state ? getLocalizedName(value.district.state, lang) : '-',
     },
     {
       header: t('common.fields.district', 'District'),
-      key: 'district',
+      key: 'locality',
       width: 15,
+      transform: (value) => value?.district ? getLocalizedName(value.district, lang) : '-',
     },
     {
       header: t('list.locality', 'Locality'),
@@ -240,9 +243,11 @@ const LocationList = () => {
         field: 'state',
         headerName: t('common.fields.state', 'State'),
         width: 150,
+        valueGetter: (params) =>
+          params.row.locality?.district?.state ? getLocalizedName(params.row.locality.district.state, lang) : '-',
         renderCell: (params) => (
           <Typography variant="body2" color="text.secondary">
-            {params.value || '-'}
+            {params.value}
           </Typography>
         ),
       },
@@ -250,9 +255,11 @@ const LocationList = () => {
         field: 'district',
         headerName: t('common.fields.district', 'District'),
         width: 150,
+        valueGetter: (params) =>
+          params.row.locality?.district ? getLocalizedName(params.row.locality.district, lang) : '-',
         renderCell: (params) => (
           <Typography variant="body2" color="text.secondary">
-            {params.value || '-'}
+            {params.value}
           </Typography>
         ),
       },

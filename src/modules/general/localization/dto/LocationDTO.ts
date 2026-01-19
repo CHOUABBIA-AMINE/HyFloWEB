@@ -2,7 +2,7 @@
  * Location DTO - Localization Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.general.localization.dto.LocationDTO
- * Updated: 01-19-2026 - Fixed property name designationEN -> designationEn
+ * Updated: 01-19-2026 - Removed state/district (derived from locality hierarchy)
  * Updated: 01-07-2026 - Synced with backend U-005 update
  * 
  * Backend Updates History:
@@ -12,6 +12,9 @@
  *   • Renamed code → placeName
  *   • REMOVED facilityId (relationship inverted - Facility now has locationId)
  *   • Location is now an independent entity
+ * 
+ * Note: state and district are NOT stored in Location entity.
+ * They are derived from: Location → Locality → District → State
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -23,11 +26,10 @@ export interface LocationDTO {
   id?: number;
 
   // Core fields
-  designationAr: string; //
-  designationEn: string; // Fixed: lowercase 'n' to match backend
-  designationFr: string; // @NotBlank, max 100 chars (renamed from 'code' in U-005)
-  state: string; // State field
-  district: string; // District field
+  sequence: number; // @NotBlank (required)
+  designationAr: string;
+  designationEn: string;
+  designationFr: string; // @NotBlank, max 100 chars
   latitude: number; // @NotNull (required)
   longitude: number; // @NotNull (required)
   elevation?: number; // Optional
@@ -40,6 +42,10 @@ export interface LocationDTO {
   
   // REMOVED in U-005: facilityId
   // Note: Relationship inverted - Facility now has locationId, not Location has facilityId
+  
+  // NOTE: state and district are NOT fields in Location entity
+  // They are derived from the hierarchy: Location → Locality → District → State
+  // Access via: location.locality?.district?.state
 }
 
 /**
@@ -50,31 +56,26 @@ export interface LocationDTO {
 export const validateLocationDTO = (data: Partial<LocationDTO>): string[] => {
   const errors: string[] = [];
   
-  // Place name validation (renamed from 'code')
+  // Sequence validation
+  if (data.sequence === undefined || data.sequence === null) {
+    errors.push("Sequence is required");
+  } else if (data.sequence < 0) {
+    errors.push("Sequence must be a non-negative number");
+  }
+  
+  // Designation validations
   if (data.designationAr && data.designationAr.length > 100) {
     errors.push("Designation (Ar) must not exceed 100 characters");
   }
   
-  // Place name validation (renamed from 'code')
   if (data.designationEn && data.designationEn.length > 100) {
     errors.push("Designation (En) must not exceed 100 characters");
   }
   
-  // Place name validation (renamed from 'code')
   if (!data.designationFr) {
-    errors.push("Place name is required");
+    errors.push("Designation (Fr) is required");
   } else if (data.designationFr.length > 100) {
-    errors.push("Place name must not exceed 100 characters");
-  }
-  
-  // State validation
-  if (!data.state) {
-    errors.push("State is required");
-  }
-  
-  // District validation (required if state is present)
-  if (data.state && !data.district) {
-    errors.push("District is required when state is specified");
+    errors.push("Designation (Fr) must not exceed 100 characters");
   }
   
   // Latitude validation
