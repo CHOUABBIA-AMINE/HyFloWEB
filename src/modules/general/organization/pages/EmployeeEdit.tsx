@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Added missing fields: birthPlaceAr, addressAr, addressLt, localities
  * @updated 01-19-2026 - Confirmed alignment with EmployeeDTO (Locality fields)
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-18-2026 - Fixed translation key paths to match established pattern
@@ -11,11 +12,6 @@
  * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
  * @updated 01-01-2026 - Dependent selects (Structure→Job)
  * @updated 01-01-2026 - Align routes and translation keys
- * 
- * Note: EmployeeDTO now uses LocalityDTO instead of StateDTO for:
- * - birthLocalityId / birthLocality (optional)
- * - addressLocalityId / addressLocality (optional)
- * These fields are available but not currently displayed in the form.
  */
 
 import { useMemo, useState, useEffect } from 'react';
@@ -36,6 +32,7 @@ import {
   Select,
   MenuItem,
   Grid,
+  Divider,
 } from '@mui/material';
 import { Save as SaveIcon, ArrowBack as BackIcon } from '@mui/icons-material';
 import {
@@ -43,13 +40,13 @@ import {
   StructureService,
   JobService,
 } from '../services';
-import { CountryService } from '../../localization/services';
+import { CountryService, LocalityService } from '../../localization/services';
 import {
   EmployeeDTO,
   JobDTO,
   StructureDTO,
 } from '../dto';
-import { CountryDTO } from '../../localization/dto';
+import { CountryDTO, LocalityDTO } from '../../localization/dto';
 
 type HasDesignation = {
   designationAr?: string;
@@ -75,9 +72,14 @@ const EmployeeEdit = () => {
     lastNameLt: '',
     firstNameLt: '',
     birthDate: '',
+    birthPlaceAr: '',
     birthPlaceLt: '',
+    addressAr: '',
+    addressLt: '',
     registrationNumber: '',
     countryId: undefined,
+    birthLocalityId: undefined,
+    addressLocalityId: undefined,
     jobId: undefined,
   });
 
@@ -85,6 +87,7 @@ const EmployeeEdit = () => {
   const [structures, setStructures] = useState<StructureDTO[]>([]);
   const [jobs, setJobs] = useState<JobDTO[]>([]);
   const [countries, setCountries] = useState<CountryDTO[]>([]);
+  const [localities, setLocalities] = useState<LocalityDTO[]>([]);
   const [selectedStructureId, setSelectedStructureId] = useState<number | undefined>(undefined);
 
   // Form validation
@@ -129,13 +132,15 @@ const EmployeeEdit = () => {
 
   const loadInitialLookupData = async () => {
     try {
-      const [structuresList, countriesList] = await Promise.all([
+      const [structuresList, countriesList, localitiesList] = await Promise.all([
         StructureService.getAllNoPagination(),
         CountryService.getAllNoPagination(),
+        LocalityService.getAllNoPagination(),
       ]);
       
       setStructures(structuresList);
       setCountries(countriesList);
+      setLocalities(localitiesList);
     } catch (err) {
       console.error('Error loading lookup data:', err);
       setError(t('common.errors.loadingDataFailed'));
@@ -256,6 +261,15 @@ const EmployeeEdit = () => {
 
           <Box component="form" onSubmit={handleSubmit}>
             <Grid container spacing={3}>
+              {/* Personal Information Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  {t('common.sections.personalInformation')}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+
+              {/* Arabic Names */}
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -275,6 +289,7 @@ const EmployeeEdit = () => {
                 />
               </Grid>
 
+              {/* Latin Names (Required) */}
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -298,6 +313,14 @@ const EmployeeEdit = () => {
                 />
               </Grid>
 
+              {/* Birth Information Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                  {t('common.sections.birthInformation')}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -308,16 +331,74 @@ const EmployeeEdit = () => {
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>{t('employee.birthLocality')}</InputLabel>
+                  <Select
+                    value={formData.birthLocalityId || ''}
+                    onChange={(e) => handleChange('birthLocalityId', e.target.value || undefined)}
+                    label={t('employee.birthLocality')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {localities.map((locality) => (
+                      <MenuItem key={locality.id} value={locality.id}>
+                        {getDesignation(locality)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label={t('employee.birthPlace')}
+                  label={t('employee.birthPlaceAr')}
+                  value={formData.birthPlaceAr || ''}
+                  onChange={(e) => handleChange('birthPlaceAr', e.target.value)}
+                  inputProps={{ dir: 'rtl' }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label={t('employee.birthPlaceLt')}
                   value={formData.birthPlaceLt || ''}
                   onChange={(e) => handleChange('birthPlaceLt', e.target.value)}
                 />
               </Grid>
 
-              {/* Country (multilingual designation) */}
+              {/* Address Information Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                  {t('common.sections.addressInformation')}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>{t('employee.addressLocality')}</InputLabel>
+                  <Select
+                    value={formData.addressLocalityId || ''}
+                    onChange={(e) => handleChange('addressLocalityId', e.target.value || undefined)}
+                    label={t('employee.addressLocality')}
+                  >
+                    <MenuItem value="">
+                      <em>{t('common.actions.selectNone')}</em>
+                    </MenuItem>
+                    {localities.map((locality) => (
+                      <MenuItem key={locality.id} value={locality.id}>
+                        {getDesignation(locality)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>{t('common.fields.country')}</InputLabel>
@@ -336,6 +417,37 @@ const EmployeeEdit = () => {
                     ))}
                   </Select>
                 </FormControl>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label={t('employee.addressAr')}
+                  value={formData.addressAr || ''}
+                  onChange={(e) => handleChange('addressAr', e.target.value)}
+                  inputProps={{ dir: 'rtl' }}
+                  multiline
+                  rows={2}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label={t('employee.addressLt')}
+                  value={formData.addressLt || ''}
+                  onChange={(e) => handleChange('addressLt', e.target.value)}
+                  multiline
+                  rows={2}
+                />
+              </Grid>
+
+              {/* Employment Information Section */}
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                  {t('common.sections.employmentInformation')}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
               </Grid>
 
               <Grid item xs={12} md={6}>
