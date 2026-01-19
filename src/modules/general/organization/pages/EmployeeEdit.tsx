@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Added picture upload field with preview
  * @updated 01-19-2026 - Fixed layout: Birth Date separate, State/District/Locality on own row
  * @updated 01-19-2026 - Reorganized layout: Country after names, State/District/Locality in one row
  * @updated 01-19-2026 - Added cascading State→District→Locality selectors for birth and address
@@ -17,6 +18,9 @@
  * @updated 01-01-2026 - Align routes and translation keys
  * 
  * Required Translation Keys:
+ * - employee.picture
+ * - employee.uploadPicture
+ * - employee.changePicture
  * - employee.birthLocality
  * - employee.addressLocality
  * - employee.birthPlaceAr
@@ -25,7 +29,7 @@
  * - employee.addressLt
  */
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -44,8 +48,15 @@ import {
   MenuItem,
   Grid,
   Divider,
+  Avatar,
+  IconButton,
 } from '@mui/material';
-import { Save as SaveIcon, ArrowBack as BackIcon } from '@mui/icons-material';
+import { 
+  Save as SaveIcon, 
+  ArrowBack as BackIcon,
+  PhotoCamera as PhotoCameraIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material';
 import {
   EmployeeService,
   StructureService,
@@ -80,11 +91,16 @@ const EmployeeEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Picture state
+  const [pictureFile, setPictureFile] = useState<File | null>(null);
+  const [picturePreview, setPicturePreview] = useState<string | null>(null);
 
   // Form data
   const [formData, setFormData] = useState<EmployeeDTO>({
@@ -262,6 +278,11 @@ const EmployeeEdit = () => {
       const data = await EmployeeService.getById(Number(id));
       setFormData(data);
       
+      // If employee has a picture URL, set it as preview
+      if (data.pictureUrl) {
+        setPicturePreview(data.pictureUrl);
+      }
+      
       // If employee has a job, load the job's structure and jobs for that structure
       if (data.job && data.job.structureId) {
         setSelectedStructureId(data.job.structureId);
@@ -294,6 +315,40 @@ const EmployeeEdit = () => {
     }
   };
 
+  const handlePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError(t('common.errors.invalidFileType'));
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError(t('common.errors.fileTooLarge'));
+        return;
+      }
+
+      setPictureFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPicturePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePicture = () => {
+    setPictureFile(null);
+    setPicturePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -316,10 +371,26 @@ const EmployeeEdit = () => {
       setSaving(true);
       setError(null);
 
+      // Create FormData for multipart/form-data submission
+      const submitData = new FormData();
+      
+      // Append all form fields
+      Object.keys(formData).forEach((key) => {
+        const value = formData[key as keyof EmployeeDTO];
+        if (value !== undefined && value !== null && value !== '') {
+          submitData.append(key, String(value));
+        }
+      });
+
+      // Append picture file if selected
+      if (pictureFile) {
+        submitData.append('picture', pictureFile);
+      }
+
       if (isEditMode && id) {
-        await EmployeeService.update(Number(id), formData);
+        await EmployeeService.update(Number(id), submitData);
       } else {
-        await EmployeeService.create(formData);
+        await EmployeeService.create(submitData);
       }
 
       setSuccess(true);
@@ -395,6 +466,51 @@ const EmployeeEdit = () => {
                   {t('common.sections.personalInformation')}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
+              </Grid>
+
+              {/* Picture Upload */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar
+                    src={picturePreview || undefined}
+                    sx={{ width: 120, height: 120 }}
+                  >
+                    {!picturePreview && (
+                      <Typography variant="h3" color="text.secondary">
+                        {formData.firstNameLt?.[0]?.toUpperCase() || '?'}
+                      </Typography>
+                    )}
+                  </Avatar>
+                  <Box>
+                    <input
+                      ref={fileInputRef}
+                      accept="image/*"
+                      type="file"
+                      hidden
+                      onChange={handlePictureChange}
+                      id="picture-upload"
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <label htmlFor="picture-upload">
+                        <Button
+                          variant="outlined"
+                          component="span"
+                          startIcon={<PhotoCameraIcon />}
+                        >
+                          {picturePreview ? t('employee.changePicture') : t('employee.uploadPicture')}
+                        </Button>
+                      </label>
+                      {picturePreview && (
+                        <IconButton color="error" onClick={handleRemovePicture}>
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
+                    </Stack>
+                    <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                      {t('common.validation.maxFileSize', { size: '5MB' })}
+                    </Typography>
+                  </Box>
+                </Box>
               </Grid>
 
               {/* Arabic Names */}
