@@ -4,8 +4,9 @@
  * Handles transformation between backend JSON responses and frontend TypeScript interfaces
  * for Organization module entities: Job, Structure, Person, Employee
  * 
+ * Updated: 01-19-2026 - Changed State to Locality (birthLocality, addressLocality)
  * Updated: 01-07-2026 - Synced with backend U-002 update
- * - Added support for nested objects (birthState, addressState, country, picture, job)
+ * - Added support for nested objects (birthLocality, addressLocality, country, picture, job)
  * - Removed createdAt/updatedAt (not in backend DTOs)
  * 
  * @author CHOUABBIA Amine
@@ -122,13 +123,13 @@ export class OrganizationMapper {
       birthPlaceLt: data.birthPlaceLt,
       addressAr: data.addressAr,
       addressLt: data.addressLt,
-      birthStateId: data.birthStateId,
-      addressStateId: data.addressStateId,
+      birthLocalityId: data.birthLocalityId,
+      addressLocalityId: data.addressLocalityId,
       countryId: data.countryId,
       pictureId: data.pictureId,
       // Nested objects (populated from backend if available)
-      birthState: data.birthState,
-      addressState: data.addressState,
+      birthLocality: data.birthLocality,
+      addressLocality: data.addressLocality,
       country: data.country,
       picture: data.picture,
     };
@@ -150,8 +151,8 @@ export class OrganizationMapper {
       birthPlaceLt: data.birthPlaceLt,
       addressAr: data.addressAr,
       addressLt: data.addressLt,
-      birthStateId: data.birthStateId,
-      addressStateId: data.addressStateId,
+      birthLocalityId: data.birthLocalityId,
+      addressLocalityId: data.addressLocalityId,
       countryId: data.countryId,
       pictureId: data.pictureId,
     };
@@ -188,14 +189,14 @@ export class OrganizationMapper {
       addressAr: data.addressAr,
       addressLt: data.addressLt,
       registrationNumber: data.registrationNumber,
-      birthStateId: data.birthStateId,
-      addressStateId: data.addressStateId,
+      birthLocalityId: data.birthLocalityId,
+      addressLocalityId: data.addressLocalityId,
       countryId: data.countryId,
       pictureId: data.pictureId,
       jobId: data.jobId,
       // Nested objects (populated from backend if available)
-      birthState: data.birthState,
-      addressState: data.addressState,
+      birthLocality: data.birthLocality,
+      addressLocality: data.addressLocality,
       country: data.country,
       picture: data.picture,
       job: data.job,
@@ -219,8 +220,8 @@ export class OrganizationMapper {
       addressAr: data.addressAr,
       addressLt: data.addressLt,
       registrationNumber: data.registrationNumber,
-      birthStateId: data.birthStateId,
-      addressStateId: data.addressStateId,
+      birthLocalityId: data.birthLocalityId,
+      addressLocalityId: data.addressLocalityId,
       countryId: data.countryId,
       pictureId: data.pictureId,
       jobId: data.jobId,
