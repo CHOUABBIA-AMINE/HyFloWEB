@@ -103,7 +103,8 @@
       "formInvalid": "Please fill in all required fields",
       "codeRequired": "Code is required",
       "nameRequired": "Name is required",
-      "designationFrRequired": "French designation is required"
+      "designationFrRequired": "French designation is required",
+      "maxFileSize": "Maximum file size: {{size}}"
     },
     "page": {
       "createTitle": "Create {{entity}}",
@@ -115,7 +116,9 @@
       "loadingDataFailed": "Failed to load data",
       "loadingFailed": "Failed to load",
       "savingFailed": "Failed to save",
-      "validationFailed": "Please fill in all required fields"
+      "validationFailed": "Please fill in all required fields",
+      "invalidFileType": "Invalid file type. Please select an image file.",
+      "fileTooLarge": "File is too large. Maximum size is 5MB."
     },
     "messages": {
       "createSuccess": "Created successfully",
@@ -449,6 +452,9 @@
     "title": "Employee",
     "subtitle": "Manage employee records and information",
     "searchPlaceholder": "Search by name or registration number...",
+    "picture": "Picture",
+    "uploadPicture": "Upload Picture",
+    "changePicture": "Change Picture",
     "firstNameAr": "First Name (Arabic)",
     "lastNameAr": "Last Name (Arabic)",
     "firstNameLt": "First Name (Latin)",
