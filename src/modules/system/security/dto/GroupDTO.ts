@@ -1,19 +1,19 @@
 /**
  * Group DTO
- * Matches backend: dz.mdn.iaas.system.security.dto.GroupDTO
+ * Matches backend: dz.sh.trc.hyflo.system.security.dto.GroupDTO
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-19-2026 - Aligned with backend: changed users to roles
  * @created 12-22-2025
  */
 
+import { RoleDTO } from './RoleDTO';
+
 export interface GroupDTO {
-  id: number;
+  id?: number;
   name: string;
   description?: string;
-  users?: Array<{
-    id: number;
-    username: string;
-  }>;
+  roles?: RoleDTO[];
 }
 
 export default GroupDTO;
