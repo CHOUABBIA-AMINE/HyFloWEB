@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Fixed layout: Birth Date separate, State/District/Locality on own row
  * @updated 01-19-2026 - Reorganized layout: Country after names, State/District/Locality in one row
  * @updated 01-19-2026 - Added cascading State→District→Locality selectors for birth and address
  * @updated 01-19-2026 - Added missing fields: birthPlaceAr, addressAr, addressLt, localities
@@ -469,7 +470,8 @@ const EmployeeEdit = () => {
                 <Divider sx={{ mb: 2 }} />
               </Grid>
 
-              <Grid item xs={12} md={6}>
+              {/* Birth Date - Separate row */}
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   type="date"
@@ -550,6 +552,7 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
 
+              {/* Birth Places */}
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -647,6 +650,7 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
 
+              {/* Addresses */}
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
