@@ -74,6 +74,10 @@
     },
     "sections": {
       "basicInformation": "Basic Information",
+      "personalInformation": "Personal Information",
+      "birthInformation": "Birth Information",
+      "addressInformation": "Address Information",
+      "employmentInformation": "Employment Information",
       "locationInformation": "Location Information",
       "organizationTechnical": "Organization & Technical Details",
       "technicalDetails": "Technical Details",
@@ -95,6 +99,7 @@
       "invalidFormat": "Invalid {{field}} format",
       "dateFormat": "Date must be in YYYY-MM-DD format",
       "emailInvalid": "Invalid email address",
+      "invalidEmail": "Invalid email address",
       "formInvalid": "Please fill in all required fields",
       "codeRequired": "Code is required",
       "nameRequired": "Name is required",
@@ -441,7 +446,7 @@
     }
   },
   "employee": {
-    "title": "Employees",
+    "title": "Employee",
     "subtitle": "Manage employee records and information",
     "searchPlaceholder": "Search by name or registration number...",
     "firstNameAr": "First Name (Arabic)",
@@ -450,9 +455,21 @@
     "lastNameLt": "Last Name (Latin)",
     "birthDate": "Birth Date",
     "birthPlace": "Birth Place",
+    "birthPlaceAr": "Birth Place (Arabic)",
+    "birthPlaceLt": "Birth Place (Latin)",
+    "birthLocality": "Birth Locality",
+    "addressLocality": "Address Locality",
+    "addressAr": "Address (Arabic)",
+    "addressLt": "Address (Latin)",
     "registrationNumber": "Registration Number",
     "job": "Job",
-    "militaryRank": "Military Rank"
+    "militaryRank": "Military Rank",
+    "password": "Password",
+    "enabled": "Enabled",
+    "selectRoles": "Select Roles",
+    "selectRolesPlaceholder": "Choose roles for this employee",
+    "selectGroups": "Select Groups",
+    "selectGroupsPlaceholder": "Choose groups for this employee"
   },
   "auth": {
     "login": "Login",
@@ -557,13 +574,14 @@
     }
   },
   "user": {
-    "title": "Users",
+    "title": "User",
     "subtitle": "Manage and organize user accounts",
     "searchPlaceholder": "Search by username or email...",
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email",
     "username": "Username",
+    "password": "Password",
     "usernameCannotChange": "Username cannot be changed",
     "enabled": "Enabled",
     "disabled": "Disabled",
@@ -574,6 +592,8 @@
     "rolesAndGroups": "Roles & Groups",
     "selectRoles": "Select roles",
     "selectGroups": "Select groups",
+    "selectRolesPlaceholder": "Choose roles for this user",
+    "selectGroupsPlaceholder": "Choose groups for this user",
     "createdAt": "Created At",
     "updatedAt": "Updated At",
     "lastLogin": "Last Login",
@@ -581,7 +601,7 @@
     "filterByRole": "Filter by Role"
   },
   "role": {
-    "title": "Roles",
+    "title": "Role",
     "subtitle": "Manage roles and permissions",
     "searchPlaceholder": "Search roles by name or description...",
     "permissions": "Permissions",
@@ -591,7 +611,7 @@
     "selectedPermissionsCount": "Selected Permissions: {{count}}"
   },
   "group": {
-    "title": "Groups",
+    "title": "Group",
     "subtitle": "Manage user groups",
     "searchPlaceholder": "Search groups by name or description...",
     "users": "Users",
