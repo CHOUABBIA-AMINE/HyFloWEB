@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-19-2026 - Fixed password field and DTO type alignment
  * @updated 01-19-2026 - Fixed TypeScript errors: Handle optional id in DTOs
  * @updated 01-18-2026 - Optimized to use common translation keys
  * @updated 01-06-2026 - Enhanced with professional UI and role/group management
@@ -48,14 +49,19 @@ interface GroupOption {
   description?: string;
 }
 
+// Extended UserDTO for form state (includes password for creation)
+interface UserFormData extends Partial<UserDTO> {
+  password?: string;
+}
+
 const UserEdit = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const isEditMode = !!userId;
 
-  // Form state
-  const [user, setUser] = useState<Partial<UserDTO>>({
+  // Form state with password field for creation
+  const [user, setUser] = useState<UserFormData>({
     username: '',
     email: '',
     password: '',
@@ -146,7 +152,7 @@ const UserEdit = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (field: keyof UserDTO) => (e: any) => {
+  const handleChange = (field: keyof UserFormData) => (e: any) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setUser({ ...user, [field]: value });
     
@@ -157,23 +163,23 @@ const UserEdit = () => {
   };
 
   const handleRolesChange = (_event: any, newValue: RoleOption[]) => {
-    // Convert RoleOption[] to RoleDTO[] for the DTO
-    const roleDTOs: RoleDTO[] = newValue.map(option => ({
+    // UserDTO expects inline type for roles
+    const roles = newValue.map(option => ({
       id: option.id,
       name: option.name,
       description: option.description,
     }));
-    setUser({ ...user, roles: roleDTOs });
+    setUser({ ...user, roles });
   };
 
   const handleGroupsChange = (_event: any, newValue: GroupOption[]) => {
-    // Convert GroupOption[] to GroupDTO[] for the DTO
-    const groupDTOs: GroupDTO[] = newValue.map(option => ({
+    // UserDTO expects inline type for groups
+    const groups = newValue.map(option => ({
       id: option.id,
       name: option.name,
       description: option.description,
     }));
-    setUser({ ...user, groups: groupDTOs });
+    setUser({ ...user, groups });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -194,6 +200,8 @@ const UserEdit = () => {
       };
 
       if (isEditMode) {
+        // Remove password from update payload
+        delete userData.password;
         await userService.update(Number(userId), userData);
       } else {
         await userService.create(userData);
