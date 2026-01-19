@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-19-2026 - Fixed: separate picture upload endpoint from employee data
  * @updated 01-19-2026 - Adjusted picture layout: next to 3 rows (Ar names, Lt names, Country)
  * @updated 01-19-2026 - Adjusted picture layout: next to names, clickable avatar area
  * @updated 01-19-2026 - Added picture upload field with preview
@@ -378,26 +379,18 @@ const EmployeeEdit = () => {
       setSaving(true);
       setError(null);
 
-      // Create FormData for multipart/form-data submission
-      const submitData = new FormData();
-      
-      // Append all form fields
-      Object.keys(formData).forEach((key) => {
-        const value = formData[key as keyof EmployeeDTO];
-        if (value !== undefined && value !== null && value !== '') {
-          submitData.append(key, String(value));
-        }
-      });
+      let savedEmployee: EmployeeDTO;
 
-      // Append picture file if selected
-      if (pictureFile) {
-        submitData.append('picture', pictureFile);
+      // Step 1: Save/update employee data (JSON)
+      if (isEditMode && id) {
+        savedEmployee = await EmployeeService.update(Number(id), formData);
+      } else {
+        savedEmployee = await EmployeeService.create(formData);
       }
 
-      if (isEditMode && id) {
-        await EmployeeService.update(Number(id), submitData);
-      } else {
-        await EmployeeService.create(submitData);
+      // Step 2: Upload picture if selected (separate endpoint)
+      if (pictureFile && savedEmployee.id) {
+        await EmployeeService.uploadPicture(savedEmployee.id, pictureFile);
       }
 
       setSuccess(true);
