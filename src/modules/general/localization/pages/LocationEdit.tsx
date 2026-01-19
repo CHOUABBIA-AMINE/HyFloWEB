@@ -4,10 +4,12 @@
  * Based on PipelineSystemEdit.tsx pattern
  * Aligned with LocationDTO schema
  *
- * Note: 
- * - State and district are UI-only fields for filtering localities.
- * - They are not saved to the Location entity - only localityId is saved.
- * - The hierarchy is: Location → Locality → District → State
+ * Features:
+ * - Cascading dropdowns: State → District → Locality
+ * - State dropdown: all states
+ * - District dropdown: filtered by selected state
+ * - Locality dropdown: filtered by selected district
+ * - Only localityId is saved to Location entity
  *
  * @author CHOUABBIA Amine
  * @created 01-19-2026
@@ -39,7 +41,7 @@ import {
   Place as LocationIcon,
 } from '@mui/icons-material';
 
-import { LocationService, LocalityService } from '../services';
+import { LocationService, LocalityService, StateService, DistrictService } from '../services';
 import { LocationDTO } from '../dto/LocationDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -62,13 +64,13 @@ const LocationEdit = () => {
     localityId: 0,
   });
 
-  // UI-only fields for filtering localities (not saved to backend)
-  const [uiState, setUiState] = useState({
-    state: '',
-    district: '',
-  });
+  // Cascading filter state (not saved to backend)
+  const [selectedStateId, setSelectedStateId] = useState<number | ''>();
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | ''>();
 
   // Dropdown data
+  const [states, setStates] = useState<any[]>([]);
+  const [districts, setDistricts] = useState<any[]>([]);
   const [localities, setLocalities] = useState<any[]>([]);
 
   // UI state
@@ -83,38 +85,27 @@ const LocationEdit = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locationId]);
 
-  // Reset dependent fields when parent changes
+  // Reset dependent fields when state changes
   useEffect(() => {
-    if (!uiState.state) {
-      setUiState((prev) => ({ ...prev, district: '' }));
+    if (selectedStateId) {
+      loadDistrictsByState(selectedStateId);
+    } else {
+      setDistricts([]);
+      setSelectedDistrictId('');
+      setLocalities([]);
       setLocation((prev) => ({ ...prev, localityId: 0 }));
     }
-  }, [uiState.state]);
+  }, [selectedStateId]);
 
+  // Reset locality when district changes
   useEffect(() => {
-    if (!uiState.district) {
+    if (selectedDistrictId) {
+      loadLocalitiesByDistrict(selectedDistrictId);
+    } else {
+      setLocalities([]);
       setLocation((prev) => ({ ...prev, localityId: 0 }));
     }
-  }, [uiState.district]);
-
-  // Filter localities based on state and district
-  const filteredLocalities = useMemo(() => {
-    let filtered = localities;
-
-    if (uiState.state) {
-      filtered = filtered.filter(
-        (loc) => loc.district?.state?.designationFr?.toLowerCase().includes(uiState.state.toLowerCase())
-      );
-    }
-
-    if (uiState.district) {
-      filtered = filtered.filter(
-        (loc) => loc.district?.designationFr?.toLowerCase().includes(uiState.district.toLowerCase())
-      );
-    }
-
-    return sortByLocalizedName(filtered, currentLanguage);
-  }, [localities, uiState.state, uiState.district, currentLanguage]);
+  }, [selectedDistrictId]);
 
   const loadData = async () => {
     try {
@@ -125,23 +116,37 @@ const LocationEdit = () => {
         locationData = await LocationService.getById(Number(locationId));
       }
 
-      const [localitiesData] = await Promise.allSettled([
-        LocalityService.getAllNoPagination(),
+      // Load all states
+      const [statesData] = await Promise.allSettled([
+        StateService.getAllNoPagination(),
       ]);
 
-      // Localities: getAllNoPagination returns array directly
-      if (localitiesData.status === 'fulfilled') {
-        setLocalities(Array.isArray(localitiesData.value) ? localitiesData.value : []);
+      if (statesData.status === 'fulfilled') {
+        setStates(Array.isArray(statesData.value) ? statesData.value : []);
       }
 
       if (locationData) {
         setLocation(locationData);
-        // Pre-populate UI filters if locality is selected
+        
+        // Pre-populate cascading filters if locality is selected
         if (locationData.locality?.district?.state) {
-          setUiState({
-            state: getLocalizedName(locationData.locality.district.state, currentLanguage),
-            district: getLocalizedName(locationData.locality.district, currentLanguage),
-          });
+          const stateId = locationData.locality.district.state.id;
+          const districtId = locationData.locality.district.id;
+          
+          setSelectedStateId(stateId);
+          setSelectedDistrictId(districtId);
+          
+          // Load districts and localities for the selected state/district
+          if (stateId) {
+            const districtsData = await DistrictService.findByState(stateId);
+            setDistricts(districtsData);
+            
+            if (districtId) {
+              const localitiesData = await LocalityService.getAllNoPagination();
+              const filtered = localitiesData.filter((loc: any) => loc.districtId === districtId);
+              setLocalities(filtered);
+            }
+          }
         }
       }
 
@@ -150,6 +155,27 @@ const LocationEdit = () => {
       setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadDistrictsByState = async (stateId: number) => {
+    try {
+      const districtsData = await DistrictService.findByState(stateId);
+      setDistricts(districtsData);
+    } catch (err: any) {
+      console.error('Failed to load districts:', err);
+      setDistricts([]);
+    }
+  };
+
+  const loadLocalitiesByDistrict = async (districtId: number) => {
+    try {
+      const localitiesData = await LocalityService.getAllNoPagination();
+      const filtered = localitiesData.filter((loc: any) => loc.districtId === districtId);
+      setLocalities(filtered);
+    } catch (err: any) {
+      console.error('Failed to load localities:', err);
+      setLocalities([]);
     }
   };
 
@@ -185,9 +211,15 @@ const LocationEdit = () => {
     }
   };
 
-  const handleUiStateChange = (field: 'state' | 'district') => (e: any) => {
+  const handleStateChange = (e: any) => {
     const value = e.target.value;
-    setUiState((prev) => ({ ...prev, [field]: value }));
+    setSelectedStateId(value);
+    setSelectedDistrictId('');
+  };
+
+  const handleDistrictChange = (e: any) => {
+    const value = e.target.value;
+    setSelectedDistrictId(value);
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -228,6 +260,22 @@ const LocationEdit = () => {
   const handleCancel = () => {
     navigate('/general/localization/locations');
   };
+
+  // Sorted dropdown options
+  const sortedStates = useMemo(
+    () => sortByLocalizedName(states, currentLanguage),
+    [states, currentLanguage]
+  );
+
+  const sortedDistricts = useMemo(
+    () => sortByLocalizedName(districts, currentLanguage),
+    [districts, currentLanguage]
+  );
+
+  const sortedLocalities = useMemo(
+    () => sortByLocalizedName(localities, currentLanguage),
+    [localities, currentLanguage]
+  );
 
   if (loading) {
     return (
@@ -326,34 +374,54 @@ const LocationEdit = () => {
                   <Divider sx={{ mb: 3 }} />
 
                   <Grid container spacing={3}>
-                    {/* State - UI Filter Only (not saved) */}
+                    {/* State Dropdown - Always Enabled */}
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label={`${t('common.fields.state')} (${t('common.filter', 'Filter')})`}
-                        value={uiState.state}
-                        onChange={handleUiStateChange('state')}
-                        helperText={t('common.fields.stateFilterHelper', 'Filter localities by state')}
-                      />
+                        select
+                        label={t('common.fields.state')}
+                        value={selectedStateId || ''}
+                        onChange={handleStateChange}
+                        helperText={t('common.fields.stateHelper', 'Select a state to filter districts')}
+                      >
+                        <MenuItem value="">
+                          <em>{t('common.none')}</em>
+                        </MenuItem>
+                        {sortedStates.map((state) => (
+                          <MenuItem key={state.id} value={state.id}>
+                            {getLocalizedName(state, currentLanguage)}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     </Grid>
 
-                    {/* District - UI Filter Only (not saved) */}
+                    {/* District Dropdown - Enabled when State is selected */}
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
-                        label={`${t('common.fields.district')} (${t('common.filter', 'Filter')})`}
-                        value={uiState.district}
-                        onChange={handleUiStateChange('district')}
-                        disabled={!uiState.state}
+                        select
+                        label={t('common.fields.district')}
+                        value={selectedDistrictId || ''}
+                        onChange={handleDistrictChange}
+                        disabled={!selectedStateId}
                         helperText={
-                          !uiState.state
-                            ? `${t('common.fields.state')} filter required`
-                            : t('common.fields.districtFilterHelper', 'Filter localities by district')
+                          !selectedStateId
+                            ? t('common.selectParent', 'Select state first')
+                            : `${sortedDistricts.length} ${t('common.available', 'available')}`
                         }
-                      />
+                      >
+                        <MenuItem value="">
+                          <em>{t('common.none')}</em>
+                        </MenuItem>
+                        {sortedDistricts.map((district) => (
+                          <MenuItem key={district.id} value={district.id}>
+                            {getLocalizedName(district, currentLanguage)}
+                          </MenuItem>
+                        ))}
+                      </TextField>
                     </Grid>
 
-                    {/* Locality - Saved to Location */}
+                    {/* Locality Dropdown - Enabled when District is selected */}
                     <Grid item xs={12} md={4}>
                       <TextField
                         fullWidth
@@ -361,27 +429,21 @@ const LocationEdit = () => {
                         label={t('common.fields.locality')}
                         value={location.localityId || ''}
                         onChange={handleChange('localityId')}
-                        disabled={!uiState.district}
+                        disabled={!selectedDistrictId}
                         helperText={
-                          !uiState.district
-                            ? `${t('common.fields.district')} filter required`
-                            : `${filteredLocalities.length} ${t('common.available', 'available')}`
+                          !selectedDistrictId
+                            ? t('common.selectParent', 'Select district first')
+                            : `${sortedLocalities.length} ${t('common.available', 'available')}`
                         }
                       >
                         <MenuItem value="">
                           <em>{t('common.none')}</em>
                         </MenuItem>
-                        {filteredLocalities.length > 0 ? (
-                          filteredLocalities.map((locality) => (
-                            <MenuItem key={locality.id} value={locality.id}>
-                              {getLocalizedName(locality, currentLanguage)}
-                            </MenuItem>
-                          ))
-                        ) : (
-                          <MenuItem disabled>
-                            {uiState.district ? t('common.noResults', 'No results') : t('common.loading')}
+                        {sortedLocalities.map((locality) => (
+                          <MenuItem key={locality.id} value={locality.id}>
+                            {getLocalizedName(locality, currentLanguage)}
                           </MenuItem>
-                        )}
+                        ))}
                       </TextField>
                     </Grid>
 
