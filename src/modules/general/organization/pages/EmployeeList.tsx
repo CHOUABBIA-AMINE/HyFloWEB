@@ -9,10 +9,10 @@
  * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
- * @updated 01-20-2026 - Added separate Photo column with hover zoom effect
+ * @updated 01-20-2026 - Combined name columns with language-based display (ar->ar, fr/en->lt)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -53,7 +53,7 @@ import { FileService } from '../../../system/utility/services';
 import { EmployeeDTO } from '../dto';
 
 const EmployeeList = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
   const [employees, setEmployees] = useState<EmployeeDTO[]>([]);
@@ -77,6 +77,9 @@ const EmployeeList = () => {
   const [hoverAnchorEl, setHoverAnchorEl] = useState<HTMLElement | null>(null);
   const [hoveredImageUrl, setHoveredImageUrl] = useState<string>('');
   const [hoveredEmployeeName, setHoveredEmployeeName] = useState<string>('');
+
+  // Get current language
+  const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
 
   useEffect(() => {
     loadData();
@@ -171,6 +174,20 @@ const EmployeeList = () => {
     return first + last || 'E';
   };
 
+  const getEmployeeName = (employee: EmployeeDTO): string => {
+    if (lang === 'ar') {
+      // For Arabic, use Arabic names if available, otherwise fall back to Latin
+      const firstName = employee.firstNameAr || employee.firstNameLt || '';
+      const lastName = employee.lastNameAr || employee.lastNameLt || '';
+      return `${firstName} ${lastName}`.trim() || '-';
+    } else {
+      // For French/English, use Latin names
+      const firstName = employee.firstNameLt || '';
+      const lastName = employee.lastNameLt || '';
+      return `${firstName} ${lastName}`.trim() || '-';
+    }
+  };
+
   const handleAvatarMouseEnter = (event: React.MouseEvent<HTMLElement>, imageUrl: string, employeeName: string) => {
     if (imageUrl) {
       setHoverAnchorEl(event.currentTarget);
@@ -197,12 +214,12 @@ const EmployeeList = () => {
       renderCell: (params) => (
         <Avatar
           src={pictureBlobUrls[params.row.id] || undefined}
-          alt={`${params.row.firstNameLt} ${params.row.lastNameLt}`}
+          alt={getEmployeeName(params.row)}
           onMouseEnter={(e) =>
             handleAvatarMouseEnter(
               e,
               pictureBlobUrls[params.row.id],
-              `${params.row.firstNameLt} ${params.row.lastNameLt}`
+              getEmployeeName(params.row)
             )
           }
           onMouseLeave={handleAvatarMouseLeave}
@@ -234,16 +251,22 @@ const EmployeeList = () => {
       ),
     },
     {
-      field: 'lastNameLt',
-      headerName: t('employee.lastNameLt', 'Last Name'),
+      field: 'name',
+      headerName: t('employee.name', 'Name'),
       flex: 1,
-      minWidth: 150,
-    },
-    {
-      field: 'firstNameLt',
-      headerName: t('employee.firstNameLt', 'First Name'),
-      flex: 1,
-      minWidth: 150,
+      minWidth: 200,
+      valueGetter: (params: any) => getEmployeeName(params.row),
+      renderCell: (params) => (
+        <Typography 
+          variant="body2" 
+          sx={{ 
+            direction: lang === 'ar' ? 'rtl' : 'ltr',
+            textAlign: lang === 'ar' ? 'right' : 'left',
+          }}
+        >
+          {params.value}
+        </Typography>
+      ),
     },
     {
       field: 'birthDate',
