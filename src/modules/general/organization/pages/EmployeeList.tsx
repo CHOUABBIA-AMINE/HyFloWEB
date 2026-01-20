@@ -9,6 +9,7 @@
  * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
+ * @updated 01-20-2026 - Added avatar picture to employee row
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -31,6 +32,7 @@ import {
   ListItemText,
   alpha,
   Divider,
+  Avatar,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -111,6 +113,12 @@ const EmployeeList = () => {
     }
   };
 
+  const getAvatarText = (firstName: string | undefined, lastName: string | undefined): string => {
+    const first = firstName?.charAt(0)?.toUpperCase() || '';
+    const last = lastName?.charAt(0)?.toUpperCase() || '';
+    return first + last || 'E';
+  };
+
   const columns: GridColDef[] = [
     {
       field: 'registrationNumber',
@@ -118,7 +126,17 @@ const EmployeeList = () => {
       width: 180,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PersonIcon fontSize="small" color="action" />
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: 'primary.main',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+            }}
+          >
+            {getAvatarText(params.row.firstNameLt, params.row.lastNameLt)}
+          </Avatar>
           <Typography variant="body2" fontWeight={600}>
             {params.value || '-'}
           </Typography>
