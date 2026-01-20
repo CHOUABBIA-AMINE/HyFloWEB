@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-20-2026 - Updated to use employee data from new UserDTO structure
  * @updated 01-08-2026 - Fixed LoginRequest import name
  */
 
@@ -19,6 +20,7 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  employeeId?: number;
   roles: string[];
 }
 
@@ -66,16 +68,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           setToken(storedToken);
           setUser(parsedUser);
           
-          console.log('✅ Auth state initialized from localStorage');
+          console.log('Auth state initialized from localStorage');
         } catch (error) {
-          console.error('❌ Failed to parse stored user:', error);
+          console.error('Failed to parse stored user:', error);
           // Clear invalid data
           localStorage.removeItem('user');
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
         }
       } else {
-        console.log('ℹ️ No stored authentication found');
+        console.log('No stored authentication found');
       }
       
       setIsLoading(false);
@@ -92,13 +94,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Set token in state
       setToken(receivedToken);
 
+      // Extract first and last name from employee if available
+      const firstName = userDTO.employee?.firstNameLt || userDTO.employee?.firstNameAr;
+      const lastName = userDTO.employee?.lastNameLt || userDTO.employee?.lastNameAr;
+
       // Convert UserDTO to User format and extract role names
       const userData: User = {
-        id: userDTO.id,
+        id: userDTO.id!,
         username: userDTO.username,
         email: userDTO.email,
-        firstName: userDTO.firstName,
-        lastName: userDTO.lastName,
+        firstName,
+        lastName,
+        employeeId: userDTO.employeeId,
         roles: userDTO.roles?.map(role => role.name) || [],
       };
 
@@ -106,9 +113,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
-      console.log('✅ Login successful');
+      console.log('Login successful');
     } catch (error) {
-      console.error('❌ Login failed:', error);
+      console.error('Login failed:', error);
       throw error;
     }
   };
@@ -117,9 +124,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       // Call authService logout which sends request to backend
       await authService.logout();
-      console.log('✅ Logout successful');
+      console.log('Logout successful');
     } catch (error) {
-      console.error('⚠️ Logout request error:', error);
+      console.error('Logout request error:', error);
       // Continue with local cleanup even if backend call fails
     } finally {
       // Always clear local state
@@ -131,7 +138,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     localStorage.setItem('user', JSON.stringify(updatedUser));
-    console.log('✅ User profile updated');
+    console.log('User profile updated');
   };
 
   const value: AuthContextType = {
