@@ -38,7 +38,7 @@ import {
 import { userService, roleService, groupService } from '../services';
 import { UserDTO, RoleDTO, GroupDTO } from '../dto';
 import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
-import { employeeService } from '../../../general/organization/services';
+import { EmployeeService } from '../../../general/organization/services/EmployeeService';
 
 // Extended UserDTO for form state (includes password for creation)
 interface UserFormData extends Partial<UserDTO> {
@@ -88,7 +88,7 @@ const UserEdit = () => {
       const [rolesData, groupsData, employeesData] = await Promise.all([
         roleService.getAll().catch(() => [] as RoleDTO[]),
         groupService.getAll().catch(() => [] as GroupDTO[]),
-        employeeService.getAll().catch(() => [] as EmployeeDTO[]),
+        EmployeeService.getAllNoPagination().catch(() => [] as EmployeeDTO[]),
       ]);
 
       setAvailableRoles(rolesData);
