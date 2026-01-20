@@ -9,7 +9,7 @@
  * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
- * @updated 01-20-2026 - Added avatar picture to employee row
+ * @updated 01-20-2026 - Added avatar with employee picture or initials fallback
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -119,6 +119,14 @@ const EmployeeList = () => {
     return first + last || 'E';
   };
 
+  const getAvatarSrc = (picturePath: string | undefined): string => {
+    if (!picturePath) return '';
+    // Assuming the backend serves files from /api/files or similar endpoint
+    // Adjust this base URL according to your backend configuration
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+    return `${baseUrl}/files/${picturePath}`;
+  };
+
   const columns: GridColDef[] = [
     {
       field: 'registrationNumber',
@@ -127,6 +135,8 @@ const EmployeeList = () => {
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Avatar
+            src={getAvatarSrc(params.row.picture?.path)}
+            alt={`${params.row.firstNameLt} ${params.row.lastNameLt}`}
             sx={{
               width: 32,
               height: 32,
