@@ -9,7 +9,7 @@
  * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
- * @updated 01-20-2026 - Added avatar with employee picture or initials fallback
+ * @updated 01-20-2026 - Added avatar with FileService.getFileBlob for authenticated images
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef, GridPaginationModel } from '@mui/x-data-grid';
 import { EmployeeService } from '../services';
+import { FileService } from '../../../system/utility/services';
 import { EmployeeDTO } from '../dto';
 
 const EmployeeList = () => {
@@ -68,9 +69,23 @@ const EmployeeList = () => {
   const [searchText, setSearchText] = useState('');
   const [exportAnchorEl, setExportAnchorEl] = useState<null | HTMLElement>(null);
 
+  // Store blob URLs for employee pictures
+  const [pictureBlobUrls, setPictureBlobUrls] = useState<Record<number, string>>({});
+
   useEffect(() => {
     loadData();
   }, [paginationModel.page, paginationModel.pageSize, searchText]);
+
+  // Cleanup blob URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(pictureBlobUrls).forEach((url) => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [pictureBlobUrls]);
 
   const loadData = async () => {
     try {
@@ -89,6 +104,9 @@ const EmployeeList = () => {
       setEmployees(response.content || []);
       setRowCount(response.totalElements || 0);
       setError('');
+
+      // Load pictures for employees that have them
+      await loadEmployeePictures(response.content || []);
     } catch (err: any) {
       console.error('Failed to load employees:', err);
       setError(err.message || t('message.errorLoading', 'Failed to load data'));
@@ -97,6 +115,34 @@ const EmployeeList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadEmployeePictures = async (employeeList: EmployeeDTO[]) => {
+    // Clean up old blob URLs
+    Object.values(pictureBlobUrls).forEach((url) => {
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    });
+
+    const newBlobUrls: Record<number, string> = {};
+
+    // Load pictures in parallel
+    await Promise.all(
+      employeeList.map(async (employee) => {
+        if (employee.picture?.id) {
+          try {
+            const blobUrl = await FileService.getFileBlob(employee.picture.id);
+            newBlobUrls[employee.id!] = blobUrl;
+          } catch (err) {
+            console.error(`Failed to load picture for employee ${employee.id}:`, err);
+            // Continue without picture - non-critical error
+          }
+        }
+      })
+    );
+
+    setPictureBlobUrls(newBlobUrls);
   };
 
   const handlePaginationModelChange = useCallback((newModel: GridPaginationModel) => {
@@ -119,14 +165,6 @@ const EmployeeList = () => {
     return first + last || 'E';
   };
 
-  const getAvatarSrc = (picturePath: string | undefined): string => {
-    if (!picturePath) return '';
-    // Assuming the backend serves files from /api/files or similar endpoint
-    // Adjust this base URL according to your backend configuration
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-    return `${baseUrl}/files/${picturePath}`;
-  };
-
   const columns: GridColDef[] = [
     {
       field: 'registrationNumber',
@@ -135,7 +173,7 @@ const EmployeeList = () => {
       renderCell: (params) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Avatar
-            src={getAvatarSrc(params.row.picture?.path)}
+            src={pictureBlobUrls[params.row.id] || undefined}
             alt={`${params.row.firstNameLt} ${params.row.lastNameLt}`}
             sx={{
               width: 32,
