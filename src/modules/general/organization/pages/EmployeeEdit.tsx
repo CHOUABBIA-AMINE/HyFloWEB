@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-30-2025
+ * @updated 01-20-2026 - Fixed picture viewing: use FileService.getFileBlob for authenticated images
  * @updated 01-19-2026 - Fixed FileService import path
  * @updated 01-19-2026 - Fixed: use FileService for picture upload, store pictureId
  * @updated 01-19-2026 - Fixed: separate picture upload endpoint from employee data
@@ -167,6 +168,15 @@ const EmployeeEdit = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (picturePreview && picturePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(picturePreview);
+      }
+    };
+  }, [picturePreview]);
+
   // When structure changes, load jobs for that structure
   useEffect(() => {
     if (!selectedStructureId) {
@@ -285,10 +295,15 @@ const EmployeeEdit = () => {
       const data = await EmployeeService.getById(Number(id));
       setFormData(data);
       
-      // If employee has a picture, load the preview URL
+      // If employee has a picture, load it as blob with authentication
       if (data.picture?.id) {
-        const pictureUrl = FileService.getFileUrl(data.picture.id);
-        setPicturePreview(pictureUrl);
+        try {
+          const blobUrl = await FileService.getFileBlob(data.picture.id);
+          setPicturePreview(blobUrl);
+        } catch (err) {
+          console.error('Error loading picture:', err);
+          // Continue without picture - non-critical error
+        }
       }
       
       // If employee has a job, load the job's structure and jobs for that structure
@@ -338,6 +353,11 @@ const EmployeeEdit = () => {
         return;
       }
 
+      // Revoke old blob URL if exists
+      if (picturePreview && picturePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(picturePreview);
+      }
+
       setPictureFile(file);
       
       // Create preview URL
@@ -355,6 +375,12 @@ const EmployeeEdit = () => {
 
   const handleRemovePicture = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Revoke blob URL if exists
+    if (picturePreview && picturePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(picturePreview);
+    }
+    
     setPictureFile(null);
     setPicturePreview(null);
     setFormData((prev) => ({ ...prev, pictureId: undefined }));
