@@ -4,12 +4,26 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-20-2026 - Display employee name (language-aware) and picture if available, fallback to username
  * @updated 12-27-2025
  */
 
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Avatar, Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress } from '@mui/material';
+import { 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Button, 
+  Box, 
+  IconButton, 
+  Avatar, 
+  Menu, 
+  MenuItem, 
+  ListItemIcon, 
+  ListItemText, 
+  CircularProgress 
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -19,6 +33,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import BusinessIcon from '@mui/icons-material/Business';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from '../LanguageSwitcher';
+import { EmployeeService } from '../../../modules/general/organization/services/EmployeeService';
+import { FileService } from '../../../modules/system/utility/services';
+import { EmployeeDTO } from '../../../modules/general/organization/dto/EmployeeDTO';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -27,11 +44,94 @@ interface NavbarProps {
 
 const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoError, setLogoError] = useState(false);
+  const [employee, setEmployee] = useState<EmployeeDTO | null>(null);
+  const [employeePicture, setEmployeePicture] = useState<string | null>(null);
+  const [loadingEmployee, setLoadingEmployee] = useState(false);
+
+  const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
+
+  // Load employee data if user has employeeId
+  useEffect(() => {
+    const loadEmployee = async () => {
+      if (!user?.employeeId) {
+        setEmployee(null);
+        setEmployeePicture(null);
+        return;
+      }
+
+      try {
+        setLoadingEmployee(true);
+        const employeeData = await EmployeeService.getById(user.employeeId);
+        setEmployee(employeeData);
+
+        // Load employee picture if available
+        if (employeeData.picture?.id) {
+          try {
+            const blobUrl = await FileService.getFileBlob(employeeData.picture.id);
+            setEmployeePicture(blobUrl);
+          } catch (err) {
+            console.error('Failed to load employee picture:', err);
+            setEmployeePicture(null);
+          }
+        } else {
+          setEmployeePicture(null);
+        }
+      } catch (error) {
+        console.error('Failed to load employee data:', error);
+        setEmployee(null);
+        setEmployeePicture(null);
+      } finally {
+        setLoadingEmployee(false);
+      }
+    };
+
+    loadEmployee();
+  }, [user?.employeeId]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (employeePicture && employeePicture.startsWith('blob:')) {
+        URL.revokeObjectURL(employeePicture);
+      }
+    };
+  }, [employeePicture]);
+
+  // Get display name based on language and employee data
+  const getDisplayName = (): string => {
+    if (employee) {
+      if (lang === 'ar') {
+        const firstName = employee.firstNameAr || employee.firstNameLt || '';
+        const lastName = employee.lastNameAr || employee.lastNameLt || '';
+        return `${firstName} ${lastName}`.trim() || user?.username || 'User';
+      } else {
+        // For 'en' and 'fr', use Latin names
+        const firstName = employee.firstNameLt || employee.firstNameAr || '';
+        const lastName = employee.lastNameLt || employee.lastNameAr || '';
+        return `${firstName} ${lastName}`.trim() || user?.username || 'User';
+      }
+    }
+    // Fallback to username
+    return user?.username || 'User';
+  };
+
+  // Get initials for avatar
+  const getInitials = (): string => {
+    const displayName = getDisplayName();
+    const parts = displayName.split(' ').filter(Boolean);
+    
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    } else if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  };
 
   const handleLogin = () => {
     navigate('/login');
@@ -153,18 +253,37 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
         {/* User Actions */}
         {isAuthenticated ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-            <Typography variant="body2" sx={{ mr: 1, display: { xs: 'none', sm: 'block' } }}>
-              {user?.firstName || user?.username || 'User'}
-            </Typography>
+            {loadingEmployee ? (
+              <CircularProgress size={16} sx={{ mr: 1 }} />
+            ) : (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mr: 1, 
+                  display: { xs: 'none', sm: 'block' },
+                  fontWeight: employee ? 500 : 400,
+                }}
+              >
+                {getDisplayName()}
+              </Typography>
+            )}
             <IconButton 
               color="inherit" 
               size="small" 
               onClick={handleMenuOpen}
               disabled={isLoggingOut}
             >
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                <AccountCircleIcon sx={{ fontSize: 20 }} />
-              </Avatar>
+              {employeePicture ? (
+                <Avatar 
+                  src={employeePicture} 
+                  sx={{ width: 32, height: 32 }}
+                  alt={getDisplayName()}
+                />
+              ) : (
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
+                  {getInitials()}
+                </Avatar>
+              )}
             </IconButton>
             <Menu
               anchorEl={anchorEl}
