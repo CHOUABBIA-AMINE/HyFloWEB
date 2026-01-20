@@ -468,7 +468,10 @@
     "selectRoles": "Sélectionner les Rôles",
     "selectRolesPlaceholder": "Choisir les rôles pour cet employé",
     "selectGroups": "Sélectionner les Groupes",
-    "selectGroupsPlaceholder": "Choisir les groupes pour cet employé"
+    "selectGroupsPlaceholder": "Choisir les groupes pour cet employé",
+	"name": "Nom",
+	"picture": "Photo",
+	"clicktoupload": "Cliquer pour télécharger"
   },
   "auth": {
     "login": "Connexion",

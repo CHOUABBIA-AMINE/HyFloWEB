@@ -466,7 +466,10 @@
     "selectRoles": "اختر الأدوار",
     "selectRolesPlaceholder": "اختر الأدوار لهذا الموظف",
     "selectGroups": "اختر المجموعات",
-    "selectGroupsPlaceholder": "اختر المجموعات لهذا الموظف"
+    "selectGroupsPlaceholder": "اختر المجموعات لهذا الموظف",
+	"name": "الاسم",
+	"picture": "الصورة",
+	"clicktoupload": "انقر للتحميل"
   },
   "auth": {
     "login": "تسجيل الدخول",

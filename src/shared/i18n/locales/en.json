@@ -475,7 +475,10 @@
     "selectRoles": "Select Roles",
     "selectRolesPlaceholder": "Choose roles for this employee",
     "selectGroups": "Select Groups",
-    "selectGroupsPlaceholder": "Choose groups for this employee"
+    "selectGroupsPlaceholder": "Choose groups for this employee",
+	"name": "Name",
+	"picture": "Picture",
+	"clicktoupload": "Click to upload"
   },
   "auth": {
     "login": "Login",
