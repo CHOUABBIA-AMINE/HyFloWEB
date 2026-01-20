@@ -7,6 +7,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-08-2026
+ * @updated 01-20-2026 - Added getFileBlob for authenticated image viewing
  * @updated 01-19-2026 - Fixed getFileUrl to return full API URL
  */
 
@@ -75,11 +76,37 @@ export class FileService {
   }
 
   /**
-   * Get file URL for display
+   * Get file URL for display (direct URL - requires public endpoint)
    * Returns full API URL including baseURL from axios instance
+   * Note: This won't work if endpoint requires authentication
    */
   static getFileUrl(id: number): string {
     const baseURL = axiosInstance.defaults.baseURL || 'http://localhost:8080/hyflo/api';
     return `${baseURL}${BASE_URL}/${id}/view`;
+  }
+
+  /**
+   * Get file as blob with authentication, then create object URL
+   * Use this for displaying authenticated images in <img> tags
+   * 
+   * @param id - File ID
+   * @returns Promise<string> - Blob URL (e.g., blob:http://localhost:3000/abc-123)
+   * 
+   * Usage:
+   * const blobUrl = await FileService.getFileBlob(123);
+   * // Use in img tag: <img src={blobUrl} />
+   * // Don't forget to revoke when unmounting: URL.revokeObjectURL(blobUrl)
+   */
+  static async getFileBlob(id: number): Promise<string> {
+    const response = await axiosInstance.get(`${BASE_URL}/${id}/view`, {
+      responseType: 'blob',
+    });
+    
+    // Create blob URL from response
+    const blob = new Blob([response.data], { 
+      type: response.headers['content-type'] || 'image/jpeg' 
+    });
+    
+    return URL.createObjectURL(blob);
   }
 }
