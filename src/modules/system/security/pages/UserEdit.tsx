@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-20-2026 - Added cascading structure dropdown to filter employees
  * @updated 01-20-2026 - Updated to align with new UserDTO structure (employee relationship)
  * @updated 01-19-2026 - Fixed password field and DTO type alignment
  * @updated 01-19-2026 - Fixed TypeScript errors: Handle optional id in DTOs
@@ -38,7 +39,9 @@ import {
 import { userService, roleService, groupService } from '../services';
 import { UserDTO, RoleDTO, GroupDTO } from '../dto';
 import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
+import { StructureDTO } from '../../../general/organization/dto/StructureDTO';
 import { EmployeeService } from '../../../general/organization/services/EmployeeService';
+import { StructureService } from '../../../general/organization/services/StructureService';
 
 // Extended UserDTO for form state (includes password for creation)
 interface UserFormData extends Partial<UserDTO> {
@@ -68,10 +71,16 @@ const UserEdit = () => {
   // Available options
   const [availableRoles, setAvailableRoles] = useState<RoleDTO[]>([]);
   const [availableGroups, setAvailableGroups] = useState<GroupDTO[]>([]);
+  const [availableStructures, setAvailableStructures] = useState<StructureDTO[]>([]);
   const [availableEmployees, setAvailableEmployees] = useState<EmployeeDTO[]>([]);
+  const [allEmployees, setAllEmployees] = useState<EmployeeDTO[]>([]);
+  
+  // Filter state
+  const [selectedStructure, setSelectedStructure] = useState<StructureDTO | null>(null);
 
   // UI state
   const [loading, setLoading] = useState(false);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -80,25 +89,38 @@ const UserEdit = () => {
     loadData();
   }, [userId]);
 
+  // Filter employees when structure changes
+  useEffect(() => {
+    filterEmployeesByStructure();
+  }, [selectedStructure, allEmployees]);
+
   const loadData = async () => {
     try {
       setLoading(true);
       
-      // Load roles, groups, and employees
-      const [rolesData, groupsData, employeesData] = await Promise.all([
+      // Load roles, groups, structures, and employees
+      const [rolesData, groupsData, structuresData, employeesData] = await Promise.all([
         roleService.getAll().catch(() => [] as RoleDTO[]),
         groupService.getAll().catch(() => [] as GroupDTO[]),
+        StructureService.getAllNoPagination().catch(() => [] as StructureDTO[]),
         EmployeeService.getAllNoPagination().catch(() => [] as EmployeeDTO[]),
       ]);
 
       setAvailableRoles(rolesData);
       setAvailableGroups(groupsData);
-      setAvailableEmployees(employeesData);
+      setAvailableStructures(structuresData);
+      setAllEmployees(employeesData);
+      setAvailableEmployees(employeesData); // Initially show all employees
 
       // Load user if editing
       if (isEditMode) {
         const userData = await userService.getById(Number(userId));
         setUser(userData);
+        
+        // If user has an employee with a job in a structure, pre-select that structure
+        if (userData.employee?.job?.structure) {
+          setSelectedStructure(userData.employee.job.structure);
+        }
       }
 
       setError('');
@@ -107,6 +129,35 @@ const UserEdit = () => {
       setError(err.message || t('common.errors.loadingDataFailed'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const filterEmployeesByStructure = async () => {
+    if (!selectedStructure) {
+      // No structure selected, show all employees
+      setAvailableEmployees(allEmployees);
+      return;
+    }
+
+    try {
+      setLoadingEmployees(true);
+      // Get employees for the selected structure
+      const filteredEmployees = await EmployeeService.getByStructureId(selectedStructure.id!);
+      setAvailableEmployees(filteredEmployees);
+    } catch (err: any) {
+      console.error('Failed to filter employees:', err);
+      // Fallback to all employees if filtering fails
+      setAvailableEmployees(allEmployees);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
+  const handleStructureChange = (_event: any, newValue: StructureDTO | null) => {
+    setSelectedStructure(newValue);
+    // Clear employee selection if structure changes
+    if (newValue?.id !== user.employee?.job?.structure?.id) {
+      setUser({ ...user, employeeId: undefined, employee: undefined });
     }
   };
 
@@ -201,6 +252,10 @@ const UserEdit = () => {
 
   const handleCancel = () => {
     navigate('/security/users');
+  };
+
+  const getStructureLabel = (structure: StructureDTO): string => {
+    return structure.designationFr || structure.designationEn || structure.designationAr || structure.code;
   };
 
   const getEmployeeLabel = (employee: EmployeeDTO): string => {
@@ -305,23 +360,6 @@ const UserEdit = () => {
                   </Grid>
                 )}
 
-                <Grid item xs={12} md={6}>
-                  <Autocomplete
-                    options={availableEmployees}
-                    getOptionLabel={getEmployeeLabel}
-                    value={user.employee || null}
-                    onChange={handleEmployeeChange}
-                    isOptionEqualToValue={(option, value) => option.id === value?.id}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={t('employee.title')}
-                        placeholder={t('user.selectEmployee') || 'Select employee'}
-                      />
-                    )}
-                  />
-                </Grid>
-
                 <Grid item xs={12}>
                   <Stack spacing={1}>
                     <FormControlLabel
@@ -338,6 +376,80 @@ const UserEdit = () => {
                     </Typography>
                   </Stack>
                 </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
+          {/* Employee Selection */}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('user.employeeInformation')}
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Autocomplete
+                    options={availableStructures}
+                    getOptionLabel={getStructureLabel}
+                    value={selectedStructure}
+                    onChange={handleStructureChange}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('structure.title')}
+                        placeholder={t('user.selectStructure') || 'Select structure to filter employees'}
+                        helperText={t('user.structureFilterHint') || 'Optional: Filter employees by structure'}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Autocomplete
+                    options={availableEmployees}
+                    getOptionLabel={getEmployeeLabel}
+                    value={user.employee || null}
+                    onChange={handleEmployeeChange}
+                    loading={loadingEmployees}
+                    isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('employee.title')}
+                        placeholder={t('user.selectEmployee') || 'Select employee'}
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              {loadingEmployees ? <CircularProgress color="inherit" size={20} /> : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                {user.employee && (
+                  <Grid item xs={12}>
+                    <Alert severity="info" sx={{ mt: 1 }}>
+                      <Typography variant="body2">
+                        <strong>{t('employee.details')}:</strong>
+                        {' '}{getEmployeeLabel(user.employee)}
+                        {user.employee.job?.structure && (
+                          <> | <strong>{t('structure.title')}:</strong> {getStructureLabel(user.employee.job.structure)}</>
+                        )}
+                        {user.employee.job?.designation && (
+                          <> | <strong>{t('job.title')}:</strong> {user.employee.job.designation}</>
+                        )}
+                      </Typography>
+                    </Alert>
+                  </Grid>
+                )}
               </Grid>
             </Box>
           </Paper>
