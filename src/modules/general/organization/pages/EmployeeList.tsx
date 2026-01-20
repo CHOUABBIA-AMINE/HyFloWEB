@@ -9,7 +9,7 @@
  * @updated 01-09-2026 - Redesigned to match StructureList styling with DataGrid
  * @updated 01-16-2026 - Optimized translation keys (standardized common keys)
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
- * @updated 01-20-2026 - Added avatar with FileService.getFileBlob for authenticated images
+ * @updated 01-20-2026 - Added separate Photo column with hover zoom effect
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -33,6 +33,7 @@ import {
   alpha,
   Divider,
   Avatar,
+  Popover,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -71,6 +72,11 @@ const EmployeeList = () => {
 
   // Store blob URLs for employee pictures
   const [pictureBlobUrls, setPictureBlobUrls] = useState<Record<number, string>>({});
+
+  // Hover popover state
+  const [hoverAnchorEl, setHoverAnchorEl] = useState<HTMLElement | null>(null);
+  const [hoveredImageUrl, setHoveredImageUrl] = useState<string>('');
+  const [hoveredEmployeeName, setHoveredEmployeeName] = useState<string>('');
 
   useEffect(() => {
     loadData();
@@ -165,30 +171,66 @@ const EmployeeList = () => {
     return first + last || 'E';
   };
 
+  const handleAvatarMouseEnter = (event: React.MouseEvent<HTMLElement>, imageUrl: string, employeeName: string) => {
+    if (imageUrl) {
+      setHoverAnchorEl(event.currentTarget);
+      setHoveredImageUrl(imageUrl);
+      setHoveredEmployeeName(employeeName);
+    }
+  };
+
+  const handleAvatarMouseLeave = () => {
+    setHoverAnchorEl(null);
+    setHoveredImageUrl('');
+    setHoveredEmployeeName('');
+  };
+
   const columns: GridColDef[] = [
+    {
+      field: 'picture',
+      headerName: t('employee.picture', 'Photo'),
+      width: 80,
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Avatar
+          src={pictureBlobUrls[params.row.id] || undefined}
+          alt={`${params.row.firstNameLt} ${params.row.lastNameLt}`}
+          onMouseEnter={(e) =>
+            handleAvatarMouseEnter(
+              e,
+              pictureBlobUrls[params.row.id],
+              `${params.row.firstNameLt} ${params.row.lastNameLt}`
+            )
+          }
+          onMouseLeave={handleAvatarMouseLeave}
+          sx={{
+            width: 40,
+            height: 40,
+            bgcolor: 'primary.main',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: pictureBlobUrls[params.row.id] ? 'pointer' : 'default',
+            transition: 'transform 0.2s',
+            '&:hover': {
+              transform: pictureBlobUrls[params.row.id] ? 'scale(1.1)' : 'none',
+            },
+          }}
+        >
+          {getAvatarText(params.row.firstNameLt, params.row.lastNameLt)}
+        </Avatar>
+      ),
+    },
     {
       field: 'registrationNumber',
       headerName: t('employee.registrationNumber', 'Registration Number'),
       width: 180,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar
-            src={pictureBlobUrls[params.row.id] || undefined}
-            alt={`${params.row.firstNameLt} ${params.row.lastNameLt}`}
-            sx={{
-              width: 32,
-              height: 32,
-              bgcolor: 'primary.main',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-            }}
-          >
-            {getAvatarText(params.row.firstNameLt, params.row.lastNameLt)}
-          </Avatar>
-          <Typography variant="body2" fontWeight={600}>
-            {params.value || '-'}
-          </Typography>
-        </Box>
+        <Typography variant="body2" fontWeight={600}>
+          {params.value || '-'}
+        </Typography>
       ),
     },
     {
@@ -358,6 +400,51 @@ const EmployeeList = () => {
           <ListItemText>{t('action.exportPDF', 'Export PDF')}</ListItemText>
         </MenuItem>
       </Menu>
+
+      {/* Hover Popover for enlarged image */}
+      <Popover
+        open={Boolean(hoverAnchorEl)}
+        anchorEl={hoverAnchorEl}
+        onClose={handleAvatarMouseLeave}
+        anchorOrigin={{
+          vertical: 'center',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'center',
+          horizontal: 'left',
+        }}
+        disableRestoreFocus
+        sx={{
+          pointerEvents: 'none',
+        }}
+        PaperProps={{
+          sx: {
+            p: 1,
+            boxShadow: 3,
+            pointerEvents: 'none',
+          },
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <Avatar
+            src={hoveredImageUrl}
+            alt={hoveredEmployeeName}
+            sx={{
+              width: 200,
+              height: 200,
+              bgcolor: 'primary.main',
+              fontSize: '3rem',
+              fontWeight: 600,
+            }}
+          >
+            {hoveredEmployeeName.split(' ').map(n => n[0]).join('')}
+          </Avatar>
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            {hoveredEmployeeName}
+          </Typography>
+        </Box>
+      </Popover>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
