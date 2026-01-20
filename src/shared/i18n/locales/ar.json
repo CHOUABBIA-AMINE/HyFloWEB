@@ -101,7 +101,8 @@
       "formInvalid": "يرجى ملء جميع الحقول المطلوبة",
       "codeRequired": "الرمز مطلوب",
       "nameRequired": "الاسم مطلوب",
-      "designationFrRequired": "التسمية الفرنسية مطلوبة"
+      "designationFrRequired": "التسمية الفرنسية مطلوبة",
+      "maxFileSize": " {{size}} : الحد الأقصى للملف"
     },
     "messages": {
       "createSuccess": "تم الإنشاء بنجاح",

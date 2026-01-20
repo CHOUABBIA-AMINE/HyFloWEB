@@ -102,7 +102,8 @@
       "formInvalid": "Veuillez remplir tous les champs obligatoires",
       "codeRequired": "Le code est requis",
       "nameRequired": "Le nom est requis",
-      "designationFrRequired": "La désignation française est requise"
+      "designationFrRequired": "La désignation française est requise",
+      "maxFileSize": "Taille Maximale du fichier : {{size}}"
     },
     "page": {
       "createTitle": "Créer {{entity}}",
