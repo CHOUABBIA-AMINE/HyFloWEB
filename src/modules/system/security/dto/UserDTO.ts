@@ -4,29 +4,30 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-20-2026
  */
 
+import { EmployeeDTO } from '../../organization/dto/EmployeeDTO';
+import { RoleDTO } from './RoleDTO';
+import { GroupDTO } from './GroupDTO';
+
 export interface UserDTO {
-  id: number;
+  id?: number;
   username: string;
   email: string;
-  firstName?: string;
-  lastName?: string;
+  password?: string; // Write-only, not returned from backend
   enabled?: boolean;
   accountNonExpired?: boolean;
   accountNonLocked?: boolean;
   credentialsNonExpired?: boolean;
-  // Roles and groups
-  roles?: Array<{
-    id: number;
-    name: string;
-    description?: string;
-  }>;
-  groups?: Array<{
-    id: number;
-    name: string;
-    description?: string;
-  }>;
+  
+  // Employee relationship
+  employeeId?: number;
+  employee?: EmployeeDTO;
+  
+  // Roles and groups (Sets in backend)
+  roles?: RoleDTO[];
+  groups?: GroupDTO[];
 }
 
 export default UserDTO;
