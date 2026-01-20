@@ -99,7 +99,7 @@ export class EmployeeService {
    * Finds employees whose job belongs to the specified structure
    */
   static async getByStructureId(structureId: number): Promise<EmployeeDTO[]> {
-    const response = await axiosInstance.get<EmployeeDTO[]>(`${BASE_URL}/by-structure/${structureId}`);
+    const response = await axiosInstance.get<EmployeeDTO[]>(`${BASE_URL}/structure/${structureId}`);
     return response.data;
   }
 }
