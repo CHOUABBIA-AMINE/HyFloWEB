@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-20-2026 - Reorganized: Maps (Infrastructure Map, Pipeline Map), Statistics (Dashboard), Reading under Workspace
  * @updated 12-28-2025
  * @updated 12-30-2025 - Added Employee entry
  * @updated 01-01-2026 - Reordered and simplified menus (view)
@@ -57,6 +58,8 @@ import MapIcon from '@mui/icons-material/Map';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import AppsIcon from '@mui/icons-material/Apps';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -83,10 +86,9 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Top-level order: Home, Workspace, General, Network, System
-  // General: Organization (Structures, Employees) + Localization (Locations)
-  // Network: Common (Products, Partners, Vendors) + Core (Pipeline systems, infrastructure)
-  // Note: ProcessingPlant contains ProductionFields in the data model
+  // Top-level order: Home, Workspace (Reading, Maps, Statistics), General, Network, System
+  // Maps: Infrastructure Map, Pipeline Map
+  // Statistics: Dashboard
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -98,19 +100,36 @@ const Sidebar = ({ open }: SidebarProps) => {
       icon: <WorkspacesIcon />,
       children: [
         {
-          titleKey: 'nav.dashboard',
-          icon: <DashboardIcon />,
-          path: '/network/flow/dashboard',
+          titleKey: 'nav.reading',
+          icon: <MenuBookIcon />,
+          path: '/workspace/reading',
         },
         {
-          titleKey: 'nav.map',
+          titleKey: 'nav.maps',
           icon: <MapIcon />,
-          path: '/network/map',
+          children: [
+            {
+              titleKey: 'nav.infrastructureMap',
+              icon: <MapIcon />,
+              path: '/network/map',
+            },
+            {
+              titleKey: 'nav.pipelineMap',
+              icon: <TimelineIcon />,
+              path: '/network/map/pipelines',
+            },
+          ],
         },
         {
-          titleKey: 'nav.pipelineMap',
-          icon: <TimelineIcon />,
-          path: '/network/map/pipelines',
+          titleKey: 'nav.statistics',
+          icon: <BarChartIcon />,
+          children: [
+            {
+              titleKey: 'nav.dashboard',
+              icon: <DashboardIcon />,
+              path: '/network/flow/dashboard',
+            },
+          ],
         },
       ],
     },
