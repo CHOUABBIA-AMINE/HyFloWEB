@@ -471,7 +471,7 @@
     "selectGroupsPlaceholder": "Choisir les groupes pour cet employé",
 	"name": "Nom",
 	"picture": "Photo",
-	"clicktoupload": "Cliquer pour télécharger"
+	"clickToUpload": "Cliquer pour télécharger"
   },
   "auth": {
     "login": "Connexion",

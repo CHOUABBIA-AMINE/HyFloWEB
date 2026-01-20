@@ -478,7 +478,7 @@
     "selectGroupsPlaceholder": "Choose groups for this employee",
 	"name": "Name",
 	"picture": "Picture",
-	"clicktoupload": "Click to upload"
+	"clickToUpload": "Click to upload"
   },
   "auth": {
     "login": "Login",

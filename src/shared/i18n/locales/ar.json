@@ -469,7 +469,7 @@
     "selectGroupsPlaceholder": "اختر المجموعات لهذا الموظف",
 	"name": "الاسم",
 	"picture": "الصورة",
-	"clicktoupload": "انقر للتحميل"
+	"clickToUpload": "انقر للتحميل"
   },
   "auth": {
     "login": "تسجيل الدخول",
