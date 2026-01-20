@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-20-2026 - Made employee selection dependent on structure (cascading dropdown)
  * @updated 01-20-2026 - Implemented server-side employee filtering by structure
  * @updated 01-20-2026 - Added cascading structure dropdown to filter employees
  * @updated 01-20-2026 - Updated to align with new UserDTO structure (employee relationship)
@@ -89,9 +90,14 @@ const UserEdit = () => {
     loadData();
   }, [userId]);
 
-  // Filter employees when structure changes (server-side)
+  // Load employees when structure is selected (server-side)
   useEffect(() => {
-    loadEmployeesByStructure();
+    if (selectedStructure?.id) {
+      loadEmployeesByStructure();
+    } else {
+      // No structure selected - clear employees
+      setAvailableEmployees([]);
+    }
   }, [selectedStructure]);
 
   const loadData = async () => {
@@ -117,13 +123,8 @@ const UserEdit = () => {
         // If user has an employee with a job in a structure, pre-select that structure
         if (userData.employee?.job?.structure) {
           setSelectedStructure(userData.employee.job.structure);
-        } else {
-          // No structure, load all employees
-          await loadEmployeesByStructure();
+          // Employees will be loaded by useEffect
         }
-      } else {
-        // New user, load all employees initially
-        await loadEmployeesByStructure();
       }
 
       setError('');
@@ -136,19 +137,16 @@ const UserEdit = () => {
   };
 
   const loadEmployeesByStructure = async () => {
+    if (!selectedStructure?.id) {
+      setAvailableEmployees([]);
+      return;
+    }
+
     try {
       setLoadingEmployees(true);
       
-      let employeesData: EmployeeDTO[];
-      
-      if (selectedStructure?.id) {
-        // Server-side filtering: Get employees for specific structure
-        employeesData = await EmployeeService.getByStructureId(selectedStructure.id);
-      } else {
-        // No structure selected: Get all employees
-        employeesData = await EmployeeService.getAllNoPagination();
-      }
-      
+      // Server-side filtering: Get employees for specific structure
+      const employeesData = await EmployeeService.getByStructureId(selectedStructure.id);
       setAvailableEmployees(employeesData);
       
       // Clear employee selection if current employee is not in the new list
@@ -166,7 +164,9 @@ const UserEdit = () => {
 
   const handleStructureChange = (_event: any, newValue: StructureDTO | null) => {
     setSelectedStructure(newValue);
-    // Employee filtering will be triggered by useEffect
+    // Clear employee selection when structure changes
+    setUser({ ...user, employeeId: undefined, employee: undefined });
+    // Employee loading will be triggered by useEffect
   };
 
   const validateForm = (): boolean => {
@@ -270,10 +270,9 @@ const UserEdit = () => {
     const firstName = employee.firstNameLt || employee.firstNameAr || '';
     const lastName = employee.lastNameLt || employee.lastNameAr || '';
     const fullName = `${firstName} ${lastName}`.trim();
-    const structureName = employee.job?.structure ? ` (${getStructureLabel(employee.job.structure)})` : '';
     return employee.registrationNumber 
-      ? `${employee.registrationNumber} - ${fullName}${structureName}` 
-      : `${fullName}${structureName}`;
+      ? `${employee.registrationNumber} - ${fullName}` 
+      : fullName;
   };
 
   if (loading) {
@@ -389,7 +388,7 @@ const UserEdit = () => {
             </Box>
           </Paper>
 
-          {/* Employee Selection with Structure Filter */}
+          {/* Employee Selection with Structure Filter (Cascading) */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -404,18 +403,13 @@ const UserEdit = () => {
                     getOptionLabel={getStructureLabel}
                     value={selectedStructure}
                     onChange={handleStructureChange}
-                    disabled={loadingEmployees}
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         label={t('structure.title')}
-                        placeholder={t('user.selectStructure') || 'Select structure to filter employees'}
-                        helperText={
-                          selectedStructure 
-                            ? `${availableEmployees.length} ${t('employee.employeesInStructure') || 'employees in this structure'}`
-                            : t('user.structureFilterHint') || 'Optional: Filter employees by structure'
-                        }
+                        placeholder={t('user.selectStructure') || 'Select structure first'}
+                        helperText={t('user.structureRequired') || 'Select a structure to load employees'}
                       />
                     )}
                   />
@@ -428,23 +422,29 @@ const UserEdit = () => {
                     value={user.employee || null}
                     onChange={handleEmployeeChange}
                     loading={loadingEmployees}
-                    disabled={loadingEmployees}
+                    disabled={!selectedStructure || loadingEmployees}
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
                     noOptionsText={
-                      loadingEmployees
+                      !selectedStructure
+                        ? t('user.selectStructureFirst') || 'Please select a structure first'
+                        : loadingEmployees
                         ? t('common.loading') || 'Loading...'
-                        : selectedStructure 
-                        ? t('employee.noEmployeesInStructure') || 'No employees in selected structure'
-                        : t('employee.noEmployees') || 'No employees available'
+                        : t('employee.noEmployeesInStructure') || 'No employees in this structure'
                     }
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         label={t('employee.title')}
-                        placeholder={t('user.selectEmployee') || 'Select employee'}
+                        placeholder={
+                          !selectedStructure 
+                            ? t('user.selectStructureFirst') || 'Select structure first'
+                            : t('user.selectEmployee') || 'Select employee'
+                        }
                         helperText={
-                          !selectedStructure && !loadingEmployees
-                            ? `${availableEmployees.length} ${t('employee.totalEmployees') || 'total employees'}`
+                          selectedStructure && availableEmployees.length > 0
+                            ? `${availableEmployees.length} ${t('employee.employeesAvailable') || 'employees available'}`
+                            : !selectedStructure
+                            ? t('user.employeeDisabledHint') || 'Disabled until structure is selected'
                             : undefined
                         }
                         InputProps={{
