@@ -4,17 +4,29 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 01-08-2026 - Removed createdAt (not in UserDTO)
+ * @updated 01-20-2026 - Updated to use employee data from UserDTO
  */
 
 import { UserDTO } from '../dto';
+
+/**
+ * Get user's full name from employee data
+ */
+const getUserFullName = (user: UserDTO): string => {
+  if (!user.employee) return '';
+  
+  const firstName = user.employee.firstNameLt || user.employee.firstNameAr || '';
+  const lastName = user.employee.lastNameLt || user.employee.lastNameAr || '';
+  
+  return `${firstName} ${lastName}`.trim();
+};
 
 /**
  * Export users to CSV
  */
 export const exportToCSV = (users: UserDTO[], filename: string = 'users') => {
   // Transform users to CSV-friendly format
-  const headers = ['ID', 'Username', 'Email', 'First Name', 'Last Name', 'Status', 'Roles'];
+  const headers = ['ID', 'Username', 'Email', 'Full Name', 'Employee ID', 'Status', 'Roles'];
   
   const csvContent = [
     headers.join(','),
@@ -22,8 +34,8 @@ export const exportToCSV = (users: UserDTO[], filename: string = 'users') => {
       user.id,
       `"${user.username}"`,
       `"${user.email || ''}"`,
-      `"${user.firstName || ''}"`,
-      `"${user.lastName || ''}"`,
+      `"${getUserFullName(user)}"`,
+      user.employeeId || '',
       user.enabled ? 'Enabled' : 'Disabled',
       `"${user.roles?.map(r => r.name).join(', ') || ''}"`,
     ].join(','))
@@ -54,10 +66,17 @@ export const exportToExcel = async (users: UserDTO[], filename: string = 'users'
       ID: user.id,
       Username: user.username,
       Email: user.email || '',
-      'First Name': user.firstName || '',
-      'Last Name': user.lastName || '',
+      'Full Name': getUserFullName(user),
+      'Employee ID': user.employeeId || '',
+      'Registration Number': user.employee?.registrationNumber || '',
       Status: user.enabled ? 'Enabled' : 'Disabled',
+      'Account Status': [
+        user.accountNonExpired === false ? 'Expired' : '',
+        user.accountNonLocked === false ? 'Locked' : '',
+        user.credentialsNonExpired === false ? 'Credentials Expired' : ''
+      ].filter(Boolean).join(', ') || 'Active',
       Roles: user.roles?.map(r => r.name).join(', ') || '',
+      Groups: user.groups?.map(g => g.name).join(', ') || '',
     }));
 
     // Create worksheet
@@ -68,10 +87,13 @@ export const exportToExcel = async (users: UserDTO[], filename: string = 'users'
       { wch: 10 },  // ID
       { wch: 20 },  // Username
       { wch: 30 },  // Email
-      { wch: 20 },  // First Name
-      { wch: 20 },  // Last Name
+      { wch: 25 },  // Full Name
+      { wch: 12 },  // Employee ID
+      { wch: 18 },  // Registration Number
       { wch: 12 },  // Status
+      { wch: 20 },  // Account Status
       { wch: 30 },  // Roles
+      { wch: 30 },  // Groups
     ];
     worksheet['!cols'] = columnWidths;
 
@@ -109,11 +131,11 @@ export const exportToPDF = async (users: UserDTO[], filename: string = 'users', 
 
     // Prepare table data
     const tableData = users.map((user) => [
-      user.id.toString(),
+      user.id?.toString() || '',
       user.username,
       user.email || '',
-      user.firstName || '',
-      user.lastName || '',
+      getUserFullName(user),
+      user.employeeId?.toString() || '',
       user.enabled ? 'Enabled' : 'Disabled',
       user.roles?.map(r => r.name).join(', ') || '',
     ]);
@@ -125,9 +147,9 @@ export const exportToPDF = async (users: UserDTO[], filename: string = 'users', 
         'ID',
         t('user.username'),
         t('user.email'),
-        t('user.firstName'),
-        t('user.lastName'),
-        t('user.status'),
+        t('common.fields.name'),
+        t('employee.employeeId') || 'Employee ID',
+        t('common.fields.status') || 'Status',
         t('user.roles'),
       ]],
       body: tableData,
@@ -146,11 +168,11 @@ export const exportToPDF = async (users: UserDTO[], filename: string = 'users', 
       columnStyles: {
         0: { cellWidth: 15 },  // ID
         1: { cellWidth: 30 },  // Username
-        2: { cellWidth: 40 },  // Email
-        3: { cellWidth: 25 },  // First Name
-        4: { cellWidth: 25 },  // Last Name
+        2: { cellWidth: 35 },  // Email
+        3: { cellWidth: 30 },  // Full Name
+        4: { cellWidth: 20 },  // Employee ID
         5: { cellWidth: 20 },  // Status
-        6: { cellWidth: 35 },  // Roles
+        6: { cellWidth: 40 },  // Roles
       },
       margin: { top: 40 },
     });
