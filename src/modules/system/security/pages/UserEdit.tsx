@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-20-2026 - Fixed employee filtering by structure relationship (Employee → Job → Structure)
  * @updated 01-20-2026 - Added cascading structure dropdown to filter employees
  * @updated 01-20-2026 - Updated to align with new UserDTO structure (employee relationship)
  * @updated 01-19-2026 - Fixed password field and DTO type alignment
@@ -80,7 +81,6 @@ const UserEdit = () => {
 
   // UI state
   const [loading, setLoading] = useState(false);
-  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -132,33 +132,29 @@ const UserEdit = () => {
     }
   };
 
-  const filterEmployeesByStructure = async () => {
-    if (!selectedStructure) {
+  const filterEmployeesByStructure = () => {
+    if (!selectedStructure?.id) {
       // No structure selected, show all employees
       setAvailableEmployees(allEmployees);
       return;
     }
 
-    try {
-      setLoadingEmployees(true);
-      // Get employees for the selected structure
-      const filteredEmployees = await EmployeeService.getByStructureId(selectedStructure.id!);
-      setAvailableEmployees(filteredEmployees);
-    } catch (err: any) {
-      console.error('Failed to filter employees:', err);
-      // Fallback to all employees if filtering fails
-      setAvailableEmployees(allEmployees);
-    } finally {
-      setLoadingEmployees(false);
+    // Filter employees whose job belongs to the selected structure
+    // Relationship: Employee → Job → Structure
+    const filtered = allEmployees.filter(
+      employee => employee.job?.structure?.id === selectedStructure.id
+    );
+    
+    setAvailableEmployees(filtered);
+    
+    // Clear employee selection if current employee is not in filtered list
+    if (user.employee && !filtered.find(emp => emp.id === user.employee?.id)) {
+      setUser({ ...user, employeeId: undefined, employee: undefined });
     }
   };
 
   const handleStructureChange = (_event: any, newValue: StructureDTO | null) => {
     setSelectedStructure(newValue);
-    // Clear employee selection if structure changes
-    if (newValue?.id !== user.employee?.job?.structure?.id) {
-      setUser({ ...user, employeeId: undefined, employee: undefined });
-    }
   };
 
   const validateForm = (): boolean => {
@@ -262,9 +258,10 @@ const UserEdit = () => {
     const firstName = employee.firstNameLt || employee.firstNameAr || '';
     const lastName = employee.lastNameLt || employee.lastNameAr || '';
     const fullName = `${firstName} ${lastName}`.trim();
+    const structureName = employee.job?.structure ? ` (${getStructureLabel(employee.job.structure)})` : '';
     return employee.registrationNumber 
-      ? `${employee.registrationNumber} - ${fullName}` 
-      : fullName;
+      ? `${employee.registrationNumber} - ${fullName}${structureName}` 
+      : `${fullName}${structureName}`;
   };
 
   if (loading) {
@@ -380,7 +377,7 @@ const UserEdit = () => {
             </Box>
           </Paper>
 
-          {/* Employee Selection */}
+          {/* Employee Selection with Structure Filter */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -401,7 +398,11 @@ const UserEdit = () => {
                         {...params}
                         label={t('structure.title')}
                         placeholder={t('user.selectStructure') || 'Select structure to filter employees'}
-                        helperText={t('user.structureFilterHint') || 'Optional: Filter employees by structure'}
+                        helperText={
+                          selectedStructure 
+                            ? `${availableEmployees.length} ${t('employee.employeesInStructure') || 'employees in this structure'}`
+                            : t('user.structureFilterHint') || 'Optional: Filter employees by structure'
+                        }
                       />
                     )}
                   />
@@ -413,22 +414,22 @@ const UserEdit = () => {
                     getOptionLabel={getEmployeeLabel}
                     value={user.employee || null}
                     onChange={handleEmployeeChange}
-                    loading={loadingEmployees}
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
+                    noOptionsText={
+                      selectedStructure 
+                        ? t('employee.noEmployeesInStructure') || 'No employees in selected structure'
+                        : t('employee.noEmployees') || 'No employees available'
+                    }
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         label={t('employee.title')}
                         placeholder={t('user.selectEmployee') || 'Select employee'}
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: (
-                            <>
-                              {loadingEmployees ? <CircularProgress color="inherit" size={20} /> : null}
-                              {params.InputProps.endAdornment}
-                            </>
-                          ),
-                        }}
+                        helperText={
+                          !selectedStructure 
+                            ? `${availableEmployees.length} ${t('employee.totalEmployees') || 'total employees'}`
+                            : undefined
+                        }
                       />
                     )}
                   />
@@ -436,15 +437,21 @@ const UserEdit = () => {
 
                 {user.employee && (
                   <Grid item xs={12}>
-                    <Alert severity="info" sx={{ mt: 1 }}>
+                    <Alert severity="info">
                       <Typography variant="body2">
-                        <strong>{t('employee.details')}:</strong>
-                        {' '}{getEmployeeLabel(user.employee)}
-                        {user.employee.job?.structure && (
-                          <> | <strong>{t('structure.title')}:</strong> {getStructureLabel(user.employee.job.structure)}</>
-                        )}
-                        {user.employee.job?.designation && (
-                          <> | <strong>{t('job.title')}:</strong> {user.employee.job.designation}</>
+                        <strong>{t('employee.selectedEmployee') || 'Selected Employee'}:</strong>
+                        {' '}{user.employee.registrationNumber || 'N/A'} - {user.employee.firstNameLt} {user.employee.lastNameLt}
+                        {user.employee.job && (
+                          <>
+                            <br />
+                            <strong>{t('job.title') || 'Job'}:</strong> {user.employee.job.designationFr || user.employee.job.designationEn || user.employee.job.code}
+                            {user.employee.job.structure && (
+                              <>
+                                {' | '}
+                                <strong>{t('structure.title') || 'Structure'}:</strong> {getStructureLabel(user.employee.job.structure)}
+                              </>
+                            )}
+                          </>
                         )}
                       </Typography>
                     </Alert>
