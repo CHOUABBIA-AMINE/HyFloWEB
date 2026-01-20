@@ -37,8 +37,8 @@ import {
 } from '@mui/icons-material';
 import { userService, roleService, groupService } from '../services';
 import { UserDTO, RoleDTO, GroupDTO } from '../dto';
-import { EmployeeDTO } from '../../../organization/dto/EmployeeDTO';
-import { employeeService } from '../../../organization/services';
+import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
+import { employeeService } from '../../../general/organization/services';
 
 // Extended UserDTO for form state (includes password for creation)
 interface UserFormData extends Partial<UserDTO> {

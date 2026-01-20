@@ -7,7 +7,7 @@
  * @updated 01-20-2026
  */
 
-import { EmployeeDTO } from '../../organization/dto/EmployeeDTO';
+import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
 import { RoleDTO } from './RoleDTO';
 import { GroupDTO } from './GroupDTO';
 
