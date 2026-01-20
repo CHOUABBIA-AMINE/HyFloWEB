@@ -3,7 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
- * @updated 01-20-2026 - Fixed employee filtering by structure relationship (Employee → Job → Structure)
+ * @updated 01-20-2026 - Implemented server-side employee filtering by structure
  * @updated 01-20-2026 - Added cascading structure dropdown to filter employees
  * @updated 01-20-2026 - Updated to align with new UserDTO structure (employee relationship)
  * @updated 01-19-2026 - Fixed password field and DTO type alignment
@@ -74,13 +74,13 @@ const UserEdit = () => {
   const [availableGroups, setAvailableGroups] = useState<GroupDTO[]>([]);
   const [availableStructures, setAvailableStructures] = useState<StructureDTO[]>([]);
   const [availableEmployees, setAvailableEmployees] = useState<EmployeeDTO[]>([]);
-  const [allEmployees, setAllEmployees] = useState<EmployeeDTO[]>([]);
   
   // Filter state
   const [selectedStructure, setSelectedStructure] = useState<StructureDTO | null>(null);
 
   // UI state
   const [loading, setLoading] = useState(false);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -89,28 +89,25 @@ const UserEdit = () => {
     loadData();
   }, [userId]);
 
-  // Filter employees when structure changes
+  // Filter employees when structure changes (server-side)
   useEffect(() => {
-    filterEmployeesByStructure();
-  }, [selectedStructure, allEmployees]);
+    loadEmployeesByStructure();
+  }, [selectedStructure]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       
-      // Load roles, groups, structures, and employees
-      const [rolesData, groupsData, structuresData, employeesData] = await Promise.all([
+      // Load roles, groups, and structures
+      const [rolesData, groupsData, structuresData] = await Promise.all([
         roleService.getAll().catch(() => [] as RoleDTO[]),
         groupService.getAll().catch(() => [] as GroupDTO[]),
         StructureService.getAllNoPagination().catch(() => [] as StructureDTO[]),
-        EmployeeService.getAllNoPagination().catch(() => [] as EmployeeDTO[]),
       ]);
 
       setAvailableRoles(rolesData);
       setAvailableGroups(groupsData);
       setAvailableStructures(structuresData);
-      setAllEmployees(employeesData);
-      setAvailableEmployees(employeesData); // Initially show all employees
 
       // Load user if editing
       if (isEditMode) {
@@ -120,7 +117,13 @@ const UserEdit = () => {
         // If user has an employee with a job in a structure, pre-select that structure
         if (userData.employee?.job?.structure) {
           setSelectedStructure(userData.employee.job.structure);
+        } else {
+          // No structure, load all employees
+          await loadEmployeesByStructure();
         }
+      } else {
+        // New user, load all employees initially
+        await loadEmployeesByStructure();
       }
 
       setError('');
@@ -132,29 +135,38 @@ const UserEdit = () => {
     }
   };
 
-  const filterEmployeesByStructure = () => {
-    if (!selectedStructure?.id) {
-      // No structure selected, show all employees
-      setAvailableEmployees(allEmployees);
-      return;
-    }
-
-    // Filter employees whose job belongs to the selected structure
-    // Relationship: Employee → Job → Structure
-    const filtered = allEmployees.filter(
-      employee => employee.job?.structure?.id === selectedStructure.id
-    );
-    
-    setAvailableEmployees(filtered);
-    
-    // Clear employee selection if current employee is not in filtered list
-    if (user.employee && !filtered.find(emp => emp.id === user.employee?.id)) {
-      setUser({ ...user, employeeId: undefined, employee: undefined });
+  const loadEmployeesByStructure = async () => {
+    try {
+      setLoadingEmployees(true);
+      
+      let employeesData: EmployeeDTO[];
+      
+      if (selectedStructure?.id) {
+        // Server-side filtering: Get employees for specific structure
+        employeesData = await EmployeeService.getByStructureId(selectedStructure.id);
+      } else {
+        // No structure selected: Get all employees
+        employeesData = await EmployeeService.getAllNoPagination();
+      }
+      
+      setAvailableEmployees(employeesData);
+      
+      // Clear employee selection if current employee is not in the new list
+      if (user.employee && !employeesData.find(emp => emp.id === user.employee?.id)) {
+        setUser({ ...user, employeeId: undefined, employee: undefined });
+      }
+    } catch (err: any) {
+      console.error('Failed to load employees:', err);
+      setError(err.message || t('common.errors.loadingEmployeesFailed'));
+      setAvailableEmployees([]);
+    } finally {
+      setLoadingEmployees(false);
     }
   };
 
   const handleStructureChange = (_event: any, newValue: StructureDTO | null) => {
     setSelectedStructure(newValue);
+    // Employee filtering will be triggered by useEffect
   };
 
   const validateForm = (): boolean => {
@@ -392,6 +404,7 @@ const UserEdit = () => {
                     getOptionLabel={getStructureLabel}
                     value={selectedStructure}
                     onChange={handleStructureChange}
+                    disabled={loadingEmployees}
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
                     renderInput={(params) => (
                       <TextField
@@ -414,9 +427,13 @@ const UserEdit = () => {
                     getOptionLabel={getEmployeeLabel}
                     value={user.employee || null}
                     onChange={handleEmployeeChange}
+                    loading={loadingEmployees}
+                    disabled={loadingEmployees}
                     isOptionEqualToValue={(option, value) => option.id === value?.id}
                     noOptionsText={
-                      selectedStructure 
+                      loadingEmployees
+                        ? t('common.loading') || 'Loading...'
+                        : selectedStructure 
                         ? t('employee.noEmployeesInStructure') || 'No employees in selected structure'
                         : t('employee.noEmployees') || 'No employees available'
                     }
@@ -426,10 +443,19 @@ const UserEdit = () => {
                         label={t('employee.title')}
                         placeholder={t('user.selectEmployee') || 'Select employee'}
                         helperText={
-                          !selectedStructure 
+                          !selectedStructure && !loadingEmployees
                             ? `${availableEmployees.length} ${t('employee.totalEmployees') || 'total employees'}`
                             : undefined
                         }
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              {loadingEmployees ? <CircularProgress color="inherit" size={20} /> : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          ),
+                        }}
                       />
                     )}
                   />
