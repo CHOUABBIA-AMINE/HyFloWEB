@@ -115,7 +115,8 @@
       "loadingDataFailed": "Échec du chargement des données",
       "loadingFailed": "Échec du chargement",
       "savingFailed": "Échec de l'enregistrement",
-      "validationFailed": "Veuillez remplir tous les champs obligatoires"
+      "validationFailed": "Veuillez remplir tous les champs obligatoires",
+	  "loadingEmployeesFailed": "Échec du chargement des employés"
     },
     "messages": {
       "createSuccess": "Créé avec succès",
@@ -472,7 +473,10 @@
     "selectGroupsPlaceholder": "Choisir les groupes pour cet employé",
 	"name": "Nom",
 	"picture": "Photo",
-	"clickToUpload": "Cliquer pour télécharger"
+	"clickToUpload": "Cliquer pour télécharger",
+	"noEmployeesInStructure": "Aucun employé dans cette structure",
+    "employeesAvailable": "employés disponibles",
+    "selectedEmployee": "Employé sélectionné"
   },
   "auth": {
     "login": "Connexion",
@@ -601,7 +605,13 @@
     "selectRoles": "Sélectionner les rôles",
     "selectGroups": "Sélectionner les groupes",
     "selectRolesPlaceholder": "Choisir les rôles pour cet utilisateur",
-    "selectGroupsPlaceholder": "Choisir les groupes pour cet utilisateur"
+    "selectGroupsPlaceholder": "Choisir les groupes pour cet utilisateur",
+	"employeeInformation": "Informations sur l'employé",
+    "selectStructure": "Sélectionner une structure",
+    "structureRequired": "Sélectionnez une structure pour charger les employés",
+    "selectStructureFirst": "Veuillez d'abord sélectionner une structure",
+    "selectEmployee": "Sélectionner un employé",
+    "employeeDisabledHint": "Désactivé jusqu'à ce qu'une structure soit sélectionnée"
   },
   "role": {
     "title": "Rôle",

@@ -112,7 +112,8 @@
       "loadingDataFailed": "فشل تحميل البيانات",
       "loadingFailed": "فشل التحميل",
       "savingFailed": "فشل الحفظ",
-      "validationFailed": "فشل التحقق من الصحة"
+      "validationFailed": "فشل التحقق من الصحة",
+	  "loadingEmployeesFailed": "فشل تحميل الموظفين"
     },
     "page": {
       "createTitle": "إنشاء {{entity}}",
@@ -470,7 +471,10 @@
     "selectGroupsPlaceholder": "اختر المجموعات لهذا الموظف",
 	"name": "الاسم",
 	"picture": "الصورة",
-	"clickToUpload": "انقر للتحميل"
+	"clickToUpload": "انقر للتحميل",
+	"noEmployeesInStructure": "لا يوجد موظفون في هذا الهيكل",
+    "employeesAvailable": "موظف متاح",
+    "selectedEmployee": "الموظف المحدد"
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -599,7 +603,13 @@
 	"selectRoles": "اختر الأدوار",
 	"selectGroups": "اختر المجموعات",
 	"selectRolesPlaceholder": "اختر الأدوار لهذا المستخدم",
-	"selectGroupsPlaceholder": "اختر المجموعات لهذا المستخدم"
+	"selectGroupsPlaceholder": "اختر المجموعات لهذا المستخدم",
+	"employeeInformation": "معلومات الموظف",
+    "selectStructure": "اختر الهيكل",
+    "structureRequired": "حدد هيكلًا لتحميل الموظفين",
+    "selectStructureFirst": "يرجى تحديد هيكل أولاً",
+    "selectEmployee": "اختر موظفًا",
+    "employeeDisabledHint": "معطل حتى يتم تحديد الهيكل"
   },
   "role": {
     "title": "الدور",

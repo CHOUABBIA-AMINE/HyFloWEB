@@ -118,7 +118,8 @@
       "savingFailed": "Failed to save",
       "validationFailed": "Please fill in all required fields",
       "invalidFileType": "Invalid file type. Please select an image file.",
-      "fileTooLarge": "File is too large. Maximum size is 5MB."
+      "fileTooLarge": "File is too large. Maximum size is 5MB.",
+	  "loadingEmployeesFailed": "Failed to load employees"
     },
     "messages": {
       "createSuccess": "Created successfully",
@@ -478,7 +479,10 @@
     "selectGroupsPlaceholder": "Choose groups for this employee",
 	"name": "Name",
 	"picture": "Picture",
-	"clickToUpload": "Click to upload"
+	"clickToUpload": "Click to upload",
+	"noEmployeesInStructure": "No employees in this structure",
+    "employeesAvailable": "employees available",
+    "selectedEmployee": "Selected Employee"
   },
   "auth": {
     "login": "Login",
@@ -607,7 +611,13 @@
     "updatedAt": "Updated At",
     "lastLogin": "Last Login",
     "filterByStatus": "Filter by Status",
-    "filterByRole": "Filter by Role"
+    "filterByRole": "Filter by Role",
+	"employeeInformation": "Employee Information",
+    "selectStructure": "Select structure",
+    "structureRequired": "Select a structure to load employees",
+    "selectStructureFirst": "Please select a structure first",
+    "selectEmployee": "Select employee",
+    "employeeDisabledHint": "Disabled until structure is selected"
   },
   "role": {
     "title": "Role",
