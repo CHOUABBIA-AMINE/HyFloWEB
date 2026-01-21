@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-21-2026 - Added language handling for structure and employee dropdowns
  * @updated 01-20-2026 - Made employee selection dependent on structure (cascading dropdown)
  * @updated 01-20-2026 - Implemented server-side employee filtering by structure
  * @updated 01-20-2026 - Added cascading structure dropdown to filter employees
@@ -51,7 +52,7 @@ interface UserFormData extends Partial<UserDTO> {
 }
 
 const UserEdit = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { userId } = useParams<{ userId: string }>();
   const isEditMode = !!userId;
@@ -262,14 +263,51 @@ const UserEdit = () => {
     navigate('/security/users');
   };
 
+  /**
+   * Get structure label based on current language
+   * Priority: Current language > French > English > Arabic > Code
+   */
   const getStructureLabel = (structure: StructureDTO): string => {
-    return structure.designationFr || structure.designationEn || structure.designationAr || structure.code;
+    const currentLang = i18n.language;
+    
+    if (currentLang === 'fr' && structure.designationFr) {
+      return structure.designationFr;
+    } else if (currentLang === 'en' && structure.designationEn) {
+      return structure.designationEn;
+    } else if (currentLang === 'ar' && structure.designationAr) {
+      return structure.designationAr;
+    }
+    
+    // Fallback priority: Fr > En > Ar > Code
+    return structure.designationFr || 
+           structure.designationEn || 
+           structure.designationAr || 
+           structure.code;
   };
 
+  /**
+   * Get employee label based on current language
+   * Priority: Current language name > Latin name > Arabic name
+   * Format: Registration Number - Full Name
+   */
   const getEmployeeLabel = (employee: EmployeeDTO): string => {
-    const firstName = employee.firstNameLt || employee.firstNameAr || '';
-    const lastName = employee.lastNameLt || employee.lastNameAr || '';
+    const currentLang = i18n.language;
+    
+    let firstName = '';
+    let lastName = '';
+    
+    if (currentLang === 'ar') {
+      // Arabic language: prefer Arabic names
+      firstName = employee.firstNameAr || employee.firstNameLt || '';
+      lastName = employee.lastNameAr || employee.lastNameLt || '';
+    } else {
+      // French/English/Other: prefer Latin names
+      firstName = employee.firstNameLt || employee.firstNameAr || '';
+      lastName = employee.lastNameLt || employee.lastNameAr || '';
+    }
+    
     const fullName = `${firstName} ${lastName}`.trim();
+    
     return employee.registrationNumber 
       ? `${employee.registrationNumber} - ${fullName}` 
       : fullName;
@@ -466,11 +504,16 @@ const UserEdit = () => {
                     <Alert severity="info">
                       <Typography variant="body2">
                         <strong>{t('employee.selectedEmployee') || 'Selected Employee'}:</strong>
-                        {' '}{user.employee.registrationNumber || 'N/A'} - {user.employee.firstNameLt} {user.employee.lastNameLt}
+                        {' '}{user.employee.registrationNumber || 'N/A'} - {getEmployeeLabel(user.employee).split(' - ')[1]}
                         {user.employee.job && (
                           <>
                             <br />
-                            <strong>{t('job.title') || 'Job'}:</strong> {user.employee.job.designationFr || user.employee.job.designationEn || user.employee.job.code}
+                            <strong>{t('job.title') || 'Job'}:</strong> {
+                              i18n.language === 'fr' ? user.employee.job.designationFr :
+                              i18n.language === 'en' ? user.employee.job.designationEn :
+                              i18n.language === 'ar' ? user.employee.job.designationAr :
+                              user.employee.job.designationFr || user.employee.job.designationEn || user.employee.job.code
+                            }
                             {user.employee.job.structure && (
                               <>
                                 {' | '}
