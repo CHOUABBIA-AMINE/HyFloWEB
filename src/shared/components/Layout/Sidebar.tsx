@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-25-2026 - Added Flow Readings menu with List, Create, Validate submenus
  * @updated 01-20-2026 - Reorganized: Maps (Infrastructure Map, Pipeline Map), Statistics (Dashboard), Reading under Workspace
  * @updated 12-28-2025
  * @updated 12-30-2025 - Added Employee entry
@@ -60,6 +61,9 @@ import AppsIcon from '@mui/icons-material/Apps';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -102,7 +106,23 @@ const Sidebar = ({ open }: SidebarProps) => {
         {
           titleKey: 'nav.reading',
           icon: <MenuBookIcon />,
-          path: '/workspace/reading',
+          children: [
+            {
+              titleKey: 'nav.readings.list',
+              icon: <ListAltIcon />,
+              path: '/flow/readings',
+            },
+            {
+              titleKey: 'nav.readings.create',
+              icon: <AddCircleIcon />,
+              path: '/flow/readings/new',
+            },
+            {
+              titleKey: 'nav.readings.validate',
+              icon: <CheckCircleIcon />,
+              path: '/flow/readings/pending',
+            },
+          ],
         },
         {
           titleKey: 'nav.maps',
