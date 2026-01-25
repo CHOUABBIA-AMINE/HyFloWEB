@@ -10,19 +10,18 @@
 
 import React from 'react';
 import {
-  Tag,
-  Slider,
-  Progress,
-  Space,
+  Box,
+  Chip,
+  LinearProgress,
   Typography,
-} from 'antd';
+  Paper,
+  Slider,
+} from '@mui/material';
 import {
-  CheckCircleOutlined,
-  WarningOutlined,
-  ExclamationCircleOutlined,
-} from '@ant-design/icons';
-
-const { Text } = Typography;
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+} from '@mui/icons-material';
 
 interface ThresholdIndicatorProps {
   value: number;
@@ -37,10 +36,11 @@ type ThresholdStatus = 'ok' | 'warning' | 'breach';
 
 interface StatusInfo {
   status: ThresholdStatus;
-  color: string;
+  color: 'success' | 'warning' | 'error';
   icon: React.ReactNode;
   message: string;
-  progressColor: string;
+  bgColor: string;
+  borderColor: string;
 }
 
 export const ThresholdIndicator: React.FC<ThresholdIndicatorProps> = ({
@@ -57,12 +57,13 @@ export const ThresholdIndicator: React.FC<ThresholdIndicatorProps> = ({
     if (value < min || value > max) {
       return {
         status: 'breach',
-        color: '#f5222d',
-        icon: <ExclamationCircleOutlined />,
+        color: 'error',
+        icon: <ErrorIcon />,
         message: value < min 
           ? `BREACH: Below minimum threshold (${min} ${unit})`
           : `BREACH: Above maximum threshold (${max} ${unit})`,
-        progressColor: '#f5222d',
+        bgColor: '#fff2f0',
+        borderColor: '#f5222d',
       };
     }
     
@@ -75,22 +76,24 @@ export const ThresholdIndicator: React.FC<ThresholdIndicatorProps> = ({
     if (value <= minWarning || value >= maxWarning) {
       return {
         status: 'warning',
-        color: '#faad14',
-        icon: <WarningOutlined />,
+        color: 'warning',
+        icon: <WarningIcon />,
         message: value <= minWarning
           ? `WARNING: Near lower threshold limit (${minWarning.toFixed(2)} ${unit})`
           : `WARNING: Near upper threshold limit (${maxWarning.toFixed(2)} ${unit})`,
-        progressColor: '#faad14',
+        bgColor: '#fffbe6',
+        borderColor: '#faad14',
       };
     }
     
     // Normal range
     return {
       status: 'ok',
-      color: '#52c41a',
-      icon: <CheckCircleOutlined />,
-      message: `OK: Value within normal operating range`,
-      progressColor: '#52c41a',
+      color: 'success',
+      icon: <CheckCircleIcon />,
+      message: 'OK: Value within normal operating range',
+      bgColor: '#f6ffed',
+      borderColor: '#52c41a',
     };
   };
   
@@ -102,70 +105,86 @@ export const ThresholdIndicator: React.FC<ThresholdIndicatorProps> = ({
   const clampedPercentage = Math.max(0, Math.min(100, percentage));
   
   // Marks for slider
-  const marks = {
-    [min]: {
-      label: <span style={{ fontSize: 12 }}>{min}</span>,
-      style: { color: '#666' },
+  const marks = [
+    {
+      value: min,
+      label: min.toString(),
     },
-    [max]: {
-      label: <span style={{ fontSize: 12 }}>{max}</span>,
-      style: { color: '#666' },
+    {
+      value: max,
+      label: max.toString(),
     },
-  };
+  ];
   
   return (
-    <div
-      style={{
-        padding: '12px 16px',
-        backgroundColor: statusInfo.status === 'breach' ? '#fff2f0' : statusInfo.status === 'warning' ? '#fffbe6' : '#f6ffed',
-        border: `1px solid ${statusInfo.color}`,
-        borderRadius: 6,
-        marginTop: -8,
-        marginBottom: 16,
+    <Paper
+      elevation={0}
+      sx={{
+        p: 2,
+        backgroundColor: statusInfo.bgColor,
+        border: `1px solid ${statusInfo.borderColor}`,
+        borderRadius: 1,
+        mt: -1,
+        mb: 2,
       }}
     >
-      <Space direction="vertical" style={{ width: '100%' }} size="small">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {/* Status badge */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Tag color={statusInfo.color} icon={statusInfo.icon}>
-            {statusInfo.message}
-          </Tag>
-          <Text strong style={{ color: statusInfo.color }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Chip
+            icon={statusInfo.icon}
+            label={statusInfo.message}
+            color={statusInfo.color}
+            size="small"
+          />
+          <Typography variant="body1" fontWeight="bold" color={`${statusInfo.color}.main`}>
             {value.toFixed(2)} {unit}
-          </Text>
-        </div>
+          </Typography>
+        </Box>
         
         {/* Progress bar */}
-        <Progress
-          percent={clampedPercentage}
-          strokeColor={statusInfo.progressColor}
-          showInfo={false}
-          size="small"
+        <LinearProgress
+          variant="determinate"
+          value={clampedPercentage}
+          color={statusInfo.color}
+          sx={{ height: 8, borderRadius: 1 }}
         />
         
         {/* Visual range indicator */}
-        <div style={{ marginTop: 8 }}>
+        <Box sx={{ mt: 1, px: 1 }}>
           <Slider
             value={value}
             min={min - 10}
             max={max + 10}
             marks={marks}
             disabled
-            tooltip={{
-              formatter: (val) => `${val?.toFixed(2)} ${unit}`,
+            valueLabelDisplay="auto"
+            valueLabelFormat={(val: number) => `${val.toFixed(2)} ${unit}`}
+            color={statusInfo.color}
+            sx={{
+              '& .MuiSlider-thumb': {
+                width: 16,
+                height: 16,
+              },
             }}
-            trackStyle={{ backgroundColor: statusInfo.color }}
-            handleStyle={{ borderColor: statusInfo.color }}
           />
-        </div>
+        </Box>
         
         {/* Threshold info */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#666' }}>
-          <span>Min: {min} {unit}</span>
-          <span>Range: {min} - {max} {unit}</span>
-          <span>Max: {max} {unit}</span>
-        </div>
-      </Space>
-    </div>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 12,
+            color: 'text.secondary',
+            mt: 1,
+          }}
+        >
+          <Typography variant="caption">Min: {min} {unit}</Typography>
+          <Typography variant="caption">Range: {min} - {max} {unit}</Typography>
+          <Typography variant="caption">Max: {max} {unit}</Typography>
+        </Box>
+      </Box>
+    </Paper>
   );
 };
