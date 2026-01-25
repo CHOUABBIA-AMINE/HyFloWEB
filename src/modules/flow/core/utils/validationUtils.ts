@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-25-2026
  */
 
 import { MEASUREMENT_CONSTRAINTS, VALIDATION_CONSTRAINTS } from './constants';
@@ -53,8 +54,8 @@ export function isValidVolume(volume: number | null | undefined): boolean {
 export function validateFlowReading(reading: Partial<FlowReadingDTO>): string[] {
   const errors: string[] = [];
 
-  if (!reading.readingDate) {
-    errors.push('Reading date is required');
+  if (!reading.recordedAt) {
+    errors.push('Recording timestamp is required');
   }
 
   if (reading.pressure !== null && reading.pressure !== undefined && !isValidPressure(reading.pressure)) {
@@ -69,7 +70,7 @@ export function validateFlowReading(reading: Partial<FlowReadingDTO>): string[] 
     errors.push(`Flow rate must be between ${MEASUREMENT_CONSTRAINTS.FLOW_RATE_MIN} and ${MEASUREMENT_CONSTRAINTS.FLOW_RATE_MAX} m³/h`);
   }
 
-  if (reading.volume !== null && reading.volume !== undefined && !isValidVolume(reading.volume)) {
+  if (reading.containedVolume !== null && reading.containedVolume !== undefined && !isValidVolume(reading.containedVolume)) {
     errors.push(`Volume must be between ${MEASUREMENT_CONSTRAINTS.VOLUME_MIN} and ${MEASUREMENT_CONSTRAINTS.VOLUME_MAX} m³`);
   }
 
@@ -82,20 +83,49 @@ export function validateFlowReading(reading: Partial<FlowReadingDTO>): string[] 
 export function validateFlowThreshold(threshold: Partial<FlowThresholdDTO>): string[] {
   const errors: string[] = [];
 
-  if (threshold.minValue === null || threshold.minValue === undefined) {
-    errors.push('Minimum value is required');
+  // Pressure thresholds
+  if (threshold.pressureMin === null || threshold.pressureMin === undefined) {
+    errors.push('Minimum pressure is required');
   }
-
-  if (threshold.maxValue === null || threshold.maxValue === undefined) {
-    errors.push('Maximum value is required');
+  if (threshold.pressureMax === null || threshold.pressureMax === undefined) {
+    errors.push('Maximum pressure is required');
   }
-
   if (
-    threshold.minValue !== null && threshold.minValue !== undefined &&
-    threshold.maxValue !== null && threshold.maxValue !== undefined &&
-    threshold.minValue >= threshold.maxValue
+    threshold.pressureMin !== null && threshold.pressureMin !== undefined &&
+    threshold.pressureMax !== null && threshold.pressureMax !== undefined &&
+    threshold.pressureMin >= threshold.pressureMax
   ) {
-    errors.push('Minimum value must be less than maximum value');
+    errors.push('Minimum pressure must be less than maximum pressure');
+  }
+
+  // Temperature thresholds
+  if (threshold.temperatureMin === null || threshold.temperatureMin === undefined) {
+    errors.push('Minimum temperature is required');
+  }
+  if (threshold.temperatureMax === null || threshold.temperatureMax === undefined) {
+    errors.push('Maximum temperature is required');
+  }
+  if (
+    threshold.temperatureMin !== null && threshold.temperatureMin !== undefined &&
+    threshold.temperatureMax !== null && threshold.temperatureMax !== undefined &&
+    threshold.temperatureMin >= threshold.temperatureMax
+  ) {
+    errors.push('Minimum temperature must be less than maximum temperature');
+  }
+
+  // Flow rate thresholds
+  if (threshold.flowRateMin === null || threshold.flowRateMin === undefined) {
+    errors.push('Minimum flow rate is required');
+  }
+  if (threshold.flowRateMax === null || threshold.flowRateMax === undefined) {
+    errors.push('Maximum flow rate is required');
+  }
+  if (
+    threshold.flowRateMin !== null && threshold.flowRateMin !== undefined &&
+    threshold.flowRateMax !== null && threshold.flowRateMax !== undefined &&
+    threshold.flowRateMin >= threshold.flowRateMax
+  ) {
+    errors.push('Minimum flow rate must be less than maximum flow rate');
   }
 
   return errors;
@@ -119,33 +149,73 @@ export function isValidNotes(notes: string | null | undefined): boolean {
 }
 
 /**
- * Check if value breaches threshold
+ * Check if pressure value breaches threshold
  */
-export function isThresholdBreach(
+export function isPressureThresholdBreach(
   value: number,
-  threshold: Pick<FlowThresholdDTO, 'minValue' | 'maxValue'>
+  threshold: Pick<FlowThresholdDTO, 'pressureMin' | 'pressureMax'>
 ): boolean {
-  if (threshold.minValue !== null && threshold.minValue !== undefined && value < threshold.minValue) {
-    return true;
-  }
-  if (threshold.maxValue !== null && threshold.maxValue !== undefined && value > threshold.maxValue) {
-    return true;
-  }
+  if (value < threshold.pressureMin) return true;
+  if (value > threshold.pressureMax) return true;
   return false;
 }
 
 /**
- * Get breach type
+ * Check if temperature value breaches threshold
  */
-export function getBreachType(
+export function isTemperatureThresholdBreach(
   value: number,
-  threshold: Pick<FlowThresholdDTO, 'minValue' | 'maxValue'>
+  threshold: Pick<FlowThresholdDTO, 'temperatureMin' | 'temperatureMax'>
+): boolean {
+  if (value < threshold.temperatureMin) return true;
+  if (value > threshold.temperatureMax) return true;
+  return false;
+}
+
+/**
+ * Check if flow rate value breaches threshold
+ */
+export function isFlowRateThresholdBreach(
+  value: number,
+  threshold: Pick<FlowThresholdDTO, 'flowRateMin' | 'flowRateMax'>
+): boolean {
+  if (value < threshold.flowRateMin) return true;
+  if (value > threshold.flowRateMax) return true;
+  return false;
+}
+
+/**
+ * Get pressure breach type
+ */
+export function getPressureBreachType(
+  value: number,
+  threshold: Pick<FlowThresholdDTO, 'pressureMin' | 'pressureMax'>
 ): 'BELOW_MIN' | 'ABOVE_MAX' | null {
-  if (threshold.minValue !== null && threshold.minValue !== undefined && value < threshold.minValue) {
-    return 'BELOW_MIN';
-  }
-  if (threshold.maxValue !== null && threshold.maxValue !== undefined && value > threshold.maxValue) {
-    return 'ABOVE_MAX';
-  }
+  if (value < threshold.pressureMin) return 'BELOW_MIN';
+  if (value > threshold.pressureMax) return 'ABOVE_MAX';
+  return null;
+}
+
+/**
+ * Get temperature breach type
+ */
+export function getTemperatureBreachType(
+  value: number,
+  threshold: Pick<FlowThresholdDTO, 'temperatureMin' | 'temperatureMax'>
+): 'BELOW_MIN' | 'ABOVE_MAX' | null {
+  if (value < threshold.temperatureMin) return 'BELOW_MIN';
+  if (value > threshold.temperatureMax) return 'ABOVE_MAX';
+  return null;
+}
+
+/**
+ * Get flow rate breach type
+ */
+export function getFlowRateBreachType(
+  value: number,
+  threshold: Pick<FlowThresholdDTO, 'flowRateMin' | 'flowRateMax'>
+): 'BELOW_MIN' | 'ABOVE_MAX' | null {
+  if (value < threshold.flowRateMin) return 'BELOW_MIN';
+  if (value > threshold.flowRateMax) return 'ABOVE_MAX';
   return null;
 }
