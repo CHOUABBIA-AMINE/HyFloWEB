@@ -4,7 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
- * @updated 01-25-2026 - Added Flow Reading routes (list, create, edit, validate)
+ * @updated 01-25-2026 - Added Flow Reading routes and ReadingList component
  * @updated 12-28-2025
  * @updated 12-30-2025 - Added Employee routes
  * @updated 01-01-2026 - Added Product routes
@@ -65,7 +65,7 @@ import VendorEdit from './modules/network/common/pages/VendorEdit';
 import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
 
 // Flow Readings Module
-import { ReadingEdit } from './modules/flow/core/pages/ReadingEdit';
+import { ReadingList, ReadingEdit } from './modules/flow/core/pages';
 
 function App() {
   const { i18n } = useTranslation();
@@ -141,7 +141,7 @@ function App() {
                     path="readings"
                     element={
                       <ProtectedRoute>
-                        <div>Flow Readings List (TODO)</div>
+                        <ReadingList />
                       </ProtectedRoute>
                     }
                   />
