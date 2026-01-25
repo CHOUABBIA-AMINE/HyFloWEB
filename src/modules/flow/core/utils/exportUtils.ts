@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-25-2026
  */
 
 import type { FlowReadingDTO } from '../dto/FlowReadingDTO';
@@ -19,25 +20,25 @@ import { formatDate, formatDateTime, formatPressure, formatTemperature, formatFl
 export function exportReadingsToCSV(readings: FlowReadingDTO[]): string {
   const headers = [
     'ID',
-    'Reading Date',
+    'Recorded At',
     'Pressure (bar)',
     'Temperature (°C)',
     'Flow Rate (m³/h)',
-    'Volume (m³)',
-    'Quality Flag',
+    'Contained Volume (m³)',
     'Validation Status',
+    'Pipeline',
     'Notes',
   ];
 
   const rows = readings.map(reading => [
     reading.id || '',
-    formatDateTime(reading.readingDate),
+    formatDateTime(reading.recordedAt),
     reading.pressure !== null && reading.pressure !== undefined ? reading.pressure.toString() : '',
     reading.temperature !== null && reading.temperature !== undefined ? reading.temperature.toString() : '',
     reading.flowRate !== null && reading.flowRate !== undefined ? reading.flowRate.toString() : '',
-    reading.volume !== null && reading.volume !== undefined ? reading.volume.toString() : '',
-    reading.qualityFlag?.code || '',
+    reading.containedVolume !== null && reading.containedVolume !== undefined ? reading.containedVolume.toString() : '',
     reading.validationStatus?.code || '',
+    reading.pipeline?.code || '',
     reading.notes || '',
   ]);
 
@@ -50,7 +51,7 @@ export function exportReadingsToCSV(readings: FlowReadingDTO[]): string {
 export function exportOperationsToCSV(operations: FlowOperationDTO[]): string {
   const headers = [
     'ID',
-    'Operation Date',
+    'Date',
     'Operation Type',
     'Product',
     'Infrastructure',
@@ -61,8 +62,8 @@ export function exportOperationsToCSV(operations: FlowOperationDTO[]): string {
 
   const rows = operations.map(operation => [
     operation.id || '',
-    formatDate(operation.operationDate),
-    operation.operationType?.code || '',
+    formatDate(operation.date),
+    operation.type?.code || '',
     operation.product?.code || '',
     operation.infrastructure?.code || '',
     operation.volume !== null && operation.volume !== undefined ? operation.volume.toString() : '',
@@ -79,10 +80,12 @@ export function exportOperationsToCSV(operations: FlowOperationDTO[]): string {
 export function exportAlertsToCSV(alerts: FlowAlertDTO[]): string {
   const headers = [
     'ID',
-    'Triggered At',
+    'Alert Timestamp',
     'Status',
-    'Threshold',
-    'Triggered Value',
+    'Threshold ID',
+    'Actual Value',
+    'Threshold Value',
+    'Message',
     'Acknowledged At',
     'Resolved At',
     'Resolution Notes',
@@ -90,10 +93,12 @@ export function exportAlertsToCSV(alerts: FlowAlertDTO[]): string {
 
   const rows = alerts.map(alert => [
     alert.id || '',
-    formatDateTime(alert.triggeredAt),
-    alert.alertStatus?.code || '',
+    formatDateTime(alert.alertTimestamp),
+    alert.status?.code || '',
     alert.threshold?.id?.toString() || '',
-    alert.triggeredValue !== null && alert.triggeredValue !== undefined ? alert.triggeredValue.toString() : '',
+    alert.actualValue !== null && alert.actualValue !== undefined ? alert.actualValue.toString() : '',
+    alert.thresholdValue !== null && alert.thresholdValue !== undefined ? alert.thresholdValue.toString() : '',
+    alert.message || '',
     formatDateTime(alert.acknowledgedAt),
     formatDateTime(alert.resolvedAt),
     alert.resolutionNotes || '',
@@ -111,22 +116,26 @@ export function exportEventsToCSV(events: FlowEventDTO[]): string {
     'Event Type',
     'Start Time',
     'End Time',
+    'Title',
     'Status',
     'Severity',
     'Infrastructure',
     'Description',
+    'Impact',
     'Resolution',
   ];
 
   const rows = events.map(event => [
     event.id || '',
-    event.eventType?.code || '',
+    event.type?.code || '',
     formatDateTime(event.startTime),
     formatDateTime(event.endTime),
-    event.eventStatus?.code || '',
+    event.title || '',
+    event.status?.code || '',
     event.severity?.code || '',
     event.infrastructure?.code || '',
     event.description || '',
+    event.impact || '',
     event.resolution || '',
   ]);
 
