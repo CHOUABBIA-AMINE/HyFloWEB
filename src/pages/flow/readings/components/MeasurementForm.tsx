@@ -1,46 +1,47 @@
 /**
  * MeasurementForm Component
  * 
- * Form for entering flow measurements with real-time threshold validation.
- * Provides visual feedback for each measurement against configured thresholds.
+ * Form for entering flow measurements with real-time validation
+ * against threshold values. Provides visual feedback for values
+ * within range, near threshold, or exceeding limits.
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  */
 
-import React from 'react';
-import { Control, Controller, FieldErrors } from 'react-hook-form';
+import React, { useMemo } from 'react';
+import { Controller, Control, FieldErrors } from 'react-hook-form';
 import {
-  Form,
-  InputNumber,
-  DatePicker,
-  Input,
-  Row,
-  Col,
-  Card,
-  Divider,
+  Box,
+  Grid,
+  TextField,
+  Typography,
   Alert,
-} from 'antd';
+  AlertTitle,
+  Chip,
+  LinearProgress,
+  Paper,
+} from '@mui/material';
 import {
-  DashboardOutlined,
-  FireOutlined,
-  ThunderboltOutlined,
-  DatabaseOutlined,
-  ClockCircleOutlined,
-} from '@ant-design/icons';
-import dayjs from 'dayjs';
-
-import { ThresholdIndicator } from './ThresholdIndicator';
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+} from '@mui/icons-material';
 
 import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO';
-
-const { TextArea } = Input;
 
 interface MeasurementFormProps {
   control: Control<any>;
   errors: FieldErrors;
   pipelineId: number;
   threshold?: FlowThresholdDTO;
+}
+
+interface ThresholdStatus {
+  color: 'success' | 'warning' | 'error';
+  icon: React.ReactNode;
+  message: string;
+  percentage: number;
 }
 
 export const MeasurementForm: React.FC<MeasurementFormProps> = ({
@@ -50,273 +51,263 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
   threshold,
 }) => {
   
-  return (
-    <div>
-      <Alert
-        message="Measurement Entry"
-        description="Enter the measured values. Values will be validated against configured thresholds in real-time. At least one measurement must be provided."
-        type="info"
-        showIcon
-        style={{ marginBottom: 24 }}
+  const getThresholdStatus = (
+    value: number | undefined,
+    min: number,
+    max: number,
+    tolerance: number
+  ): ThresholdStatus | null => {
+    if (value === undefined || value === null) return null;
+    
+    // Critical breach
+    if (value < min || value > max) {
+      return {
+        color: 'error',
+        icon: <ErrorIcon />,
+        message: `BREACH: Value outside threshold range (${min}-${max})`,
+        percentage: value < min ? 0 : 100,
+      };
+    }
+    
+    // Warning zone (within tolerance)
+    const toleranceValue = (max - min) * (tolerance / 100);
+    const minWarning = min + toleranceValue;
+    const maxWarning = max - toleranceValue;
+    
+    if (value <= minWarning || value >= maxWarning) {
+      return {
+        color: 'warning',
+        icon: <WarningIcon />,
+        message: 'WARNING: Value near threshold limit',
+        percentage: ((value - min) / (max - min)) * 100,
+      };
+    }
+    
+    // Normal range
+    return {
+      color: 'success',
+      icon: <CheckCircleIcon />,
+      message: 'Value within normal range',
+      percentage: ((value - min) / (max - min)) * 100,
+    };
+  };
+  
+  const MeasurementInput: React.FC<{
+    name: string;
+    label: string;
+    unit: string;
+    min?: number;
+    max?: number;
+    thresholdMin?: number;
+    thresholdMax?: number;
+    tolerance?: number;
+  }> = ({ name, label, unit, min, max, thresholdMin, thresholdMax, tolerance }) => {
+    return (
+      <Controller
+        name={name}
+        control={control}
+        rules={{
+          min: { value: min ?? 0, message: `${label} must be at least ${min ?? 0}` },
+          max: { value: max ?? Infinity, message: `${label} cannot exceed ${max}` },
+        }}
+        render={({ field, fieldState: { error } }) => {
+          const status = thresholdMin !== undefined && thresholdMax !== undefined && tolerance !== undefined
+            ? getThresholdStatus(field.value, thresholdMin, thresholdMax, tolerance)
+            : null;
+          
+          return (
+            <Box>
+              <TextField
+                {...field}
+                label={`${label} (${unit})`}
+                type="number"
+                fullWidth
+                error={!!error || status?.color === 'error'}
+                helperText={error?.message}
+                inputProps={{
+                  step: 0.01,
+                  min: min,
+                  max: max,
+                }}
+                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+              />
+              
+              {status && (
+                <Paper elevation={0} sx={{ mt: 1, p: 2, bgcolor: `${status.color}.50` }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Box sx={{ color: `${status.color}.main`, mr: 1 }}>
+                      {status.icon}
+                    </Box>
+                    <Typography variant="body2" color={`${status.color}.main`}>
+                      {status.message}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {thresholdMin}
+                    </Typography>
+                    <Box sx={{ flex: 1 }}>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={status.percentage}
+                        color={status.color}
+                        sx={{ height: 8, borderRadius: 1 }}
+                      />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      {thresholdMax}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                    <Chip 
+                      label={`Min: ${thresholdMin} ${unit}`} 
+                      size="small" 
+                      variant="outlined"
+                    />
+                    <Chip 
+                      label={`Max: ${thresholdMax} ${unit}`} 
+                      size="small" 
+                      variant="outlined"
+                    />
+                    <Chip 
+                      label={`Tolerance: ${tolerance}%`} 
+                      size="small" 
+                      variant="outlined"
+                    />
+                  </Box>
+                </Paper>
+              )}
+            </Box>
+          );
+        }}
       />
+    );
+  };
+  
+  return (
+    <Box>
+      <Typography variant="h6" gutterBottom>
+        Enter Measurements
+      </Typography>
+      <Typography variant="body2" color="text.secondary" paragraph>
+        Enter the flow reading measurements. Values are validated against configured thresholds in real-time.
+        At least one measurement value is required.
+      </Typography>
       
-      <Form layout="vertical">
-        {/* Recording Date/Time */}
-        <Card title="Recording Information" style={{ marginBottom: 16 }}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Controller
-                name="recordedAt"
-                control={control}
-                rules={{
-                  required: 'Recording date and time is required',
-                  validate: (value) => {
-                    const recordedDate = new Date(value);
-                    const now = new Date();
-                    if (recordedDate > now) {
-                      return 'Recording time cannot be in the future';
-                    }
-                    return true;
-                  },
-                }}
-                render={({ field, fieldState }) => (
-                  <Form.Item
-                    label="Recording Date & Time"
-                    required
-                    validateStatus={fieldState.error ? 'error' : ''}
-                    help={fieldState.error?.message}
-                  >
-                    <DatePicker
-                      {...field}
-                      value={field.value ? dayjs(field.value) : null}
-                      onChange={(date) => field.onChange(date?.toISOString())}
-                      showTime
-                      format="YYYY-MM-DD HH:mm"
-                      style={{ width: '100%' }}
-                      size="large"
-                      suffixIcon={<ClockCircleOutlined />}
-                      placeholder="Select date and time"
-                    />
-                  </Form.Item>
-                )}
+      {!threshold && (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <AlertTitle>No Active Threshold</AlertTitle>
+          No threshold configuration found for this pipeline. Values will be validated against absolute limits only.
+        </Alert>
+      )}
+      
+      <Grid container spacing={3}>
+        {/* Recording Timestamp */}
+        <Grid item xs={12}>
+          <Controller
+            name="recordedAt"
+            control={control}
+            rules={{ required: 'Recording timestamp is required' }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Recording Time *"
+                type="datetime-local"
+                fullWidth
+                error={!!error}
+                helperText={error?.message || 'When was this reading taken?'}
+                InputLabelProps={{ shrink: true }}
               />
-            </Col>
-          </Row>
-        </Card>
+            )}
+          />
+        </Grid>
         
-        {/* Measurements */}
-        <Card title="Measurements" style={{ marginBottom: 16 }}>
-          <Row gutter={[16, 16]}>
-            {/* Pressure */}
-            <Col span={12}>
-              <Controller
-                name="pressure"
-                control={control}
-                rules={{
-                  min: { value: 0, message: 'Pressure cannot be negative' },
-                  max: { value: 500, message: 'Pressure exceeds maximum (500 bar)' },
-                }}
-                render={({ field, fieldState }) => (
-                  <div>
-                    <Form.Item
-                      label={
-                        <span>
-                          <DashboardOutlined style={{ marginRight: 8 }} />
-                          Pressure
-                        </span>
-                      }
-                      validateStatus={fieldState.error ? 'error' : ''}
-                      help={fieldState.error?.message}
-                    >
-                      <InputNumber
-                        {...field}
-                        addonAfter="bar"
-                        placeholder="Enter pressure"
-                        style={{ width: '100%' }}
-                        size="large"
-                        precision={2}
-                        min={0}
-                        max={500}
-                      />
-                    </Form.Item>
-                    
-                    {/* Threshold indicator */}
-                    {field.value !== undefined && field.value !== null && threshold && (
-                      <ThresholdIndicator
-                        value={field.value}
-                        min={threshold.pressureMin}
-                        max={threshold.pressureMax}
-                        tolerance={threshold.alertTolerance}
-                        unit="bar"
-                        label="Pressure"
-                      />
-                    )}
-                  </div>
-                )}
-              />
-            </Col>
-            
-            {/* Temperature */}
-            <Col span={12}>
-              <Controller
-                name="temperature"
-                control={control}
-                rules={{
-                  min: { value: -50, message: 'Temperature below minimum (-50°C)' },
-                  max: { value: 200, message: 'Temperature exceeds maximum (200°C)' },
-                }}
-                render={({ field, fieldState }) => (
-                  <div>
-                    <Form.Item
-                      label={
-                        <span>
-                          <FireOutlined style={{ marginRight: 8 }} />
-                          Temperature
-                        </span>
-                      }
-                      validateStatus={fieldState.error ? 'error' : ''}
-                      help={fieldState.error?.message}
-                    >
-                      <InputNumber
-                        {...field}
-                        addonAfter="°C"
-                        placeholder="Enter temperature"
-                        style={{ width: '100%' }}
-                        size="large"
-                        precision={2}
-                        min={-50}
-                        max={200}
-                      />
-                    </Form.Item>
-                    
-                    {/* Threshold indicator */}
-                    {field.value !== undefined && field.value !== null && threshold && (
-                      <ThresholdIndicator
-                        value={field.value}
-                        min={threshold.temperatureMin}
-                        max={threshold.temperatureMax}
-                        tolerance={threshold.alertTolerance}
-                        unit="°C"
-                        label="Temperature"
-                      />
-                    )}
-                  </div>
-                )}
-              />
-            </Col>
-            
-            {/* Flow Rate */}
-            <Col span={12}>
-              <Controller
-                name="flowRate"
-                control={control}
-                rules={{
-                  min: { value: 0, message: 'Flow rate must be zero or positive' },
-                }}
-                render={({ field, fieldState }) => (
-                  <div>
-                    <Form.Item
-                      label={
-                        <span>
-                          <ThunderboltOutlined style={{ marginRight: 8 }} />
-                          Flow Rate
-                        </span>
-                      }
-                      validateStatus={fieldState.error ? 'error' : ''}
-                      help={fieldState.error?.message}
-                    >
-                      <InputNumber
-                        {...field}
-                        addonAfter="m³/h"
-                        placeholder="Enter flow rate"
-                        style={{ width: '100%' }}
-                        size="large"
-                        precision={2}
-                        min={0}
-                      />
-                    </Form.Item>
-                    
-                    {/* Threshold indicator */}
-                    {field.value !== undefined && field.value !== null && threshold && (
-                      <ThresholdIndicator
-                        value={field.value}
-                        min={threshold.flowRateMin}
-                        max={threshold.flowRateMax}
-                        tolerance={threshold.alertTolerance}
-                        unit="m³/h"
-                        label="Flow Rate"
-                      />
-                    )}
-                  </div>
-                )}
-              />
-            </Col>
-            
-            {/* Contained Volume */}
-            <Col span={12}>
-              <Controller
-                name="containedVolume"
-                control={control}
-                rules={{
-                  min: { value: 0, message: 'Volume must be zero or positive' },
-                }}
-                render={({ field, fieldState }) => (
-                  <Form.Item
-                    label={
-                      <span>
-                        <DatabaseOutlined style={{ marginRight: 8 }} />
-                        Contained Volume
-                      </span>
-                    }
-                    validateStatus={fieldState.error ? 'error' : ''}
-                    help={fieldState.error?.message}
-                  >
-                    <InputNumber
-                      {...field}
-                      addonAfter="m³"
-                      placeholder="Enter volume"
-                      style={{ width: '100%' }}
-                      size="large"
-                      precision={2}
-                      min={0}
-                    />
-                  </Form.Item>
-                )}
-              />
-            </Col>
-          </Row>
-        </Card>
+        {/* Pressure */}
+        <Grid item xs={12} md={6}>
+          <MeasurementInput
+            name="pressure"
+            label="Pressure"
+            unit="bar"
+            min={0}
+            max={500}
+            thresholdMin={threshold?.pressureMin}
+            thresholdMax={threshold?.pressureMax}
+            tolerance={threshold?.alertTolerance}
+          />
+        </Grid>
+        
+        {/* Temperature */}
+        <Grid item xs={12} md={6}>
+          <MeasurementInput
+            name="temperature"
+            label="Temperature"
+            unit="°C"
+            min={-50}
+            max={200}
+            thresholdMin={threshold?.temperatureMin}
+            thresholdMax={threshold?.temperatureMax}
+            tolerance={threshold?.alertTolerance}
+          />
+        </Grid>
+        
+        {/* Flow Rate */}
+        <Grid item xs={12} md={6}>
+          <MeasurementInput
+            name="flowRate"
+            label="Flow Rate"
+            unit="m³/h"
+            min={0}
+            thresholdMin={threshold?.flowRateMin}
+            thresholdMax={threshold?.flowRateMax}
+            tolerance={threshold?.alertTolerance}
+          />
+        </Grid>
+        
+        {/* Contained Volume */}
+        <Grid item xs={12} md={6}>
+          <MeasurementInput
+            name="containedVolume"
+            label="Contained Volume"
+            unit="m³"
+            min={0}
+          />
+        </Grid>
         
         {/* Notes */}
-        <Card title="Additional Information">
+        <Grid item xs={12}>
           <Controller
             name="notes"
             control={control}
-            rules={{
-              maxLength: {
-                value: 500,
-                message: 'Notes must not exceed 500 characters',
-              },
-            }}
-            render={({ field, fieldState }) => (
-              <Form.Item
+            rules={{ maxLength: { value: 500, message: 'Notes cannot exceed 500 characters' } }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
                 label="Notes"
-                validateStatus={fieldState.error ? 'error' : ''}
-                help={fieldState.error?.message}
-                extra={`${field.value?.length || 0} / 500 characters`}
-              >
-                <TextArea
-                  {...field}
-                  rows={4}
-                  placeholder="Enter any relevant notes or observations about this reading..."
-                  maxLength={500}
-                  showCount
-                />
-              </Form.Item>
+                multiline
+                rows={4}
+                fullWidth
+                error={!!error}
+                helperText={
+                  error?.message || 
+                  `${field.value?.length || 0}/500 characters - Optional comments or observations`
+                }
+              />
             )}
           />
-        </Card>
-      </Form>
-    </div>
+        </Grid>
+      </Grid>
+      
+      <Alert severity="info" sx={{ mt: 3 }}>
+        <AlertTitle>Measurement Guidelines</AlertTitle>
+        <Typography variant="body2">
+          • Ensure all measuring instruments are properly calibrated<br />
+          • Record values at stable operating conditions<br />
+          • Double-check readings that show threshold warnings or breaches<br />
+          • Add notes for any unusual observations or conditions
+        </Typography>
+      </Alert>
+    </Box>
   );
 };
