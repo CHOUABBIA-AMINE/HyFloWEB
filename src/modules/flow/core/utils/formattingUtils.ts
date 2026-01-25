@@ -2,26 +2,23 @@
  * Formatting Utilities - Flow Core Module
  * 
  * Helper functions for formatting flow data for display.
+ * Uses native JavaScript Intl.DateTimeFormat - no external dependencies.
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  */
-
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localizedFormat);
 
 /**
  * Format date to localized string
  */
 export function formatDate(date?: string | Date | null): string {
   if (!date) return 'N/A';
-  return dayjs(date).format('DD/MM/YYYY');
+  const d = new Date(date);
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(d);
 }
 
 /**
@@ -29,7 +26,14 @@ export function formatDate(date?: string | Date | null): string {
  */
 export function formatDateTime(dateTime?: string | Date | null): string {
   if (!dateTime) return 'N/A';
-  return dayjs(dateTime).format('DD/MM/YYYY HH:mm');
+  const d = new Date(dateTime);
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d);
 }
 
 /**
@@ -37,7 +41,15 @@ export function formatDateTime(dateTime?: string | Date | null): string {
  */
 export function formatDateTimeWithSeconds(dateTime?: string | Date | null): string {
   if (!dateTime) return 'N/A';
-  return dayjs(dateTime).format('DD/MM/YYYY HH:mm:ss');
+  const d = new Date(dateTime);
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(d);
 }
 
 /**
@@ -45,7 +57,11 @@ export function formatDateTimeWithSeconds(dateTime?: string | Date | null): stri
  */
 export function formatTime(time?: string | Date | null): string {
   if (!time) return 'N/A';
-  return dayjs(time).format('HH:mm');
+  const d = new Date(time);
+  return new Intl.DateTimeFormat('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d);
 }
 
 /**
@@ -121,7 +137,25 @@ export function formatDuration(milliseconds?: number | null): string {
  */
 export function getRelativeTime(date?: string | Date | null): string {
   if (!date) return 'N/A';
-  return dayjs(date).fromNow();
+  
+  const now = new Date();
+  const past = new Date(date);
+  const diffMs = now.getTime() - past.getTime();
+  
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+  
+  if (years > 0) return years === 1 ? '1 year ago' : `${years} years ago`;
+  if (months > 0) return months === 1 ? '1 month ago' : `${months} months ago`;
+  if (days > 0) return days === 1 ? '1 day ago' : `${days} days ago`;
+  if (hours > 0) return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+  if (minutes > 0) return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+  if (seconds > 0) return seconds === 1 ? '1 second ago' : `${seconds} seconds ago`;
+  return 'just now';
 }
 
 /**
