@@ -65,7 +65,7 @@ import VendorEdit from './modules/network/common/pages/VendorEdit';
 import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
 
 // Flow Readings Module
-import { ReadingEdit } from './pages/flow/readings/ReadingEdit';
+import { ReadingEdit } from './modules/flow/core/pages/ReadingEdit';
 
 function App() {
   const { i18n } = useTranslation();
