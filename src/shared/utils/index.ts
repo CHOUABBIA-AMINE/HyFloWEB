@@ -11,6 +11,7 @@
  *   import { exportToCSV, exportToExcel } from '@/shared/utils/exportUtils';
  * 
  * @author CHOUABBIA Amine
+ * @updated 01-25-2026 - Added jwtUtils exports
  * @updated 01-16-2026 - Removed exportUtils re-export (use direct imports)
  */
 
@@ -22,3 +23,6 @@ export * from './formatters';
 
 // Re-export all helpers
 export * from './helpers';
+
+// Re-export JWT utilities
+export * from './jwtUtils';
