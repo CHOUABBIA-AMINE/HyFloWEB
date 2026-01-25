@@ -1,69 +1,89 @@
 /**
- * Validation Status DTO
+ * Validation Status DTO - Flow Common Module
  * 
- * @author CHOUABBIA Amine
- * @created 01-25-2026
- * @aligned Backend: ValidationStatusDTO.java (01-23-2026)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.flow.common.dto.ValidationStatusDTO
+ * Updated: 01-25-2026 - Initial creation aligned with backend
  * 
- * Represents validation status for flow data verification tracking
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 export interface ValidationStatusDTO {
+  // Identifier
   id?: number;
-  
-  // Core identification
-  code: string; // Pattern: ^[A-Z0-9_-]+$ (e.g., "VALIDATED", "PENDING", "REJECTED")
-  
-  // Multilingual designations
-  designationAr?: string; // Arabic designation (max 100 chars)
-  designationEn?: string; // English designation (max 100 chars)
-  designationFr: string;  // French designation (required, max 100 chars)
-  
-  // Multilingual descriptions
-  descriptionAr?: string; // Arabic description (max 255 chars)
-  descriptionEn?: string; // English description (max 255 chars)
-  descriptionFr?: string; // French description (max 255 chars)
-  
-  // Audit fields (from backend GenericDTO)
-  createdAt?: string;
-  updatedAt?: string;
-  createdBy?: string;
-  updatedBy?: string;
+
+  // Core fields
+  code: string; // @NotBlank, max 50 chars (required)
+  designationAr?: string; // Max 100 chars (optional)
+  designationEn?: string; // Max 100 chars (optional)
+  designationFr: string; // @NotBlank, max 100 chars (required)
+  descriptionAr?: string; // Max 500 chars (optional)
+  descriptionEn?: string; // Max 500 chars (optional)
+  descriptionFr?: string; // Max 500 chars (optional)
+
+  // Audit fields
+  createdAt?: string; // LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss)
+  updatedAt?: string; // LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss)
 }
 
 /**
- * Create validation status request DTO
- */
-export interface CreateValidationStatusDTO {
-  code: string;
-  designationAr?: string;
-  designationEn?: string;
-  designationFr: string;
-  descriptionAr?: string;
-  descriptionEn?: string;
-  descriptionFr?: string;
-}
-
-/**
- * Update validation status request DTO
- */
-export interface UpdateValidationStatusDTO extends Partial<CreateValidationStatusDTO> {}
-
-/**
- * Common validation status codes (based on SONATRACH standards)
+ * Common validation status codes
  */
 export enum ValidationStatusCode {
-  DRAFT = 'DRAFT',           // Initial entry, not submitted
-  PENDING = 'PENDING',       // Submitted, awaiting validation
-  VALIDATED = 'VALIDATED',   // Approved by supervisor
-  REJECTED = 'REJECTED',     // Rejected by supervisor
-  ARCHIVED = 'ARCHIVED',     // Historical/archived data
+  DRAFT = 'DRAFT',
+  PENDING = 'PENDING',
+  VALIDATED = 'VALIDATED',
+  REJECTED = 'REJECTED',
+  ARCHIVED = 'ARCHIVED',
 }
 
 /**
- * Helper function to get status color for UI
+ * Validates ValidationStatusDTO according to backend constraints
+ * @param data - Partial validation status data to validate
+ * @returns Array of validation error messages
  */
-export const getValidationStatusColor = (code?: string): 'default' | 'info' | 'warning' | 'success' | 'error' => {
+export const validateValidationStatusDTO = (data: Partial<ValidationStatusDTO>): string[] => {
+  const errors: string[] = [];
+
+  // Code validation
+  if (!data.code) {
+    errors.push('Code is required');
+  } else if (data.code.length > 50) {
+    errors.push('Code must not exceed 50 characters');
+  }
+
+  // Designation FR validation (required)
+  if (!data.designationFr) {
+    errors.push('French designation is required');
+  } else if (data.designationFr.length > 100) {
+    errors.push('French designation must not exceed 100 characters');
+  }
+
+  // Optional designations validation
+  if (data.designationAr && data.designationAr.length > 100) {
+    errors.push('Arabic designation must not exceed 100 characters');
+  }
+  if (data.designationEn && data.designationEn.length > 100) {
+    errors.push('English designation must not exceed 100 characters');
+  }
+
+  // Optional descriptions validation
+  if (data.descriptionAr && data.descriptionAr.length > 500) {
+    errors.push('Arabic description must not exceed 500 characters');
+  }
+  if (data.descriptionEn && data.descriptionEn.length > 500) {
+    errors.push('English description must not exceed 500 characters');
+  }
+  if (data.descriptionFr && data.descriptionFr.length > 500) {
+    errors.push('French description must not exceed 500 characters');
+  }
+
+  return errors;
+};
+
+/**
+ * UI helper: Get color for validation status
+ */
+export const getValidationStatusColor = (code?: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
   switch (code) {
     case ValidationStatusCode.DRAFT:
       return 'default';
@@ -74,7 +94,7 @@ export const getValidationStatusColor = (code?: string): 'default' | 'info' | 'w
     case ValidationStatusCode.REJECTED:
       return 'error';
     case ValidationStatusCode.ARCHIVED:
-      return 'info';
+      return 'secondary';
     default:
       return 'default';
   }
