@@ -37,7 +37,7 @@ type ThresholdStatus = 'ok' | 'warning' | 'breach';
 interface StatusInfo {
   status: ThresholdStatus;
   color: 'success' | 'warning' | 'error';
-  icon: React.ReactNode;
+  icon: React.ReactElement;
   message: string;
   bgColor: string;
   borderColor: string;
