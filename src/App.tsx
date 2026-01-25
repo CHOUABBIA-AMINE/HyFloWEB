@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-25-2026 - Added Flow Reading routes (list, create, edit, validate)
  * @updated 12-28-2025
  * @updated 12-30-2025 - Added Employee routes
  * @updated 01-01-2026 - Added Product routes
@@ -62,6 +63,9 @@ import VendorEdit from './modules/network/common/pages/VendorEdit';
 
 // Flow Dashboard Module
 import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
+
+// Flow Readings Module
+import { ReadingEdit } from './pages/flow/readings/ReadingEdit';
 
 function App() {
   const { i18n } = useTranslation();
@@ -129,6 +133,51 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+
+                {/* Flow Module - Protected */}
+                <Route path="flow">
+                  {/* Flow Readings */}
+                  <Route
+                    path="readings"
+                    element={
+                      <ProtectedRoute>
+                        <div>Flow Readings List (TODO)</div>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="readings/new"
+                    element={
+                      <ProtectedRoute>
+                        <ReadingEdit mode="create" />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="readings/:id/edit"
+                    element={
+                      <ProtectedRoute>
+                        <ReadingEdit mode="edit" />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="readings/:id/validate"
+                    element={
+                      <ProtectedRoute>
+                        <ReadingEdit mode="validate" />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="readings/pending"
+                    element={
+                      <ProtectedRoute>
+                        <div>Pending Readings for Validation (TODO)</div>
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
 
                 {/* Security Module - Protected */}
                 <Route path="security">
