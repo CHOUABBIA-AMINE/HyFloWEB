@@ -1,11 +1,10 @@
 /**
- * Flow Reading DTO
+ * Flow Reading DTO - Flow Core Module
  * 
- * @author CHOUABBIA Amine
- * @created 01-25-2026
- * @aligned Backend: FlowReadingDTO.java (01-23-2026)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowReadingDTO
+ * Updated: 01-25-2026 - Aligned with backend using FacilityDTO template
  * 
- * Flow measurement reading capturing pipeline operational parameters
+ * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 import { ValidationStatusDTO } from '../../common/dto/ValidationStatusDTO';
@@ -13,61 +12,114 @@ import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
 import { PipelineDTO } from '../../../network/core/dto/PipelineDTO';
 
 export interface FlowReadingDTO {
+  // Identifier (from GenericDTO)
   id?: number;
-  
+
   // Measurement data
-  recordedAt: string; // ISO 8601 DateTime (required, past or present)
-  pressure?: number;  // Bar (0-500), 2 decimals
-  temperature?: number; // Celsius (-50 to 200), 2 decimals
-  flowRate?: number;  // m³/h, positive
-  containedVolume?: number; // m³, positive
+  recordedAt: string; // @NotNull, @PastOrPresent, LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss) (required)
+  pressure?: number;  // @PositiveOrZero, @DecimalMin(0.0), @DecimalMax(500.0) (bar)
+  temperature?: number; // @DecimalMin(-50.0), @DecimalMax(200.0) (Celsius)
+  flowRate?: number;  // @PositiveOrZero (m³/h)
+  containedVolume?: number; // @PositiveOrZero (m³)
   
   // Validation tracking
-  validatedAt?: string; // ISO 8601 DateTime
-  notes?: string; // Max 500 characters
+  validatedAt?: string; // @PastOrPresent, LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss)
+  notes?: string; // Max 500 chars
   
-  // Foreign Keys
-  recordedById: number; // Required
+  // Required relationships (IDs)
+  recordedById: number; // @NotNull (required)
+  validationStatusId: number; // @NotNull (required)
+  pipelineId: number; // @NotNull (required)
+  
+  // Optional relationship (ID)
   validatedById?: number;
-  validationStatusId: number; // Required
-  pipelineId: number; // Required
   
-  // Nested objects (for read operations)
+  // Nested objects (populated in responses)
   recordedBy?: EmployeeDTO;
   validatedBy?: EmployeeDTO;
   validationStatus?: ValidationStatusDTO;
   pipeline?: PipelineDTO;
+}
+
+/**
+ * Validates FlowReadingDTO according to backend constraints
+ * @param data - Partial flow reading data to validate
+ * @returns Array of validation error messages
+ */
+export const validateFlowReadingDTO = (data: Partial<FlowReadingDTO>): string[] => {
+  const errors: string[] = [];
   
-  // Audit fields
-  createdAt?: string;
-  updatedAt?: string;
-}
+  // Recording timestamp validation
+  if (!data.recordedAt) {
+    errors.push('Recording timestamp is required');
+  } else {
+    const recordedDate = new Date(data.recordedAt);
+    if (recordedDate > new Date()) {
+      errors.push('Recording time cannot be in the future');
+    }
+  }
+  
+  // Pressure validation
+  if (data.pressure !== undefined && data.pressure !== null) {
+    if (data.pressure < 0) {
+      errors.push('Pressure cannot be negative');
+    } else if (data.pressure > 500) {
+      errors.push('Pressure exceeds maximum (500 bar)');
+    }
+  }
+  
+  // Temperature validation
+  if (data.temperature !== undefined && data.temperature !== null) {
+    if (data.temperature < -50) {
+      errors.push('Temperature below minimum range (-50°C)');
+    } else if (data.temperature > 200) {
+      errors.push('Temperature exceeds maximum range (200°C)');
+    }
+  }
+  
+  // Flow rate validation
+  if (data.flowRate !== undefined && data.flowRate !== null && data.flowRate < 0) {
+    errors.push('Flow rate must be zero or positive');
+  }
+  
+  // Contained volume validation
+  if (data.containedVolume !== undefined && data.containedVolume !== null && data.containedVolume < 0) {
+    errors.push('Contained volume must be zero or positive');
+  }
+  
+  // Validated at validation
+  if (data.validatedAt) {
+    const validatedDate = new Date(data.validatedAt);
+    if (validatedDate > new Date()) {
+      errors.push('Validation time cannot be in the future');
+    }
+  }
+  
+  // Notes validation
+  if (data.notes && data.notes.length > 500) {
+    errors.push('Notes must not exceed 500 characters');
+  }
+  
+  // Recording employee validation
+  if (data.recordedById === undefined || data.recordedById === null) {
+    errors.push('Recording employee is required');
+  }
+  
+  // Validation status validation
+  if (data.validationStatusId === undefined || data.validationStatusId === null) {
+    errors.push('Validation status is required');
+  }
+  
+  // Pipeline validation
+  if (data.pipelineId === undefined || data.pipelineId === null) {
+    errors.push('Pipeline is required');
+  }
+  
+  return errors;
+};
 
 /**
- * Create flow reading request DTO
- */
-export interface CreateFlowReadingDTO {
-  recordedAt: string;
-  pressure?: number;
-  temperature?: number;
-  flowRate?: number;
-  containedVolume?: number;
-  notes?: string;
-  recordedById: number;
-  validationStatusId: number;
-  pipelineId: number;
-}
-
-/**
- * Update flow reading request DTO
- */
-export interface UpdateFlowReadingDTO extends Partial<CreateFlowReadingDTO> {
-  validatedAt?: string;
-  validatedById?: number;
-}
-
-/**
- * Flow reading validation constraints
+ * Flow reading measurement constraints
  */
 export const FlowReadingConstraints = {
   pressure: {
