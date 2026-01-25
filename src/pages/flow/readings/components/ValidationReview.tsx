@@ -73,6 +73,11 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
     return `${value.toFixed(2)} ${unit || ''}`;
   };
   
+  const getEmployeeName = (employee?: { firstNameLt: string; lastNameLt: string }): string => {
+    if (!employee) return 'N/A';
+    return `${employee.firstNameLt} ${employee.lastNameLt}`;
+  };
+  
   const getValueStatus = (
     value: number | undefined,
     min?: number,
@@ -93,11 +98,19 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
   };
   
   const handleValidate = async () => {
-    if (!existingReading?.id) return;
+    if (!existingReading?.id) {
+      alert('Reading ID is missing');
+      return;
+    }
     
     try {
       setLoading(true);
       const currentUser = await AuthService.getCurrentUser();
+      
+      if (!currentUser?.id) {
+        alert('Current user information is not available');
+        return;
+      }
       
       // Update reading with validation notes if provided
       if (validationNotes) {
@@ -122,7 +135,11 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
   };
   
   const handleReject = async () => {
-    if (!existingReading?.id) return;
+    if (!existingReading?.id) {
+      alert('Reading ID is missing');
+      return;
+    }
+    
     if (!validationNotes.trim()) {
       alert('Please provide a reason for rejection');
       return;
@@ -201,7 +218,7 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">Recorded By</Typography>
                 <Typography variant="body2">
-                  {existingReading.recordedBy?.firstName} {existingReading.recordedBy?.lastName}
+                  {getEmployeeName(existingReading.recordedBy)}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
