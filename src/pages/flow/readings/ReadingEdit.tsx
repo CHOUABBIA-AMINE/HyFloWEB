@@ -15,23 +15,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import {
+  Box,
   Card,
-  Steps,
+  CardContent,
+  Stepper,
+  Step,
+  StepLabel,
   Button,
-  Space,
-  notification,
-  Spin,
-  Result,
-  Modal,
-} from 'antd';
+  Typography,
+  CircularProgress,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Snackbar,
+} from '@mui/material';
 import {
-  SaveOutlined,
-  SendOutlined,
-  ArrowLeftOutlined,
-  ArrowRightOutlined,
-  CheckCircleOutlined,
-} from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
+  Save as SaveIcon,
+  Send as SendIcon,
+  ArrowBack as ArrowBackIcon,
+  ArrowForward as ArrowForwardIcon,
+} from '@mui/icons-material';
 
 import { PipelineSelection } from './components/PipelineSelection';
 import { MeasurementForm } from './components/MeasurementForm';
@@ -60,7 +66,17 @@ interface ReadingEditProps {
   mode: 'create' | 'edit' | 'validate';
 }
 
-const { Step } = Steps;
+interface NotificationState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error' | 'warning' | 'info';
+}
+
+const steps = [
+  'Select Pipeline',
+  'Enter Measurements',
+  'Review & Submit',
+];
 
 export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const navigate = useNavigate();
@@ -82,11 +98,17 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(mode !== 'create');
-  const [currentUser, setCurrentUser] = useState<EmployeeDTO>();
-  const [existingReading, setExistingReading] = useState<FlowReadingDTO>();
+  const [currentUser, setCurrentUser] = useState<EmployeeDTO | null>(null);
+  const [existingReading, setExistingReading] = useState<FlowReadingDTO | null>(null);
   const [validationStatuses, setValidationStatuses] = useState<ValidationStatusDTO[]>([]);
-  const [selectedThreshold, setSelectedThreshold] = useState<FlowThresholdDTO>();
+  const [selectedThreshold, setSelectedThreshold] = useState<FlowThresholdDTO | undefined>(undefined);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
   
   // Watch form changes
   const watchedPipelineId = watch('pipelineId');
@@ -146,23 +168,24 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         }
       }
     } catch (error: any) {
-      notification.error({
-        message: 'Error Loading Data',
-        description: error.message || 'Failed to load required data',
-      });
+      showNotification(
+        error.message || 'Failed to load required data',
+        'error'
+      );
       navigate('/flow/readings');
     } finally {
       setLoadingData(false);
     }
   };
   
+  const showNotification = (message: string, severity: NotificationState['severity']) => {
+    setNotification({ open: true, message, severity });
+  };
+  
   const handleNext = () => {
     // Validate current step before proceeding
     if (currentStep === 0 && !watchedPipelineId) {
-      notification.warning({
-        message: 'Pipeline Required',
-        description: 'Please select a pipeline before continuing',
-      });
+      showNotification('Please select a pipeline before continuing', 'warning');
       return;
     }
     
@@ -179,10 +202,12 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       // Validate at least one measurement is provided
       if (!data.pressure && !data.temperature && !data.flowRate && !data.containedVolume) {
-        notification.warning({
-          message: 'Measurements Required',
-          description: 'Please provide at least one measurement value',
-        });
+        showNotification('Please provide at least one measurement value', 'warning');
+        return;
+      }
+      
+      if (!currentUser?.id) {
+        showNotification('User information not available', 'error');
         return;
       }
       
@@ -190,15 +215,15 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
       const validationStatus = validationStatuses.find(s => s.code === statusCode);
       
-      if (!validationStatus) {
+      if (!validationStatus?.id) {
         throw new Error('Validation status not found');
       }
       
       // Prepare DTO
       const readingDTO: FlowReadingDTO = {
         ...data,
-        recordedById: currentUser!.id,
-        validationStatusId: validationStatus.id!,
+        recordedById: currentUser.id,
+        validationStatusId: validationStatus.id,
         pipelineId: data.pipelineId!,
       };
       
@@ -206,24 +231,15 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       let savedReading: FlowReadingDTO;
       if (mode === 'edit' && id) {
         savedReading = await FlowReadingService.update(Number(id), readingDTO);
-        notification.success({
-          message: 'Reading Updated',
-          description: 'Flow reading has been successfully updated',
-        });
+        showNotification('Flow reading has been successfully updated', 'success');
       } else {
         savedReading = await FlowReadingService.create(readingDTO);
-        notification.success({
-          message: 'Reading Created',
-          description: submitForValidation 
+        showNotification(
+          submitForValidation 
             ? 'Reading saved and submitted for validation'
             : 'Reading saved as draft',
-        });
-      }
-      
-      // Check for alerts
-      if (savedReading.id) {
-        // Note: Alerts are created automatically by backend
-        // Could fetch and display them here if needed
+          'success'
+        );
       }
       
       setHasUnsavedChanges(false);
@@ -237,25 +253,25 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       console.error('Error saving reading:', error);
       
       if (error.response?.status === 400) {
-        notification.error({
-          message: 'Validation Error',
-          description: error.response.data.message || 'Please check your input values',
-        });
+        showNotification(
+          error.response.data.message || 'Please check your input values',
+          'error'
+        );
       } else if (error.response?.status === 403) {
-        notification.error({
-          message: 'Authorization Error',
-          description: 'You are not authorized to record readings for this pipeline',
-        });
+        showNotification(
+          'You are not authorized to record readings for this pipeline',
+          'error'
+        );
       } else if (error.response?.status === 409) {
-        notification.error({
-          message: 'Duplicate Reading',
-          description: 'A reading already exists for this pipeline at this time',
-        });
+        showNotification(
+          'A reading already exists for this pipeline at this time',
+          'error'
+        );
       } else {
-        notification.error({
-          message: 'Error Saving Reading',
-          description: error.message || 'An unexpected error occurred',
-        });
+        showNotification(
+          error.message || 'An unexpected error occurred',
+          'error'
+        );
       }
     } finally {
       setLoading(false);
@@ -263,176 +279,194 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   };
   
   const handleSaveDraft = () => {
-    handleSubmit(data => onSubmit(data, false))();
+    handleSubmit((data: ReadingFormData) => onSubmit(data, false))();
   };
   
   const handleSubmitForValidation = () => {
-    handleSubmit(data => onSubmit(data, true))();
+    handleSubmit((data: ReadingFormData) => onSubmit(data, true))();
   };
   
   const handleCancel = () => {
     if (hasUnsavedChanges) {
-      Modal.confirm({
-        title: 'Unsaved Changes',
-        content: 'You have unsaved changes. Are you sure you want to leave?',
-        okText: 'Leave',
-        okType: 'danger',
-        cancelText: 'Stay',
-        onOk: () => navigate('/flow/readings'),
-      });
+      setShowCancelDialog(true);
     } else {
       navigate('/flow/readings');
     }
   };
   
+  const handleConfirmCancel = () => {
+    setShowCancelDialog(false);
+    navigate('/flow/readings');
+  };
+  
   if (loadingData) {
     return (
-      <PageContainer>
-        <Card>
-          <div style={{ textAlign: 'center', padding: '50px' }}>
-            <Spin size="large" tip="Loading reading data..." />
-          </div>
-        </Card>
-      </PageContainer>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress size={60} />
+        <Typography variant="h6" sx={{ ml: 2 }}>Loading reading data...</Typography>
+      </Box>
     );
   }
   
   if (!currentUser) {
     return (
-      <PageContainer>
-        <Result
-          status="error"
-          title="Authentication Required"
-          subTitle="Please log in to access this page"
-          extra={
-            <Button type="primary" onClick={() => navigate('/login')}>
-              Go to Login
-            </Button>
-          }
-        />
-      </PageContainer>
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          <Typography variant="h6">Authentication Required</Typography>
+          <Typography>Please log in to access this page</Typography>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => navigate('/login')}
+            sx={{ mt: 2 }}
+          >
+            Go to Login
+          </Button>
+        </Alert>
+      </Box>
     );
   }
   
-  const steps = [
-    {
-      title: 'Select Pipeline',
-      description: 'Choose pipeline',
-    },
-    {
-      title: 'Enter Measurements',
-      description: 'Record values',
-    },
-    {
-      title: 'Review & Submit',
-      description: 'Verify data',
-    },
-  ];
-  
   return (
-    <PageContainer
-      title={mode === 'create' ? 'New Flow Reading' : mode === 'edit' ? 'Edit Flow Reading' : 'Validate Reading'}
-      breadcrumb={{
-        items: [
-          { title: 'Home', path: '/' },
-          { title: 'Flow Management', path: '/flow' },
-          { title: 'Readings', path: '/flow/readings' },
-          { title: mode === 'create' ? 'New' : mode === 'edit' ? 'Edit' : 'Validate' },
-        ],
-      }}
-      extra={[
-        <Button key="cancel" onClick={handleCancel}>
-          Cancel
-        </Button>,
-      ]}
-    >
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        {mode === 'create' ? 'New Flow Reading' : mode === 'edit' ? 'Edit Flow Reading' : 'Validate Reading'}
+      </Typography>
+      
       <Card>
-        {mode !== 'validate' && (
-          <>
-            <Steps current={currentStep} items={steps} style={{ marginBottom: 24 }} />
-            
-            <div style={{ minHeight: 400 }}>
-              {currentStep === 0 && (
-                <PipelineSelection
-                  control={control}
-                  currentUser={currentUser}
-                  selectedPipelineId={watchedPipelineId}
-                  onThresholdLoad={setSelectedThreshold}
-                />
-              )}
+        <CardContent>
+          {mode !== 'validate' && (
+            <>
+              <Stepper activeStep={currentStep} sx={{ mb: 4 }}>
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
               
-              {currentStep === 1 && watchedPipelineId && (
-                <MeasurementForm
-                  control={control}
-                  errors={errors}
-                  pipelineId={watchedPipelineId}
-                  threshold={selectedThreshold}
-                />
-              )}
-              
-              {currentStep === 2 && (
-                <ValidationReview
-                  formData={watch()}
-                  threshold={selectedThreshold}
-                  pipelineId={watchedPipelineId}
-                />
-              )}
-            </div>
-            
-            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between' }}>
-              <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={handlePrevious}
-                disabled={currentStep === 0}
-              >
-                Previous
-              </Button>
-              
-              <Space>
-                {currentStep === 2 && (
-                  <>
-                    <Button
-                      icon={<SaveOutlined />}
-                      onClick={handleSaveDraft}
-                      loading={loading}
-                    >
-                      Save as Draft
-                    </Button>
-                    <Button
-                      type="primary"
-                      icon={<SendOutlined />}
-                      onClick={handleSubmitForValidation}
-                      loading={loading}
-                    >
-                      Submit for Validation
-                    </Button>
-                  </>
+              <Box sx={{ minHeight: 400 }}>
+                {currentStep === 0 && (
+                  <PipelineSelection
+                    control={control}
+                    currentUser={currentUser}
+                    selectedPipelineId={watchedPipelineId}
+                    onThresholdLoad={setSelectedThreshold}
+                  />
                 )}
                 
-                {currentStep < 2 && (
-                  <Button
-                    type="primary"
-                    icon={<ArrowRightOutlined />}
-                    onClick={handleNext}
-                  >
-                    Next
-                  </Button>
+                {currentStep === 1 && watchedPipelineId && (
+                  <MeasurementForm
+                    control={control}
+                    errors={errors}
+                    pipelineId={watchedPipelineId}
+                    threshold={selectedThreshold}
+                  />
                 )}
-              </Space>
-            </div>
-          </>
-        )}
-        
-        {mode === 'validate' && existingReading && (
-          <ValidationReview
-            formData={watch()}
-            threshold={selectedThreshold}
-            pipelineId={watchedPipelineId}
-            existingReading={existingReading}
-            isValidationMode={true}
-          />
-        )}
+                
+                {currentStep === 2 && (
+                  <ValidationReview
+                    formData={watch()}
+                    threshold={selectedThreshold}
+                    pipelineId={watchedPipelineId}
+                  />
+                )}
+              </Box>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+                <Button
+                  startIcon={<ArrowBackIcon />}
+                  onClick={handlePrevious}
+                  disabled={currentStep === 0}
+                >
+                  Previous
+                </Button>
+                
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  {currentStep === 2 && (
+                    <>
+                      <Button
+                        startIcon={<SaveIcon />}
+                        onClick={handleSaveDraft}
+                        disabled={loading}
+                        variant="outlined"
+                      >
+                        Save as Draft
+                      </Button>
+                      <Button
+                        startIcon={<SendIcon />}
+                        onClick={handleSubmitForValidation}
+                        disabled={loading}
+                        variant="contained"
+                        color="primary"
+                      >
+                        Submit for Validation
+                      </Button>
+                    </>
+                  )}
+                  
+                  {currentStep < 2 && (
+                    <Button
+                      endIcon={<ArrowForwardIcon />}
+                      onClick={handleNext}
+                      variant="contained"
+                      color="primary"
+                    >
+                      Next
+                    </Button>
+                  )}
+                  
+                  <Button onClick={handleCancel} color="error">
+                    Cancel
+                  </Button>
+                </Box>
+              </Box>
+            </>
+          )}
+          
+          {mode === 'validate' && existingReading && (
+            <ValidationReview
+              formData={watch()}
+              threshold={selectedThreshold}
+              pipelineId={watchedPipelineId}
+              existingReading={existingReading}
+              isValidationMode={true}
+            />
+          )}
+        </CardContent>
       </Card>
-    </PageContainer>
+      
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onClose={() => setShowCancelDialog(false)}>
+        <DialogTitle>Unsaved Changes</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have unsaved changes. Are you sure you want to leave?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCancelDialog(false)}>Stay</Button>
+          <Button onClick={handleConfirmCancel} color="error" autoFocus>
+            Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setNotification(prev => ({ ...prev, open: false }))} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
