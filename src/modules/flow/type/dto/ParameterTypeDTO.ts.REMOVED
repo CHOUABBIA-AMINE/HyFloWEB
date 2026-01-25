@@ -1,0 +1,9 @@
+// This file was removed because ParameterTypeDTO does not exist in backend
+// Backend: flow/type/dto only contains OperationTypeDTO and EventTypeDTO
+// 
+// FlowThresholdDTO uses direct fields instead:
+// - pressureMin/pressureMax
+// - temperatureMin/temperatureMax  
+// - flowRateMin/flowRateMax
+//
+// See: FlowThresholdDTO.ts for correct structure
