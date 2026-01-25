@@ -8,7 +8,7 @@
  * @created 01-25-2026
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -47,9 +47,6 @@ import {
   Error as ErrorIcon,
   FilterList as FilterListIcon,
 } from '@mui/icons-material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 import { FlowReadingService } from '../services/FlowReadingService';
 import { PipelineService } from '@/modules/network/core/services/PipelineService';
@@ -63,8 +60,8 @@ import type { Page } from '@/types/pagination';
 interface Filters {
   pipelineId?: number;
   validationStatusId?: number;
-  startDate?: Date | null;
-  endDate?: Date | null;
+  startDate?: string;
+  endDate?: string;
   search: string;
 }
 
@@ -85,8 +82,8 @@ export const ReadingList: React.FC = () => {
   // Filters
   const [filters, setFilters] = useState<Filters>({
     search: '',
-    startDate: null,
-    endDate: null,
+    startDate: '',
+    endDate: '',
   });
 
   // Load pipelines for filter dropdown
@@ -150,8 +147,8 @@ export const ReadingList: React.FC = () => {
   const handleClearFilters = () => {
     setFilters({
       search: '',
-      startDate: null,
-      endDate: null,
+      startDate: '',
+      endDate: '',
     });
     setPage(0);
   };
@@ -199,13 +196,13 @@ export const ReadingList: React.FC = () => {
     const status = reading.validationStatus;
     if (!status) return <Chip label="Unknown" size="small" />;
 
-    const statusConfig: Record<string, { color: 'success' | 'warning' | 'error' | 'default'; icon: React.ReactNode }> = {
+    const statusConfig: Record<string, { color: 'success' | 'warning' | 'error' | 'default'; icon?: React.ReactElement }> = {
       VALIDATED: { color: 'success', icon: <CheckCircleIcon /> },
       PENDING_VALIDATION: { color: 'warning', icon: <WarningIcon /> },
       REJECTED: { color: 'error', icon: <ErrorIcon /> },
     };
 
-    const config = statusConfig[status.code || ''] || { color: 'default' as const, icon: null };
+    const config = statusConfig[status.code || ''] || { color: 'default' as const };
 
     return (
       <Chip
@@ -304,25 +301,27 @@ export const ReadingList: React.FC = () => {
               </FormControl>
             </Grid>
 
-            {/* Date Range */}
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <Grid item xs={12} md={2}>
-                <DatePicker
-                  label="Start Date"
-                  value={filters.startDate}
-                  onChange={(date) => handleFilterChange('startDate', date)}
-                  slotProps={{ textField: { fullWidth: true } }}
-                />
-              </Grid>
-              <Grid item xs={12} md={2}>
-                <DatePicker
-                  label="End Date"
-                  value={filters.endDate}
-                  onChange={(date) => handleFilterChange('endDate', date)}
-                  slotProps={{ textField: { fullWidth: true } }}
-                />
-              </Grid>
-            </LocalizationProvider>
+            {/* Date Range - Using standard TextField with type="date" */}
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                label="Start Date"
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                label="End Date"
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+            </Grid>
           </Grid>
 
           {/* Filter Actions */}
