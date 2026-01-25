@@ -9,6 +9,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-25-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  */
 
 import React, { useState, useEffect } from 'react';
@@ -45,7 +46,8 @@ import { ValidationReview } from './components/ValidationReview';
 
 import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingService';
 import { ValidationStatusService } from '@/modules/flow/common/services/ValidationStatusService';
-import { AuthService } from '@/services/AuthService';
+import UserService from '@/modules/system/security/services/UserService';
+import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
 
 import type { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
 import type { ValidationStatusDTO } from '@/modules/flow/common/dto/ValidationStatusDTO';
@@ -140,9 +142,21 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
     try {
       setLoadingData(true);
       
-      // Load current user
-      const user = await AuthService.getCurrentUser();
-      setCurrentUser(user);
+      // Load current user using JWT token
+      const username = getUsernameFromToken();
+      if (!username) {
+        throw new Error('No username found in token. Please log in again.');
+      }
+      
+      // Fetch user data from backend using /user/username/{username}
+      const userData = await UserService.getByUsername(username);
+      
+      // Extract employee from user data
+      if (userData.employee) {
+        setCurrentUser(userData.employee);
+      } else {
+        throw new Error('Employee data not found for current user');
+      }
       
       // Load validation statuses
       const statuses = await ValidationStatusService.getAllNoPagination();
@@ -172,7 +186,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         error.message || 'Failed to load required data',
         'error'
       );
-      navigate('/flow/readings');
+      // Don't navigate away, let user see the error
     } finally {
       setLoadingData(false);
     }
@@ -244,9 +258,9 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       setHasUnsavedChanges(false);
       
-      // Navigate to detail page
+      // Navigate to list page
       setTimeout(() => {
-        navigate(`/flow/readings/${savedReading.id}`);
+        navigate('/flow/readings');
       }, 1000);
       
     } catch (error: any) {
@@ -313,7 +327,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       <Box sx={{ p: 3 }}>
         <Alert severity="error">
           <Typography variant="h6">Authentication Required</Typography>
-          <Typography>Please log in to access this page</Typography>
+          <Typography>Unable to load employee information. Please log in again.</Typography>
           <Button 
             variant="contained" 
             color="primary" 
