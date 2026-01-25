@@ -70,10 +70,20 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
   const loadPipelines = async () => {
     try {
       setLoading(true);
-      // Get pipelines for user's structure
-      const userPipelines = await PipelineService.getByStructure(currentUser.structureId);
+      // Get all pipelines and filter by user's structure
+      // TODO: Backend should provide endpoint GET /network/core/pipeline/structure/{structureId}
+      const allPipelines = await PipelineService.getAllNoPagination();
+      
+      // Filter pipelines by user's structure
+      const userPipelines = allPipelines.filter(
+        (p: PipelineDTO) => p.structureId === currentUser.jobId // Using jobId as structure reference for now
+      );
+      
       // Filter only active pipelines
-      const activePipelines = userPipelines.filter(p => p.active);
+      const activePipelines = userPipelines.filter(
+        (p: PipelineDTO) => p.operationalStatus?.code === 'OPERATIONAL'
+      );
+      
       setPipelines(activePipelines);
     } catch (error) {
       console.error('Error loading pipelines:', error);
@@ -97,7 +107,8 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
 
   const loadThreshold = async (pipelineId: number) => {
     try {
-      const thresholds = await FlowThresholdService.getActiveByPipeline(pipelineId);
+      // Note: Method name is 'getActivByPipeline' (typo in backend)
+      const thresholds = await FlowThresholdService.getActivByPipeline(pipelineId);
       if (thresholds.length > 0) {
         onThresholdLoad(thresholds[0]);
       } else {
@@ -154,11 +165,11 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
                   <MenuItem key={pipeline.id} value={pipeline.id}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                       <Typography variant="body1" sx={{ flex: 1 }}>
-                        {pipeline.code} - {pipeline.designation}
+                        {pipeline.code} - {pipeline.name}
                       </Typography>
-                      {pipeline.product && (
+                      {pipeline.pipelineSystem && (
                         <Chip 
-                          label={pipeline.product.designation} 
+                          label={pipeline.pipelineSystem.name} 
                           size="small" 
                           color="primary" 
                           variant="outlined"
