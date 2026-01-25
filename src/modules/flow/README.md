@@ -5,6 +5,7 @@
 The **Flow Module** is a standalone module at the same level as `network`, `system`, and `general` modules. It manages all hydrocarbon flow monitoring functionality for the HyFlo platform.
 
 **Created**: 2026-01-25  
+**Updated**: 2026-01-25 (Fixed FlowThresholdDTO structure)  
 **Aligned with Backend**: HyFloAPI (commit 8af691e, 2026-01-23)  
 **Author**: CHOUABBIA Amine
 
@@ -36,11 +37,12 @@ src/modules/flow/
 │   └── dto/
 │       ├── OperationTypeDTO.ts
 │       ├── EventTypeDTO.ts
-│       ├── ParameterTypeDTO.ts
 │       └── index.ts
 ├── index.ts             # Main barrel export
 └── README.md            # This file
 ```
+
+**Note**: Backend only has 2 type DTOs (OperationType, EventType). There is NO ParameterTypeDTO.
 
 ---
 
@@ -48,11 +50,13 @@ src/modules/flow/
 
 This frontend structure **exactly mirrors** the backend package structure:
 
-| Backend Package | Frontend Module | Purpose |
-|----------------|-----------------|----------|
-| `dz.sh.trc.hyflo.flow.common` | `flow/common` | Shared lookup/reference data |
-| `dz.sh.trc.hyflo.flow.core` | `flow/core` | Core business entities |
-| `dz.sh.trc.hyflo.flow.type` | `flow/type` | Type classifications |
+| Backend Package | Frontend Module | DTOs Count | Purpose |
+|----------------|-----------------|------------|----------|
+| `dz.sh.trc.hyflo.flow.common` | `flow/common` | 6 | Shared lookup/reference data |
+| `dz.sh.trc.hyflo.flow.core` | `flow/core` | 6 | Core business entities |
+| `dz.sh.trc.hyflo.flow.type` | `flow/type` | 2 | Type classifications |
+
+**Total: 14 DTOs** (not 15 - ParameterTypeDTO was incorrectly created)
 
 ---
 
@@ -160,33 +164,36 @@ Main business entities for flow monitoring:
   - `infrastructureId`, `productId`
 - **UI Screens**: Forecast planner, capacity planning
 
-#### FlowThresholdDTO
+#### FlowThresholdDTO ⚠️ **CORRECTED**
 - **Backend API**: `/flow/core/threshold`
-- **Purpose**: Monitoring limits configuration
-- **Key Fields**:
-  - `minValue`, `maxValue`
-  - `effectiveFrom`, `effectiveTo`
-  - `pipelineId`, `parameterTypeId`, `severityId`
+- **Purpose**: Pipeline operating thresholds configuration
+- **Key Fields** (NOT using ParameterType):
+  - `pressureMin` / `pressureMax` (0-500 bar)
+  - `temperatureMin` / `temperatureMax` (-50 to 200°C)
+  - `flowRateMin` / `flowRateMax` (m³/h)
+  - `alertTolerance` (0-50%, deviation tolerance)
+  - `active` (boolean)
+  - `pipelineId`, `productId`
 - **UI Screens**: Threshold configuration, alarm setup
+- **Note**: Backend uses specific min/max fields for each parameter, NOT a generic ParameterType reference
 
 ---
 
 ### 3. Type DTOs (`flow/type/dto`)
 
-Classification and categorization:
+Classification and categorization (only 2 DTOs):
 
 #### OperationTypeDTO
+- **Backend**: `/flow/type/operation-type`
 - **Codes**: `PRODUCTION`, `CONSUMPTION`, `TRANSPORTATION`, `STORAGE`, `EXPORT`, `IMPORT`
 - **Usage**: Classify flow operations
 
 #### EventTypeDTO
+- **Backend**: `/flow/type/event-type`
 - **Codes**: `MAINTENANCE`, `SHUTDOWN`, `LEAK`, `PRESSURE_DROP`, `EQUIPMENT_FAILURE`, `INSPECTION`
 - **Usage**: Categorize operational events
 
-#### ParameterTypeDTO
-- **Codes**: `PRESSURE`, `TEMPERATURE`, `FLOW_RATE`, `VOLUME`, `DENSITY`
-- **Field**: `unit` (e.g., "bar", "°C", "m³/h")
-- **Usage**: Define threshold parameters
+~~**ParameterTypeDTO**~~ ❌ **DOES NOT EXIST IN BACKEND**
 
 ---
 
@@ -203,25 +210,42 @@ import { ValidationStatusDTO, ValidationStatusCode } from '@/modules/flow/common
 import * as FlowDTOs from '@/modules/flow';
 ```
 
-### Type-Safe Data Handling
+### FlowThresholdDTO Usage (Corrected)
 
 ```typescript
-import { FlowReadingDTO, FlowReadingConstraints } from '@/modules/flow';
+import { FlowThresholdDTO, CreateFlowThresholdDTO, FlowThresholdConstraints } from '@/modules/flow';
 
-const reading: FlowReadingDTO = {
-  recordedAt: new Date().toISOString(),
-  pressure: 85.5,  // Must be 0-500
-  temperature: 65.3, // Must be -50 to 200
-  flowRate: 1250.75,
+const threshold: CreateFlowThresholdDTO = {
+  // Pressure thresholds
+  pressureMin: 50.0,
+  pressureMax: 120.0,
+  
+  // Temperature thresholds
+  temperatureMin: 5.0,
+  temperatureMax: 85.0,
+  
+  // Flow rate thresholds
+  flowRateMin: 500.0,
+  flowRateMax: 2000.0,
+  
+  // Alert configuration
+  alertTolerance: 5.0, // ±5%
+  active: true,
+  
+  // References
   pipelineId: 1,
-  recordedById: 10,
-  validationStatusId: 2, // PENDING
+  productId: 3,
 };
 
-// Validation
-if (reading.pressure && reading.pressure > FlowReadingConstraints.pressure.max) {
-  throw new Error(`Pressure exceeds maximum ${FlowReadingConstraints.pressure.max} bar`);
-}
+// Validation helper
+import { validateThresholdRange } from '@/modules/flow';
+
+const error = validateThresholdRange(
+  threshold.pressureMin,
+  threshold.pressureMax,
+  'Pressure'
+);
+if (error) console.error(error);
 ```
 
 ### UI Helper Functions
@@ -257,6 +281,7 @@ Now that DTOs are created, the following need to be built:
 - [ ] `flow/core/components/FlowReadingDataGrid/`
 - [ ] `flow/core/components/ValidationStatusChip/`
 - [ ] `flow/core/components/AlertPanel/`
+- [ ] `flow/core/components/FlowThresholdConfig/` (with min/max fields)
 
 ### Phase 3: Pages (Week 2-3)
 - [ ] `flow/core/pages/FlowReadingList.tsx`
@@ -277,6 +302,7 @@ All DTOs are **100% aligned** with backend contracts as of:
 - **Backend Commit**: `8af691e2e19408cbacd307f94ef71378346ce4b5`
 - **Backend Date**: 2026-01-23
 - **Author**: MEDJERAB Abir
+- **Frontend Fix**: 2026-01-25 (Corrected FlowThresholdDTO)
 
 **Validation Rules Match**:
 - ✅ Field names identical
@@ -284,6 +310,7 @@ All DTOs are **100% aligned** with backend contracts as of:
 - ✅ Validation constraints documented
 - ✅ Nested relationships preserved
 - ✅ Multilingual fields (ar/en/fr) supported
+- ✅ FlowThresholdDTO corrected (no ParameterType dependency)
 
 ---
 
@@ -316,6 +343,16 @@ This module is designed specifically for **Algerian hydrocarbon infrastructure**
 - ✅ Audit trail (who recorded, who validated, when)
 - ✅ Engineering units (bar, °C, m³/h standard in Algeria)
 - ✅ SONATRACH operational practices embedded
+
+---
+
+## Corrections Log
+
+**2026-01-25**:
+- ❌ Removed non-existent `ParameterTypeDTO` 
+- ✅ Corrected `FlowThresholdDTO` to use direct min/max fields
+- ✅ Updated type count: 14 DTOs (not 15)
+- ✅ Added validation helpers for threshold ranges
 
 ---
 
