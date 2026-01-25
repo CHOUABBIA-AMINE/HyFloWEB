@@ -539,7 +539,16 @@
     "audit": "Audit",
     "logs": "Journaux",
     "settings": "Paramètres",
-    "profile": "Profil"
+    "profile": "Profil",
+	"reading": "Relevés de Flux",
+    "readings": {
+      "list": "Tous les Relevés",
+      "create": "Nouveau Relevé",
+      "validate": "Valider les Relevés"
+    },
+	"maps": "Cartes",
+    "infrastructureMap": "Carte d'Infrastructure",
+    "statistics": "Statistiques"
   },
   "map": {
     "title": "Carte d'infrastructure",

@@ -545,7 +545,16 @@
     "audit": "Audit",
     "logs": "Logs",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+	"reading": "Flow Readings",
+    "readings": {
+      "list": "All Readings",
+      "create": "New Reading",
+      "validate": "Validate Readings"
+    },
+	"maps": "Maps",
+    "infrastructureMap": "Infrastructure Map",
+    "statistics": "Statistics"
   },
   "map": {
     "title": "Infrastructure Map",
