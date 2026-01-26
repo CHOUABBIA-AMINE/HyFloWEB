@@ -2,7 +2,7 @@
  * Pipeline DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
- * Updated: 01-15-2026 - Exact backend alignment (35 fields)
+ * Updated: 01-26-2026 - Aligned with backend (added ownerId and managerId)
  * 
  * Complex pipeline entity with detailed physical properties, pressure/capacity specs,
  * material/coating information, and terminal connections.
@@ -48,10 +48,11 @@ export interface PipelineDTO {
   
   // Required relationships (IDs)
   operationalStatusId: number; // @NotNull (required)
-  structureId: number; // @NotNull (required)
-  nominalConstructionMaterialId: number; // @NotNull (required) - Alloy material
-  nominalExteriorCoatingId: number; // @NotNull (required) - Alloy coating
-  nominalInteriorCoatingId: number; // @NotNull (required) - Alloy coating
+  ownerId: number; // @NotNull (required) - Owner structure
+  managerId: number; // @NotNull (required) - Manager structure
+  nominalConstructionMaterialId?: number; // Optional - Alloy material
+  nominalExteriorCoatingId?: number; // Optional - Alloy coating
+  nominalInteriorCoatingId?: number; // Optional - Alloy coating
   vendorId: number; // @NotNull (required)
   pipelineSystemId: number; // @NotNull (required)
   departureTerminalId: number; // @NotNull (required) - Starting terminal endpoint
@@ -62,7 +63,8 @@ export interface PipelineDTO {
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
-  structure?: StructureDTO;
+  owner?: StructureDTO; // Owner structure
+  manager?: StructureDTO; // Manager structure
   nominalConstructionMaterial?: AlloyDTO;
   nominalExteriorCoating?: AlloyDTO;
   nominalInteriorCoating?: AlloyDTO;
@@ -143,10 +145,8 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
   // Relationship validations
   const relationshipFields = [
     { name: 'operationalStatusId', label: 'Operational status' },
-    { name: 'structureId', label: 'Structure' },
-    { name: 'nominalConstructionMaterialId', label: 'Construction material' },
-    { name: 'nominalExteriorCoatingId', label: 'Exterior coating' },
-    { name: 'nominalInteriorCoatingId', label: 'Interior coating' },
+    { name: 'ownerId', label: 'Owner structure' },
+    { name: 'managerId', label: 'Manager structure' },
     { name: 'vendorId', label: 'Vendor' },
     { name: 'pipelineSystemId', label: 'Pipeline system' },
     { name: 'departureTerminalId', label: 'Departure terminal' },
