@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-26-2026 - Removed fixed username text, kept tooltip on avatar hover only
  * @updated 01-26-2026 - Added tooltip to display username/employee name on avatar hover
  * @updated 01-20-2026 - Display employee name (language-aware) and picture if available, fallback to username
  * @updated 12-27-2025
@@ -254,27 +255,13 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
 
         {/* User Actions */}
         {isAuthenticated ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 1 }}>
-            {loadingEmployee ? (
-              <CircularProgress size={16} sx={{ mr: 1 }} />
-            ) : (
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  mr: 1, 
-                  display: { xs: 'none', sm: 'block' },
-                  fontWeight: employee ? 500 : 400,
-                }}
-              >
-                {getDisplayName()}
-              </Typography>
-            )}
+          <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
             <Tooltip title={getDisplayName()} arrow placement="bottom">
               <IconButton 
                 color="inherit" 
                 size="small" 
                 onClick={handleMenuOpen}
-                disabled={isLoggingOut}
+                disabled={isLoggingOut || loadingEmployee}
               >
                 {employeePicture ? (
                   <Avatar 
@@ -282,6 +269,8 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
                     sx={{ width: 32, height: 32 }}
                     alt={getDisplayName()}
                   />
+                ) : loadingEmployee ? (
+                  <CircularProgress size={32} />
                 ) : (
                   <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
                     {getInitials()}
