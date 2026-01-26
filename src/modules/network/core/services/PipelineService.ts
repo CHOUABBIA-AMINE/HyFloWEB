@@ -8,7 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
- * @updated 01-02-2026
+ * @updated 01-26-2026 - Added findByManager method
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -97,6 +97,38 @@ export class PipelineService {
   static async findByPipelineSystem(systemId: number): Promise<PipelineDTO[]> {
     const response = await axiosInstance.get<PipelineDTO[]>(
       `${BASE_URL}/system/${systemId}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Find pipelines by manager structure
+   * Returns all pipelines managed by the specified structure
+   * 
+   * @param managerId - Structure ID of the manager
+   * @returns Array of pipelines managed by the structure
+   * 
+   * TODO: Backend endpoint to be implemented: GET /network/core/pipeline/manager/{managerId}
+   */
+  static async findByManager(managerId: number): Promise<PipelineDTO[]> {
+    const response = await axiosInstance.get<PipelineDTO[]>(
+      `${BASE_URL}/manager/${managerId}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Find pipelines by owner structure
+   * Returns all pipelines owned by the specified structure
+   * 
+   * @param ownerId - Structure ID of the owner
+   * @returns Array of pipelines owned by the structure
+   * 
+   * TODO: Backend endpoint to be implemented: GET /network/core/pipeline/owner/{ownerId}
+   */
+  static async findByOwner(ownerId: number): Promise<PipelineDTO[]> {
+    const response = await axiosInstance.get<PipelineDTO[]>(
+      `${BASE_URL}/owner/${ownerId}`
     );
     return response.data;
   }
