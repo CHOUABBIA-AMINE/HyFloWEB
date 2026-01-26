@@ -2,10 +2,12 @@
  * PipelineSelection Component
  * 
  * Allows users to select a pipeline based on their organizational structure.
+ * Filters pipelines where the user's structure is the manager.
  * Displays latest reading as reference and loads threshold configuration.
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-26-2026 - Filter by managerId instead of structureId
  */
 
 import React, { useState, useEffect } from 'react';
@@ -70,23 +72,38 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
   const loadPipelines = async () => {
     try {
       setLoading(true);
-      // Get all pipelines and filter by user's structure
-      // TODO: Backend should provide endpoint GET /network/core/pipeline/structure/{structureId}
+      
+      // Check if user has a job with structure
+      if (!currentUser.job?.structure?.id) {
+        console.warn('User does not have a job with associated structure');
+        setPipelines([]);
+        return;
+      }
+      
+      const userStructureId = currentUser.job.structure.id;
+      
+      // Get all pipelines
+      // TODO: Backend should provide endpoint GET /network/core/pipeline/manager/{managerId}
       const allPipelines = await PipelineService.getAllNoPagination();
       
-      // Filter pipelines by user's structure
-      const userPipelines = allPipelines.filter(
-        (p: PipelineDTO) => p.structureId === currentUser.jobId // Using jobId as structure reference for now
+      // Filter pipelines where the user's structure is the manager
+      const managedPipelines = allPipelines.filter(
+        (p: PipelineDTO) => p.managerId === userStructureId
       );
       
-      // Filter only active pipelines
-      const activePipelines = userPipelines.filter(
+      // Filter only operational pipelines
+      const activePipelines = managedPipelines.filter(
         (p: PipelineDTO) => p.operationalStatus?.code === 'OPERATIONAL'
       );
       
       setPipelines(activePipelines);
+      
+      if (activePipelines.length === 0) {
+        console.info(`No operational pipelines found for structure ID: ${userStructureId}`);
+      }
     } catch (error) {
       console.error('Error loading pipelines:', error);
+      setPipelines([]);
     } finally {
       setLoading(false);
     }
@@ -136,7 +153,7 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
         Select Pipeline
       </Typography>
       <Typography variant="body2" color="text.secondary" paragraph>
-        Choose the pipeline where the reading was taken. Only pipelines from your organizational structure are shown.
+        Choose the pipeline where the reading was taken. Only operational pipelines managed by your structure are shown.
       </Typography>
 
       <Controller
@@ -158,7 +175,7 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
                 </MenuItem>
               ) : pipelines.length === 0 ? (
                 <MenuItem disabled>
-                  No pipelines available for your structure
+                  No operational pipelines available for your structure
                 </MenuItem>
               ) : (
                 pipelines.map((pipeline) => (
