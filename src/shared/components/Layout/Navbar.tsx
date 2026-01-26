@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-26-2026 - Added tooltip to display username/employee name on avatar hover
  * @updated 01-20-2026 - Display employee name (language-aware) and picture if available, fallback to username
  * @updated 12-27-2025
  */
@@ -20,7 +21,8 @@ import {
   MenuItem, 
   ListItemIcon, 
   ListItemText, 
-  CircularProgress 
+  CircularProgress,
+  Tooltip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useMemo } from 'react';
@@ -267,24 +269,26 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
                 {getDisplayName()}
               </Typography>
             )}
-            <IconButton 
-              color="inherit" 
-              size="small" 
-              onClick={handleMenuOpen}
-              disabled={isLoggingOut}
-            >
-              {employeePicture ? (
-                <Avatar 
-                  src={employeePicture} 
-                  sx={{ width: 32, height: 32 }}
-                  alt={getDisplayName()}
-                />
-              ) : (
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
-                  {getInitials()}
-                </Avatar>
-              )}
-            </IconButton>
+            <Tooltip title={getDisplayName()} arrow placement="bottom">
+              <IconButton 
+                color="inherit" 
+                size="small" 
+                onClick={handleMenuOpen}
+                disabled={isLoggingOut}
+              >
+                {employeePicture ? (
+                  <Avatar 
+                    src={employeePicture} 
+                    sx={{ width: 32, height: 32 }}
+                    alt={getDisplayName()}
+                  />
+                ) : (
+                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
+                    {getInitials()}
+                  </Avatar>
+                )}
+              </IconButton>
+            </Tooltip>
             <Menu
               anchorEl={anchorEl}
               open={Boolean(anchorEl)}
