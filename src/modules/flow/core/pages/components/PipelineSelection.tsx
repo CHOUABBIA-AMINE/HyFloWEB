@@ -2,12 +2,12 @@
  * PipelineSelection Component
  * 
  * Allows users to select a pipeline based on their organizational structure.
- * Filters pipelines where the user's structure is the manager.
+ * Filters pipelines where the user's structure is the manager (server-side).
  * Displays latest reading as reference and loads threshold configuration.
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
- * @updated 01-26-2026 - Filter by managerId instead of structureId
+ * @updated 01-26-2026 - Use server-side filtering via findByManager()
  */
 
 import React, { useState, useEffect } from 'react';
@@ -54,6 +54,7 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [latestReading, setLatestReading] = useState<FlowReadingDTO | null>(null);
   const [loadingReading, setLoadingReading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPipelines();
@@ -72,37 +73,42 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
   const loadPipelines = async () => {
     try {
       setLoading(true);
+      setError(null);
       
       // Check if user has a job with structure
       if (!currentUser.job?.structure?.id) {
-        console.warn('User does not have a job with associated structure');
+        setError('User does not have a job with associated structure');
         setPipelines([]);
         return;
       }
       
       const userStructureId = currentUser.job.structure.id;
       
-      // Get all pipelines
-      // TODO: Backend should provide endpoint GET /network/core/pipeline/manager/{managerId}
-      const allPipelines = await PipelineService.getAllNoPagination();
+      // Get pipelines managed by the user's structure (server-side filtering)
+      const managedPipelines = await PipelineService.findByManager(userStructureId);
       
-      // Filter pipelines where the user's structure is the manager
-      const managedPipelines = allPipelines.filter(
-        (p: PipelineDTO) => p.managerId === userStructureId
-      );
-      
-      // Filter only operational pipelines
+      // Filter only operational pipelines (client-side for operational status)
       const activePipelines = managedPipelines.filter(
         (p: PipelineDTO) => p.operationalStatus?.code === 'OPERATIONAL'
       );
       
       setPipelines(activePipelines);
       
-      if (activePipelines.length === 0) {
-        console.info(`No operational pipelines found for structure ID: ${userStructureId}`);
+      if (activePipelines.length === 0 && managedPipelines.length > 0) {
+        console.info(`Found ${managedPipelines.length} pipelines but none are operational`);
+      } else if (activePipelines.length === 0) {
+        console.info(`No pipelines found for structure ID: ${userStructureId}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading pipelines:', error);
+      
+      // Check if it's a 404 (endpoint not implemented yet)
+      if (error.response?.status === 404) {
+        setError('Pipeline filtering by manager is not yet available on the server. Please contact administrator.');
+      } else {
+        setError(error.message || 'Failed to load pipelines');
+      }
+      
       setPipelines([]);
     } finally {
       setLoading(false);
@@ -156,12 +162,18 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
         Choose the pipeline where the reading was taken. Only operational pipelines managed by your structure are shown.
       </Typography>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       <Controller
         name="pipelineId"
         control={control}
         rules={{ required: 'Pipeline selection is required' }}
-        render={({ field, fieldState: { error } }) => (
-          <FormControl fullWidth error={!!error} disabled={loading}>
+        render={({ field, fieldState: { error: fieldError } }) => (
+          <FormControl fullWidth error={!!fieldError} disabled={loading || !!error}>
             <InputLabel>Pipeline *</InputLabel>
             <Select
               {...field}
@@ -197,7 +209,7 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
                 ))
               )}
             </Select>
-            {error && <FormHelperText>{error.message}</FormHelperText>}
+            {fieldError && <FormHelperText>{fieldError.message}</FormHelperText>}
           </FormControl>
         )}
       />
