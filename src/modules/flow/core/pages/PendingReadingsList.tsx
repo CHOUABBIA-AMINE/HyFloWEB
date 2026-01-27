@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-27-2026
+ * @updated 01-27-2026 - Fixed: Add null check for readings array
  */
 
 import React, { useState, useEffect } from 'react';
@@ -47,7 +48,7 @@ import type { Page } from '@/types/pagination';
 export const PendingReadingsList: React.FC = () => {
   const navigate = useNavigate();
   
-  // State
+  // State - Initialize readings as empty array
   const [readings, setReadings] = useState<FlowReadingDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -74,11 +75,12 @@ export const PendingReadingsList: React.FC = () => {
       // Get readings with PENDING_VALIDATION status (assuming ID: 2)
       const result: Page<FlowReadingDTO> = await FlowReadingService.getByValidationStatus(2, pageable);
 
-      setReadings(result.content);
-      setTotalElements(result.totalElements);
+      setReadings(result.content || []);
+      setTotalElements(result.totalElements || 0);
     } catch (error: any) {
       console.error('Error loading pending readings:', error);
       setError(error.message || 'Failed to load pending readings');
+      setReadings([]); // Ensure readings is always an array
     } finally {
       setLoading(false);
     }
@@ -139,7 +141,7 @@ export const PendingReadingsList: React.FC = () => {
       )}
 
       {/* Info Alert */}
-      {!loading && readings.length === 0 && (
+      {!loading && readings.length === 0 && !error && (
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="h6">No Pending Readings</Typography>
           <Typography>All readings have been validated. Great work!</Typography>
@@ -186,7 +188,7 @@ export const PendingReadingsList: React.FC = () => {
                 <TableRow>
                   <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
-                      No pending readings found
+                      {error ? 'Unable to load readings' : 'No pending readings found'}
                     </Typography>
                   </TableCell>
                 </TableRow>
