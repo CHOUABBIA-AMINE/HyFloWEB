@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-27-2026 - Added PendingReadingsList component
  * @updated 01-25-2026 - Added Flow Reading routes and ReadingList component
  * @updated 12-28-2025
  * @updated 12-30-2025 - Added Employee routes
@@ -65,7 +66,7 @@ import VendorEdit from './modules/network/common/pages/VendorEdit';
 import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
 
 // Flow Readings Module
-import { ReadingList, ReadingEdit } from './modules/flow/core/pages';
+import { ReadingList, ReadingEdit, PendingReadingsList } from './modules/flow/core/pages';
 
 function App() {
   const { i18n } = useTranslation();
@@ -173,7 +174,7 @@ function App() {
                     path="readings/pending"
                     element={
                       <ProtectedRoute>
-                        <div>Pending Readings for Validation (TODO)</div>
+                        <PendingReadingsList />
                       </ProtectedRoute>
                     }
                   />
