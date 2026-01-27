@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-27-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  */
 
 import React, { useState } from 'react';
@@ -38,7 +39,8 @@ import {
 } from '@mui/icons-material';
 
 import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingService';
-import { AuthService } from '@/services/AuthService';
+import UserService from '@/modules/system/security/services/UserService';
+import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
 
 import type { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
 import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO';
@@ -105,12 +107,21 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
     
     try {
       setLoading(true);
-      const currentUser = await AuthService.getCurrentUser();
       
-      if (!currentUser?.id) {
-        alert('Current user information is not available');
-        return;
+      // Get current user using JWT token
+      const username = getUsernameFromToken();
+      if (!username) {
+        throw new Error('No username found in token. Please log in again.');
       }
+      
+      // Fetch user data from backend
+      const userData = await UserService.getByUsername(username);
+      
+      if (!userData?.employee?.id) {
+        throw new Error('Employee information not found for current user');
+      }
+      
+      const currentEmployeeId = userData.employee.id;
       
       // Update reading with validation notes if provided
       if (validationNotes) {
@@ -123,12 +134,13 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
       }
       
       // Validate the reading
-      await FlowReadingService.validate(existingReading.id, currentUser.id);
+      await FlowReadingService.validate(existingReading.id, currentEmployeeId);
       
       alert('Reading validated successfully');
       navigate('/flow/readings');
     } catch (error: any) {
-      alert(`Validation failed: ${error.message}`);
+      console.error('Validation failed:', error);
+      alert(`Validation failed: ${error.message || 'An unexpected error occurred'}`);
     } finally {
       setLoading(false);
     }
@@ -148,21 +160,30 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
     try {
       setLoading(true);
       
-      // Update reading status to REJECTED with notes
-      // Note: You'll need to add a REJECTED status and implement the reject method
-      await FlowReadingService.update(existingReading.id, {
-        ...existingReading,
-        notes: existingReading.notes 
-          ? `${existingReading.notes}\n\nRejection Reason: ${validationNotes}`
-          : `Rejection Reason: ${validationNotes}`,
-        validationStatusId: 4, // Assuming 4 is REJECTED status ID
-      });
+      // Get current user using JWT token
+      const username = getUsernameFromToken();
+      if (!username) {
+        throw new Error('No username found in token. Please log in again.');
+      }
+      
+      // Fetch user data from backend
+      const userData = await UserService.getByUsername(username);
+      
+      if (!userData?.employee?.id) {
+        throw new Error('Employee information not found for current user');
+      }
+      
+      const currentEmployeeId = userData.employee.id;
+      
+      // Reject the reading
+      await FlowReadingService.reject(existingReading.id, currentEmployeeId, validationNotes);
       
       setShowRejectDialog(false);
       alert('Reading rejected successfully');
       navigate('/flow/readings');
     } catch (error: any) {
-      alert(`Rejection failed: ${error.message}`);
+      console.error('Rejection failed:', error);
+      alert(`Rejection failed: ${error.message || 'An unexpected error occurred'}`);
     } finally {
       setLoading(false);
     }
