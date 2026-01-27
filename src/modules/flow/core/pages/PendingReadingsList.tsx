@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-27-2026
+ * @updated 01-27-2026 - Fixed: Filter by status code instead of hardcoded ID
  * @updated 01-27-2026 - Fixed: Add null check for readings array
  */
 
@@ -49,6 +50,7 @@ export const PendingReadingsList: React.FC = () => {
   const navigate = useNavigate();
   
   // State - Initialize readings as empty array
+  const [allReadings, setAllReadings] = useState<FlowReadingDTO[]>([]);
   const [readings, setReadings] = useState<FlowReadingDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -56,34 +58,53 @@ export const PendingReadingsList: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  // Load readings when page changes
+  // Load readings when component mounts
   useEffect(() => {
     loadPendingReadings();
-  }, [page, rowsPerPage]);
+  }, []);
+
+  // Apply pagination when page or allReadings change
+  useEffect(() => {
+    applyPagination();
+  }, [page, rowsPerPage, allReadings]);
 
   const loadPendingReadings = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const pageable = {
-        page,
-        size: rowsPerPage,
-        sort: 'recordedAt,desc',
-      };
+      // Load all readings (we'll filter client-side for pending status)
+      // This is needed because we don't know the exact status ID
+      const allData: FlowReadingDTO[] = await FlowReadingService.getAllNoPagination();
 
-      // Get readings with PENDING_VALIDATION status (assuming ID: 2)
-      const result: Page<FlowReadingDTO> = await FlowReadingService.getByValidationStatus(2, pageable);
+      // Filter for pending readings
+      // Status code might be 'PENDING' or 'PENDING_VALIDATION'
+      const pendingReadings = allData.filter(reading => {
+        const code = reading.validationStatus?.code;
+        return code === 'PENDING' || code === 'PENDING_VALIDATION';
+      });
 
-      setReadings(result.content || []);
-      setTotalElements(result.totalElements || 0);
+      // Sort by recorded date (newest first)
+      pendingReadings.sort((a, b) => {
+        return new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime();
+      });
+
+      setAllReadings(pendingReadings);
+      setTotalElements(pendingReadings.length);
     } catch (error: any) {
       console.error('Error loading pending readings:', error);
       setError(error.message || 'Failed to load pending readings');
-      setReadings([]); // Ensure readings is always an array
+      setAllReadings([]);
+      setReadings([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyPagination = () => {
+    const startIndex = page * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+    setReadings(allReadings.slice(startIndex, endIndex));
   };
 
   const handleChangePage = (_event: unknown, newPage: number) => {
@@ -127,6 +148,7 @@ export const PendingReadingsList: React.FC = () => {
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={loadPendingReadings}
+            disabled={loading}
           >
             Refresh
           </Button>
@@ -141,7 +163,7 @@ export const PendingReadingsList: React.FC = () => {
       )}
 
       {/* Info Alert */}
-      {!loading && readings.length === 0 && !error && (
+      {!loading && totalElements === 0 && !error && (
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="h6">No Pending Readings</Typography>
           <Typography>All readings have been validated. Great work!</Typography>
