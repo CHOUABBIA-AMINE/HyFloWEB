@@ -8,7 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-25-2026
- * @updated 01-27-2026 - Added reject method for validation workflow
+ * @updated 01-27-2026 - Updated validate/reject to use query params
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -172,11 +172,19 @@ export class FlowReadingService {
   /**
    * Validate flow reading
    * Updates validation status to VALIDATED and sets validated timestamp
+   * 
+   * Backend endpoint: POST /flow/core/reading/{id}/validate?validatedById={employeeId}
    */
   static async validate(id: number, validatedById: number): Promise<FlowReadingDTO> {
-    const response = await axiosInstance.post<FlowReadingDTO>(`${BASE_URL}/${id}/validate`, {
-      validatedById,
-    });
+    const response = await axiosInstance.post<FlowReadingDTO>(
+      `${BASE_URL}/${id}/validate`,
+      null,
+      {
+        params: {
+          validatedById,
+        },
+      }
+    );
     return response.data;
   }
 
@@ -184,48 +192,28 @@ export class FlowReadingService {
    * Reject flow reading
    * Updates validation status to REJECTED and adds rejection notes
    * 
+   * Backend endpoint: POST /flow/core/reading/{id}/reject?rejectedById={employeeId}&rejectionReason={reason}
+   * 
    * @param id - Reading ID
    * @param rejectedById - ID of employee rejecting the reading
    * @param rejectionReason - Reason for rejection
-   * 
-   * NOTE: Backend endpoint to be implemented: POST /flow/core/reading/{id}/reject
-   * For now, uses update method with REJECTED status (ID: 4)
    */
   static async reject(
     id: number,
     rejectedById: number,
     rejectionReason: string
   ): Promise<FlowReadingDTO> {
-    try {
-      // Try to use dedicated reject endpoint if available
-      const response = await axiosInstance.post<FlowReadingDTO>(`${BASE_URL}/${id}/reject`, {
-        rejectedById,
-        rejectionReason,
-      });
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        // Endpoint not implemented yet, use update as workaround
-        console.warn('Reject endpoint not available, using update workaround');
-        
-        // First, get the current reading
-        const reading = await this.getById(id);
-        
-        // Update with REJECTED status (assuming ID 4 is REJECTED)
-        const updatedReading: FlowReadingDTO = {
-          ...reading,
-          validationStatusId: 4, // REJECTED status ID
-          validatedById: rejectedById,
-          validatedAt: new Date().toISOString(),
-          notes: reading.notes
-            ? `${reading.notes}\n\nRejection Reason: ${rejectionReason}`
-            : `Rejection Reason: ${rejectionReason}`,
-        };
-        
-        return await this.update(id, updatedReading);
+    const response = await axiosInstance.post<FlowReadingDTO>(
+      `${BASE_URL}/${id}/reject`,
+      null,
+      {
+        params: {
+          rejectedById,
+          rejectionReason,
+        },
       }
-      throw error;
-    }
+    );
+    return response.data;
   }
 
   /**
