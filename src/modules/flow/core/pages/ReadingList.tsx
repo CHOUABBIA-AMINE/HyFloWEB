@@ -2,10 +2,11 @@
  * ReadingList Page
  * 
  * Displays a list of all flow readings with filtering, search, and CRUD operations.
- * Supports pagination, date range filtering, and status filtering.
+ * Supports pagination, date range filtering, status filtering, and slot-based viewing.
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-28-2026 - Added reading date and slot columns
  */
 
 import React, { useState, useEffect } from 'react';
@@ -46,12 +47,14 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
   FilterList as FilterListIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 
 import { FlowReadingService } from '../services/FlowReadingService';
 import { PipelineService } from '@/modules/network/core/services/PipelineService';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { formatDateTime, formatPressure, formatTemperature, formatFlowRate } from '../utils/formattingUtils';
+import { getLocalizedDesignation, formatTimeRange } from '@/modules/flow/common/dto/ReadingSlotDTO';
 
 import type { FlowReadingDTO } from '../dto/FlowReadingDTO';
 import type { PipelineDTO } from '@/modules/network/core/dto/PipelineDTO';
@@ -113,7 +116,7 @@ export const ReadingList: React.FC = () => {
       const pageable = {
         page,
         size: rowsPerPage,
-        sort: 'recordedAt,desc',
+        sort: 'readingDate,desc,recordedAt,desc', // Sort by date first, then submission time
       };
 
       let result: Page<FlowReadingDTO>;
@@ -214,6 +217,16 @@ export const ReadingList: React.FC = () => {
     );
   };
 
+  const formatReadingDate = (dateStr: string) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
   const hasActiveFilters = filters.pipelineId || filters.validationStatusId || filters.startDate || filters.endDate || filters.search;
 
   return (
@@ -301,7 +314,7 @@ export const ReadingList: React.FC = () => {
               </FormControl>
             </Grid>
 
-            {/* Date Range - Using standard TextField with type="date" */}
+            {/* Date Range */}
             <Grid item xs={12} md={2}>
               <TextField
                 fullWidth
@@ -353,7 +366,8 @@ export const ReadingList: React.FC = () => {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Pipeline</TableCell>
-                <TableCell>Recorded At</TableCell>
+                <TableCell>Reading Date</TableCell>
+                <TableCell>Slot</TableCell>
                 <TableCell>Pressure</TableCell>
                 <TableCell>Temperature</TableCell>
                 <TableCell>Flow Rate</TableCell>
@@ -365,13 +379,13 @@ export const ReadingList: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : readings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       No readings found
                     </Typography>
@@ -384,7 +398,25 @@ export const ReadingList: React.FC = () => {
                     <TableCell>
                       {reading.pipeline?.code || 'N/A'}
                     </TableCell>
-                    <TableCell>{formatDateTime(reading.recordedAt)}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        {formatReadingDate(reading.readingDate)}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      {reading.readingSlot ? (
+                        <Tooltip title={formatTimeRange(reading.readingSlot)}>
+                          <Chip
+                            icon={<ScheduleIcon />}
+                            label={getLocalizedDesignation(reading.readingSlot, 'en')}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Tooltip>
+                      ) : (
+                        'N/A'
+                      )}
+                    </TableCell>
                     <TableCell>{formatPressure(reading.pressure)}</TableCell>
                     <TableCell>{formatTemperature(reading.temperature)}</TableCell>
                     <TableCell>{formatFlowRate(reading.flowRate)}</TableCell>
