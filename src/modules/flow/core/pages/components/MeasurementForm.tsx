@@ -8,6 +8,7 @@
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  * @updated 01-28-2026 - Added reading date and slot selection
+ * @updated 01-28-2026 - Added threshold validation for contained volume
  */
 
 import React, { useState, useEffect } from 'react';
@@ -351,13 +352,16 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
           />
         </Grid>
         
-        {/* Contained Volume */}
+        {/* Contained Volume - NOW WITH THRESHOLD VALIDATION */}
         <Grid item xs={12} md={6}>
           <MeasurementInput
             name="containedVolume"
             label="Contained Volume"
             unit="m³"
             min={0}
+            thresholdMin={threshold?.containedVolumeMin}
+            thresholdMax={threshold?.containedVolumeMax}
+            tolerance={threshold?.alertTolerance}
           />
         </Grid>
         
