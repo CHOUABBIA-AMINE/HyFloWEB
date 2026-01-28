@@ -10,7 +10,7 @@
  * Frontend Author: CHOUABBIA Amine
  * 
  * @created 01-23-2026 (Backend)
- * @updated 01-28-2026 (Frontend) - Verified alignment with backend BigDecimal types
+ * @updated 01-28-2026 (Frontend) - Added containedVolume Min/Max fields
  */
 
 import { PipelineDTO } from '../../../network/core/dto/PipelineDTO';
@@ -30,6 +30,10 @@ export interface FlowThresholdDTO {
   // Flow rate thresholds (m³/h) - Backend: BigDecimal
   flowRateMin: number;  // @NotNull, @PositiveOrZero (required)
   flowRateMax: number;  // @NotNull, @PositiveOrZero (required)
+  
+  // Contained volume thresholds (m³) - Backend: BigDecimal
+  containedVolumeMin: number;  // @NotNull, @PositiveOrZero (required)
+  containedVolumeMax: number;  // @NotNull, @PositiveOrZero (required)
   
   // Alert configuration - Backend: BigDecimal for tolerance, Boolean for active
   alertTolerance: number; // @NotNull, @DecimalMin(0.0), @DecimalMax(50.0) (required, 0-50%)
@@ -107,6 +111,25 @@ export const validateFlowThresholdDTO = (data: Partial<FlowThresholdDTO>): strin
     errors.push('Minimum flow rate must be less than maximum flow rate');
   }
   
+  // Contained volume min validation
+  if (data.containedVolumeMin === undefined || data.containedVolumeMin === null) {
+    errors.push('Minimum contained volume is required');
+  } else if (data.containedVolumeMin < 0) {
+    errors.push('Minimum contained volume must be zero or positive');
+  }
+  
+  // Contained volume max validation
+  if (data.containedVolumeMax === undefined || data.containedVolumeMax === null) {
+    errors.push('Maximum contained volume is required');
+  } else if (data.containedVolumeMax < 0) {
+    errors.push('Maximum contained volume must be positive');
+  }
+  
+  // Contained volume range validation
+  if (data.containedVolumeMin !== undefined && data.containedVolumeMax !== undefined && data.containedVolumeMin >= data.containedVolumeMax) {
+    errors.push('Minimum contained volume must be less than maximum contained volume');
+  }
+  
   // Alert tolerance validation
   if (data.alertTolerance === undefined || data.alertTolerance === null) {
     errors.push('Alert tolerance is required');
@@ -153,6 +176,11 @@ export const FlowThresholdConstraints = {
     unit: 'm³/h',
     step: 1,
   },
+  containedVolume: {
+    min: 0,      // @PositiveOrZero
+    unit: 'm³',
+    step: 1,
+  },
   alertTolerance: {
     min: 0,      // @DecimalMin("0.0")
     max: 50,     // @DecimalMax("50.0")
@@ -178,6 +206,8 @@ export const createDefaultFlowThreshold = (): Partial<FlowThresholdDTO> => ({
   temperatureMax: 100,
   flowRateMin: 0,
   flowRateMax: 1000,
+  containedVolumeMin: 0,
+  containedVolumeMax: 10000,
   alertTolerance: 5,
   active: true,
 });
