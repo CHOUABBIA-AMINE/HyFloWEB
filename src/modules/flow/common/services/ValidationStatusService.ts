@@ -12,7 +12,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { ValidationStatusDTO } from '../dto/ValidationStatusDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/flow/common/validation-status';
+const BASE_URL = '/flow/common/validationStatus';
 
 export class ValidationStatusService {
   /**
