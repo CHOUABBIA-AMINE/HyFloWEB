@@ -11,6 +11,7 @@
  * @updated 01-28-2026 - Fixed latest reading display data handling
  * @updated 01-28-2026 - Changed layout to show all data in single row
  * @updated 01-28-2026 - Increased contained volume column width
+ * @updated 01-28-2026 - Fixed Alert content to use full width
  */
 
 import React, { useState, useEffect } from 'react';
@@ -249,9 +250,19 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
       )}
 
       {selectedPipelineId && !loadingReading && latestReading && (
-        <Alert severity="info" icon={<InfoIcon />} sx={{ mt: 3 }}>
-          <AlertTitle>Latest Reading Reference</AlertTitle>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+        <Alert 
+          severity="info" 
+          icon={<InfoIcon />} 
+          sx={{ 
+            mt: 3,
+            '& .MuiAlert-message': {
+              width: '100%',
+              overflow: 'visible'
+            }
+          }}
+        >
+          <AlertTitle sx={{ mb: 0 }}>Latest Reading Reference</AlertTitle>
+          <Grid container spacing={2} sx={{ mt: 0, width: '100%' }}>
             <Grid item xs={12} sm={6} md={3}>
               <Typography variant="caption" color="text.secondary">Recorded At</Typography>
               <Typography variant="body2">{formatDateTime(latestReading.recordedAt)}</Typography>
