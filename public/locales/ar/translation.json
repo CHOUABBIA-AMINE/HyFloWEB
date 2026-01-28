@@ -3,6 +3,15 @@
     "home": "الرئيسية",
     "workspace": "مساحة العمل",
     "reading": "القراءة",
+    "readings": {
+      "list": "قائمة القراءات",
+      "create": "قراءة جديدة",
+      "validate": "تحقق من القراءات"
+    },
+    "thresholds": {
+      "list": "قائمة العتبات",
+      "create": "عتبة جديدة"
+    },
     "maps": "الخرائط",
     "infrastructureMap": "خريطة البنية التحتية",
     "pipelineMap": "خريطة الأنابيب",
