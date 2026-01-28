@@ -3,11 +3,14 @@
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowThresholdDTO
  * 
+ * Backend uses BigDecimal for all numeric fields and Boolean for active status.
+ * Frontend handles these as numbers and booleans for form compatibility.
+ * 
  * Backend Author: MEDJERAB Abir
  * Frontend Author: CHOUABBIA Amine
  * 
  * @created 01-23-2026 (Backend)
- * @updated 01-28-2026 (Frontend) - Aligned with backend, removed productId
+ * @updated 01-28-2026 (Frontend) - Verified alignment with backend BigDecimal types
  */
 
 import { PipelineDTO } from '../../../network/core/dto/PipelineDTO';
@@ -16,24 +19,24 @@ export interface FlowThresholdDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
-  // Pressure thresholds (bar)
+  // Pressure thresholds (bar) - Backend: BigDecimal
   pressureMin: number;  // @NotNull, @PositiveOrZero (required)
   pressureMax: number;  // @NotNull, @DecimalMax(500.0) (required)
   
-  // Temperature thresholds (°C)
+  // Temperature thresholds (°C) - Backend: BigDecimal
   temperatureMin: number; // @NotNull, @DecimalMin(-50.0) (required)
   temperatureMax: number; // @NotNull, @DecimalMax(200.0) (required)
   
-  // Flow rate thresholds (m³/h)
+  // Flow rate thresholds (m³/h) - Backend: BigDecimal
   flowRateMin: number;  // @NotNull, @PositiveOrZero (required)
   flowRateMax: number;  // @NotNull, @PositiveOrZero (required)
   
-  // Alert configuration
+  // Alert configuration - Backend: BigDecimal for tolerance, Boolean for active
   alertTolerance: number; // @NotNull, @DecimalMin(0.0), @DecimalMax(50.0) (required, 0-50%)
   active: boolean;        // @NotNull (required)
   
-  // Required relationship (ID)
-  pipelineId: number;  // @NotNull (required) - Backend uses Long
+  // Required relationship (ID) - Backend: Long
+  pipelineId: number;  // @NotNull (required)
   
   // Nested object (populated in responses)
   pipeline?: PipelineDTO;
@@ -121,7 +124,7 @@ export const validateFlowThresholdDTO = (data: Partial<FlowThresholdDTO>): strin
   }
   
   // Pipeline validation
-  if (data.pipelineId === undefined || data.pipelineId === null) {
+  if (data.pipelineId === undefined || data.pipelineId === null || data.pipelineId === 0) {
     errors.push('Pipeline is required');
   }
   
@@ -137,20 +140,24 @@ export const FlowThresholdConstraints = {
     min: 0,      // @PositiveOrZero
     max: 500,    // @DecimalMax("500.0")
     unit: 'bar',
+    step: 0.1,
   },
   temperature: {
     min: -50,    // @DecimalMin("-50.0")
     max: 200,    // @DecimalMax("200.0")
     unit: '°C',
+    step: 0.1,
   },
   flowRate: {
     min: 0,      // @PositiveOrZero
     unit: 'm³/h',
+    step: 1,
   },
   alertTolerance: {
     min: 0,      // @DecimalMin("0.0")
     max: 50,     // @DecimalMax("50.0")
     unit: '%',
+    step: 0.5,
   },
 };
 
