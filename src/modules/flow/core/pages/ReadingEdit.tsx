@@ -91,7 +91,9 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   // Form state with updated default values
   const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<ReadingFormData>({
     defaultValues: {
+      pipelineId: undefined,
       readingDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
+      readingSlotId: undefined,
       recordedAt: new Date().toISOString().slice(0, 16),
       pressure: undefined,
       temperature: undefined,
