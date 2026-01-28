@@ -8,10 +8,10 @@
  * @created 01-28-2026
  */
 
-import axiosInstance from '@/shared/api/axiosInstance';
+import axiosInstance from '@/shared/config/axios';
 import { ReadingSlotDTO } from '../dto/ReadingSlotDTO';
 
-const BASE_URL = '/flow/common/reading-slot';
+const BASE_URL = '/flow/common/readingSlot';
 
 export class ReadingSlotService {
   /**
