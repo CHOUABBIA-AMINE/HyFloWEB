@@ -6,7 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
- * @updated 01-28-2026 - Auto-detect mode from URL params, match backend BigDecimal types
+ * @updated 01-28-2026 - Added containedVolume Min/Max fields
  */
 
 import React, { useState, useEffect } from 'react';
@@ -39,6 +39,7 @@ import {
   Thermostat as ThermostatIcon,
   Opacity as OpacityIcon,
   Warning as WarningIcon,
+  Storage as StorageIcon,
 } from '@mui/icons-material';
 
 import { FlowThresholdService } from '../services/FlowThresholdService';
@@ -60,6 +61,8 @@ interface ThresholdFormData {
   temperatureMax: number;
   flowRateMin: number;
   flowRateMax: number;
+  containedVolumeMin: number;
+  containedVolumeMax: number;
   alertTolerance: number;
   active: boolean;
 }
@@ -132,6 +135,8 @@ export const ThresholdEdit: React.FC = () => {
         temperatureMax: threshold.temperatureMax,
         flowRateMin: threshold.flowRateMin,
         flowRateMax: threshold.flowRateMax,
+        containedVolumeMin: threshold.containedVolumeMin,
+        containedVolumeMax: threshold.containedVolumeMax,
         alertTolerance: threshold.alertTolerance,
         active: threshold.active,
       });
@@ -508,8 +513,83 @@ export const ThresholdEdit: React.FC = () => {
             </Card>
           </Grid>
           
-          {/* Alert Configuration */}
+          {/* Contained Volume Thresholds */}
           <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <StorageIcon sx={{ mr: 1 }} color="success" />
+                  <Typography variant="h6">Contained Volume Thresholds</Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Minimum: {FlowThresholdConstraints.containedVolume.min} {FlowThresholdConstraints.containedVolume.unit}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <Controller
+                      name="containedVolumeMin"
+                      control={control}
+                      rules={{
+                        required: 'Required',
+                        min: { value: FlowThresholdConstraints.containedVolume.min, message: 'Cannot be negative' },
+                      }}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          label="Minimum *"
+                          type="number"
+                          fullWidth
+                          error={!!error}
+                          helperText={error?.message}
+                          InputProps={{
+                            endAdornment: FlowThresholdConstraints.containedVolume.unit,
+                          }}
+                          inputProps={{
+                            step: FlowThresholdConstraints.containedVolume.step,
+                            min: FlowThresholdConstraints.containedVolume.min,
+                          }}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Controller
+                      name="containedVolumeMax"
+                      control={control}
+                      rules={{
+                        required: 'Required',
+                        min: { value: 1, message: 'Must be positive' },
+                      }}
+                      render={({ field, fieldState: { error } }) => (
+                        <TextField
+                          {...field}
+                          label="Maximum *"
+                          type="number"
+                          fullWidth
+                          error={!!error}
+                          helperText={error?.message}
+                          InputProps={{
+                            endAdornment: FlowThresholdConstraints.containedVolume.unit,
+                          }}
+                          inputProps={{
+                            step: FlowThresholdConstraints.containedVolume.step,
+                            min: 1,
+                          }}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          {/* Alert Configuration */}
+          <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -522,7 +602,7 @@ export const ThresholdEdit: React.FC = () => {
                 <Divider sx={{ mb: 2 }} />
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} md={6}>
                     <Controller
                       name="alertTolerance"
                       control={control}
@@ -552,12 +632,12 @@ export const ThresholdEdit: React.FC = () => {
                       )}
                     />
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={12} md={6}>
                     <Controller
                       name="active"
                       control={control}
                       render={({ field }) => (
-                        <Paper elevation={0} sx={{ p: 2, bgcolor: field.value ? 'success.50' : 'grey.50' }}>
+                        <Paper elevation={0} sx={{ p: 2, bgcolor: field.value ? 'success.50' : 'grey.50', height: '100%', display: 'flex', alignItems: 'center' }}>
                           <FormControlLabel
                             control={
                               <Switch
@@ -573,8 +653,8 @@ export const ThresholdEdit: React.FC = () => {
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
                                   {field.value 
-                                    ? 'This threshold is currently monitoring the pipeline'
-                                    : 'This threshold is disabled and not monitoring'}
+                                    ? 'Threshold is monitoring the pipeline'
+                                    : 'Threshold is disabled'}
                                 </Typography>
                               </Box>
                             }
