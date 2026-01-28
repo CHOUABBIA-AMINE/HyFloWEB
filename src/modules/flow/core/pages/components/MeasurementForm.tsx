@@ -7,9 +7,10 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-28-2026 - Added reading date and slot selection
  */
 
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Controller, Control, FieldErrors } from 'react-hook-form';
 import {
   Box,
@@ -21,6 +22,11 @@ import {
   Chip,
   LinearProgress,
   Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -28,7 +34,10 @@ import {
   Error as ErrorIcon,
 } from '@mui/icons-material';
 
+import { ReadingSlotService } from '@/modules/flow/common/services';
+import { formatTimeRange, getLocalizedDesignation } from '@/modules/flow/common/dto/ReadingSlotDTO';
 import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO';
+import type { ReadingSlotDTO } from '@/modules/flow/common/dto/ReadingSlotDTO';
 
 interface MeasurementFormProps {
   control: Control<any>;
@@ -50,6 +59,25 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
   pipelineId,
   threshold,
 }) => {
+  const [slots, setSlots] = useState<ReadingSlotDTO[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(true);
+  
+  // Load available slots
+  useEffect(() => {
+    loadSlots();
+  }, []);
+  
+  const loadSlots = async () => {
+    try {
+      setLoadingSlots(true);
+      const data = await ReadingSlotService.getAllOrdered();
+      setSlots(data);
+    } catch (error) {
+      console.error('Error loading slots:', error);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
   
   const getThresholdStatus = (
     value: number | undefined,
@@ -192,8 +220,8 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
         Enter Measurements
       </Typography>
       <Typography variant="body2" color="text.secondary" paragraph>
-        Enter the flow reading measurements. Values are validated against configured thresholds in real-time.
-        At least one measurement value is required.
+        Enter the flow reading measurements for a specific date and time slot. 
+        Values are validated against configured thresholds in real-time.
       </Typography>
       
       {!threshold && (
@@ -204,7 +232,65 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
       )}
       
       <Grid container spacing={3}>
-        {/* Recording Timestamp */}
+        {/* ========== NEW: Reading Date ========== */}
+        <Grid item xs={12} md={6}>
+          <Controller
+            name="readingDate"
+            control={control}
+            rules={{ required: 'Reading date is required' }}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Reading Date *"
+                type="date"
+                fullWidth
+                error={!!error}
+                helperText={error?.message || 'Business date for this reading'}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  max: new Date().toISOString().split('T')[0], // Cannot select future dates
+                }}
+              />
+            )}
+          />
+        </Grid>
+        
+        {/* ========== NEW: Reading Slot ========== */}
+        <Grid item xs={12} md={6}>
+          <Controller
+            name="readingSlotId"
+            control={control}
+            rules={{ required: 'Reading slot is required' }}
+            render={({ field, fieldState: { error } }) => (
+              <FormControl fullWidth error={!!error}>
+                <InputLabel>Reading Slot *</InputLabel>
+                <Select
+                  {...field}
+                  label="Reading Slot *"
+                  disabled={loadingSlots}
+                >
+                  {slots.map((slot) => (
+                    <MenuItem key={slot.id} value={slot.id}>
+                      <Box>
+                        <Typography variant="body1">
+                          {getLocalizedDesignation(slot, 'en')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatTimeRange(slot)}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  {error?.message || 'Select the time slot for this reading'}
+                </FormHelperText>
+              </FormControl>
+            )}
+          />
+        </Grid>
+        
+        {/* Recording Timestamp (System submission time) */}
         <Grid item xs={12}>
           <Controller
             name="recordedAt"
@@ -213,11 +299,11 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                label="Recording Time *"
+                label="System Submission Time *"
                 type="datetime-local"
                 fullWidth
                 error={!!error}
-                helperText={error?.message || 'When was this reading taken?'}
+                helperText={error?.message || 'When this reading is being submitted to the system'}
                 InputLabelProps={{ shrink: true }}
               />
             )}
@@ -300,11 +386,13 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
       </Grid>
       
       <Alert severity="info" sx={{ mt: 3 }}>
-        <AlertTitle>Measurement Guidelines</AlertTitle>
+        <AlertTitle>Slot-Based Reading Guidelines</AlertTitle>
         <Typography variant="body2">
+          • <strong>Reading Date</strong>: The business date for this reading (e.g., which day's operations)<br />
+          • <strong>Reading Slot</strong>: The scheduled time window for this reading<br />
+          • <strong>Submission Time</strong>: When you're entering this reading into the system<br />
           • Ensure all measuring instruments are properly calibrated<br />
           • Record values at stable operating conditions<br />
-          • Double-check readings that show threshold warnings or breaches<br />
           • Add notes for any unusual observations or conditions
         </Typography>
       </Alert>
