@@ -19,8 +19,9 @@ export class ReadingSlotService {
    * Backend: GET /flow/common/reading-slot
    */
   static async getAll(): Promise<ReadingSlotDTO[]> {
-    const response = await axiosInstance.get<ReadingSlotDTO[]>(BASE_URL);
-    return response.data;
+    const response = await axiosInstance.get<any>(BASE_URL);
+    // Backend returns paginated response, extract content array
+    return Array.isArray(response.data) ? response.data : (response.data.content || []);
   }
 
   /**
