@@ -1,8 +1,8 @@
 /**
- * ThresholdList Page
+ * ThresholdList Page - Flow Threshold Management
  * 
- * Displays a list of all flow thresholds with filtering, search, and CRUD operations.
- * Supports pagination, pipeline filtering, active/inactive status toggle.
+ * Displays and manages flow thresholds for pipelines.
+ * Thresholds define safe operating ranges for pressure, temperature, and flow rates.
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
@@ -37,7 +37,6 @@ import {
   InputAdornment,
   Switch,
   FormControlLabel,
-  Paper,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -45,18 +44,17 @@ import {
   Delete as DeleteIcon,
   Search as SearchIcon,
   Refresh as RefreshIcon,
-  FilterList as FilterListIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   Warning as WarningIcon,
+  FilterList as FilterListIcon,
   Speed as SpeedIcon,
-  Thermostat as ThermostatIcon,
-  WaterDrop as WaterDropIcon,
 } from '@mui/icons-material';
 
 import { FlowThresholdService } from '../services/FlowThresholdService';
 import { PipelineService } from '@/modules/network/core/services/PipelineService';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { FlowThresholdConstraints } from '../dto/FlowThresholdDTO';
 
 import type { FlowThresholdDTO } from '../dto/FlowThresholdDTO';
 import type { PipelineDTO } from '@/modules/network/core/dto/PipelineDTO';
@@ -81,6 +79,7 @@ export const ThresholdList: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedThreshold, setSelectedThreshold] = useState<FlowThresholdDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   
   // Filters
   const [filters, setFilters] = useState<Filters>({
@@ -115,28 +114,28 @@ export const ThresholdList: React.FC = () => {
       const pageable = {
         page,
         size: rowsPerPage,
-        sort: 'pipeline.code,asc,pressureMin,asc',
+        sort: 'pipeline.code,asc',
       };
 
       let result: Page<FlowThresholdDTO>;
 
       // Apply filters
-      if (filters.pipelineId) {
-        result = await FlowThresholdService.getByPipeline(filters.pipelineId, pageable);
-      } else if (filters.search) {
+      if (filters.search) {
         result = await FlowThresholdService.globalSearch(filters.search, pageable);
+      } else if (filters.pipelineId) {
+        result = await FlowThresholdService.getByPipeline(filters.pipelineId, pageable);
       } else {
         result = await FlowThresholdService.getAll(pageable);
       }
 
-      // Filter by active status if needed
+      // Filter by active status on client side if needed
       let filteredContent = result.content;
       if (filters.activeOnly) {
         filteredContent = filteredContent.filter(t => t.active);
       }
 
       setThresholds(filteredContent);
-      setTotalElements(filters.activeOnly ? filteredContent.length : result.totalElements);
+      setTotalElements(result.totalElements);
     } catch (error: any) {
       console.error('Error loading thresholds:', error);
       setError(error.message || 'Failed to load thresholds');
@@ -147,7 +146,7 @@ export const ThresholdList: React.FC = () => {
 
   const handleFilterChange = (field: keyof Filters, value: any) => {
     setFilters(prev => ({ ...prev, [field]: value }));
-    setPage(0); // Reset to first page when filter changes
+    setPage(0);
   };
 
   const handleClearFilters = () => {
@@ -187,22 +186,27 @@ export const ThresholdList: React.FC = () => {
       await FlowThresholdService.delete(selectedThreshold.id);
       setDeleteDialogOpen(false);
       setSelectedThreshold(null);
-      loadThresholds(); // Reload list
+      setSuccess('Threshold deleted successfully');
+      loadThresholds();
     } catch (error: any) {
-      alert(`Delete failed: ${error.message}`);
+      setError(`Delete failed: ${error.message}`);
     }
   };
 
   const handleToggleActive = async (threshold: FlowThresholdDTO) => {
+    if (!threshold.id) return;
+
     try {
       if (threshold.active) {
-        await FlowThresholdService.deactivate(threshold.id!);
+        await FlowThresholdService.deactivate(threshold.id);
+        setSuccess('Threshold deactivated');
       } else {
-        await FlowThresholdService.activate(threshold.id!);
+        await FlowThresholdService.activate(threshold.id);
+        setSuccess('Threshold activated');
       }
-      loadThresholds(); // Reload list
+      loadThresholds();
     } catch (error: any) {
-      setError(`Failed to ${threshold.active ? 'deactivate' : 'activate'} threshold: ${error.message}`);
+      setError(`Failed to toggle active status: ${error.message}`);
     }
   };
 
@@ -224,22 +228,11 @@ export const ThresholdList: React.FC = () => {
     );
   };
 
-  const ThresholdRangeCell: React.FC<{
-    min: number;
-    max: number;
-    unit: string;
-    icon: React.ReactNode;
-    color: string;
-  }> = ({ min, max, unit, icon, color }) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-      <Box sx={{ color, display: 'flex' }}>{icon}</Box>
-      <Typography variant="body2">
-        {min} - {max} {unit}
-      </Typography>
-    </Box>
-  );
+  const formatRange = (min: number, max: number, unit: string) => {
+    return `${min} - ${max} ${unit}`;
+  };
 
-  const hasActiveFilters = filters.pipelineId || filters.activeOnly || filters.search;
+  const hasActiveFilters = filters.pipelineId || filters.search || filters.activeOnly;
 
   return (
     <Box sx={{ p: 3 }}>
@@ -248,7 +241,7 @@ export const ThresholdList: React.FC = () => {
         <Box>
           <Typography variant="h4">Flow Thresholds</Typography>
           <Typography variant="body2" color="text.secondary">
-            Configure acceptable ranges for pipeline measurements
+            Manage safe operating ranges for pipeline monitoring
           </Typography>
         </Box>
         <Button
@@ -261,10 +254,15 @@ export const ThresholdList: React.FC = () => {
         </Button>
       </Box>
 
-      {/* Error Alert */}
+      {/* Success/Error Alerts */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
+          {success}
         </Alert>
       )}
 
@@ -276,7 +274,7 @@ export const ThresholdList: React.FC = () => {
             <Typography variant="h6">Filters</Typography>
           </Box>
 
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2}>
             {/* Search */}
             <Grid item xs={12} md={4}>
               <TextField
@@ -316,16 +314,17 @@ export const ThresholdList: React.FC = () => {
 
             {/* Active Only Toggle */}
             <Grid item xs={12} md={4}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={filters.activeOnly}
-                    onChange={(e) => handleFilterChange('activeOnly', e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Show Active Only"
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={filters.activeOnly}
+                      onChange={(e) => handleFilterChange('activeOnly', e.target.checked)}
+                    />
+                  }
+                  label="Active Only"
+                />
+              </Box>
             </Grid>
           </Grid>
 
@@ -358,25 +357,14 @@ export const ThresholdList: React.FC = () => {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Pipeline</TableCell>
-                <TableCell>Product</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <SpeedIcon fontSize="small" />
                     Pressure Range
                   </Box>
                 </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <ThermostatIcon fontSize="small" />
-                    Temperature Range
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <WaterDropIcon fontSize="small" />
-                    Flow Rate Range
-                  </Box>
-                </TableCell>
+                <TableCell>Temperature Range</TableCell>
+                <TableCell>Flow Rate Range</TableCell>
                 <TableCell>Tolerance</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -385,13 +373,13 @@ export const ThresholdList: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : thresholds.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       No thresholds found
                     </Typography>
@@ -402,61 +390,70 @@ export const ThresholdList: React.FC = () => {
                   <TableRow key={threshold.id} hover>
                     <TableCell>#{threshold.id}</TableCell>
                     <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
-                        {threshold.pipeline?.code || 'N/A'}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {threshold.pipeline?.name}
-                      </Typography>
+                      <Box>
+                        <Typography variant="body2" fontWeight="bold">
+                          {threshold.pipeline?.code || 'N/A'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {threshold.pipeline?.name || ''}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell>
-                      {threshold.product?.designationEn || 'N/A'}
+                      <Tooltip title={`Min: ${threshold.pressureMin}, Max: ${threshold.pressureMax}`}>
+                        <Chip
+                          label={formatRange(
+                            threshold.pressureMin,
+                            threshold.pressureMax,
+                            FlowThresholdConstraints.pressure.unit
+                          )}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <ThresholdRangeCell
-                        min={threshold.pressureMin}
-                        max={threshold.pressureMax}
-                        unit="bar"
-                        icon={<SpeedIcon fontSize="small" />}
-                        color="#1976d2"
-                      />
+                      <Tooltip title={`Min: ${threshold.temperatureMin}, Max: ${threshold.temperatureMax}`}>
+                        <Chip
+                          label={formatRange(
+                            threshold.temperatureMin,
+                            threshold.temperatureMax,
+                            FlowThresholdConstraints.temperature.unit
+                          )}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <ThresholdRangeCell
-                        min={threshold.temperatureMin}
-                        max={threshold.temperatureMax}
-                        unit="°C"
-                        icon={<ThermostatIcon fontSize="small" />}
-                        color="#d32f2f"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <ThresholdRangeCell
-                        min={threshold.flowRateMin}
-                        max={threshold.flowRateMax}
-                        unit="m³/h"
-                        icon={<WaterDropIcon fontSize="small" />}
-                        color="#0288d1"
-                      />
+                      <Tooltip title={`Min: ${threshold.flowRateMin}, Max: ${threshold.flowRateMax}`}>
+                        <Chip
+                          label={formatRange(
+                            threshold.flowRateMin,
+                            threshold.flowRateMax,
+                            FlowThresholdConstraints.flowRate.unit
+                          )}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={`${threshold.alertTolerance}%`}
+                        label={`±${threshold.alertTolerance}%`}
                         size="small"
                         icon={<WarningIcon />}
-                        variant="outlined"
                       />
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {getStatusChip(threshold.active)}
-                        <Switch
-                          checked={threshold.active}
-                          onChange={() => handleToggleActive(threshold)}
-                          size="small"
-                          color="success"
-                        />
-                      </Box>
+                      <Tooltip title={threshold.active ? 'Click to deactivate' : 'Click to activate'}>
+                        <Box
+                          onClick={() => handleToggleActive(threshold)}
+                          sx={{ cursor: 'pointer', display: 'inline-block' }}
+                        >
+                          {getStatusChip(threshold.active)}
+                        </Box>
+                      </Tooltip>
                     </TableCell>
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
@@ -502,7 +499,7 @@ export const ThresholdList: React.FC = () => {
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Delete Threshold"
-        message={`Are you sure you want to delete threshold #${selectedThreshold?.id} for ${selectedThreshold?.pipeline?.code}? This action cannot be undone.`}
+        message={`Are you sure you want to delete threshold #${selectedThreshold?.id} for pipeline ${selectedThreshold?.pipeline?.code}? This action cannot be undone.`}
         onConfirm={handleDeleteConfirm}
         onCancel={() => {
           setDeleteDialogOpen(false);
