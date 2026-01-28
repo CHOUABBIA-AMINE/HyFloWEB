@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-28-2026 - Added ReadingSlotService
  */
 
 export { ValidationStatusService } from './ValidationStatusService';
@@ -13,3 +14,4 @@ export { EventStatusService } from './EventStatusService';
 export { SeverityService } from './SeverityService';
 export { QualityFlagService } from './QualityFlagService';
 export { DataSourceService } from './DataSourceService';
+export { ReadingSlotService } from './ReadingSlotService';
