@@ -7,6 +7,7 @@
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  * @updated 01-28-2026 - Added reading date and slot columns
+ * @updated 01-28-2026 - Fixed readings undefined and Select controlled issues
  */
 
 import React, { useState, useEffect } from 'react';
@@ -61,17 +62,17 @@ import type { PipelineDTO } from '@/modules/network/core/dto/PipelineDTO';
 import type { Page } from '@/types/pagination';
 
 interface Filters {
-  pipelineId?: number;
-  validationStatusId?: number;
-  startDate?: string;
-  endDate?: string;
+  pipelineId: number | '';
+  validationStatusId: number | '';
+  startDate: string;
+  endDate: string;
   search: string;
 }
 
 export const ReadingList: React.FC = () => {
   const navigate = useNavigate();
   
-  // State
+  // State - Initialize readings as empty array
   const [readings, setReadings] = useState<FlowReadingDTO[]>([]);
   const [pipelines, setPipelines] = useState<PipelineDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,8 +83,10 @@ export const ReadingList: React.FC = () => {
   const [selectedReading, setSelectedReading] = useState<FlowReadingDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // Filters
+  // Filters - Initialize with controlled values (empty string instead of undefined)
   const [filters, setFilters] = useState<Filters>({
+    pipelineId: '',
+    validationStatusId: '',
     search: '',
     startDate: '',
     endDate: '',
@@ -123,20 +126,22 @@ export const ReadingList: React.FC = () => {
 
       // Apply filters
       if (filters.pipelineId) {
-        result = await FlowReadingService.getByPipeline(filters.pipelineId, pageable);
+        result = await FlowReadingService.getByPipeline(filters.pipelineId as number, pageable);
       } else if (filters.validationStatusId) {
-        result = await FlowReadingService.getByValidationStatus(filters.validationStatusId, pageable);
+        result = await FlowReadingService.getByValidationStatus(filters.validationStatusId as number, pageable);
       } else if (filters.search) {
         result = await FlowReadingService.globalSearch(filters.search, pageable);
       } else {
         result = await FlowReadingService.getAll(pageable);
       }
 
-      setReadings(result.content);
-      setTotalElements(result.totalElements);
+      setReadings(result.content || []);
+      setTotalElements(result.totalElements || 0);
     } catch (error: any) {
       console.error('Error loading readings:', error);
       setError(error.message || 'Failed to load readings');
+      setReadings([]); // Set to empty array on error
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -149,6 +154,8 @@ export const ReadingList: React.FC = () => {
 
   const handleClearFilters = () => {
     setFilters({
+      pipelineId: '',
+      validationStatusId: '',
       search: '',
       startDate: '',
       endDate: '',
@@ -283,9 +290,9 @@ export const ReadingList: React.FC = () => {
               <FormControl fullWidth>
                 <InputLabel>Pipeline</InputLabel>
                 <Select
-                  value={filters.pipelineId || ''}
+                  value={filters.pipelineId}
                   label="Pipeline"
-                  onChange={(e) => handleFilterChange('pipelineId', e.target.value || undefined)}
+                  onChange={(e) => handleFilterChange('pipelineId', e.target.value)}
                 >
                   <MenuItem value="">All Pipelines</MenuItem>
                   {pipelines.map((pipeline) => (
@@ -302,9 +309,9 @@ export const ReadingList: React.FC = () => {
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
                 <Select
-                  value={filters.validationStatusId || ''}
+                  value={filters.validationStatusId}
                   label="Status"
-                  onChange={(e) => handleFilterChange('validationStatusId', e.target.value || undefined)}
+                  onChange={(e) => handleFilterChange('validationStatusId', e.target.value)}
                 >
                   <MenuItem value="">All Statuses</MenuItem>
                   <MenuItem value={1}>Validated</MenuItem>
@@ -383,7 +390,7 @@ export const ReadingList: React.FC = () => {
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
-              ) : readings.length === 0 ? (
+              ) : !readings || readings.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
