@@ -9,6 +9,7 @@
  * @created 01-25-2026
  * @updated 01-28-2026 - Fixed threshold loading to use getByPipeline with filter
  * @updated 01-28-2026 - Fixed latest reading display data handling
+ * @updated 01-28-2026 - Changed layout to show all data in single row
  */
 
 import React, { useState, useEffect } from 'react';
@@ -250,23 +251,23 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
         <Alert severity="info" icon={<InfoIcon />} sx={{ mt: 3 }}>
           <AlertTitle>Latest Reading Reference</AlertTitle>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Typography variant="caption" color="text.secondary">Recorded At</Typography>
               <Typography variant="body2">{formatDateTime(latestReading.recordedAt)}</Typography>
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Typography variant="caption" color="text.secondary">Pressure</Typography>
               <Typography variant="body2">{formatValue(latestReading.pressure, 'bar')}</Typography>
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Typography variant="caption" color="text.secondary">Temperature</Typography>
               <Typography variant="body2">{formatValue(latestReading.temperature, '°C')}</Typography>
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Typography variant="caption" color="text.secondary">Flow Rate</Typography>
               <Typography variant="body2">{formatValue(latestReading.flowRate, 'm³/h')}</Typography>
             </Grid>
-            <Grid item xs={6} sm={3}>
+            <Grid item xs={12} sm={6} md={2.4}>
               <Typography variant="caption" color="text.secondary">Contained Volume</Typography>
               <Typography variant="body2">{formatValue(latestReading.containedVolume, 'm³')}</Typography>
             </Grid>
