@@ -7,6 +7,7 @@
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  * @updated 01-27-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
+ * @updated 01-28-2026 - Added threshold validation for contained volume
  */
 
 import React, { useState } from 'react';
@@ -192,11 +193,13 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
   const pressureStatus = getValueStatus(formData.pressure, threshold?.pressureMin, threshold?.pressureMax);
   const temperatureStatus = getValueStatus(formData.temperature, threshold?.temperatureMin, threshold?.temperatureMax);
   const flowRateStatus = getValueStatus(formData.flowRate, threshold?.flowRateMin, threshold?.flowRateMax);
+  const containedVolumeStatus = getValueStatus(formData.containedVolume, threshold?.containedVolumeMin, threshold?.containedVolumeMax);
   
   const hasAnyBreach = 
     pressureStatus.color === 'error' || 
     temperatureStatus.color === 'error' || 
-    flowRateStatus.color === 'error';
+    flowRateStatus.color === 'error' ||
+    containedVolumeStatus.color === 'error';
   
   return (
     <Box>
@@ -336,13 +339,29 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               </Box>
             </Grid>
             
-            {/* Contained Volume */}
+            {/* Contained Volume - NOW WITH THRESHOLD VALIDATION */}
             <Grid item xs={12} sm={6} md={3}>
               <Box>
-                <Typography variant="caption" color="text.secondary" display="block" mb={1}>
-                  Contained Volume
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ flex: 1 }}>
+                    Contained Volume
+                  </Typography>
+                  <Box sx={{ color: `${containedVolumeStatus.color}.main` }}>
+                    {containedVolumeStatus.icon}
+                  </Box>
+                </Box>
                 <Typography variant="h6">{formatValue(formData.containedVolume, 'm³')}</Typography>
+                {threshold && (
+                  <Typography variant="caption" color="text.secondary">
+                    Range: {threshold.containedVolumeMin} - {threshold.containedVolumeMax} m³
+                  </Typography>
+                )}
+                <Chip 
+                  label={containedVolumeStatus.text} 
+                  size="small" 
+                  color={containedVolumeStatus.color}
+                  sx={{ mt: 1 }}
+                />
               </Box>
             </Grid>
             
