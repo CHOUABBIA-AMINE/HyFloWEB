@@ -7,7 +7,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
- * @updated 01-26-2026 - Use server-side filtering via findByManager()
+ * @updated 01-28-2026 - Fixed typo in FlowThresholdService method name
  */
 
 import React, { useState, useEffect } from 'react';
@@ -130,8 +130,8 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
 
   const loadThreshold = async (pipelineId: number) => {
     try {
-      // Note: Method name is 'getActivByPipeline' (typo in backend)
-      const thresholds = await FlowThresholdService.getActivByPipeline(pipelineId);
+      // Fixed: Method name is 'getActiveByPipeline'
+      const thresholds = await FlowThresholdService.getActiveByPipeline(pipelineId);
       if (thresholds.length > 0) {
         onThresholdLoad(thresholds[0]);
       } else {
