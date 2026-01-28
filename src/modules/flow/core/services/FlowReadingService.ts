@@ -10,6 +10,7 @@
  * @created 01-25-2026
  * @updated 01-27-2026 - Updated validate/reject to use query params
  * @updated 01-28-2026 - Added slot-based query methods
+ * @updated 01-28-2026 - Fixed getLatestByPipeline to handle wrapped responses
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -234,11 +235,40 @@ export class FlowReadingService {
 
   /**
    * Get latest reading by pipeline
+   * Handles both direct DTO response and potential wrapped responses
    */
   static async getLatestByPipeline(pipelineId: number): Promise<FlowReadingDTO> {
-    const response = await axiosInstance.get<FlowReadingDTO>(
+    const response = await axiosInstance.get<any>(
       `${BASE_URL}/pipeline/${pipelineId}/latest`
     );
+    
+    // Log the raw response for debugging
+    console.log('Raw API response for latest reading:', response.data);
+    
+    // Check if response is wrapped (has a data property or similar)
+    if (response.data && typeof response.data === 'object') {
+      // If it has an 'id' property, it's likely the direct DTO
+      if ('id' in response.data) {
+        return response.data;
+      }
+      
+      // Check for common wrapper properties
+      if ('data' in response.data) {
+        return response.data.data;
+      }
+      
+      if ('content' in response.data) {
+        // Might be a paginated response - get first item
+        const content = response.data.content;
+        if (Array.isArray(content) && content.length > 0) {
+          return content[0];
+        }
+      }
+      
+      // If we can't determine the structure, return as-is and let the component handle it
+      return response.data;
+    }
+    
     return response.data;
   }
 
