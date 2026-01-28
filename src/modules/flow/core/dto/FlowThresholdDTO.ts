@@ -2,13 +2,15 @@
  * Flow Threshold DTO - Flow Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowThresholdDTO
- * Updated: 01-25-2026 - Aligned with backend using FacilityDTO template
  * 
- * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * Backend Author: MEDJERAB Abir
+ * Frontend Author: CHOUABBIA Amine
+ * 
+ * @created 01-23-2026 (Backend)
+ * @updated 01-28-2026 (Frontend) - Aligned with backend, removed productId
  */
 
 import { PipelineDTO } from '../../../network/core/dto/PipelineDTO';
-import { ProductDTO } from '../../../network/common/dto/ProductDTO';
 
 export interface FlowThresholdDTO {
   // Identifier (from GenericDTO)
@@ -30,13 +32,11 @@ export interface FlowThresholdDTO {
   alertTolerance: number; // @NotNull, @DecimalMin(0.0), @DecimalMax(50.0) (required, 0-50%)
   active: boolean;        // @NotNull (required)
   
-  // Required relationships (IDs)
-  pipelineId: number;  // @NotNull (required)
-  productId: number;   // @NotNull (required)
+  // Required relationship (ID)
+  pipelineId: number;  // @NotNull (required) - Backend uses Long
   
-  // Nested objects (populated in responses)
+  // Nested object (populated in responses)
   pipeline?: PipelineDTO;
-  product?: ProductDTO;
 }
 
 /**
@@ -125,35 +125,52 @@ export const validateFlowThresholdDTO = (data: Partial<FlowThresholdDTO>): strin
     errors.push('Pipeline is required');
   }
   
-  // Product validation
-  if (data.productId === undefined || data.productId === null) {
-    errors.push('Product is required');
-  }
-  
   return errors;
 };
 
 /**
  * Flow threshold validation constraints
+ * Matches backend validation annotations
  */
 export const FlowThresholdConstraints = {
   pressure: {
-    min: 0,
-    max: 500,
+    min: 0,      // @PositiveOrZero
+    max: 500,    // @DecimalMax("500.0")
     unit: 'bar',
   },
   temperature: {
-    min: -50,
-    max: 200,
+    min: -50,    // @DecimalMin("-50.0")
+    max: 200,    // @DecimalMax("200.0")
     unit: '°C',
   },
   flowRate: {
-    min: 0,
+    min: 0,      // @PositiveOrZero
     unit: 'm³/h',
   },
   alertTolerance: {
-    min: 0,
-    max: 50,
+    min: 0,      // @DecimalMin("0.0")
+    max: 50,     // @DecimalMax("50.0")
     unit: '%',
   },
 };
+
+/**
+ * Type guard to check if threshold data is valid
+ */
+export const isValidFlowThreshold = (data: Partial<FlowThresholdDTO>): data is FlowThresholdDTO => {
+  return validateFlowThresholdDTO(data).length === 0;
+};
+
+/**
+ * Default values for creating a new threshold
+ */
+export const createDefaultFlowThreshold = (): Partial<FlowThresholdDTO> => ({
+  pressureMin: 0,
+  pressureMax: 100,
+  temperatureMin: 0,
+  temperatureMax: 100,
+  flowRateMin: 0,
+  flowRateMax: 1000,
+  alertTolerance: 5,
+  active: true,
+});
