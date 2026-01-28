@@ -9,10 +9,12 @@
  * @updated 01-28-2026 - Added reading date and slot columns
  * @updated 01-28-2026 - Fixed readings undefined and Select controlled issues
  * @updated 01-28-2026 - Load validation statuses from server
+ * @updated 01-28-2026 - Implemented i18n translation keys
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -74,6 +76,7 @@ interface Filters {
 
 export const ReadingList: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   // State - Initialize readings as empty array
   const [readings, setReadings] = useState<FlowReadingDTO[]>([]);
@@ -112,7 +115,7 @@ export const ReadingList: React.FC = () => {
       const data = await PipelineService.getAllNoPagination();
       setPipelines(data);
     } catch (error) {
-      console.error('Error loading pipelines:', error);
+      console.error(t('flow.readings.errors.loadPipelinesFailed'), error);
     }
   };
 
@@ -121,7 +124,7 @@ export const ReadingList: React.FC = () => {
       const data = await ValidationStatusService.getAllNoPagination();
       setValidationStatuses(data);
     } catch (error) {
-      console.error('Error loading validation statuses:', error);
+      console.error(t('flow.readings.errors.loadStatusesFailed'), error);
     }
   };
 
@@ -152,8 +155,8 @@ export const ReadingList: React.FC = () => {
       setReadings(result.content || []);
       setTotalElements(result.totalElements || 0);
     } catch (error: any) {
-      console.error('Error loading readings:', error);
-      setError(error.message || 'Failed to load readings');
+      console.error(t('flow.readings.errors.loadFailed'), error);
+      setError(error.message || t('flow.readings.errors.loadFailed'));
       setReadings([]); // Set to empty array on error
       setTotalElements(0);
     } finally {
@@ -212,13 +215,13 @@ export const ReadingList: React.FC = () => {
       setSelectedReading(null);
       loadReadings(); // Reload list
     } catch (error: any) {
-      alert(`Delete failed: ${error.message}`);
+      alert(t('flow.readings.delete.error', { error: error.message }));
     }
   };
 
   const getStatusChip = (reading: FlowReadingDTO) => {
     const status = reading.validationStatus;
-    if (!status) return <Chip label="Unknown" size="small" />;
+    if (!status) return <Chip label={t('flow.readings.notAvailable')} size="small" />;
 
     const statusConfig: Record<string, { color: 'success' | 'warning' | 'error' | 'default'; icon?: React.ReactElement }> = {
       VALIDATED: { color: 'success', icon: <CheckCircleIcon /> },
@@ -239,7 +242,7 @@ export const ReadingList: React.FC = () => {
   };
 
   const formatReadingDate = (dateStr: string) => {
-    if (!dateStr) return 'N/A';
+    if (!dateStr) return t('flow.readings.notAvailable');
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -254,14 +257,14 @@ export const ReadingList: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Flow Readings</Typography>
+        <Typography variant="h4">{t('flow.readings.title')}</Typography>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleCreate}
         >
-          New Reading
+          {t('flow.readings.newReading')}
         </Button>
       </Box>
 
@@ -277,7 +280,7 @@ export const ReadingList: React.FC = () => {
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <FilterListIcon sx={{ mr: 1 }} />
-            <Typography variant="h6">Filters</Typography>
+            <Typography variant="h6">{t('flow.readings.filters.title')}</Typography>
           </Box>
 
           <Grid container spacing={2}>
@@ -285,10 +288,10 @@ export const ReadingList: React.FC = () => {
             <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
-                label="Search"
+                label={t('flow.readings.filters.search')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                placeholder="Search readings..."
+                placeholder={t('flow.readings.filters.searchPlaceholder')}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -302,13 +305,13 @@ export const ReadingList: React.FC = () => {
             {/* Pipeline Filter */}
             <Grid item xs={12} md={3}>
               <FormControl fullWidth>
-                <InputLabel>Pipeline</InputLabel>
+                <InputLabel>{t('flow.readings.filters.pipeline')}</InputLabel>
                 <Select
                   value={filters.pipelineId}
-                  label="Pipeline"
+                  label={t('flow.readings.filters.pipeline')}
                   onChange={(e) => handleFilterChange('pipelineId', e.target.value)}
                 >
-                  <MenuItem value="">All Pipelines</MenuItem>
+                  <MenuItem value="">{t('flow.readings.filters.allPipelines')}</MenuItem>
                   {pipelines.map((pipeline) => (
                     <MenuItem key={pipeline.id} value={pipeline.id}>
                       {pipeline.code} - {pipeline.name}
@@ -321,13 +324,13 @@ export const ReadingList: React.FC = () => {
             {/* Status Filter - Now dynamically loaded from server */}
             <Grid item xs={12} md={2}>
               <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
+                <InputLabel>{t('flow.readings.filters.status')}</InputLabel>
                 <Select
                   value={filters.validationStatusId}
-                  label="Status"
+                  label={t('flow.readings.filters.status')}
                   onChange={(e) => handleFilterChange('validationStatusId', e.target.value)}
                 >
-                  <MenuItem value="">All Statuses</MenuItem>
+                  <MenuItem value="">{t('flow.readings.filters.allStatuses')}</MenuItem>
                   {validationStatuses.map((status) => (
                     <MenuItem key={status.id} value={status.id}>
                       {status.designationEn || status.designationFr}
@@ -341,7 +344,7 @@ export const ReadingList: React.FC = () => {
             <Grid item xs={12} md={2}>
               <TextField
                 fullWidth
-                label="Start Date"
+                label={t('flow.readings.filters.startDate')}
                 type="date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
@@ -351,7 +354,7 @@ export const ReadingList: React.FC = () => {
             <Grid item xs={12} md={2}>
               <TextField
                 fullWidth
-                label="End Date"
+                label={t('flow.readings.filters.endDate')}
                 type="date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
@@ -367,14 +370,14 @@ export const ReadingList: React.FC = () => {
               startIcon={<RefreshIcon />}
               onClick={loadReadings}
             >
-              Refresh
+              {t('flow.readings.filters.refresh')}
             </Button>
             {hasActiveFilters && (
               <Button
                 variant="outlined"
                 onClick={handleClearFilters}
               >
-                Clear Filters
+                {t('flow.readings.filters.clearFilters')}
               </Button>
             )}
           </Box>
@@ -387,16 +390,16 @@ export const ReadingList: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Pipeline</TableCell>
-                <TableCell>Reading Date</TableCell>
-                <TableCell>Slot</TableCell>
-                <TableCell>Pressure</TableCell>
-                <TableCell>Temperature</TableCell>
-                <TableCell>Flow Rate</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Recorded By</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t('flow.readings.table.id')}</TableCell>
+                <TableCell>{t('flow.readings.table.pipeline')}</TableCell>
+                <TableCell>{t('flow.readings.table.readingDate')}</TableCell>
+                <TableCell>{t('flow.readings.table.slot')}</TableCell>
+                <TableCell>{t('flow.readings.table.pressure')}</TableCell>
+                <TableCell>{t('flow.readings.table.temperature')}</TableCell>
+                <TableCell>{t('flow.readings.table.flowRate')}</TableCell>
+                <TableCell>{t('flow.readings.table.status')}</TableCell>
+                <TableCell>{t('flow.readings.table.recordedBy')}</TableCell>
+                <TableCell align="right">{t('flow.readings.table.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -410,7 +413,7 @@ export const ReadingList: React.FC = () => {
                 <TableRow>
                   <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
-                      No readings found
+                      {t('flow.readings.table.noData')}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -419,7 +422,7 @@ export const ReadingList: React.FC = () => {
                   <TableRow key={reading.id} hover>
                     <TableCell>#{reading.id}</TableCell>
                     <TableCell>
-                      {reading.pipeline?.code || 'N/A'}
+                      {reading.pipeline?.code || t('flow.readings.notAvailable')}
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -437,7 +440,7 @@ export const ReadingList: React.FC = () => {
                           />
                         </Tooltip>
                       ) : (
-                        'N/A'
+                        t('flow.readings.notAvailable')
                       )}
                     </TableCell>
                     <TableCell>{formatPressure(reading.pressure)}</TableCell>
@@ -447,13 +450,13 @@ export const ReadingList: React.FC = () => {
                     <TableCell>
                       {reading.recordedBy 
                         ? `${reading.recordedBy.firstNameLt} ${reading.recordedBy.lastNameLt}`
-                        : 'N/A'
+                        : t('flow.readings.notAvailable')
                       }
                     </TableCell>
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                         {reading.validationStatus?.code === 'PENDING_VALIDATION' && (
-                          <Tooltip title="Validate">
+                          <Tooltip title={t('flow.readings.actions.validate')}>
                             <IconButton
                               size="small"
                               color="success"
@@ -463,7 +466,7 @@ export const ReadingList: React.FC = () => {
                             </IconButton>
                           </Tooltip>
                         )}
-                        <Tooltip title="Edit">
+                        <Tooltip title={t('flow.readings.actions.edit')}>
                           <IconButton
                             size="small"
                             color="primary"
@@ -472,7 +475,7 @@ export const ReadingList: React.FC = () => {
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete">
+                        <Tooltip title={t('flow.readings.actions.delete')}>
                           <IconButton
                             size="small"
                             color="error"
@@ -504,8 +507,8 @@ export const ReadingList: React.FC = () => {
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={deleteDialogOpen}
-        title="Delete Reading"
-        message={`Are you sure you want to delete reading #${selectedReading?.id}? This action cannot be undone.`}
+        title={t('flow.readings.delete.title')}
+        message={t('flow.readings.delete.message', { id: selectedReading?.id })}
         onConfirm={handleDeleteConfirm}
         onCancel={() => {
           setDeleteDialogOpen(false);
