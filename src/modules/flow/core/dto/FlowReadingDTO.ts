@@ -2,12 +2,13 @@
  * Flow Reading DTO - Flow Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowReadingDTO
- * Updated: 01-25-2026 - Aligned with backend using FacilityDTO template
+ * Updated: 01-28-2026 - Added readingDate and readingSlot for slot-based system
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
 import { ValidationStatusDTO } from '../../common/dto/ValidationStatusDTO';
+import { ReadingSlotDTO } from '../../common/dto/ReadingSlotDTO';
 import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
 import { PipelineDTO } from '../../../network/core/dto/PipelineDTO';
 
@@ -15,8 +16,11 @@ export interface FlowReadingDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
+  // ========== NEW: Temporal fields for slot-based system ==========
+  readingDate: string; // @NotNull, LocalDate (ISO format: YYYY-MM-DD) - Business date for this reading (required)
+  
   // Measurement data
-  recordedAt: string; // @NotNull, @PastOrPresent, LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss) (required)
+  recordedAt: string; // @NotNull, @PastOrPresent, LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss) - System submission timestamp (required)
   pressure?: number;  // @PositiveOrZero, @DecimalMin(0.0), @DecimalMax(500.0) (bar)
   temperature?: number; // @DecimalMin(-50.0), @DecimalMax(200.0) (Celsius)
   flowRate?: number;  // @PositiveOrZero (m³/h)
@@ -30,6 +34,7 @@ export interface FlowReadingDTO {
   recordedById: number; // @NotNull (required)
   validationStatusId: number; // @NotNull (required)
   pipelineId: number; // @NotNull (required)
+  readingSlotId: number; // @NotNull (required) - NEW
   
   // Optional relationship (ID)
   validatedById?: number;
@@ -39,6 +44,7 @@ export interface FlowReadingDTO {
   validatedBy?: EmployeeDTO;
   validationStatus?: ValidationStatusDTO;
   pipeline?: PipelineDTO;
+  readingSlot?: ReadingSlotDTO; // NEW
 }
 
 /**
@@ -48,6 +54,18 @@ export interface FlowReadingDTO {
  */
 export const validateFlowReadingDTO = (data: Partial<FlowReadingDTO>): string[] => {
   const errors: string[] = [];
+  
+  // Reading date validation (NEW)
+  if (!data.readingDate) {
+    errors.push('Reading date is required');
+  } else if (!/^\d{4}-\d{2}-\d{2}$/.test(data.readingDate)) {
+    errors.push('Reading date must be in YYYY-MM-DD format');
+  }
+  
+  // Reading slot validation (NEW)
+  if (data.readingSlotId === undefined || data.readingSlotId === null) {
+    errors.push('Reading slot is required');
+  }
   
   // Recording timestamp validation
   if (!data.recordedAt) {
