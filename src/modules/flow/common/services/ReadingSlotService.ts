@@ -28,6 +28,13 @@ export class ReadingSlotService {
    */
   static async getAllOrdered(): Promise<ReadingSlotDTO[]> {
     const slots = await this.getAll();
+    
+    // Defensive check: ensure slots is an array
+    if (!Array.isArray(slots)) {
+      console.error('getAllOrdered: Expected array but got:', typeof slots, slots);
+      return [];
+    }
+    
     return slots.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
   }
 
