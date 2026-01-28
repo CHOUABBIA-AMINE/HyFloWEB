@@ -45,5 +45,65 @@
     "sessions": "Sessions",
     "audit": "Audit",
     "logs": "Journaux"
+  },
+  "flow": {
+    "readings": {
+      "title": "Lectures de débit",
+      "newReading": "Nouvelle lecture",
+      "filters": {
+        "title": "Filtres",
+        "search": "Rechercher",
+        "searchPlaceholder": "Rechercher des lectures...",
+        "pipeline": "Pipeline",
+        "allPipelines": "Tous les pipelines",
+        "status": "Statut",
+        "allStatuses": "Tous les statuts",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "refresh": "Actualiser",
+        "clearFilters": "Effacer les filtres"
+      },
+      "table": {
+        "id": "ID",
+        "pipeline": "Pipeline",
+        "readingDate": "Date de lecture",
+        "slot": "Créneau",
+        "pressure": "Pression",
+        "temperature": "Température",
+        "flowRate": "Débit",
+        "containedVolume": "Volume contenu",
+        "status": "Statut",
+        "recordedBy": "Enregistré par",
+        "recordedAt": "Enregistré le",
+        "validatedBy": "Validé par",
+        "validatedAt": "Validé le",
+        "actions": "Actions",
+        "noData": "Aucune lecture trouvée"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "validate": "Valider",
+        "view": "Voir"
+      },
+      "delete": {
+        "title": "Supprimer la lecture",
+        "message": "Êtes-vous sûr de vouloir supprimer la lecture #{{id}} ? Cette action est irréversible.",
+        "success": "Lecture supprimée avec succès",
+        "error": "Échec de la suppression : {{error}}"
+      },
+      "errors": {
+        "loadFailed": "Échec du chargement des lectures",
+        "loadPipelinesFailed": "Erreur lors du chargement des pipelines",
+        "loadStatusesFailed": "Erreur lors du chargement des statuts de validation"
+      },
+      "units": {
+        "bar": "bar",
+        "celsius": "°C",
+        "cubicMeterPerHour": "m³/h",
+        "cubicMeter": "m³"
+      },
+      "notAvailable": "N/D"
+    }
   }
 }
