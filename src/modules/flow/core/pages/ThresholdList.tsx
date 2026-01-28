@@ -2,11 +2,11 @@
  * ThresholdList Page - Flow Threshold Management
  * 
  * Displays and manages flow thresholds for pipelines.
- * Thresholds define safe operating ranges for pressure, temperature, and flow rates.
+ * Thresholds define safe operating ranges for pressure, temperature, flow rates, and contained volume.
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
- * @updated 01-28-2026 - Fixed API calls to match backend responses
+ * @updated 01-28-2026 - Added containedVolume column
  */
 
 import React, { useState, useEffect } from 'react';
@@ -377,11 +377,12 @@ export const ThresholdList: React.FC = () => {
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <SpeedIcon fontSize="small" />
-                    Pressure Range
+                    Pressure
                   </Box>
                 </TableCell>
-                <TableCell>Temperature Range</TableCell>
-                <TableCell>Flow Rate Range</TableCell>
+                <TableCell>Temperature</TableCell>
+                <TableCell>Flow Rate</TableCell>
+                <TableCell>Contained Volume</TableCell>
                 <TableCell>Tolerance</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell align="right">Actions</TableCell>
@@ -390,13 +391,13 @@ export const ThresholdList: React.FC = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               ) : thresholds.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
                       No thresholds found
                     </Typography>
@@ -452,6 +453,20 @@ export const ThresholdList: React.FC = () => {
                           )}
                           size="small"
                           variant="outlined"
+                        />
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title={`Min: ${threshold.containedVolumeMin}, Max: ${threshold.containedVolumeMax}`}>
+                        <Chip
+                          label={formatRange(
+                            threshold.containedVolumeMin,
+                            threshold.containedVolumeMax,
+                            FlowThresholdConstraints.containedVolume.unit
+                          )}
+                          size="small"
+                          variant="outlined"
+                          color="info"
                         />
                       </Tooltip>
                     </TableCell>
