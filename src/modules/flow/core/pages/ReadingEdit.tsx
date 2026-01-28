@@ -3,6 +3,7 @@
  * 
  * Multi-step form for creating/editing flow readings with:
  * - Pipeline selection (structure-based filtering)
+ * - Reading date and slot selection
  * - Real-time measurement validation
  * - Threshold comparison and alerts
  * - Validation workflow support
@@ -10,6 +11,7 @@
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  * @updated 01-25-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
+ * @updated 01-28-2026 - Added reading date and slot support
  */
 
 import React, { useState, useEffect } from 'react';
@@ -56,6 +58,8 @@ import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO'
 
 interface ReadingFormData {
   pipelineId?: number;
+  readingDate: string; // NEW: Business date for the reading
+  readingSlotId?: number; // NEW: Slot ID
   recordedAt: string;
   pressure?: number;
   temperature?: number;
@@ -84,9 +88,10 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   
-  // Form state
+  // Form state with updated default values
   const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<ReadingFormData>({
     defaultValues: {
+      readingDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
       recordedAt: new Date().toISOString().slice(0, 16),
       pressure: undefined,
       temperature: undefined,
@@ -114,6 +119,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   
   // Watch form changes
   const watchedPipelineId = watch('pipelineId');
+  const watchedReadingSlotId = watch('readingSlotId');
   
   // Load initial data
   useEffect(() => {
@@ -167,8 +173,10 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         const reading = await FlowReadingService.getById(Number(id));
         setExistingReading(reading);
         
-        // Populate form
+        // Populate form with existing data
         setValue('pipelineId', reading.pipelineId);
+        setValue('readingDate', reading.readingDate); // NEW
+        setValue('readingSlotId', reading.readingSlotId); // NEW
         setValue('recordedAt', reading.recordedAt);
         setValue('pressure', reading.pressure);
         setValue('temperature', reading.temperature);
@@ -214,6 +222,17 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
     try {
       setLoading(true);
       
+      // Validate required fields
+      if (!data.readingDate) {
+        showNotification('Reading date is required', 'warning');
+        return;
+      }
+      
+      if (!data.readingSlotId) {
+        showNotification('Reading slot is required', 'warning');
+        return;
+      }
+      
       // Validate at least one measurement is provided
       if (!data.pressure && !data.temperature && !data.flowRate && !data.containedVolume) {
         showNotification('Please provide at least one measurement value', 'warning');
@@ -233,12 +252,14 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         throw new Error('Validation status not found');
       }
       
-      // Prepare DTO
+      // Prepare DTO with new fields
       const readingDTO: FlowReadingDTO = {
         ...data,
         recordedById: currentUser.id,
         validationStatusId: validationStatus.id,
         pipelineId: data.pipelineId!,
+        readingDate: data.readingDate, // NEW
+        readingSlotId: data.readingSlotId, // NEW
       };
       
       // Save reading
@@ -278,7 +299,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         );
       } else if (error.response?.status === 409) {
         showNotification(
-          'A reading already exists for this pipeline at this time',
+          'A reading already exists for this pipeline on this date/slot',
           'error'
         );
       } else {
