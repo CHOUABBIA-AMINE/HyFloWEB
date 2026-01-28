@@ -45,5 +45,65 @@
     "sessions": "الجلسات",
     "audit": "المراجعة",
     "logs": "السجلات"
+  },
+  "flow": {
+    "readings": {
+      "title": "قراءات التدفق",
+      "newReading": "قراءة جديدة",
+      "filters": {
+        "title": "الفلاتر",
+        "search": "بحث",
+        "searchPlaceholder": "البحث عن قراءات...",
+        "pipeline": "خط الأنابيب",
+        "allPipelines": "جميع خطوط الأنابيب",
+        "status": "الحالة",
+        "allStatuses": "جميع الحالات",
+        "startDate": "تاريخ البداية",
+        "endDate": "تاريخ النهاية",
+        "refresh": "تحديث",
+        "clearFilters": "مسح الفلاتر"
+      },
+      "table": {
+        "id": "المعرف",
+        "pipeline": "خط الأنابيب",
+        "readingDate": "تاريخ القراءة",
+        "slot": "الفترة",
+        "pressure": "الضغط",
+        "temperature": "درجة الحرارة",
+        "flowRate": "معدل التدفق",
+        "containedVolume": "الحجم المحتوى",
+        "status": "الحالة",
+        "recordedBy": "سجل بواسطة",
+        "recordedAt": "سجل في",
+        "validatedBy": "تحقق بواسطة",
+        "validatedAt": "تحقق في",
+        "actions": "الإجراءات",
+        "noData": "لم يتم العثور على قراءات"
+      },
+      "actions": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "validate": "تحقق",
+        "view": "عرض"
+      },
+      "delete": {
+        "title": "حذف القراءة",
+        "message": "هل أنت متأكد من رغبتك في حذف القراءة #{{id}}؟ لا يمكن التراجع عن هذا الإجراء.",
+        "success": "تم حذف القراءة بنجاح",
+        "error": "فشل الحذف: {{error}}"
+      },
+      "errors": {
+        "loadFailed": "فشل تحميل القراءات",
+        "loadPipelinesFailed": "خطأ في تحميل خطوط الأنابيب",
+        "loadStatusesFailed": "خطأ في تحميل حالات التحقق"
+      },
+      "units": {
+        "bar": "بار",
+        "celsius": "°م",
+        "cubicMeterPerHour": "م³/س",
+        "cubicMeter": "م³"
+      },
+      "notAvailable": "غير متاح"
+    }
   }
 }
