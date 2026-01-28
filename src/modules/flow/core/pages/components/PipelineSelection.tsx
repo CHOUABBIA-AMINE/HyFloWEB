@@ -8,6 +8,7 @@
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  * @updated 01-28-2026 - Fixed threshold loading to use getByPipeline with filter
+ * @updated 01-28-2026 - Fixed latest reading display data handling
  */
 
 import React, { useState, useEffect } from 'react';
@@ -119,8 +120,19 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
     try {
       setLoadingReading(true);
       const reading = await FlowReadingService.getLatestByPipeline(pipelineId);
-      setLatestReading(reading);
-    } catch (error) {
+      
+      // Log the received data for debugging
+      console.log('Latest reading received:', reading);
+      
+      // Check if reading is valid
+      if (reading && typeof reading === 'object') {
+        setLatestReading(reading);
+      } else {
+        console.warn('Invalid reading data received:', reading);
+        setLatestReading(null);
+      }
+    } catch (error: any) {
+      console.log('No previous readings found or error:', error.response?.status, error.message);
       // No previous readings - not an error
       setLatestReading(null);
     } finally {
@@ -149,11 +161,20 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
 
   const formatDateTime = (dateString?: string): string => {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString();
+    try {
+      return new Date(dateString).toLocaleString();
+    } catch (e) {
+      console.error('Error formatting date:', dateString, e);
+      return 'Invalid Date';
+    }
   };
 
   const formatValue = (value?: number, unit?: string): string => {
     if (value === undefined || value === null) return 'N/A';
+    if (typeof value !== 'number') {
+      console.warn('Invalid value type:', typeof value, value);
+      return 'Invalid';
+    }
     return `${value.toFixed(2)} ${unit || ''}`;
   };
 
@@ -244,6 +265,10 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
             <Grid item xs={6} sm={3}>
               <Typography variant="caption" color="text.secondary">Flow Rate</Typography>
               <Typography variant="body2">{formatValue(latestReading.flowRate, 'm³/h')}</Typography>
+            </Grid>
+            <Grid item xs={6} sm={3}>
+              <Typography variant="caption" color="text.secondary">Contained Volume</Typography>
+              <Typography variant="body2">{formatValue(latestReading.containedVolume, 'm³')}</Typography>
             </Grid>
           </Grid>
         </Alert>
