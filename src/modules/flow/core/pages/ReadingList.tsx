@@ -8,6 +8,7 @@
  * @created 01-25-2026
  * @updated 01-28-2026 - Added reading date and slot columns
  * @updated 01-28-2026 - Fixed readings undefined and Select controlled issues
+ * @updated 01-28-2026 - Load validation statuses from server
  */
 
 import React, { useState, useEffect } from 'react';
@@ -53,12 +54,14 @@ import {
 
 import { FlowReadingService } from '../services/FlowReadingService';
 import { PipelineService } from '@/modules/network/core/services/PipelineService';
+import { ValidationStatusService } from '@/modules/flow/common/services/ValidationStatusService';
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
 import { formatDateTime, formatPressure, formatTemperature, formatFlowRate } from '../utils/formattingUtils';
 import { getLocalizedDesignation, formatTimeRange } from '@/modules/flow/common/dto/ReadingSlotDTO';
 
 import type { FlowReadingDTO } from '../dto/FlowReadingDTO';
 import type { PipelineDTO } from '@/modules/network/core/dto/PipelineDTO';
+import type { ValidationStatusDTO } from '@/modules/flow/common/dto/ValidationStatusDTO';
 import type { Page } from '@/types/pagination';
 
 interface Filters {
@@ -75,6 +78,7 @@ export const ReadingList: React.FC = () => {
   // State - Initialize readings as empty array
   const [readings, setReadings] = useState<FlowReadingDTO[]>([]);
   const [pipelines, setPipelines] = useState<PipelineDTO[]>([]);
+  const [validationStatuses, setValidationStatuses] = useState<ValidationStatusDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -92,9 +96,10 @@ export const ReadingList: React.FC = () => {
     endDate: '',
   });
 
-  // Load pipelines for filter dropdown
+  // Load pipelines and validation statuses for filter dropdowns
   useEffect(() => {
     loadPipelines();
+    loadValidationStatuses();
   }, []);
 
   // Load readings when page or filters change
@@ -108,6 +113,15 @@ export const ReadingList: React.FC = () => {
       setPipelines(data);
     } catch (error) {
       console.error('Error loading pipelines:', error);
+    }
+  };
+
+  const loadValidationStatuses = async () => {
+    try {
+      const data = await ValidationStatusService.getAllNoPagination();
+      setValidationStatuses(data);
+    } catch (error) {
+      console.error('Error loading validation statuses:', error);
     }
   };
 
@@ -304,7 +318,7 @@ export const ReadingList: React.FC = () => {
               </FormControl>
             </Grid>
 
-            {/* Status Filter */}
+            {/* Status Filter - Now dynamically loaded from server */}
             <Grid item xs={12} md={2}>
               <FormControl fullWidth>
                 <InputLabel>Status</InputLabel>
@@ -314,9 +328,11 @@ export const ReadingList: React.FC = () => {
                   onChange={(e) => handleFilterChange('validationStatusId', e.target.value)}
                 >
                   <MenuItem value="">All Statuses</MenuItem>
-                  <MenuItem value={1}>Validated</MenuItem>
-                  <MenuItem value={2}>Pending</MenuItem>
-                  <MenuItem value={3}>Rejected</MenuItem>
+                  {validationStatuses.map((status) => (
+                    <MenuItem key={status.id} value={status.id}>
+                      {status.designationEn || status.designationFr}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
