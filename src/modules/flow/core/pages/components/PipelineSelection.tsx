@@ -7,7 +7,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
- * @updated 01-28-2026 - Fixed typo in FlowThresholdService method name
+ * @updated 01-28-2026 - Fixed threshold loading to use getByPipeline with filter
  */
 
 import React, { useState, useEffect } from 'react';
@@ -130,10 +130,14 @@ export const PipelineSelection: React.FC<PipelineSelectionProps> = ({
 
   const loadThreshold = async (pipelineId: number) => {
     try {
-      // Fixed: Method name is 'getActiveByPipeline'
-      const thresholds = await FlowThresholdService.getActiveByPipeline(pipelineId);
-      if (thresholds.length > 0) {
-        onThresholdLoad(thresholds[0]);
+      // Get all thresholds for this pipeline (returns array)
+      const thresholds = await FlowThresholdService.getByPipeline(pipelineId);
+      
+      // Filter for active thresholds and get the first one
+      const activeThresholds = thresholds.filter(t => t.active);
+      
+      if (activeThresholds.length > 0) {
+        onThresholdLoad(activeThresholds[0]);
       } else {
         onThresholdLoad(undefined);
       }
