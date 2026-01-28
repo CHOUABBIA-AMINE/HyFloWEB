@@ -1,17 +1,18 @@
 /**
  * ValidationStatus Service - Flow Common Module
  * 
- * Provides CRUD operations for validation status reference data.
+ * Provides CRUD operations for validation statuses.
+ * Validation statuses are used to track the lifecycle of flow readings.
  * 
  * @author CHOUABBIA Amine
- * @created 01-25-2026
+ * @created 01-28-2026
  */
 
 import axiosInstance from '@/shared/config/axios';
 import type { ValidationStatusDTO } from '../dto/ValidationStatusDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/flow/common/validationStatus';
+const BASE_URL = '/flow/common/validation-status';
 
 export class ValidationStatusService {
   /**
@@ -27,7 +28,7 @@ export class ValidationStatusService {
     });
     return response.data;
   }
-  
+
   /**
    * Get all validation statuses without pagination
    */
@@ -35,7 +36,7 @@ export class ValidationStatusService {
     const response = await axiosInstance.get<ValidationStatusDTO[]>(`${BASE_URL}/all`);
     return response.data;
   }
-  
+
   /**
    * Get validation status by ID
    */
@@ -43,7 +44,7 @@ export class ValidationStatusService {
     const response = await axiosInstance.get<ValidationStatusDTO>(`${BASE_URL}/${id}`);
     return response.data;
   }
-  
+
   /**
    * Get validation status by code
    */
@@ -51,7 +52,7 @@ export class ValidationStatusService {
     const response = await axiosInstance.get<ValidationStatusDTO>(`${BASE_URL}/code/${code}`);
     return response.data;
   }
-  
+
   /**
    * Create new validation status
    */
@@ -59,7 +60,7 @@ export class ValidationStatusService {
     const response = await axiosInstance.post<ValidationStatusDTO>(BASE_URL, dto);
     return response.data;
   }
-  
+
   /**
    * Update existing validation status
    */
@@ -67,21 +68,29 @@ export class ValidationStatusService {
     const response = await axiosInstance.put<ValidationStatusDTO>(`${BASE_URL}/${id}`, dto);
     return response.data;
   }
-  
+
   /**
    * Delete validation status by ID
    */
   static async delete(id: number): Promise<void> {
     await axiosInstance.delete(`${BASE_URL}/${id}`);
   }
-  
+
   /**
-   * Get validation statuses by category
+   * Search validation statuses
    */
-  static async getByCategory(category: string): Promise<ValidationStatusDTO[]> {
-    const response = await axiosInstance.get<ValidationStatusDTO[]>(
-      `${BASE_URL}/category/${category}`
-    );
+  static async search(
+    searchTerm: string,
+    pageable: Pageable
+  ): Promise<Page<ValidationStatusDTO>> {
+    const response = await axiosInstance.get<Page<ValidationStatusDTO>>(`${BASE_URL}/search`, {
+      params: {
+        q: searchTerm,
+        page: pageable.page,
+        size: pageable.size,
+        sort: pageable.sort,
+      },
+    });
     return response.data;
   }
 }
