@@ -3,6 +3,15 @@
     "home": "Home",
     "workspace": "Workspace",
     "reading": "Reading",
+    "readings": {
+      "list": "Readings List",
+      "create": "New Reading",
+      "validate": "Validate Readings"
+    },
+    "thresholds": {
+      "list": "Thresholds List",
+      "create": "New Threshold"
+    },
     "maps": "Maps",
     "infrastructureMap": "Infrastructure Map",
     "pipelineMap": "Pipeline Map",

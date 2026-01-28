@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-28-2026 - Added Flow Thresholds menu
  * @updated 01-25-2026 - Added Flow Readings menu with List, Create, Validate submenus
  * @updated 01-20-2026 - Reorganized: Maps (Infrastructure Map, Pipeline Map), Statistics (Dashboard), Reading under Workspace
  * @updated 12-28-2025
@@ -64,6 +65,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SpeedIcon from '@mui/icons-material/Speed';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -90,9 +92,7 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Top-level order: Home, Workspace (Reading, Maps, Statistics), General, Network, System
-  // Maps: Infrastructure Map, Pipeline Map
-  // Statistics: Dashboard
+  // Top-level order: Home, Workspace (Reading, Thresholds, Maps, Statistics), General, Network, System
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -121,6 +121,22 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.readings.validate',
               icon: <CheckCircleIcon />,
               path: '/flow/readings/pending',
+            },
+          ],
+        },
+        {
+          titleKey: 'nav.thresholds',
+          icon: <SpeedIcon />,
+          children: [
+            {
+              titleKey: 'nav.thresholds.list',
+              icon: <ListAltIcon />,
+              path: '/flow/thresholds',
+            },
+            {
+              titleKey: 'nav.thresholds.create',
+              icon: <AddCircleIcon />,
+              path: '/flow/thresholds/new',
             },
           ],
         },
