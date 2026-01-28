@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
+ * @updated 01-28-2026 - Fixed API calls to match backend responses
  */
 
 import React, { useState, useEffect } from 'react';
@@ -114,28 +115,45 @@ export const ThresholdList: React.FC = () => {
       const pageable = {
         page,
         size: rowsPerPage,
-        sort: 'pipeline.code,asc',
+        sort: 'id,asc',
       };
 
-      let result: Page<FlowThresholdDTO>;
+      let thresholdsData: FlowThresholdDTO[] = [];
+      let total = 0;
 
-      // Apply filters
-      if (filters.search) {
-        result = await FlowThresholdService.globalSearch(filters.search, pageable);
-      } else if (filters.pipelineId) {
-        result = await FlowThresholdService.getByPipeline(filters.pipelineId, pageable);
+      // Apply filters - getByPipeline returns array, others return Page
+      if (filters.pipelineId) {
+        // Backend returns array for pipeline filter (not paginated)
+        const allPipelineThresholds = await FlowThresholdService.getByPipeline(filters.pipelineId);
+        
+        // Apply active filter if needed
+        const filtered = filters.activeOnly 
+          ? allPipelineThresholds.filter(t => t.active)
+          : allPipelineThresholds;
+        
+        // Manual pagination for array results
+        total = filtered.length;
+        const startIndex = page * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        thresholdsData = filtered.slice(startIndex, endIndex);
       } else {
-        result = await FlowThresholdService.getAll(pageable);
+        // Backend returns Page for these endpoints
+        let result: Page<FlowThresholdDTO>;
+        
+        if (filters.activeOnly) {
+          result = await FlowThresholdService.getActive(pageable);
+        } else if (filters.search) {
+          result = await FlowThresholdService.globalSearch(filters.search, pageable);
+        } else {
+          result = await FlowThresholdService.getAll(pageable);
+        }
+        
+        thresholdsData = result.content;
+        total = result.totalElements;
       }
 
-      // Filter by active status on client side if needed
-      let filteredContent = result.content;
-      if (filters.activeOnly) {
-        filteredContent = filteredContent.filter(t => t.active);
-      }
-
-      setThresholds(filteredContent);
-      setTotalElements(result.totalElements);
+      setThresholds(thresholdsData);
+      setTotalElements(total);
     } catch (error: any) {
       console.error('Error loading thresholds:', error);
       setError(error.message || 'Failed to load thresholds');
@@ -197,13 +215,12 @@ export const ThresholdList: React.FC = () => {
     if (!threshold.id) return;
 
     try {
-      if (threshold.active) {
-        await FlowThresholdService.deactivate(threshold.id);
-        setSuccess('Threshold deactivated');
-      } else {
-        await FlowThresholdService.activate(threshold.id);
-        setSuccess('Threshold activated');
-      }
+      // Note: Backend doesn't have activate/deactivate endpoints
+      // We need to update the threshold with toggled active status
+      const updatedThreshold = { ...threshold, active: !threshold.active };
+      await FlowThresholdService.update(threshold.id, updatedThreshold);
+      
+      setSuccess(threshold.active ? 'Threshold deactivated' : 'Threshold activated');
       loadThresholds();
     } catch (error: any) {
       setError(`Failed to toggle active status: ${error.message}`);
