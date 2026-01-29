@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-29-2026 - Added Flow Forecasts and Operations menus
  * @updated 01-28-2026 - Added Flow Thresholds menu
  * @updated 01-25-2026 - Added Flow Readings menu with List, Create, Validate submenus
  * @updated 01-20-2026 - Reorganized: Maps (Infrastructure Map, Pipeline Map), Statistics (Dashboard), Reading under Workspace
@@ -66,6 +67,8 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SpeedIcon from '@mui/icons-material/Speed';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -92,7 +95,7 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Top-level order: Home, Workspace (Reading, Thresholds, Maps, Statistics), General, Network, System
+  // Top-level order: Home, Workspace (Reading, Thresholds, Forecasts, Operations, Maps, Statistics), General, Network, System
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -137,6 +140,38 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.thresholds.create',
               icon: <AddCircleIcon />,
               path: '/flow/thresholds/new',
+            },
+          ],
+        },
+        {
+          titleKey: 'nav.forecasts',
+          icon: <TrendingUpIcon />,
+          children: [
+            {
+              titleKey: 'nav.forecasts.list',
+              icon: <ListAltIcon />,
+              path: '/flow/forecasts',
+            },
+            {
+              titleKey: 'nav.forecasts.create',
+              icon: <AddCircleIcon />,
+              path: '/flow/forecasts/new',
+            },
+          ],
+        },
+        {
+          titleKey: 'nav.operations',
+          icon: <LocalShippingIcon />,
+          children: [
+            {
+              titleKey: 'nav.operations.list',
+              icon: <ListAltIcon />,
+              path: '/flow/operations',
+            },
+            {
+              titleKey: 'nav.operations.create',
+              icon: <AddCircleIcon />,
+              path: '/flow/operations/new',
             },
           ],
         },

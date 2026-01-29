@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-29-2026 - Added Flow Forecast and Operation routes
  * @updated 01-28-2026 - Added Flow Threshold routes
  * @updated 01-27-2026 - Added PendingReadingsList component
  * @updated 01-25-2026 - Added Flow Reading routes and ReadingList component
@@ -66,11 +67,18 @@ import VendorEdit from './modules/network/common/pages/VendorEdit';
 // Flow Dashboard Module
 import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
 
-// Flow Readings Module
-import { ReadingList, ReadingEdit, PendingReadingsList } from './modules/flow/core/pages';
-
-// Flow Thresholds Module
-import { ThresholdList, ThresholdEdit } from './modules/flow/core/pages';
+// Flow Core Module
+import { 
+  ReadingList, 
+  ReadingEdit, 
+  PendingReadingsList,
+  ThresholdList,
+  ThresholdEdit,
+  ForecastList,
+  ForecastEdit,
+  OperationList,
+  OperationEdit
+} from './modules/flow/core/pages';
 
 function App() {
   const { i18n } = useTranslation();
@@ -205,6 +213,58 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <ThresholdEdit />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Flow Forecasts */}
+                  <Route
+                    path="forecasts"
+                    element={
+                      <ProtectedRoute>
+                        <ForecastList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="forecasts/new"
+                    element={
+                      <ProtectedRoute>
+                        <ForecastEdit />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="forecasts/edit/:id"
+                    element={
+                      <ProtectedRoute>
+                        <ForecastEdit />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  {/* Flow Operations */}
+                  <Route
+                    path="operations"
+                    element={
+                      <ProtectedRoute>
+                        <OperationList />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="operations/new"
+                    element={
+                      <ProtectedRoute>
+                        <OperationEdit />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="operations/edit/:id"
+                    element={
+                      <ProtectedRoute>
+                        <OperationEdit />
                       </ProtectedRoute>
                     }
                   />
