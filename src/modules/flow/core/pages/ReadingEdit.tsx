@@ -12,6 +12,7 @@
  * @created 01-25-2026
  * @updated 01-25-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  * @updated 01-28-2026 - Added reading date and slot support
+ * @updated 01-29-2026 - Fixed: Use getCurrentLocalDateTime for correct timezone display
  */
 
 import React, { useState, useEffect } from 'react';
@@ -50,6 +51,7 @@ import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingServ
 import { ValidationStatusService } from '@/modules/flow/common/services/ValidationStatusService';
 import UserService from '@/modules/system/security/services/UserService';
 import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
+import { getCurrentLocalDateTime, isoToLocalDateTimeString } from '@/shared/utils/dateTimeLocal';
 
 import type { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
 import type { ValidationStatusDTO } from '@/modules/flow/common/dto/ValidationStatusDTO';
@@ -94,7 +96,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       pipelineId: undefined,
       readingDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
       readingSlotId: undefined,
-      recordedAt: new Date().toISOString().slice(0, 16),
+      recordedAt: getCurrentLocalDateTime(), // FIXED: Use local time utility
       pressure: undefined,
       temperature: undefined,
       flowRate: undefined,
@@ -179,7 +181,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         setValue('pipelineId', reading.pipelineId);
         setValue('readingDate', reading.readingDate); // NEW
         setValue('readingSlotId', reading.readingSlotId); // NEW
-        setValue('recordedAt', reading.recordedAt);
+        // FIXED: Convert ISO string to local datetime string for input
+        setValue('recordedAt', isoToLocalDateTimeString(reading.recordedAt));
         setValue('pressure', reading.pressure);
         setValue('temperature', reading.temperature);
         setValue('flowRate', reading.flowRate);
@@ -255,6 +258,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       }
       
       // Prepare DTO with new fields
+      // Note: recordedAt is automatically converted to ISO string when sent to backend
       const readingDTO: FlowReadingDTO = {
         ...data,
         recordedById: currentUser.id,
