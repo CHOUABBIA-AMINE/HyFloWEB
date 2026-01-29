@@ -11,6 +11,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-29-2026 - Fixed ProductDTO property access
  */
 
 import React, { useState, useEffect } from 'react';
@@ -339,7 +340,7 @@ export const ForecastEdit: React.FC = () => {
                     <MenuItem value="">Select Product</MenuItem>
                     {products.map((product) => (
                       <MenuItem key={product.id} value={product.id}>
-                        {product.name}
+                        {product.designationFr}
                       </MenuItem>
                     ))}
                   </TextField>

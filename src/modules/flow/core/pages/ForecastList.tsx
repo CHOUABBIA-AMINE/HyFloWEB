@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-29-2026 - Fixed DTO property access for multilingual support
  */
 
 import React, { useState, useEffect } from 'react';
@@ -278,7 +279,7 @@ export const ForecastList: React.FC = () => {
                 <MenuItem value="">All</MenuItem>
                 {products.map((product) => (
                   <MenuItem key={product.id} value={product.id}>
-                    {product.name}
+                    {product.designationFr}
                   </MenuItem>
                 ))}
               </TextField>
@@ -347,7 +348,7 @@ export const ForecastList: React.FC = () => {
                   <TableRow key={forecast.id} hover>
                     <TableCell>{forecast.forecastDate}</TableCell>
                     <TableCell>{forecast.infrastructure?.code || 'N/A'}</TableCell>
-                    <TableCell>{forecast.product?.name || 'N/A'}</TableCell>
+                    <TableCell>{forecast.product?.designationFr || 'N/A'}</TableCell>
                     <TableCell align="right">
                       {forecast.estimatedVolume?.toLocaleString()} m³
                     </TableCell>
@@ -364,12 +365,12 @@ export const ForecastList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       {forecast.createdBy ? 
-                        `${forecast.createdBy.firstName} ${forecast.createdBy.lastName}` : 
+                        `${forecast.createdBy.firstNameLt} ${forecast.createdBy.lastNameLt}` : 
                         'N/A'
                       }
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title={forecast.validationStatus?.name || 'Unknown'}>
+                      <Tooltip title={forecast.validationStatus?.code || 'Unknown'}>
                         <Chip
                           icon={getStatusIcon(forecast.validationStatus?.code)}
                           label={forecast.validationStatus?.code || 'Unknown'}
