@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-29-2026 - Fixed TypeScript errors for DTO property access
  */
 
 import React, { useState, useEffect } from 'react';
@@ -315,7 +316,7 @@ export const OperationList: React.FC = () => {
                 <MenuItem value="">All</MenuItem>
                 {products.map((product) => (
                   <MenuItem key={product.id} value={product.id}>
-                    {product.name}
+                    {product.designationFr}
                   </MenuItem>
                 ))}
               </TextField>
@@ -402,25 +403,25 @@ export const OperationList: React.FC = () => {
                     <TableCell>{operation.date}</TableCell>
                     <TableCell>
                       <Chip
-                        icon={getOperationTypeIcon(operation.type?.code)}
+                        icon={getOperationTypeIcon(operation.type?.code) || undefined}
                         label={operation.type?.code || 'N/A'}
                         size="small"
                         color={getOperationTypeColor(operation.type?.code)}
                       />
                     </TableCell>
                     <TableCell>{operation.infrastructure?.code || 'N/A'}</TableCell>
-                    <TableCell>{operation.product?.name || 'N/A'}</TableCell>
+                    <TableCell>{operation.product?.designationFr || 'N/A'}</TableCell>
                     <TableCell align="right">
                       {operation.volume?.toLocaleString()} m³
                     </TableCell>
                     <TableCell>
                       {operation.recordedBy ? 
-                        `${operation.recordedBy.firstName} ${operation.recordedBy.lastName}` : 
+                        `${operation.recordedBy.firstNameLt} ${operation.recordedBy.lastNameLt}` : 
                         'N/A'
                       }
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title={operation.validationStatus?.name || 'Unknown'}>
+                      <Tooltip title={operation.validationStatus?.code || 'Unknown'}>
                         <Chip
                           icon={getStatusIcon(operation.validationStatus?.code)}
                           label={operation.validationStatus?.code || 'Unknown'}
