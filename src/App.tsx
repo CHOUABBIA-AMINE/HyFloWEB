@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 01-31-2026 - Added Flow Operation validation route
  * @updated 01-29-2026 - Added Flow Forecast and Operation routes
  * @updated 01-28-2026 - Added Flow Threshold routes
  * @updated 01-27-2026 - Added PendingReadingsList component
@@ -77,7 +78,8 @@ import {
   ForecastList,
   ForecastEdit,
   OperationList,
-  OperationEdit
+  OperationEdit,
+  OperationValidation
 } from './modules/flow/core/pages';
 
 function App() {
@@ -261,10 +263,18 @@ function App() {
                     }
                   />
                   <Route
-                    path="operations/edit/:id"
+                    path="operations/:id/edit"
                     element={
                       <ProtectedRoute>
                         <OperationEdit />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="operations/:id/validate"
+                    element={
+                      <ProtectedRoute>
+                        <OperationValidation />
                       </ProtectedRoute>
                     }
                   />
