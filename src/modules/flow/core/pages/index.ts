@@ -3,6 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 01-31-2026 - Added OperationValidation
  * @updated 01-28-2026 - Added ThresholdList and ThresholdEdit
  * @updated 01-29-2026 - Added ForecastList, ForecastEdit, OperationList, OperationEdit
  */
@@ -16,3 +17,4 @@ export { ForecastList } from './ForecastList';
 export { ForecastEdit } from './ForecastEdit';
 export { OperationList } from './OperationList';
 export { OperationEdit } from './OperationEdit';
+export { OperationValidation } from './OperationValidation';
