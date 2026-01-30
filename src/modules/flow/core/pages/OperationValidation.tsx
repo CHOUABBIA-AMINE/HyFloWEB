@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-30-2026
+ * @updated 01-31-2026 - Fixed EmployeeDTO field names
  */
 
 import React, { useState, useEffect } from 'react';
@@ -320,7 +321,7 @@ export const OperationValidation: React.FC = () => {
                     Recorded By
                   </Typography>
                   <Typography variant="body1" fontWeight="medium">
-                    {operation.recordedBy?.firstName} {operation.recordedBy?.lastName}
+                    {operation.recordedBy?.firstNameLt} {operation.recordedBy?.lastNameLt}
                   </Typography>
                 </Grid>
 
@@ -371,7 +372,7 @@ export const OperationValidation: React.FC = () => {
                       Validated By
                     </Typography>
                     <Typography variant="body2">
-                      {operation.validatedBy.firstName} {operation.validatedBy.lastName}
+                      {operation.validatedBy.firstNameLt} {operation.validatedBy.lastNameLt}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                       Validated At
