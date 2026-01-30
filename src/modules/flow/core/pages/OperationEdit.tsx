@@ -12,6 +12,7 @@
  * @author CHOUABBIA Amine
  * @created 01-29-2026
  * @updated 01-30-2026 - Aligned with updated FlowOperationDTO and Reading workflow
+ * @updated 01-30-2026 - Fixed data validation and error handling
  */
 
 import React, { useState, useEffect } from 'react';
@@ -231,20 +232,23 @@ export const OperationEdit: React.FC = () => {
       const validationStatus = validationStatuses.find(s => s.code === statusCode);
 
       if (!validationStatus?.id) {
-        throw new Error('Validation status not found');
+        throw new Error(`Validation status '${statusCode}' not found`);
       }
 
-      // Prepare DTO
+      // Prepare DTO - ensure proper types for backend
       const operationDTO: FlowOperationDTO = {
         infrastructureId: Number(data.infrastructureId),
         productId: Number(data.productId),
         typeId: Number(data.typeId),
-        operationDate: data.operationDate,
-        volume: Number(data.volume),
-        notes: data.notes || undefined,
+        operationDate: data.operationDate, // Already in YYYY-MM-DD format
+        volume: Number(data.volume), // Ensure it's a number
+        notes: data.notes?.trim() || undefined, // Send undefined if empty
         recordedById: currentUser.id,
         validationStatusId: validationStatus.id,
       };
+
+      // Log the DTO being sent for debugging
+      console.log('Sending FlowOperationDTO:', operationDTO);
 
       // Save operation
       if (isEditMode && id) {
@@ -268,28 +272,36 @@ export const OperationEdit: React.FC = () => {
       }, 1000);
     } catch (error: any) {
       console.error('Error saving operation:', error);
+      console.error('Error response:', error.response);
+
+      // Extract detailed error message from backend
+      let errorMessage = 'An unexpected error occurred';
 
       if (error.response?.status === 400) {
-        showNotification(
-          error.response.data.message || 'Please check your input values',
-          'error'
-        );
+        // Validation error - try to extract specific message
+        if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data?.errors) {
+          // Handle multiple validation errors
+          const errors = error.response.data.errors;
+          errorMessage = Object.values(errors).join(', ');
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else {
+          errorMessage = 'Please check your input values';
+        }
+        
+        // Log full error details for debugging
+        console.error('Validation error details:', error.response.data);
       } else if (error.response?.status === 403) {
-        showNotification(
-          'You are not authorized to record operations',
-          'error'
-        );
+        errorMessage = 'You are not authorized to record operations';
       } else if (error.response?.status === 409) {
-        showNotification(
-          'An operation already exists with these details',
-          'error'
-        );
-      } else {
-        showNotification(
-          error.message || 'An unexpected error occurred',
-          'error'
-        );
+        errorMessage = 'An operation already exists with these details';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
+
+      showNotification(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
