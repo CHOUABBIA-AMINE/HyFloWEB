@@ -10,7 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
- * @updated 01-29-2026 - Fixed TypeScript errors for DTO property access
+ * @updated 01-30-2026 - Fixed date property access for FlowOperationDTO
  */
 
 import React, { useState, useEffect } from 'react';
@@ -400,7 +400,7 @@ export const OperationList: React.FC = () => {
               ) : (
                 operations.map((operation) => (
                   <TableRow key={operation.id} hover>
-                    <TableCell>{operation.date}</TableCell>
+                    <TableCell>{operation.operationDate}</TableCell>
                     <TableCell>
                       <Chip
                         icon={getOperationTypeIcon(operation.type?.code) || undefined}
@@ -476,7 +476,7 @@ export const OperationList: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete this {operationToDelete?.type?.code} operation for{' '}
-            {operationToDelete?.infrastructure?.code} on {operationToDelete?.date}?
+            {operationToDelete?.infrastructure?.code} on {operationToDelete?.operationDate}?
             This action cannot be undone.
           </DialogContentText>
         </DialogContent>
