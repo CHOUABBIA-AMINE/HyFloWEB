@@ -3,15 +3,17 @@
  * 
  * Form for creating or editing flow forecasts with:
  * - Infrastructure and product selection
+ * - Operation type selection
  * - Forecast date (must be future)
- * - Estimated volume input
- * - Confidence level (optional)
- * - Notes field
- * - Validation workflow support
+ * - Predicted volume input
+ * - Accuracy level (0-100%)
+ * - Adjusted volume (optional)
+ * - Adjustment notes (optional)
+ * - Supervisor selection (optional)
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
- * @updated 01-29-2026 - Fixed ProductDTO property access
+ * @updated 01-30-2026 - Aligned with updated FlowForecastDTO
  */
 
 import React, { useState, useEffect } from 'react';
@@ -36,30 +38,31 @@ import {
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
-  Send as SendIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 
 import { FlowForecastService } from '../services/FlowForecastService';
 import { InfrastructureService } from '@/modules/network/core/services/InfrastructureService';
 import { ProductService } from '@/modules/network/common/services/ProductService';
-import { ValidationStatusService } from '@/modules/flow/common/services/ValidationStatusService';
-import UserService from '@/modules/system/security/services/UserService';
-import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
+import { OperationTypeService } from '@/modules/flow/type/services/OperationTypeService';
+import { EmployeeService } from '@/modules/general/organization/services/EmployeeService';
 
 import type { FlowForecastDTO } from '../dto/FlowForecastDTO';
 import type { InfrastructureDTO } from '@/modules/network/core/dto/InfrastructureDTO';
 import type { ProductDTO } from '@/modules/network/common/dto/ProductDTO';
-import type { ValidationStatusDTO } from '@/modules/flow/common/dto/ValidationStatusDTO';
+import type { OperationTypeDTO } from '@/modules/flow/type/dto/OperationTypeDTO';
 import type { EmployeeDTO } from '@/modules/general/organization/dto/EmployeeDTO';
 
 interface ForecastFormData {
   infrastructureId: number | '';
   productId: number | '';
+  operationTypeId: number | '';
   forecastDate: string;
-  estimatedVolume: number | '';
-  confidence: number;
-  notes: string;
+  predictedVolume: number | '';
+  adjustedVolume: number | '';
+  accuracy: number;
+  adjustmentNotes: string;
+  supervisorId: number | '';
 }
 
 interface NotificationState {
@@ -78,20 +81,23 @@ export const ForecastEdit: React.FC = () => {
     defaultValues: {
       infrastructureId: '',
       productId: '',
+      operationTypeId: '',
       forecastDate: '',
-      estimatedVolume: '',
-      confidence: 70,
-      notes: '',
+      predictedVolume: '',
+      adjustedVolume: '',
+      accuracy: 70,
+      adjustmentNotes: '',
+      supervisorId: '',
     },
   });
 
   // Component state
   const [loading, setLoading] = useState(false);
-  const [loadingData, setLoadingData] = useState(isEditMode);
-  const [currentUser, setCurrentUser] = useState<EmployeeDTO | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
   const [infrastructures, setInfrastructures] = useState<InfrastructureDTO[]>([]);
   const [products, setProducts] = useState<ProductDTO[]>([]);
-  const [validationStatuses, setValidationStatuses] = useState<ValidationStatusDTO[]>([]);
+  const [operationTypes, setOperationTypes] = useState<OperationTypeDTO[]>([]);
+  const [supervisors, setSupervisors] = useState<EmployeeDTO[]>([]);
   const [notification, setNotification] = useState<NotificationState>({
     open: false,
     message: '',
@@ -107,39 +113,31 @@ export const ForecastEdit: React.FC = () => {
     try {
       setLoadingData(true);
 
-      // Load current user
-      const username = getUsernameFromToken();
-      if (!username) {
-        throw new Error('No username found in token. Please log in again.');
-      }
-
-      const userData = await UserService.getByUsername(username);
-      if (userData.employee) {
-        setCurrentUser(userData.employee);
-      } else {
-        throw new Error('Employee data not found for current user');
-      }
-
       // Load filter options
-      const [infras, prods, statuses] = await Promise.all([
+      const [infras, prods, types, employees] = await Promise.all([
         InfrastructureService.getAllNoPagination(),
         ProductService.getAllNoPagination(),
-        ValidationStatusService.getAllNoPagination(),
+        OperationTypeService.getAllNoPagination(),
+        EmployeeService.getAllNoPagination(),
       ]);
 
       setInfrastructures(infras);
       setProducts(prods);
-      setValidationStatuses(statuses);
+      setOperationTypes(types);
+      setSupervisors(employees);
 
       // Load existing forecast if edit mode
       if (isEditMode && id) {
         const forecast = await FlowForecastService.getById(Number(id));
         setValue('infrastructureId', forecast.infrastructureId);
         setValue('productId', forecast.productId);
+        setValue('operationTypeId', forecast.operationTypeId);
         setValue('forecastDate', forecast.forecastDate);
-        setValue('estimatedVolume', forecast.estimatedVolume);
-        setValue('confidence', forecast.confidence || 70);
-        setValue('notes', forecast.notes || '');
+        setValue('predictedVolume', forecast.predictedVolume);
+        setValue('adjustedVolume', forecast.adjustedVolume || '');
+        setValue('accuracy', forecast.accuracy || 70);
+        setValue('adjustmentNotes', forecast.adjustmentNotes || '');
+        setValue('supervisorId', forecast.supervisorId || '');
       } else {
         // Set minimum date to tomorrow for new forecasts
         const tomorrow = new Date();
@@ -160,7 +158,7 @@ export const ForecastEdit: React.FC = () => {
     setNotification({ open: true, message, severity });
   };
 
-  const onSubmit = async (data: ForecastFormData, submitForValidation: boolean = false) => {
+  const onSubmit = async (data: ForecastFormData) => {
     try {
       setLoading(true);
 
@@ -172,6 +170,11 @@ export const ForecastEdit: React.FC = () => {
 
       if (!data.productId) {
         showNotification('Please select a product', 'warning');
+        return;
+      }
+
+      if (!data.operationTypeId) {
+        showNotification('Please select an operation type', 'warning');
         return;
       }
 
@@ -189,34 +192,22 @@ export const ForecastEdit: React.FC = () => {
         return;
       }
 
-      if (!data.estimatedVolume || data.estimatedVolume <= 0) {
-        showNotification('Please enter a valid estimated volume', 'warning');
+      if (!data.predictedVolume || data.predictedVolume <= 0) {
+        showNotification('Please enter a valid predicted volume', 'warning');
         return;
-      }
-
-      if (!currentUser?.id) {
-        showNotification('User information not available', 'error');
-        return;
-      }
-
-      // Get validation status
-      const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
-      const validationStatus = validationStatuses.find(s => s.code === statusCode);
-
-      if (!validationStatus?.id) {
-        throw new Error('Validation status not found');
       }
 
       // Prepare DTO
       const forecastDTO: FlowForecastDTO = {
         infrastructureId: Number(data.infrastructureId),
         productId: Number(data.productId),
+        operationTypeId: Number(data.operationTypeId),
         forecastDate: data.forecastDate,
-        estimatedVolume: Number(data.estimatedVolume),
-        confidence: data.confidence,
-        notes: data.notes || undefined,
-        createdById: currentUser.id,
-        validationStatusId: validationStatus.id,
+        predictedVolume: Number(data.predictedVolume),
+        adjustedVolume: data.adjustedVolume ? Number(data.adjustedVolume) : undefined,
+        accuracy: data.accuracy,
+        adjustmentNotes: data.adjustmentNotes || undefined,
+        supervisorId: data.supervisorId ? Number(data.supervisorId) : undefined,
       };
 
       // Save forecast
@@ -225,12 +216,7 @@ export const ForecastEdit: React.FC = () => {
         showNotification('Forecast updated successfully', 'success');
       } else {
         await FlowForecastService.create(forecastDTO);
-        showNotification(
-          submitForValidation
-            ? 'Forecast created and submitted for validation'
-            : 'Forecast saved as draft',
-          'success'
-        );
+        showNotification('Forecast created successfully', 'success');
       }
 
       // Navigate back to list
@@ -261,30 +247,11 @@ export const ForecastEdit: React.FC = () => {
     }
   };
 
-  const handleSaveDraft = () => {
-    handleSubmit((data: ForecastFormData) => onSubmit(data, false))();
-  };
-
-  const handleSubmitForValidation = () => {
-    handleSubmit((data: ForecastFormData) => onSubmit(data, true))();
-  };
-
   if (loadingData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress size={60} />
         <Typography variant="h6" sx={{ ml: 2 }}>Loading forecast data...</Typography>
-      </Box>
-    );
-  }
-
-  if (!currentUser) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          <Typography variant="h6">Authentication Required</Typography>
-          <Typography>Unable to load employee information. Please log in again.</Typography>
-        </Alert>
       </Box>
     );
   }
@@ -350,6 +317,31 @@ export const ForecastEdit: React.FC = () => {
 
             <Grid item xs={12} md={6}>
               <Controller
+                name="operationTypeId"
+                control={control}
+                rules={{ required: 'Operation type is required' }}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    select
+                    label="Operation Type *"
+                    error={!!errors.operationTypeId}
+                    helperText={errors.operationTypeId?.message}
+                  >
+                    <MenuItem value="">Select Type</MenuItem>
+                    {operationTypes.map((type) => (
+                      <MenuItem key={type.id} value={type.id}>
+                        {type.code}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Controller
                 name="forecastDate"
                 control={control}
                 rules={{ required: 'Forecast date is required' }}
@@ -372,10 +364,10 @@ export const ForecastEdit: React.FC = () => {
 
             <Grid item xs={12} md={6}>
               <Controller
-                name="estimatedVolume"
+                name="predictedVolume"
                 control={control}
                 rules={{ 
-                  required: 'Estimated volume is required',
+                  required: 'Predicted volume is required',
                   min: { value: 0, message: 'Volume must be positive' }
                 }}
                 render={({ field }) => (
@@ -383,9 +375,29 @@ export const ForecastEdit: React.FC = () => {
                     {...field}
                     fullWidth
                     type="number"
-                    label="Estimated Volume *"
-                    error={!!errors.estimatedVolume}
-                    helperText={errors.estimatedVolume?.message}
+                    label="Predicted Volume *"
+                    error={!!errors.predictedVolume}
+                    helperText={errors.predictedVolume?.message}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">m³</InputAdornment>,
+                    }}
+                    inputProps={{ min: 0, step: 0.01 }}
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="adjustedVolume"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    type="number"
+                    label="Adjusted Volume"
+                    helperText="Optional: Adjusted forecast after expert review"
                     InputProps={{
                       endAdornment: <InputAdornment position="end">m³</InputAdornment>,
                     }}
@@ -397,12 +409,12 @@ export const ForecastEdit: React.FC = () => {
 
             <Grid item xs={12}>
               <Controller
-                name="confidence"
+                name="accuracy"
                 control={control}
                 render={({ field }) => (
                   <Box>
                     <Typography gutterBottom>
-                      Confidence Level: {field.value}%
+                      Accuracy Level: {field.value}%
                     </Typography>
                     <Slider
                       {...field}
@@ -417,7 +429,7 @@ export const ForecastEdit: React.FC = () => {
                       valueLabelDisplay="auto"
                     />
                     <FormHelperText>
-                      Indicates how confident you are in this forecast prediction
+                      Indicates the accuracy level of this forecast (0-100%)
                     </FormHelperText>
                   </Box>
                 )}
@@ -426,19 +438,42 @@ export const ForecastEdit: React.FC = () => {
 
             <Grid item xs={12}>
               <Controller
-                name="notes"
+                name="adjustmentNotes"
                 control={control}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     multiline
-                    rows={4}
-                    label="Notes"
-                    placeholder="Add any additional information or assumptions about this forecast..."
+                    rows={3}
+                    label="Adjustment Notes"
+                    placeholder="Add notes explaining forecast adjustments..."
                     inputProps={{ maxLength: 500 }}
                     helperText={`${field.value?.length || 0}/500 characters`}
                   />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Controller
+                name="supervisorId"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    fullWidth
+                    select
+                    label="Supervisor"
+                    helperText="Optional: Select supervising employee"
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {supervisors.map((employee) => (
+                      <MenuItem key={employee.id} value={employee.id}>
+                        {employee.firstName} {employee.lastName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 )}
               />
             </Grid>
@@ -453,20 +488,12 @@ export const ForecastEdit: React.FC = () => {
               Cancel
             </Button>
             <Button
-              variant="outlined"
-              startIcon={<SaveIcon />}
-              onClick={handleSaveDraft}
-              disabled={loading}
-            >
-              Save as Draft
-            </Button>
-            <Button
               variant="contained"
-              startIcon={<SendIcon />}
-              onClick={handleSubmitForValidation}
+              startIcon={<SaveIcon />}
+              onClick={handleSubmit(onSubmit)}
               disabled={loading}
             >
-              Submit for Validation
+              {isEditMode ? 'Update' : 'Create'} Forecast
             </Button>
           </Box>
         </CardContent>
