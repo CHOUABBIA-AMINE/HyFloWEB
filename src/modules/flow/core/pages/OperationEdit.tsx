@@ -7,11 +7,12 @@
  * - Operation date (must be past or present)
  * - Volume input
  * - Notes field
- * - Validation workflow support
+ * - Recorded by employee tracking
+ * - Validation status tracking
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
- * @updated 01-29-2026 - Fixed ProductDTO property access
+ * @updated 01-30-2026 - Aligned with updated FlowOperationDTO
  */
 
 import React, { useState, useEffect } from 'react';
@@ -34,7 +35,6 @@ import {
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
-  Send as SendIcon,
 } from '@mui/icons-material';
 
 import { FlowOperationService } from '../services/FlowOperationService';
@@ -56,7 +56,7 @@ interface OperationFormData {
   infrastructureId: number | '';
   productId: number | '';
   typeId: number | '';
-  date: string;
+  operationDate: string;
   volume: number | '';
   notes: string;
 }
@@ -78,7 +78,7 @@ export const OperationEdit: React.FC = () => {
       infrastructureId: '',
       productId: '',
       typeId: '',
-      date: new Date().toISOString().split('T')[0], // Today
+      operationDate: new Date().toISOString().split('T')[0], // Today
       volume: '',
       notes: '',
     },
@@ -139,7 +139,7 @@ export const OperationEdit: React.FC = () => {
         setValue('infrastructureId', operation.infrastructureId);
         setValue('productId', operation.productId);
         setValue('typeId', operation.typeId);
-        setValue('date', operation.date);
+        setValue('operationDate', operation.operationDate);
         setValue('volume', operation.volume);
         setValue('notes', operation.notes || '');
       }
@@ -157,7 +157,7 @@ export const OperationEdit: React.FC = () => {
     setNotification({ open: true, message, severity });
   };
 
-  const onSubmit = async (data: OperationFormData, submitForValidation: boolean = false) => {
+  const onSubmit = async (data: OperationFormData) => {
     try {
       setLoading(true);
 
@@ -177,13 +177,13 @@ export const OperationEdit: React.FC = () => {
         return;
       }
 
-      if (!data.date) {
+      if (!data.operationDate) {
         showNotification('Please select an operation date', 'warning');
         return;
       }
 
       // Validate operation date is not in the future
-      const operationDate = new Date(data.date);
+      const operationDate = new Date(data.operationDate);
       const today = new Date();
       today.setHours(23, 59, 59, 999);
       if (operationDate > today) {
@@ -201,9 +201,8 @@ export const OperationEdit: React.FC = () => {
         return;
       }
 
-      // Get validation status
-      const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
-      const validationStatus = validationStatuses.find(s => s.code === statusCode);
+      // Get default validation status (PENDING)
+      const validationStatus = validationStatuses.find(s => s.code === 'PENDING');
 
       if (!validationStatus?.id) {
         throw new Error('Validation status not found');
@@ -214,7 +213,7 @@ export const OperationEdit: React.FC = () => {
         infrastructureId: Number(data.infrastructureId),
         productId: Number(data.productId),
         typeId: Number(data.typeId),
-        date: data.date,
+        operationDate: data.operationDate,
         volume: Number(data.volume),
         notes: data.notes || undefined,
         recordedById: currentUser.id,
@@ -227,12 +226,7 @@ export const OperationEdit: React.FC = () => {
         showNotification('Operation updated successfully', 'success');
       } else {
         await FlowOperationService.create(operationDTO);
-        showNotification(
-          submitForValidation
-            ? 'Operation created and submitted for validation'
-            : 'Operation saved as draft',
-          'success'
-        );
+        showNotification('Operation created successfully', 'success');
       }
 
       // Navigate back to list
@@ -261,14 +255,6 @@ export const OperationEdit: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSaveDraft = () => {
-    handleSubmit((data: OperationFormData) => onSubmit(data, false))();
-  };
-
-  const handleSubmitForValidation = () => {
-    handleSubmit((data: OperationFormData) => onSubmit(data, true))();
   };
 
   if (loadingData) {
@@ -377,7 +363,7 @@ export const OperationEdit: React.FC = () => {
 
             <Grid item xs={12} md={6}>
               <Controller
-                name="date"
+                name="operationDate"
                 control={control}
                 rules={{ required: 'Operation date is required' }}
                 render={({ field }) => (
@@ -387,8 +373,8 @@ export const OperationEdit: React.FC = () => {
                     type="date"
                     label="Operation Date *"
                     InputLabelProps={{ shrink: true }}
-                    error={!!errors.date}
-                    helperText={errors.date?.message || 'Date cannot be in the future'}
+                    error={!!errors.operationDate}
+                    helperText={errors.operationDate?.message || 'Date cannot be in the future'}
                     inputProps={{
                       max: new Date().toISOString().split('T')[0], // Today
                     }}
@@ -451,20 +437,12 @@ export const OperationEdit: React.FC = () => {
               Cancel
             </Button>
             <Button
-              variant="outlined"
-              startIcon={<SaveIcon />}
-              onClick={handleSaveDraft}
-              disabled={loading}
-            >
-              Save as Draft
-            </Button>
-            <Button
               variant="contained"
-              startIcon={<SendIcon />}
-              onClick={handleSubmitForValidation}
+              startIcon={<SaveIcon />}
+              onClick={handleSubmit(onSubmit)}
               disabled={loading}
             >
-              Submit for Validation
+              {isEditMode ? 'Update' : 'Create'} Operation
             </Button>
           </Box>
         </CardContent>
