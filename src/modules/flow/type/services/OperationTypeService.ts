@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { OperationTypeDTO } from '../dto/OperationTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/flow/type/operationType';
+const BASE_URL = '/flow/type/operation';
 
 export class OperationTypeService {
   /**

@@ -15,7 +15,7 @@ import axiosInstance from '@/shared/config/axios';
 import type { EventTypeDTO } from '../dto/EventTypeDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/flow/type/eventType';
+const BASE_URL = '/flow/type/event';
 
 export class EventTypeService {
   /**
