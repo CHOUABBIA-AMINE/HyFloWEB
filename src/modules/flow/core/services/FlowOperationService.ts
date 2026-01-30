@@ -8,7 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-25-2026
- * @updated 01-30-2026
+ * @updated 01-30-2026 - Added validation methods
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -192,7 +192,7 @@ export class FlowOperationService {
   }
 
   /**
-   * Get unvalidated flow operations
+   * Get unvalidated flow operations (PENDING status)
    */
   static async getUnvalidated(pageable: Pageable): Promise<Page<FlowOperationDTO>> {
     const response = await axiosInstance.get<Page<FlowOperationDTO>>(
@@ -209,12 +209,42 @@ export class FlowOperationService {
   }
 
   /**
-   * Validate flow operation
+   * Validate (approve) flow operation
+   * Changes status from PENDING to VALIDATED
+   * 
+   * @param id - Operation ID to validate
+   * @param validatedById - Employee ID performing validation
+   * @returns Updated operation with VALIDATED status
    */
   static async validate(id: number, validatedById: number): Promise<FlowOperationDTO> {
-    const response = await axiosInstance.post<FlowOperationDTO>(`${BASE_URL}/${id}/validate`, {
-      validatedById,
-    });
+    const response = await axiosInstance.post<FlowOperationDTO>(
+      `${BASE_URL}/${id}/validate`,
+      { validatedById }
+    );
+    return response.data;
+  }
+
+  /**
+   * Reject flow operation
+   * Changes status from PENDING to REJECTED
+   * 
+   * @param id - Operation ID to reject
+   * @param validatedById - Employee ID performing rejection
+   * @param reason - Reason for rejection (optional)
+   * @returns Updated operation with REJECTED status
+   */
+  static async reject(
+    id: number,
+    validatedById: number,
+    reason?: string
+  ): Promise<FlowOperationDTO> {
+    const response = await axiosInstance.post<FlowOperationDTO>(
+      `${BASE_URL}/${id}/reject`,
+      { 
+        validatedById,
+        reason: reason || undefined
+      }
+    );
     return response.data;
   }
 
