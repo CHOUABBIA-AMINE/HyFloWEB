@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
- * @updated 01-25-2026
+ * @updated 01-30-2026 - Fixed FlowOperationDTO property access
  */
 
 import type { FlowReadingDTO } from '../dto/FlowReadingDTO';
@@ -62,7 +62,7 @@ export function exportOperationsToCSV(operations: FlowOperationDTO[]): string {
 
   const rows = operations.map(operation => [
     operation.id || '',
-    formatDate(operation.date),
+    formatDate(operation.operationDate),
     operation.type?.code || '',
     operation.product?.code || '',
     operation.infrastructure?.code || '',
