@@ -7,12 +7,11 @@
  * - Operation date (must be past or present)
  * - Volume input
  * - Notes field
- * - Recorded by employee tracking
- * - Validation status tracking
+ * - Two-step workflow: Record (Draft/Submit) -> Validate
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
- * @updated 01-30-2026 - Aligned with updated FlowOperationDTO
+ * @updated 01-30-2026 - Aligned with updated FlowOperationDTO and Reading workflow
  */
 
 import React, { useState, useEffect } from 'react';
@@ -31,10 +30,16 @@ import {
   Alert,
   Snackbar,
   InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
+  Send as SendIcon,
 } from '@mui/icons-material';
 
 import { FlowOperationService } from '../services/FlowOperationService';
@@ -73,7 +78,7 @@ export const OperationEdit: React.FC = () => {
   const isEditMode = Boolean(id);
 
   // Form state
-  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<OperationFormData>({
+  const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<OperationFormData>({
     defaultValues: {
       infrastructureId: '',
       productId: '',
@@ -92,6 +97,8 @@ export const OperationEdit: React.FC = () => {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [operationTypes, setOperationTypes] = useState<OperationTypeDTO[]>([]);
   const [validationStatuses, setValidationStatuses] = useState<ValidationStatusDTO[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [notification, setNotification] = useState<NotificationState>({
     open: false,
     message: '',
@@ -102,6 +109,24 @@ export const OperationEdit: React.FC = () => {
   useEffect(() => {
     loadInitialData();
   }, [id]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    setHasUnsavedChanges(isDirty);
+  }, [isDirty]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const loadInitialData = async () => {
     try {
@@ -157,7 +182,7 @@ export const OperationEdit: React.FC = () => {
     setNotification({ open: true, message, severity });
   };
 
-  const onSubmit = async (data: OperationFormData) => {
+  const onSubmit = async (data: OperationFormData, submitForValidation: boolean = false) => {
     try {
       setLoading(true);
 
@@ -201,8 +226,9 @@ export const OperationEdit: React.FC = () => {
         return;
       }
 
-      // Get default validation status (PENDING)
-      const validationStatus = validationStatuses.find(s => s.code === 'PENDING');
+      // Get validation status based on action
+      const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
+      const validationStatus = validationStatuses.find(s => s.code === statusCode);
 
       if (!validationStatus?.id) {
         throw new Error('Validation status not found');
@@ -226,8 +252,15 @@ export const OperationEdit: React.FC = () => {
         showNotification('Operation updated successfully', 'success');
       } else {
         await FlowOperationService.create(operationDTO);
-        showNotification('Operation created successfully', 'success');
+        showNotification(
+          submitForValidation
+            ? 'Operation saved and submitted for validation'
+            : 'Operation saved as draft',
+          'success'
+        );
       }
+
+      setHasUnsavedChanges(false);
 
       // Navigate back to list
       setTimeout(() => {
@@ -239,6 +272,11 @@ export const OperationEdit: React.FC = () => {
       if (error.response?.status === 400) {
         showNotification(
           error.response.data.message || 'Please check your input values',
+          'error'
+        );
+      } else if (error.response?.status === 403) {
+        showNotification(
+          'You are not authorized to record operations',
           'error'
         );
       } else if (error.response?.status === 409) {
@@ -257,6 +295,27 @@ export const OperationEdit: React.FC = () => {
     }
   };
 
+  const handleSaveDraft = () => {
+    handleSubmit((data: OperationFormData) => onSubmit(data, false))();
+  };
+
+  const handleSubmitForValidation = () => {
+    handleSubmit((data: OperationFormData) => onSubmit(data, true))();
+  };
+
+  const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      setShowCancelDialog(true);
+    } else {
+      navigate('/flow/operations');
+    }
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelDialog(false);
+    navigate('/flow/operations');
+  };
+
   if (loadingData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -272,6 +331,14 @@ export const OperationEdit: React.FC = () => {
         <Alert severity="error">
           <Typography variant="h6">Authentication Required</Typography>
           <Typography>Unable to load employee information. Please log in again.</Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/login')}
+            sx={{ mt: 2 }}
+          >
+            Go to Login
+          </Button>
         </Alert>
       </Box>
     );
@@ -432,21 +499,45 @@ export const OperationEdit: React.FC = () => {
             <Button
               variant="outlined"
               startIcon={<CancelIcon />}
-              onClick={() => navigate('/flow/operations')}
+              onClick={handleCancel}
             >
               Cancel
             </Button>
             <Button
-              variant="contained"
+              variant="outlined"
               startIcon={<SaveIcon />}
-              onClick={handleSubmit(onSubmit)}
+              onClick={handleSaveDraft}
               disabled={loading}
             >
-              {isEditMode ? 'Update' : 'Create'} Operation
+              Save as Draft
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<SendIcon />}
+              onClick={handleSubmitForValidation}
+              disabled={loading}
+            >
+              Submit for Validation
             </Button>
           </Box>
         </CardContent>
       </Card>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onClose={() => setShowCancelDialog(false)}>
+        <DialogTitle>Unsaved Changes</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have unsaved changes. Are you sure you want to leave?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCancelDialog(false)}>Stay</Button>
+          <Button onClick={handleConfirmCancel} color="error" autoFocus>
+            Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Notification Snackbar */}
       <Snackbar
