@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-31-2026 - Added Validate action button for PENDING operations
  * @updated 01-30-2026 - Fixed date property access for FlowOperationDTO
  */
 
@@ -55,6 +56,7 @@ import {
   Factory as FactoryIcon,
   LocalShipping as ShippingIcon,
   Inventory as ConsumedIcon,
+  FactCheck as ValidateIcon,
 } from '@mui/icons-material';
 
 import { FlowOperationService } from '../services/FlowOperationService';
@@ -431,23 +433,45 @@ export const OperationList: React.FC = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title="Edit">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => navigate(`/flow/operations/edit/${operation.id}`)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
+                      {/* Validate Button - Only for PENDING operations */}
+                      {operation.validationStatus?.code === 'PENDING' && (
+                        <Tooltip title="Validate">
+                          <IconButton
+                            size="small"
+                            color="success"
+                            onClick={() => navigate(`/flow/operations/${operation.id}/validate`)}
+                          >
+                            <ValidateIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                      
+                      {/* Edit Button - Disabled for VALIDATED operations */}
+                      <Tooltip title={operation.validationStatus?.code === 'VALIDATED' ? 'Cannot edit validated operation' : 'Edit'}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => navigate(`/flow/operations/${operation.id}/edit`)}
+                            disabled={operation.validationStatus?.code === 'VALIDATED'}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDeleteClick(operation)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                      
+                      {/* Delete Button - Disabled for VALIDATED operations */}
+                      <Tooltip title={operation.validationStatus?.code === 'VALIDATED' ? 'Cannot delete validated operation' : 'Delete'}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteClick(operation)}
+                            disabled={operation.validationStatus?.code === 'VALIDATED'}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
