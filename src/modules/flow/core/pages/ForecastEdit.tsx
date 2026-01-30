@@ -13,7 +13,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
- * @updated 01-30-2026 - Aligned with updated FlowForecastDTO
+ * @updated 01-30-2026 - Fixed EmployeeDTO property access
  */
 
 import React, { useState, useEffect } from 'react';
@@ -470,7 +470,7 @@ export const ForecastEdit: React.FC = () => {
                     <MenuItem value="">None</MenuItem>
                     {supervisors.map((employee) => (
                       <MenuItem key={employee.id} value={employee.id}>
-                        {employee.firstName} {employee.lastName}
+                        {employee.firstNameLt} {employee.lastNameLt}
                       </MenuItem>
                     ))}
                   </TextField>
