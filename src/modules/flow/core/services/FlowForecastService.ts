@@ -8,14 +8,14 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-25-2026
- * @updated 01-25-2026
+ * @updated 01-30-2026
  */
 
 import axiosInstance from '@/shared/config/axios';
 import type { FlowForecastDTO } from '../dto/FlowForecastDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/flow/core/flowForecast';
+const BASE_URL = '/flow/core/forecast';
 
 export class FlowForecastService {
   /**
@@ -130,6 +130,26 @@ export class FlowForecastService {
   }
 
   /**
+   * Get forecasts by operation type
+   */
+  static async getByOperationType(
+    operationTypeId: number,
+    pageable: Pageable
+  ): Promise<Page<FlowForecastDTO>> {
+    const response = await axiosInstance.get<Page<FlowForecastDTO>>(
+      `${BASE_URL}/operationType/${operationTypeId}`,
+      {
+        params: {
+          page: pageable.page,
+          size: pageable.size,
+          sort: pageable.sort,
+        },
+      }
+    );
+    return response.data;
+  }
+
+  /**
    * Get forecasts by date range
    */
   static async getByDateRange(
@@ -166,30 +186,59 @@ export class FlowForecastService {
   }
 
   /**
-   * Generate forecast based on historical data
-   * Uses ML model to predict future flow volumes
+   * Get forecasts by supervisor
    */
-  static async generate(
-    infrastructureId: number,
-    productId: number,
-    forecastDate: string,
-    generatedById: number
+  static async getBySupervisor(
+    supervisorId: number,
+    pageable: Pageable
+  ): Promise<Page<FlowForecastDTO>> {
+    const response = await axiosInstance.get<Page<FlowForecastDTO>>(
+      `${BASE_URL}/supervisor/${supervisorId}`,
+      {
+        params: {
+          page: pageable.page,
+          size: pageable.size,
+          sort: pageable.sort,
+        },
+      }
+    );
+    return response.data;
+  }
+
+  /**
+   * Calculate and update forecast accuracy
+   * Compares predicted volume with actual volume
+   */
+  static async calculateAccuracy(id: number): Promise<FlowForecastDTO> {
+    const response = await axiosInstance.post<FlowForecastDTO>(`${BASE_URL}/${id}/calculate-accuracy`);
+    return response.data;
+  }
+
+  /**
+   * Update actual volume for a forecast
+   */
+  static async updateActualVolume(
+    id: number,
+    actualVolume: number
   ): Promise<FlowForecastDTO> {
-    const response = await axiosInstance.post<FlowForecastDTO>(`${BASE_URL}/generate`, {
-      infrastructureId,
-      productId,
-      forecastDate,
-      generatedById,
+    const response = await axiosInstance.patch<FlowForecastDTO>(`${BASE_URL}/${id}/actual-volume`, {
+      actualVolume,
     });
     return response.data;
   }
 
   /**
-   * Get forecast accuracy
-   * Compares forecast with actual values
+   * Adjust forecast volume with notes
    */
-  static async getAccuracy(id: number): Promise<number> {
-    const response = await axiosInstance.get<number>(`${BASE_URL}/${id}/accuracy`);
+  static async adjustForecast(
+    id: number,
+    adjustedVolume: number,
+    adjustmentNotes: string
+  ): Promise<FlowForecastDTO> {
+    const response = await axiosInstance.patch<FlowForecastDTO>(`${BASE_URL}/${id}/adjust`, {
+      adjustedVolume,
+      adjustmentNotes,
+    });
     return response.data;
   }
 }
