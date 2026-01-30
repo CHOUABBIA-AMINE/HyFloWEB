@@ -8,14 +8,14 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 01-25-2026
- * @updated 01-25-2026
+ * @updated 01-30-2026
  */
 
 import axiosInstance from '@/shared/config/axios';
 import type { FlowOperationDTO } from '../dto/FlowOperationDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
-const BASE_URL = '/flow/core/flowOperation';
+const BASE_URL = '/flow/core/operation';
 
 export class FlowOperationService {
   /**
