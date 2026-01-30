@@ -2,7 +2,7 @@
  * Flow Operation DTO - Flow Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowOperationDTO
- * Updated: 01-25-2026 - Aligned with backend using FacilityDTO template
+ * Updated: 01-30-2026 - Fully aligned with backend Java DTO
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -18,20 +18,20 @@ export interface FlowOperationDTO {
   id?: number;
 
   // Operation data
-  date: string; // @NotNull, @PastOrPresent, LocalDate (ISO format: YYYY-MM-DD) (required)
-  volume: number; // @NotNull, @DecimalMin(0.0), @Digits(integer=13, fraction=2) (required)
-  validatedAt?: string; // @PastOrPresent, LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss)
-  notes?: string; // Max 500 chars
+  operationDate: string; // LocalDate (ISO format: YYYY-MM-DD) (required, @PastOrPresent)
+  volume: number; // (required, >= 0, max 13 integer + 2 decimal digits)
+  validatedAt?: string; // LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss) (@PastOrPresent)
+  notes?: string; // Additional notes (max 500 chars)
   
   // Required relationships (IDs)
-  infrastructureId: number; // @NotNull (required)
-  productId: number; // @NotNull (required)
-  typeId: number; // @NotNull (required) - Operation type
-  recordedById: number; // @NotNull (required)
-  validationStatusId: number; // @NotNull (required)
+  infrastructureId: number; // (required)
+  productId: number; // (required)
+  typeId: number; // (required) - Operation type ID
+  recordedById: number; // (required) - Employee who recorded
+  validationStatusId: number; // (required)
   
   // Optional relationship (ID)
-  validatedById?: number;
+  validatedById?: number; // Employee who validated
   
   // Nested objects (populated in responses)
   infrastructure?: InfrastructureDTO;
@@ -50,15 +50,17 @@ export interface FlowOperationDTO {
 export const validateFlowOperationDTO = (data: Partial<FlowOperationDTO>): string[] => {
   const errors: string[] = [];
   
-  // Date validation
-  if (!data.date) {
+  // Operation date validation
+  if (!data.operationDate) {
     errors.push('Operation date is required');
   } else {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
-      errors.push('Date must be in YYYY-MM-DD format');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.operationDate)) {
+      errors.push('Operation date must be in YYYY-MM-DD format');
     }
-    const operationDate = new Date(data.date);
-    if (operationDate > new Date()) {
+    const operationDate = new Date(data.operationDate);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (operationDate > today) {
       errors.push('Operation date cannot be in the future');
     }
   }
