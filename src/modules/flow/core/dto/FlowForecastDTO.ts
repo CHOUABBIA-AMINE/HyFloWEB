@@ -2,44 +2,41 @@
  * Flow Forecast DTO - Flow Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowForecastDTO
- * Updated: 01-25-2026 - Aligned with backend using FacilityDTO template
- * 
- * Backend file needs to be checked - creating based on original requirements
+ * Updated: 01-30-2026 - Fully aligned with backend Java DTO
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
 
-import { ValidationStatusDTO } from '../../common/dto/ValidationStatusDTO';
 import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
 import { ProductDTO } from '../../../network/common/dto/ProductDTO';
 import { InfrastructureDTO } from '../../../network/core/dto/InfrastructureDTO';
+import { OperationTypeDTO } from '../../type/dto/OperationTypeDTO';
 
 export interface FlowForecastDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
   // Forecast data
-  forecastDate: string; // LocalDate (ISO format: YYYY-MM-DD) (required, future date)
-  estimatedVolume: number; // (required, >= 0)
-  confidence?: number; // Confidence percentage (0-100)
-  validatedAt?: string; // LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss)
-  notes?: string; // Max 500 chars
+  forecastDate: string; // LocalDate (ISO format: YYYY-MM-DD) (required, @Future)
+  predictedVolume: number; // (required, >= 0, max 13 integer + 2 decimal digits)
+  adjustedVolume?: number; // Adjusted forecast after expert review (>= 0)
+  actualVolume?: number; // Actual volume recorded after forecast date (>= 0)
+  accuracy?: number; // Forecast accuracy percentage (0-100%, max 3 integer + 4 decimal digits)
+  adjustmentNotes?: string; // Notes explaining forecast adjustments (max 500 chars)
   
   // Required relationships (IDs)
   infrastructureId: number; // (required)
   productId: number; // (required)
-  createdById: number; // (required)
-  validationStatusId: number; // (required)
+  operationTypeId: number; // (required)
   
   // Optional relationship (ID)
-  validatedById?: number;
+  supervisorId?: number; // Supervisor employee ID
   
   // Nested objects (populated in responses)
   infrastructure?: InfrastructureDTO;
   product?: ProductDTO;
-  createdBy?: EmployeeDTO;
-  validatedBy?: EmployeeDTO;
-  validationStatus?: ValidationStatusDTO;
+  operationType?: OperationTypeDTO;
+  supervisor?: EmployeeDTO;
 }
 
 /**
@@ -58,28 +55,40 @@ export const validateFlowForecastDTO = (data: Partial<FlowForecastDTO>): string[
       errors.push('Forecast date must be in YYYY-MM-DD format');
     }
     const forecastDate = new Date(data.forecastDate);
-    if (forecastDate <= new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (forecastDate <= today) {
       errors.push('Forecast date must be in the future');
     }
   }
   
-  // Estimated volume validation
-  if (data.estimatedVolume === undefined || data.estimatedVolume === null) {
-    errors.push('Estimated volume is required');
-  } else if (data.estimatedVolume < 0) {
-    errors.push('Estimated volume cannot be negative');
+  // Predicted volume validation
+  if (data.predictedVolume === undefined || data.predictedVolume === null) {
+    errors.push('Predicted volume is required');
+  } else if (data.predictedVolume < 0) {
+    errors.push('Predicted volume cannot be negative');
   }
   
-  // Confidence validation
-  if (data.confidence !== undefined && data.confidence !== null) {
-    if (data.confidence < 0 || data.confidence > 100) {
-      errors.push('Confidence must be between 0 and 100');
+  // Adjusted volume validation
+  if (data.adjustedVolume !== undefined && data.adjustedVolume !== null && data.adjustedVolume < 0) {
+    errors.push('Adjusted volume cannot be negative');
+  }
+  
+  // Actual volume validation
+  if (data.actualVolume !== undefined && data.actualVolume !== null && data.actualVolume < 0) {
+    errors.push('Actual volume cannot be negative');
+  }
+  
+  // Accuracy validation
+  if (data.accuracy !== undefined && data.accuracy !== null) {
+    if (data.accuracy < 0 || data.accuracy > 100) {
+      errors.push('Accuracy must be between 0 and 100%');
     }
   }
   
-  // Notes validation
-  if (data.notes && data.notes.length > 500) {
-    errors.push('Notes must not exceed 500 characters');
+  // Adjustment notes validation
+  if (data.adjustmentNotes && data.adjustmentNotes.length > 500) {
+    errors.push('Adjustment notes must not exceed 500 characters');
   }
   
   // Infrastructure validation
@@ -92,14 +101,9 @@ export const validateFlowForecastDTO = (data: Partial<FlowForecastDTO>): string[
     errors.push('Product is required');
   }
   
-  // Created by validation
-  if (data.createdById === undefined || data.createdById === null) {
-    errors.push('Created by employee is required');
-  }
-  
-  // Validation status validation
-  if (data.validationStatusId === undefined || data.validationStatusId === null) {
-    errors.push('Validation status is required');
+  // Operation type validation
+  if (data.operationTypeId === undefined || data.operationTypeId === null) {
+    errors.push('Operation type is required');
   }
   
   return errors;
