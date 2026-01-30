@@ -3,14 +3,13 @@
  * 
  * Displays paginated list of flow forecasts with:
  * - Search and filtering by infrastructure, product, date range
- * - Sorting by date, confidence, status
+ * - Sorting by date, accuracy
  * - Actions: Create, Edit, Delete, View Details
- * - Validation status indicators
  * - Accuracy metrics display
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
- * @updated 01-29-2026 - Fixed DTO property access for multilingual support
+ * @updated 01-30-2026 - Aligned with updated FlowForecastDTO
  */
 
 import React, { useState, useEffect } from 'react';
@@ -50,9 +49,6 @@ import {
   Search as SearchIcon,
   Refresh as RefreshIcon,
   TrendingUp as TrendingUpIcon,
-  CheckCircle as CheckCircleIcon,
-  Pending as PendingIcon,
-  Cancel as CancelIcon,
 } from '@mui/icons-material';
 
 import { FlowForecastService } from '../services/FlowForecastService';
@@ -174,32 +170,6 @@ export const ForecastList: React.FC = () => {
     } catch (err: any) {
       console.error('Error deleting forecast:', err);
       setError(err.message || 'Failed to delete forecast');
-    }
-  };
-
-  const getStatusIcon = (status?: string) => {
-    switch (status?.toUpperCase()) {
-      case 'VALIDATED':
-        return <CheckCircleIcon color="success" />;
-      case 'PENDING':
-        return <PendingIcon color="warning" />;
-      case 'DRAFT':
-        return <CancelIcon color="disabled" />;
-      default:
-        return <PendingIcon color="action" />;
-    }
-  };
-
-  const getStatusColor = (status?: string): "success" | "warning" | "default" | "error" => {
-    switch (status?.toUpperCase()) {
-      case 'VALIDATED':
-        return 'success';
-      case 'PENDING':
-        return 'warning';
-      case 'DRAFT':
-        return 'default';
-      default:
-        return 'default';
     }
   };
 
@@ -329,10 +299,10 @@ export const ForecastList: React.FC = () => {
                 <TableCell>Forecast Date</TableCell>
                 <TableCell>Infrastructure</TableCell>
                 <TableCell>Product</TableCell>
-                <TableCell align="right">Estimated Volume</TableCell>
-                <TableCell align="center">Confidence</TableCell>
-                <TableCell>Created By</TableCell>
-                <TableCell align="center">Status</TableCell>
+                <TableCell align="right">Predicted Volume</TableCell>
+                <TableCell align="right">Adjusted Volume</TableCell>
+                <TableCell align="center">Accuracy</TableCell>
+                <TableCell>Supervisor</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -350,34 +320,27 @@ export const ForecastList: React.FC = () => {
                     <TableCell>{forecast.infrastructure?.code || 'N/A'}</TableCell>
                     <TableCell>{forecast.product?.designationFr || 'N/A'}</TableCell>
                     <TableCell align="right">
-                      {forecast.estimatedVolume?.toLocaleString()} m³
+                      {forecast.predictedVolume?.toLocaleString()} m³
+                    </TableCell>
+                    <TableCell align="right">
+                      {forecast.adjustedVolume ? `${forecast.adjustedVolume.toLocaleString()} m³` : '-'}
                     </TableCell>
                     <TableCell align="center">
-                      {forecast.confidence ? (
+                      {forecast.accuracy !== undefined && forecast.accuracy !== null ? (
                         <Chip
-                          label={`${forecast.confidence}%`}
+                          label={`${forecast.accuracy.toFixed(1)}%`}
                           size="small"
-                          color={forecast.confidence >= 80 ? 'success' : forecast.confidence >= 60 ? 'warning' : 'default'}
+                          color={forecast.accuracy >= 80 ? 'success' : forecast.accuracy >= 60 ? 'warning' : 'default'}
                         />
                       ) : (
                         'N/A'
                       )}
                     </TableCell>
                     <TableCell>
-                      {forecast.createdBy ? 
-                        `${forecast.createdBy.firstNameLt} ${forecast.createdBy.lastNameLt}` : 
+                      {forecast.supervisor ? 
+                        `${forecast.supervisor.firstNameLt} ${forecast.supervisor.lastNameLt}` : 
                         'N/A'
                       }
-                    </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title={forecast.validationStatus?.code || 'Unknown'}>
-                        <Chip
-                          icon={getStatusIcon(forecast.validationStatus?.code)}
-                          label={forecast.validationStatus?.code || 'Unknown'}
-                          size="small"
-                          color={getStatusColor(forecast.validationStatus?.code)}
-                        />
-                      </Tooltip>
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Edit">
