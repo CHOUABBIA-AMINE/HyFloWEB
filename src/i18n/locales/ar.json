@@ -92,6 +92,163 @@
         "cancel": "إلغاء",
         "save": "حفظ"
       }
+    },
+    "forecast": {
+      "title": "توقعات التدفق",
+      "subtitle": "توقعات الإنتاج والاستهلاك",
+      "new": "توقع جديد",
+      "edit": "تعديل التوقع",
+      "create": "إنشاء توقع جديد",
+      "delete": "حذف التوقع",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا التوقع {{type}} لـ {{infrastructure}} في {{date}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      "noForecasts": "لا توجد توقعات",
+      "filters": {
+        "search": "بحث",
+        "searchPlaceholder": "البحث عن التوقعات...",
+        "infrastructure": "البنية التحتية",
+        "all": "الكل",
+        "product": "المنتج",
+        "type": "النوع",
+        "from": "من",
+        "to": "إلى",
+        "clearFilters": "مسح الفلاتر"
+      },
+      "fields": {
+        "date": "التاريخ",
+        "type": "النوع",
+        "infrastructure": "البنية التحتية",
+        "product": "المنتج",
+        "volume": "الحجم",
+        "recordedBy": "مسجل بواسطة",
+        "actions": "الإجراءات",
+        "selectInfrastructure": "اختر البنية التحتية",
+        "selectProduct": "اختر المنتج",
+        "selectType": "اختر النوع",
+        "notes": "ملاحظات",
+        "notesPlaceholder": "ملاحظات أو تعليقات إضافية..."
+      },
+      "types": {
+        "produced": "إنتاج",
+        "consumed": "استهلاك"
+      },
+      "tooltips": {
+        "edit": "تعديل",
+        "delete": "حذف"
+      },
+      "alerts": {
+        "createSuccess": "تم إنشاء التوقع بنجاح",
+        "updateSuccess": "تم تحديث التوقع بنجاح",
+        "deleteSuccess": "تم حذف التوقع بنجاح",
+        "createError": "فشل إنشاء التوقع",
+        "updateError": "فشل تحديث التوقع",
+        "deleteError": "فشل حذف التوقع",
+        "loadError": "فشل تحميل التوقعات"
+      },
+      "actions": {
+        "back": "عودة إلى القائمة",
+        "cancel": "إلغاء",
+        "create": "إنشاء التوقع",
+        "update": "تحديث التوقع"
+      }
+    },
+    "operation": {
+      "title": "عمليات التدفق",
+      "subtitle": "عمليات الإنتاج والنقل والاستهلاك",
+      "new": "عملية جديدة",
+      "edit": "تعديل العملية",
+      "create": "إنشاء عملية جديدة",
+      "delete": "حذف العملية",
+      "deleteConfirm": "هل أنت متأكد من حذف هذه العملية {{type}} لـ {{infrastructure}} في {{date}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      "noOperations": "لا توجد عمليات",
+      "validation": {
+        "title": "التحقق من العملية",
+        "subtitle": "مراجعة والتحقق أو رفض هذه العملية",
+        "operationDetails": "تفاصيل العملية",
+        "reviewInformation": "معلومات المراجعة",
+        "status": "الحالة",
+        "recordedBy": "مسجل بواسطة",
+        "recordedAt": "مسجل في",
+        "validatedBy": "تم التحقق بواسطة",
+        "validatedAt": "تم التحقق في",
+        "approveOperation": "اعتماد العملية",
+        "rejectOperation": "رفض العملية",
+        "rejectionReason": "سبب الرفض",
+        "rejectionReasonPlaceholder": "اشرح سبب رفض هذه العملية...",
+        "rejectionReasonRequired": "يرجى تقديم سبب للرفض",
+        "confirmApprove": "هل أنت متأكد من اعتماد هذه العملية؟",
+        "confirmReject": "هل أنت متأكد من رفض هذه العملية؟",
+        "approveSuccess": "تم اعتماد العملية بنجاح",
+        "rejectSuccess": "تم رفض العملية بنجاح",
+        "approveError": "فشل اعتماد العملية",
+        "rejectError": "فشل رفض العملية",
+        "cannotValidate": "لا يمكن التحقق من العملية بحالة {{status}}",
+        "onlyPending": "يمكن فقط التحقق من العمليات قيد الانتظار",
+        "backToList": "عودة إلى العمليات"
+      },
+      "filters": {
+        "search": "بحث",
+        "infrastructure": "البنية التحتية",
+        "all": "الكل",
+        "product": "المنتج",
+        "type": "النوع",
+        "from": "من",
+        "to": "إلى",
+        "clearFilters": "مسح الفلاتر"
+      },
+      "fields": {
+        "date": "التاريخ",
+        "type": "النوع",
+        "infrastructure": "البنية التحتية",
+        "product": "المنتج",
+        "volume": "الحجم",
+        "recordedBy": "مسجل بواسطة",
+        "status": "الحالة",
+        "actions": "الإجراءات",
+        "selectInfrastructure": "اختر البنية التحتية",
+        "selectProduct": "اختر المنتج",
+        "selectType": "اختر النوع",
+        "notes": "ملاحظات",
+        "notesPlaceholder": "ملاحظات أو تعليقات إضافية...",
+        "validationStatus": "حالة التحقق"
+      },
+      "status": {
+        "draft": "مسودة",
+        "pending": "قيد الانتظار",
+        "validated": "تم التحقق",
+        "rejected": "مرفوض"
+      },
+      "types": {
+        "produced": "إنتاج",
+        "transported": "نقل",
+        "consumed": "استهلاك"
+      },
+      "tooltips": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "validate": "التحقق",
+        "cannotEditValidated": "لا يمكن تعديل عملية تم التحقق منها",
+        "cannotDeleteValidated": "لا يمكن حذف عملية تم التحقق منها"
+      },
+      "alerts": {
+        "createSuccess": "تم إنشاء العملية بنجاح",
+        "updateSuccess": "تم تحديث العملية بنجاح",
+        "deleteSuccess": "تم حذف العملية بنجاح",
+        "submitSuccess": "تم إرسال العملية للتحقق",
+        "saveDraftSuccess": "تم حفظ العملية كمسودة",
+        "createError": "فشل إنشاء العملية",
+        "updateError": "فشل تحديث العملية",
+        "deleteError": "فشل حذف العملية",
+        "loadError": "فشل تحميل العمليات"
+      },
+      "actions": {
+        "back": "عودة إلى القائمة",
+        "cancel": "إلغاء",
+        "saveDraft": "حفظ كمسودة",
+        "submitValidation": "إرسال للتحقق",
+        "update": "تحديث العملية",
+        "approve": "اعتماد",
+        "reject": "رفض"
+      }
     }
   }
 }
