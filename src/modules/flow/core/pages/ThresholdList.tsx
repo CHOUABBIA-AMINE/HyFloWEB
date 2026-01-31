@@ -6,11 +6,13 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
+ * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume column
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -69,6 +71,7 @@ interface Filters {
 
 export const ThresholdList: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   // State
   const [thresholds, setThresholds] = useState<FlowThresholdDTO[]>([]);
@@ -156,7 +159,7 @@ export const ThresholdList: React.FC = () => {
       setTotalElements(total);
     } catch (error: any) {
       console.error('Error loading thresholds:', error);
-      setError(error.message || 'Failed to load thresholds');
+      setError(error.message || t('flow.threshold.alerts.failedToLoad'));
     } finally {
       setLoading(false);
     }
@@ -204,10 +207,10 @@ export const ThresholdList: React.FC = () => {
       await FlowThresholdService.delete(selectedThreshold.id);
       setDeleteDialogOpen(false);
       setSelectedThreshold(null);
-      setSuccess('Threshold deleted successfully');
+      setSuccess(t('flow.threshold.deleteSuccess'));
       loadThresholds();
     } catch (error: any) {
-      setError(`Delete failed: ${error.message}`);
+      setError(t('flow.threshold.alerts.failedToDelete') + ' ' + error.message);
     }
   };
 
@@ -215,29 +218,27 @@ export const ThresholdList: React.FC = () => {
     if (!threshold.id) return;
 
     try {
-      // Note: Backend doesn't have activate/deactivate endpoints
-      // We need to update the threshold with toggled active status
       const updatedThreshold = { ...threshold, active: !threshold.active };
       await FlowThresholdService.update(threshold.id, updatedThreshold);
       
-      setSuccess(threshold.active ? 'Threshold deactivated' : 'Threshold activated');
+      setSuccess(threshold.active ? t('flow.threshold.deactivated') : t('flow.threshold.activated'));
       loadThresholds();
     } catch (error: any) {
-      setError(`Failed to toggle active status: ${error.message}`);
+      setError(t('flow.threshold.alerts.failedToToggle') + ' ' + error.message);
     }
   };
 
   const getStatusChip = (active: boolean) => {
     return active ? (
       <Chip
-        label="Active"
+        label={t('flow.threshold.fields.active')}
         size="small"
         color="success"
         icon={<CheckCircleIcon />}
       />
     ) : (
       <Chip
-        label="Inactive"
+        label={t('flow.threshold.fields.inactive')}
         size="small"
         color="default"
         icon={<CancelIcon />}
@@ -256,9 +257,9 @@ export const ThresholdList: React.FC = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
-          <Typography variant="h4">Flow Thresholds</Typography>
+          <Typography variant="h4">{t('flow.threshold.title')}</Typography>
           <Typography variant="body2" color="text.secondary">
-            Manage safe operating ranges for pipeline monitoring
+            {t('flow.threshold.subtitle')}
           </Typography>
         </Box>
         <Button
@@ -267,7 +268,7 @@ export const ThresholdList: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={handleCreate}
         >
-          New Threshold
+          {t('flow.threshold.new')}
         </Button>
       </Box>
 
@@ -288,7 +289,7 @@ export const ThresholdList: React.FC = () => {
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <FilterListIcon sx={{ mr: 1 }} />
-            <Typography variant="h6">Filters</Typography>
+            <Typography variant="h6">{t('flow.threshold.filters.title')}</Typography>
           </Box>
 
           <Grid container spacing={2}>
@@ -296,10 +297,10 @@ export const ThresholdList: React.FC = () => {
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Search"
+                label={t('flow.threshold.filters.search')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                placeholder="Search thresholds..."
+                placeholder={t('flow.threshold.filters.searchPlaceholder')}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -313,13 +314,13 @@ export const ThresholdList: React.FC = () => {
             {/* Pipeline Filter */}
             <Grid item xs={12} md={4}>
               <FormControl fullWidth>
-                <InputLabel>Pipeline</InputLabel>
+                <InputLabel>{t('flow.threshold.filters.pipeline')}</InputLabel>
                 <Select
                   value={filters.pipelineId || ''}
-                  label="Pipeline"
+                  label={t('flow.threshold.filters.pipeline')}
                   onChange={(e) => handleFilterChange('pipelineId', e.target.value || undefined)}
                 >
-                  <MenuItem value="">All Pipelines</MenuItem>
+                  <MenuItem value="">{t('flow.threshold.filters.allPipelines')}</MenuItem>
                   {pipelines.map((pipeline) => (
                     <MenuItem key={pipeline.id} value={pipeline.id}>
                       {pipeline.code} - {pipeline.name}
@@ -339,7 +340,7 @@ export const ThresholdList: React.FC = () => {
                       onChange={(e) => handleFilterChange('activeOnly', e.target.checked)}
                     />
                   }
-                  label="Active Only"
+                  label={t('flow.threshold.filters.activeOnly')}
                 />
               </Box>
             </Grid>
@@ -352,14 +353,14 @@ export const ThresholdList: React.FC = () => {
               startIcon={<RefreshIcon />}
               onClick={loadThresholds}
             >
-              Refresh
+              {t('flow.threshold.filters.refresh')}
             </Button>
             {hasActiveFilters && (
               <Button
                 variant="outlined"
                 onClick={handleClearFilters}
               >
-                Clear Filters
+                {t('flow.threshold.filters.clear')}
               </Button>
             )}
           </Box>
@@ -372,20 +373,20 @@ export const ThresholdList: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Pipeline</TableCell>
+                <TableCell>{t('flow.threshold.fields.id')}</TableCell>
+                <TableCell>{t('flow.threshold.fields.pipeline')}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <SpeedIcon fontSize="small" />
-                    Pressure
+                    {t('flow.threshold.fields.pressure')}
                   </Box>
                 </TableCell>
-                <TableCell>Temperature</TableCell>
-                <TableCell>Flow Rate</TableCell>
-                <TableCell>Contained Volume</TableCell>
-                <TableCell>Tolerance</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell>{t('flow.threshold.fields.temperature')}</TableCell>
+                <TableCell>{t('flow.threshold.fields.flowRate')}</TableCell>
+                <TableCell>{t('flow.threshold.fields.containedVolume')}</TableCell>
+                <TableCell>{t('flow.threshold.fields.tolerance')}</TableCell>
+                <TableCell>{t('flow.threshold.fields.status')}</TableCell>
+                <TableCell align="right">{t('flow.threshold.fields.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -399,7 +400,7 @@ export const ThresholdList: React.FC = () => {
                 <TableRow>
                   <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <Typography color="text.secondary">
-                      No thresholds found
+                      {t('flow.threshold.noThresholds')}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -418,7 +419,7 @@ export const ThresholdList: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={`Min: ${threshold.pressureMin}, Max: ${threshold.pressureMax}`}>
+                      <Tooltip title={t('flow.threshold.tooltips.minMax', { min: threshold.pressureMin, max: threshold.pressureMax })}>
                         <Chip
                           label={formatRange(
                             threshold.pressureMin,
@@ -431,7 +432,7 @@ export const ThresholdList: React.FC = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={`Min: ${threshold.temperatureMin}, Max: ${threshold.temperatureMax}`}>
+                      <Tooltip title={t('flow.threshold.tooltips.minMax', { min: threshold.temperatureMin, max: threshold.temperatureMax })}>
                         <Chip
                           label={formatRange(
                             threshold.temperatureMin,
@@ -444,7 +445,7 @@ export const ThresholdList: React.FC = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={`Min: ${threshold.flowRateMin}, Max: ${threshold.flowRateMax}`}>
+                      <Tooltip title={t('flow.threshold.tooltips.minMax', { min: threshold.flowRateMin, max: threshold.flowRateMax })}>
                         <Chip
                           label={formatRange(
                             threshold.flowRateMin,
@@ -457,7 +458,7 @@ export const ThresholdList: React.FC = () => {
                       </Tooltip>
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={`Min: ${threshold.containedVolumeMin}, Max: ${threshold.containedVolumeMax}`}>
+                      <Tooltip title={t('flow.threshold.tooltips.minMax', { min: threshold.containedVolumeMin, max: threshold.containedVolumeMax })}>
                         <Chip
                           label={formatRange(
                             threshold.containedVolumeMin,
@@ -478,7 +479,7 @@ export const ThresholdList: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <Tooltip title={threshold.active ? 'Click to deactivate' : 'Click to activate'}>
+                      <Tooltip title={threshold.active ? t('flow.threshold.tooltips.clickToDeactivate') : t('flow.threshold.tooltips.clickToActivate')}>
                         <Box
                           onClick={() => handleToggleActive(threshold)}
                           sx={{ cursor: 'pointer', display: 'inline-block' }}
@@ -489,7 +490,7 @@ export const ThresholdList: React.FC = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
-                        <Tooltip title="Edit">
+                        <Tooltip title={t('flow.threshold.tooltips.edit')}>
                           <IconButton
                             size="small"
                             color="primary"
@@ -498,7 +499,7 @@ export const ThresholdList: React.FC = () => {
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Delete">
+                        <Tooltip title={t('flow.threshold.tooltips.delete')}>
                           <IconButton
                             size="small"
                             color="error"
@@ -530,8 +531,8 @@ export const ThresholdList: React.FC = () => {
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={deleteDialogOpen}
-        title="Delete Threshold"
-        message={`Are you sure you want to delete threshold #${selectedThreshold?.id} for pipeline ${selectedThreshold?.pipeline?.code}? This action cannot be undone.`}
+        title={t('flow.threshold.delete')}
+        message={t('flow.threshold.deleteConfirm', { id: selectedThreshold?.id, code: selectedThreshold?.pipeline?.code })}
         onConfirm={handleDeleteConfirm}
         onCancel={() => {
           setDeleteDialogOpen(false);
