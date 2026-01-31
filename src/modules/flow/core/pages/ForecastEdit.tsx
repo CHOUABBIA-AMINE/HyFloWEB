@@ -13,11 +13,13 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-31-2026 - Added i18n translations
  * @updated 01-30-2026 - Fixed EmployeeDTO property access
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Box,
@@ -73,6 +75,7 @@ interface NotificationState {
 
 export const ForecastEdit: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
@@ -146,7 +149,7 @@ export const ForecastEdit: React.FC = () => {
       }
     } catch (error: any) {
       showNotification(
-        error.message || 'Failed to load required data',
+        error.message || t('flow.forecast.alerts.loadError'),
         'error'
       );
     } finally {
@@ -164,22 +167,22 @@ export const ForecastEdit: React.FC = () => {
 
       // Validate required fields
       if (!data.infrastructureId) {
-        showNotification('Please select an infrastructure', 'warning');
+        showNotification(t('flow.forecast.fields.selectInfrastructure'), 'warning');
         return;
       }
 
       if (!data.productId) {
-        showNotification('Please select a product', 'warning');
+        showNotification(t('flow.forecast.fields.selectProduct'), 'warning');
         return;
       }
 
       if (!data.operationTypeId) {
-        showNotification('Please select an operation type', 'warning');
+        showNotification(t('flow.forecast.fields.selectType'), 'warning');
         return;
       }
 
       if (!data.forecastDate) {
-        showNotification('Please select a forecast date', 'warning');
+        showNotification(t('flow.forecast.fields.date'), 'warning');
         return;
       }
 
@@ -193,7 +196,7 @@ export const ForecastEdit: React.FC = () => {
       }
 
       if (!data.predictedVolume || data.predictedVolume <= 0) {
-        showNotification('Please enter a valid predicted volume', 'warning');
+        showNotification(t('flow.forecast.fields.volume'), 'warning');
         return;
       }
 
@@ -213,10 +216,10 @@ export const ForecastEdit: React.FC = () => {
       // Save forecast
       if (isEditMode && id) {
         await FlowForecastService.update(Number(id), forecastDTO);
-        showNotification('Forecast updated successfully', 'success');
+        showNotification(t('flow.forecast.alerts.updateSuccess'), 'success');
       } else {
         await FlowForecastService.create(forecastDTO);
-        showNotification('Forecast created successfully', 'success');
+        showNotification(t('flow.forecast.alerts.createSuccess'), 'success');
       }
 
       // Navigate back to list
@@ -228,7 +231,7 @@ export const ForecastEdit: React.FC = () => {
 
       if (error.response?.status === 400) {
         showNotification(
-          error.response.data.message || 'Please check your input values',
+          error.response.data.message || t('flow.forecast.alerts.createError'),
           'error'
         );
       } else if (error.response?.status === 409) {
@@ -238,7 +241,7 @@ export const ForecastEdit: React.FC = () => {
         );
       } else {
         showNotification(
-          error.message || 'An unexpected error occurred',
+          error.message || t('flow.forecast.alerts.createError'),
           'error'
         );
       }
@@ -251,16 +254,18 @@ export const ForecastEdit: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ ml: 2 }}>Loading forecast data...</Typography>
+        <Typography variant="h6" sx={{ ml: 2 }}>{t('flow.forecast.alerts.loadError')}</Typography>
       </Box>
     );
   }
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {isEditMode ? 'Edit Flow Forecast' : 'New Flow Forecast'}
-      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4">
+          {isEditMode ? t('flow.forecast.edit') : t('flow.forecast.create')}
+        </Typography>
+      </Box>
 
       <Card>
         <CardContent>
@@ -269,17 +274,17 @@ export const ForecastEdit: React.FC = () => {
               <Controller
                 name="infrastructureId"
                 control={control}
-                rules={{ required: 'Infrastructure is required' }}
+                rules={{ required: t('flow.forecast.fields.infrastructure') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Infrastructure *"
+                    label={t('flow.forecast.fields.infrastructure') + ' *'}
                     error={!!errors.infrastructureId}
                     helperText={errors.infrastructureId?.message}
                   >
-                    <MenuItem value="">Select Infrastructure</MenuItem>
+                    <MenuItem value="">{t('flow.forecast.fields.selectInfrastructure')}</MenuItem>
                     {infrastructures.map((infra) => (
                       <MenuItem key={infra.id} value={infra.id}>
                         {infra.code} - {infra.name}
@@ -294,17 +299,17 @@ export const ForecastEdit: React.FC = () => {
               <Controller
                 name="productId"
                 control={control}
-                rules={{ required: 'Product is required' }}
+                rules={{ required: t('flow.forecast.fields.product') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Product *"
+                    label={t('flow.forecast.fields.product') + ' *'}
                     error={!!errors.productId}
                     helperText={errors.productId?.message}
                   >
-                    <MenuItem value="">Select Product</MenuItem>
+                    <MenuItem value="">{t('flow.forecast.fields.selectProduct')}</MenuItem>
                     {products.map((product) => (
                       <MenuItem key={product.id} value={product.id}>
                         {product.designationFr}
@@ -319,17 +324,17 @@ export const ForecastEdit: React.FC = () => {
               <Controller
                 name="operationTypeId"
                 control={control}
-                rules={{ required: 'Operation type is required' }}
+                rules={{ required: t('flow.forecast.fields.type') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Operation Type *"
+                    label={t('flow.forecast.fields.type') + ' *'}
                     error={!!errors.operationTypeId}
                     helperText={errors.operationTypeId?.message}
                   >
-                    <MenuItem value="">Select Type</MenuItem>
+                    <MenuItem value="">{t('flow.forecast.fields.selectType')}</MenuItem>
                     {operationTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
                         {type.code}
@@ -344,18 +349,18 @@ export const ForecastEdit: React.FC = () => {
               <Controller
                 name="forecastDate"
                 control={control}
-                rules={{ required: 'Forecast date is required' }}
+                rules={{ required: t('flow.forecast.fields.date') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     type="date"
-                    label="Forecast Date *"
+                    label={t('flow.forecast.fields.date') + ' *'}
                     InputLabelProps={{ shrink: true }}
                     error={!!errors.forecastDate}
                     helperText={errors.forecastDate?.message || 'Date must be in the future'}
                     inputProps={{
-                      min: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
+                      min: new Date(Date.now() + 86400000).toISOString().split('T')[0],
                     }}
                   />
                 )}
@@ -367,7 +372,7 @@ export const ForecastEdit: React.FC = () => {
                 name="predictedVolume"
                 control={control}
                 rules={{ 
-                  required: 'Predicted volume is required',
+                  required: t('flow.forecast.fields.volume'),
                   min: { value: 0, message: 'Volume must be positive' }
                 }}
                 render={({ field }) => (
@@ -375,7 +380,7 @@ export const ForecastEdit: React.FC = () => {
                     {...field}
                     fullWidth
                     type="number"
-                    label="Predicted Volume *"
+                    label={t('flow.forecast.fields.volume') + ' *'}
                     error={!!errors.predictedVolume}
                     helperText={errors.predictedVolume?.message}
                     InputProps={{
@@ -396,7 +401,7 @@ export const ForecastEdit: React.FC = () => {
                     {...field}
                     fullWidth
                     type="number"
-                    label="Adjusted Volume"
+                    label={t('flow.forecast.fields.volume') + ' (Adjusted)'}
                     helperText="Optional: Adjusted forecast after expert review"
                     InputProps={{
                       endAdornment: <InputAdornment position="end">m³</InputAdornment>,
@@ -446,8 +451,8 @@ export const ForecastEdit: React.FC = () => {
                     fullWidth
                     multiline
                     rows={3}
-                    label="Adjustment Notes"
-                    placeholder="Add notes explaining forecast adjustments..."
+                    label={t('flow.forecast.fields.notes')}
+                    placeholder={t('flow.forecast.fields.notesPlaceholder')}
                     inputProps={{ maxLength: 500 }}
                     helperText={`${field.value?.length || 0}/500 characters`}
                   />
@@ -464,7 +469,7 @@ export const ForecastEdit: React.FC = () => {
                     {...field}
                     fullWidth
                     select
-                    label="Supervisor"
+                    label={t('flow.forecast.fields.recordedBy')}
                     helperText="Optional: Select supervising employee"
                   >
                     <MenuItem value="">None</MenuItem>
@@ -485,7 +490,7 @@ export const ForecastEdit: React.FC = () => {
               startIcon={<CancelIcon />}
               onClick={() => navigate('/flow/forecasts')}
             >
-              Cancel
+              {t('flow.forecast.actions.cancel')}
             </Button>
             <Button
               variant="contained"
@@ -493,7 +498,7 @@ export const ForecastEdit: React.FC = () => {
               onClick={handleSubmit(onSubmit)}
               disabled={loading}
             >
-              {isEditMode ? 'Update' : 'Create'} Forecast
+              {isEditMode ? t('flow.forecast.actions.update') : t('flow.forecast.actions.create')}
             </Button>
           </Box>
         </CardContent>
