@@ -1,0 +1,97 @@
+{
+  "flow": {
+    "threshold": {
+      "title": "Flow Thresholds",
+      "subtitle": "Manage safe operating ranges for pipeline monitoring",
+      "new": "New Threshold",
+      "edit": "Edit Flow Threshold",
+      "create": "New Flow Threshold",
+      "update": "Update Threshold",
+      "delete": "Delete Threshold",
+      "deleteConfirm": "Are you sure you want to delete threshold #{{id}} for pipeline {{code}}? This action cannot be undone.",
+      "deleteSuccess": "Threshold deleted successfully",
+      "activated": "Threshold activated",
+      "deactivated": "Threshold deactivated",
+      "noThresholds": "No thresholds found",
+      "loadingData": "Loading threshold data...",
+      "saving": "Saving...",
+      "createButton": "Create Threshold",
+      "updateButton": "Update Threshold",
+      "requiredFields": "* Required fields",
+      "validationIssues": "Validation Issues:",
+      "fixErrors": "Please fix validation errors before submitting",
+      "filters": {
+        "title": "Filters",
+        "search": "Search",
+        "searchPlaceholder": "Search thresholds...",
+        "pipeline": "Pipeline",
+        "allPipelines": "All Pipelines",
+        "activeOnly": "Active Only",
+        "refresh": "Refresh",
+        "clear": "Clear Filters"
+      },
+      "fields": {
+        "id": "ID",
+        "pipeline": "Pipeline",
+        "pipelineSelect": "Select a pipeline...",
+        "pipelineHelp": "Select the pipeline for this threshold",
+        "pipelineDisabled": "Pipeline cannot be changed after creation",
+        "pipelineNote": "Pipeline cannot be changed when editing",
+        "pressure": "Pressure",
+        "temperature": "Temperature",
+        "flowRate": "Flow Rate",
+        "containedVolume": "Contained Volume",
+        "tolerance": "Tolerance",
+        "status": "Status",
+        "actions": "Actions",
+        "minimum": "Minimum",
+        "maximum": "Maximum",
+        "active": "Active",
+        "inactive": "Inactive",
+        "activeMonitoring": "Threshold is monitoring the pipeline",
+        "inactiveDisabled": "Threshold is disabled",
+        "required": "Required",
+        "tooLow": "Too low",
+        "tooHigh": "Too high",
+        "cannotBeNegative": "Cannot be negative",
+        "mustBePositive": "Must be positive",
+        "cannotExceed50": "Cannot exceed 50%"
+      },
+      "sections": {
+        "pipelineConfig": "Pipeline Configuration",
+        "pressureThresholds": "Pressure Thresholds",
+        "temperatureThresholds": "Temperature Thresholds",
+        "flowRateThresholds": "Flow Rate Thresholds",
+        "containedVolumeThresholds": "Contained Volume Thresholds",
+        "alertConfig": "Alert Configuration",
+        "alertConfigDesc": "Configure alert tolerance and activation status"
+      },
+      "tooltips": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "clickToActivate": "Click to activate",
+        "clickToDeactivate": "Click to deactivate",
+        "minMax": "Min: {{min}}, Max: {{max}}"
+      },
+      "alerts": {
+        "pipelineInfo": "Pipeline:",
+        "existsForPipeline": "A threshold already exists for this pipeline. Each pipeline can only have one threshold.",
+        "failedToLoad": "Failed to load threshold data",
+        "failedToSave": "Failed to save threshold",
+        "failedToDelete": "Delete failed:",
+        "failedToToggle": "Failed to toggle active status:",
+        "validationFromServer": "Validation error from server"
+      },
+      "constraints": {
+        "range": "Range: {{min}} - {{max}} {{unit}}",
+        "minimum": "Minimum: {{min}} {{unit}}",
+        "alertToleranceHelp": "Warning threshold as percentage (±5%)"
+      },
+      "actions": {
+        "back": "Back",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    }
+  }
+}

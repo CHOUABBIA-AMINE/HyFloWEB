@@ -1,0 +1,97 @@
+{
+  "flow": {
+    "threshold": {
+      "title": "عتبات التدفق",
+      "subtitle": "إدارة نطاقات التشغيل الآمنة لمراقبة خطوط الأنابيب",
+      "new": "عتبة جديدة",
+      "edit": "تعديل عتبة التدفق",
+      "create": "عتبة تدفق جديدة",
+      "update": "تحديث العتبة",
+      "delete": "حذف العتبة",
+      "deleteConfirm": "هل أنت متأكد من حذف العتبة #{{id}} لخط الأنابيب {{code}}؟ لا يمكن التراجع عن هذا الإجراء.",
+      "deleteSuccess": "تم حذف العتبة بنجاح",
+      "activated": "تم تفعيل العتبة",
+      "deactivated": "تم إلغاء تفعيل العتبة",
+      "noThresholds": "لا توجد عتبات",
+      "loadingData": "جاري تحميل بيانات العتبة...",
+      "saving": "جاري الحفظ...",
+      "createButton": "إنشاء العتبة",
+      "updateButton": "تحديث العتبة",
+      "requiredFields": "* الحقول المطلوبة",
+      "validationIssues": "مشاكل التحقق:",
+      "fixErrors": "يرجى إصلاح أخطاء التحقق قبل الإرسال",
+      "filters": {
+        "title": "الفلاتر",
+        "search": "بحث",
+        "searchPlaceholder": "البحث عن العتبات...",
+        "pipeline": "خط الأنابيب",
+        "allPipelines": "جميع خطوط الأنابيب",
+        "activeOnly": "النشط فقط",
+        "refresh": "تحديث",
+        "clear": "مسح الفلاتر"
+      },
+      "fields": {
+        "id": "المعرف",
+        "pipeline": "خط الأنابيب",
+        "pipelineSelect": "اختر خط أنابيب...",
+        "pipelineHelp": "اختر خط الأنابيب لهذه العتبة",
+        "pipelineDisabled": "لا يمكن تغيير خط الأنابيب بعد الإنشاء",
+        "pipelineNote": "لا يمكن تغيير خط الأنابيب عند التعديل",
+        "pressure": "الضغط",
+        "temperature": "درجة الحرارة",
+        "flowRate": "معدل التدفق",
+        "containedVolume": "الحجم المحتوى",
+        "tolerance": "التسامح",
+        "status": "الحالة",
+        "actions": "الإجراءات",
+        "minimum": "الحد الأدنى",
+        "maximum": "الحد الأقصى",
+        "active": "نشط",
+        "inactive": "غير نشط",
+        "activeMonitoring": "العتبة تراقب خط الأنابيب",
+        "inactiveDisabled": "العتبة معطلة",
+        "required": "مطلوب",
+        "tooLow": "منخفض جداً",
+        "tooHigh": "مرتفع جداً",
+        "cannotBeNegative": "لا يمكن أن يكون سالباً",
+        "mustBePositive": "يجب أن يكون موجباً",
+        "cannotExceed50": "لا يمكن أن يتجاوز 50%"
+      },
+      "sections": {
+        "pipelineConfig": "تكوين خط الأنابيب",
+        "pressureThresholds": "عتبات الضغط",
+        "temperatureThresholds": "عتبات درجة الحرارة",
+        "flowRateThresholds": "عتبات معدل التدفق",
+        "containedVolumeThresholds": "عتبات الحجم المحتوى",
+        "alertConfig": "تكوين التنبيه",
+        "alertConfigDesc": "تكوين تسامح التنبيه وحالة التفعيل"
+      },
+      "tooltips": {
+        "edit": "تعديل",
+        "delete": "حذف",
+        "clickToActivate": "انقر للتفعيل",
+        "clickToDeactivate": "انقر لإلغاء التفعيل",
+        "minMax": "الأدنى: {{min}}، الأقصى: {{max}}"
+      },
+      "alerts": {
+        "pipelineInfo": "خط الأنابيب:",
+        "existsForPipeline": "توجد بالفعل عتبة لخط الأنابيب هذا. يمكن أن يحتوي كل خط أنابيب على عتبة واحدة فقط.",
+        "failedToLoad": "فشل تحميل بيانات العتبة",
+        "failedToSave": "فشل حفظ العتبة",
+        "failedToDelete": "فشل الحذف:",
+        "failedToToggle": "فشل تبديل الحالة النشطة:",
+        "validationFromServer": "خطأ في التحقق من الخادم"
+      },
+      "constraints": {
+        "range": "النطاق: {{min}} - {{max}} {{unit}}",
+        "minimum": "الحد الأدنى: {{min}} {{unit}}",
+        "alertToleranceHelp": "عتبة التحذير كنسبة مئوية (±5%)"
+      },
+      "actions": {
+        "back": "رجوع",
+        "cancel": "إلغاء",
+        "save": "حفظ"
+      }
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "flow": {
+    "threshold": {
+      "title": "Seuils de Débit",
+      "subtitle": "Gérer les plages de fonctionnement sûres pour la surveillance des pipelines",
+      "new": "Nouveau Seuil",
+      "edit": "Modifier le Seuil de Débit",
+      "create": "Nouveau Seuil de Débit",
+      "update": "Mettre à Jour le Seuil",
+      "delete": "Supprimer le Seuil",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer le seuil #{{id}} pour le pipeline {{code}} ? Cette action est irréversible.",
+      "deleteSuccess": "Seuil supprimé avec succès",
+      "activated": "Seuil activé",
+      "deactivated": "Seuil désactivé",
+      "noThresholds": "Aucun seuil trouvé",
+      "loadingData": "Chargement des données du seuil...",
+      "saving": "Enregistrement...",
+      "createButton": "Créer le Seuil",
+      "updateButton": "Mettre à Jour le Seuil",
+      "requiredFields": "* Champs obligatoires",
+      "validationIssues": "Problèmes de Validation :",
+      "fixErrors": "Veuillez corriger les erreurs de validation avant de soumettre",
+      "filters": {
+        "title": "Filtres",
+        "search": "Rechercher",
+        "searchPlaceholder": "Rechercher des seuils...",
+        "pipeline": "Pipeline",
+        "allPipelines": "Tous les Pipelines",
+        "activeOnly": "Actifs Uniquement",
+        "refresh": "Actualiser",
+        "clear": "Effacer les Filtres"
+      },
+      "fields": {
+        "id": "ID",
+        "pipeline": "Pipeline",
+        "pipelineSelect": "Sélectionnez un pipeline...",
+        "pipelineHelp": "Sélectionnez le pipeline pour ce seuil",
+        "pipelineDisabled": "Le pipeline ne peut pas être modifié après la création",
+        "pipelineNote": "Le pipeline ne peut pas être modifié lors de l'édition",
+        "pressure": "Pression",
+        "temperature": "Température",
+        "flowRate": "Débit",
+        "containedVolume": "Volume Contenu",
+        "tolerance": "Tolérance",
+        "status": "Statut",
+        "actions": "Actions",
+        "minimum": "Minimum",
+        "maximum": "Maximum",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "activeMonitoring": "Le seuil surveille le pipeline",
+        "inactiveDisabled": "Le seuil est désactivé",
+        "required": "Requis",
+        "tooLow": "Trop bas",
+        "tooHigh": "Trop haut",
+        "cannotBeNegative": "Ne peut pas être négatif",
+        "mustBePositive": "Doit être positif",
+        "cannotExceed50": "Ne peut pas dépasser 50%"
+      },
+      "sections": {
+        "pipelineConfig": "Configuration du Pipeline",
+        "pressureThresholds": "Seuils de Pression",
+        "temperatureThresholds": "Seuils de Température",
+        "flowRateThresholds": "Seuils de Débit",
+        "containedVolumeThresholds": "Seuils de Volume Contenu",
+        "alertConfig": "Configuration des Alertes",
+        "alertConfigDesc": "Configurer la tolérance d'alerte et le statut d'activation"
+      },
+      "tooltips": {
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "clickToActivate": "Cliquez pour activer",
+        "clickToDeactivate": "Cliquez pour désactiver",
+        "minMax": "Min: {{min}}, Max: {{max}}"
+      },
+      "alerts": {
+        "pipelineInfo": "Pipeline :",
+        "existsForPipeline": "Un seuil existe déjà pour ce pipeline. Chaque pipeline ne peut avoir qu'un seul seuil.",
+        "failedToLoad": "Échec du chargement des données du seuil",
+        "failedToSave": "Échec de l'enregistrement du seuil",
+        "failedToDelete": "Échec de la suppression :",
+        "failedToToggle": "Échec du changement de statut actif :",
+        "validationFromServer": "Erreur de validation du serveur"
+      },
+      "constraints": {
+        "range": "Plage : {{min}} - {{max}} {{unit}}",
+        "minimum": "Minimum : {{min}} {{unit}}",
+        "alertToleranceHelp": "Seuil d'avertissement en pourcentage (±5%)"
+      },
+      "actions": {
+        "back": "Retour",
+        "cancel": "Annuler",
+        "save": "Enregistrer"
+      }
+    }
+  }
+}
