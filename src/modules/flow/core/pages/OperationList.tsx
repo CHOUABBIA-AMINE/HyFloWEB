@@ -10,12 +10,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-31-2026 - Added i18n translations
  * @updated 01-31-2026 - Added Validate action button for PENDING operations
  * @updated 01-30-2026 - Fixed date property access for FlowOperationDTO
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -71,6 +73,7 @@ import type { Pageable } from '@/types/pagination';
 
 export const OperationList: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // State
   const [operations, setOperations] = useState<FlowOperationDTO[]>([]);
@@ -150,7 +153,7 @@ export const OperationList: React.FC = () => {
       setTotalElements(result.totalElements);
     } catch (err: any) {
       console.error('Error loading operations:', err);
-      setError(err.message || 'Failed to load operations');
+      setError(err.message || t('flow.operation.alerts.loadError'));
     } finally {
       setLoading(false);
     }
@@ -186,7 +189,7 @@ export const OperationList: React.FC = () => {
       loadOperations();
     } catch (err: any) {
       console.error('Error deleting operation:', err);
-      setError(err.message || 'Failed to delete operation');
+      setError(err.message || t('flow.operation.alerts.deleteError'));
     }
   };
 
@@ -253,14 +256,19 @@ export const OperationList: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Flow Operations</Typography>
+        <Box>
+          <Typography variant="h4">{t('flow.operation.title')}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('flow.operation.subtitle')}
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
           onClick={() => navigate('/flow/operations/new')}
         >
-          New Operation
+          {t('flow.operation.new')}
         </Button>
       </Box>
 
@@ -276,7 +284,7 @@ export const OperationList: React.FC = () => {
             <Grid item xs={12} md={3}>
               <TextField
                 fullWidth
-                label="Search"
+                label={t('flow.operation.filters.search')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -294,11 +302,11 @@ export const OperationList: React.FC = () => {
               <TextField
                 fullWidth
                 select
-                label="Infrastructure"
+                label={t('flow.operation.filters.infrastructure')}
                 value={selectedInfrastructure}
                 onChange={(e) => setSelectedInfrastructure(e.target.value as number | '')}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">{t('flow.operation.filters.all')}</MenuItem>
                 {infrastructures.map((infra) => (
                   <MenuItem key={infra.id} value={infra.id}>
                     {infra.code}
@@ -311,11 +319,11 @@ export const OperationList: React.FC = () => {
               <TextField
                 fullWidth
                 select
-                label="Product"
+                label={t('flow.operation.filters.product')}
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value as number | '')}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">{t('flow.operation.filters.all')}</MenuItem>
                 {products.map((product) => (
                   <MenuItem key={product.id} value={product.id}>
                     {product.designationFr}
@@ -328,11 +336,11 @@ export const OperationList: React.FC = () => {
               <TextField
                 fullWidth
                 select
-                label="Type"
+                label={t('flow.operation.filters.type')}
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value as number | '')}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">{t('flow.operation.filters.all')}</MenuItem>
                 {operationTypes.map((type) => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.code}
@@ -345,7 +353,7 @@ export const OperationList: React.FC = () => {
               <TextField
                 fullWidth
                 type="date"
-                label="From"
+                label={t('flow.operation.filters.from')}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -356,7 +364,7 @@ export const OperationList: React.FC = () => {
               <TextField
                 fullWidth
                 type="date"
-                label="To"
+                label={t('flow.operation.filters.to')}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -366,7 +374,7 @@ export const OperationList: React.FC = () => {
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" onClick={handleClearFilters}>
-                  Clear Filters
+                  {t('flow.operation.filters.clearFilters')}
                 </Button>
                 <IconButton onClick={loadOperations} color="primary">
                   <RefreshIcon />
@@ -382,21 +390,21 @@ export const OperationList: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Date</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Infrastructure</TableCell>
-                <TableCell>Product</TableCell>
-                <TableCell align="right">Volume</TableCell>
-                <TableCell>Recorded By</TableCell>
-                <TableCell align="center">Status</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                <TableCell>{t('flow.operation.fields.date')}</TableCell>
+                <TableCell>{t('flow.operation.fields.type')}</TableCell>
+                <TableCell>{t('flow.operation.fields.infrastructure')}</TableCell>
+                <TableCell>{t('flow.operation.fields.product')}</TableCell>
+                <TableCell align="right">{t('flow.operation.fields.volume')}</TableCell>
+                <TableCell>{t('flow.operation.fields.recordedBy')}</TableCell>
+                <TableCell align="center">{t('flow.operation.fields.status')}</TableCell>
+                <TableCell align="center">{t('flow.operation.fields.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {operations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    <Typography color="textSecondary">No operations found</Typography>
+                    <Typography color="textSecondary">{t('flow.operation.noOperations')}</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -435,7 +443,7 @@ export const OperationList: React.FC = () => {
                     <TableCell align="center">
                       {/* Validate Button - Only for PENDING operations */}
                       {operation.validationStatus?.code === 'PENDING' && (
-                        <Tooltip title="Validate">
+                        <Tooltip title={t('flow.operation.tooltips.validate')}>
                           <IconButton
                             size="small"
                             color="success"
@@ -447,7 +455,7 @@ export const OperationList: React.FC = () => {
                       )}
                       
                       {/* Edit Button - Disabled for VALIDATED operations */}
-                      <Tooltip title={operation.validationStatus?.code === 'VALIDATED' ? 'Cannot edit validated operation' : 'Edit'}>
+                      <Tooltip title={operation.validationStatus?.code === 'VALIDATED' ? t('flow.operation.tooltips.cannotEditValidated') : t('flow.operation.tooltips.edit')}>
                         <span>
                           <IconButton
                             size="small"
@@ -461,7 +469,7 @@ export const OperationList: React.FC = () => {
                       </Tooltip>
                       
                       {/* Delete Button - Disabled for VALIDATED operations */}
-                      <Tooltip title={operation.validationStatus?.code === 'VALIDATED' ? 'Cannot delete validated operation' : 'Delete'}>
+                      <Tooltip title={operation.validationStatus?.code === 'VALIDATED' ? t('flow.operation.tooltips.cannotDeleteValidated') : t('flow.operation.tooltips.delete')}>
                         <span>
                           <IconButton
                             size="small"
@@ -496,18 +504,20 @@ export const OperationList: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Delete Operation</DialogTitle>
+        <DialogTitle>{t('flow.operation.delete')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this {operationToDelete?.type?.code} operation for{' '}
-            {operationToDelete?.infrastructure?.code} on {operationToDelete?.operationDate}?
-            This action cannot be undone.
+            {t('flow.operation.deleteConfirm', {
+              type: operationToDelete?.type?.code || '',
+              infrastructure: operationToDelete?.infrastructure?.code || '',
+              date: operationToDelete?.operationDate || ''
+            })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('flow.operation.actions.cancel')}</Button>
           <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-            Delete
+            {t('flow.operation.delete')}
           </Button>
         </DialogActions>
       </Dialog>
