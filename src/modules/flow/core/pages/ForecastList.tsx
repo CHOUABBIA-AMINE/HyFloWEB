@@ -9,11 +9,13 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-31-2026 - Added i18n translations
  * @updated 01-30-2026 - Aligned with updated FlowForecastDTO
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -61,6 +63,7 @@ import type { Pageable } from '@/types/pagination';
 
 export const ForecastList: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // State
   const [forecasts, setForecasts] = useState<FlowForecastDTO[]>([]);
@@ -134,7 +137,7 @@ export const ForecastList: React.FC = () => {
       setTotalElements(result.totalElements);
     } catch (err: any) {
       console.error('Error loading forecasts:', err);
-      setError(err.message || 'Failed to load forecasts');
+      setError(err.message || t('flow.forecast.alerts.loadError'));
     } finally {
       setLoading(false);
     }
@@ -169,7 +172,7 @@ export const ForecastList: React.FC = () => {
       loadForecasts();
     } catch (err: any) {
       console.error('Error deleting forecast:', err);
-      setError(err.message || 'Failed to delete forecast');
+      setError(err.message || t('flow.forecast.alerts.deleteError'));
     }
   };
 
@@ -184,14 +187,19 @@ export const ForecastList: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Flow Forecasts</Typography>
+        <Box>
+          <Typography variant="h4">{t('flow.forecast.title')}</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {t('flow.forecast.subtitle')}
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
           onClick={() => navigate('/flow/forecasts/new')}
         >
-          New Forecast
+          {t('flow.forecast.new')}
         </Button>
       </Box>
 
@@ -207,7 +215,8 @@ export const ForecastList: React.FC = () => {
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                label="Search"
+                label={t('flow.forecast.filters.search')}
+                placeholder={t('flow.forecast.filters.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -225,11 +234,11 @@ export const ForecastList: React.FC = () => {
               <TextField
                 fullWidth
                 select
-                label="Infrastructure"
+                label={t('flow.forecast.filters.infrastructure')}
                 value={selectedInfrastructure}
                 onChange={(e) => setSelectedInfrastructure(e.target.value as number | '')}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">{t('flow.forecast.filters.all')}</MenuItem>
                 {infrastructures.map((infra) => (
                   <MenuItem key={infra.id} value={infra.id}>
                     {infra.code}
@@ -242,11 +251,11 @@ export const ForecastList: React.FC = () => {
               <TextField
                 fullWidth
                 select
-                label="Product"
+                label={t('flow.forecast.filters.product')}
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value as number | '')}
               >
-                <MenuItem value="">All</MenuItem>
+                <MenuItem value="">{t('flow.forecast.filters.all')}</MenuItem>
                 {products.map((product) => (
                   <MenuItem key={product.id} value={product.id}>
                     {product.designationFr}
@@ -259,7 +268,7 @@ export const ForecastList: React.FC = () => {
               <TextField
                 fullWidth
                 type="date"
-                label="From Date"
+                label={t('flow.forecast.filters.from')}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -270,7 +279,7 @@ export const ForecastList: React.FC = () => {
               <TextField
                 fullWidth
                 type="date"
-                label="To Date"
+                label={t('flow.forecast.filters.to')}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -280,7 +289,7 @@ export const ForecastList: React.FC = () => {
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" onClick={handleClearFilters}>
-                  Clear Filters
+                  {t('flow.forecast.filters.clearFilters')}
                 </Button>
                 <IconButton onClick={loadForecasts} color="primary">
                   <RefreshIcon />
@@ -296,21 +305,21 @@ export const ForecastList: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Forecast Date</TableCell>
-                <TableCell>Infrastructure</TableCell>
-                <TableCell>Product</TableCell>
-                <TableCell align="right">Predicted Volume</TableCell>
-                <TableCell align="right">Adjusted Volume</TableCell>
+                <TableCell>{t('flow.forecast.fields.date')}</TableCell>
+                <TableCell>{t('flow.forecast.fields.infrastructure')}</TableCell>
+                <TableCell>{t('flow.forecast.fields.product')}</TableCell>
+                <TableCell align="right">{t('flow.forecast.fields.volume')}</TableCell>
+                <TableCell align="right">{t('flow.forecast.fields.volume')} (Adjusted)</TableCell>
                 <TableCell align="center">Accuracy</TableCell>
-                <TableCell>Supervisor</TableCell>
-                <TableCell align="center">Actions</TableCell>
+                <TableCell>{t('flow.forecast.fields.recordedBy')}</TableCell>
+                <TableCell align="center">{t('flow.forecast.fields.actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {forecasts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} align="center">
-                    <Typography color="textSecondary">No forecasts found</Typography>
+                    <Typography color="textSecondary">{t('flow.forecast.noForecasts')}</Typography>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -343,7 +352,7 @@ export const ForecastList: React.FC = () => {
                       }
                     </TableCell>
                     <TableCell align="center">
-                      <Tooltip title="Edit">
+                      <Tooltip title={t('flow.forecast.tooltips.edit')}>
                         <IconButton
                           size="small"
                           color="primary"
@@ -352,7 +361,7 @@ export const ForecastList: React.FC = () => {
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Delete">
+                      <Tooltip title={t('flow.forecast.tooltips.delete')}>
                         <IconButton
                           size="small"
                           color="error"
@@ -384,18 +393,20 @@ export const ForecastList: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle>Delete Forecast</DialogTitle>
+        <DialogTitle>{t('flow.forecast.delete')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete the forecast for{' '}
-            {forecastToDelete?.infrastructure?.code} on {forecastToDelete?.forecastDate}?
-            This action cannot be undone.
+            {t('flow.forecast.deleteConfirm', {
+              type: forecastToDelete?.forecastType || '',
+              infrastructure: forecastToDelete?.infrastructure?.code || '',
+              date: forecastToDelete?.forecastDate || ''
+            })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setDeleteDialogOpen(false)}>{t('flow.forecast.actions.cancel')}</Button>
           <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-            Delete
+            {t('flow.forecast.delete')}
           </Button>
         </DialogActions>
       </Dialog>
