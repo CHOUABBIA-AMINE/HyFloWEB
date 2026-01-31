@@ -6,12 +6,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
+ * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume Min/Max fields
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -69,6 +71,7 @@ interface ThresholdFormData {
 
 export const ThresholdEdit: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   
   // Auto-detect mode from URL
@@ -114,7 +117,7 @@ export const ThresholdEdit: React.FC = () => {
       setPipelines(data);
     } catch (error: any) {
       console.error('Failed to load pipelines:', error);
-      setError('Failed to load pipelines');
+      setError(t('flow.threshold.alerts.failedToLoad'));
     }
   };
   
@@ -142,7 +145,7 @@ export const ThresholdEdit: React.FC = () => {
       });
     } catch (error: any) {
       console.error('Failed to load threshold:', error);
-      setError('Failed to load threshold data');
+      setError(t('flow.threshold.alerts.failedToLoad'));
     } finally {
       setLoadingData(false);
     }
@@ -157,7 +160,7 @@ export const ThresholdEdit: React.FC = () => {
       const errors = validateFlowThresholdDTO(data);
       if (errors.length > 0) {
         setValidationErrors(errors);
-        setError('Please fix validation errors before submitting');
+        setError(t('flow.threshold.fixErrors'));
         return;
       }
       
@@ -177,11 +180,11 @@ export const ThresholdEdit: React.FC = () => {
       console.error('Error saving threshold:', error);
       
       if (error.response?.status === 400) {
-        setError(error.response.data.message || 'Validation error from server');
+        setError(error.response.data.message || t('flow.threshold.alerts.validationFromServer'));
       } else if (error.response?.status === 409) {
-        setError('A threshold already exists for this pipeline. Each pipeline can only have one threshold.');
+        setError(t('flow.threshold.alerts.existsForPipeline'));
       } else {
-        setError(error.message || 'Failed to save threshold');
+        setError(error.message || t('flow.threshold.alerts.failedToSave'));
       }
     } finally {
       setLoading(false);
@@ -196,7 +199,7 @@ export const ThresholdEdit: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ ml: 2 }}>Loading threshold data...</Typography>
+        <Typography variant="h6" sx={{ ml: 2 }}>{t('flow.threshold.loadingData')}</Typography>
       </Box>
     );
   }
@@ -210,10 +213,10 @@ export const ThresholdEdit: React.FC = () => {
           onClick={handleCancel}
           sx={{ mr: 2 }}
         >
-          Back
+          {t('flow.threshold.actions.back')}
         </Button>
         <Typography variant="h4">
-          {mode === 'create' ? 'New Flow Threshold' : `Edit Flow Threshold #${id}`}
+          {mode === 'create' ? t('flow.threshold.create') : `${t('flow.threshold.edit')} #${id}`}
         </Typography>
       </Box>
       
@@ -221,10 +224,10 @@ export const ThresholdEdit: React.FC = () => {
       {mode === 'edit' && existingThreshold && (
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="body2">
-            <strong>Pipeline:</strong> {existingThreshold.pipeline?.code} - {existingThreshold.pipeline?.name}
+            <strong>{t('flow.threshold.alerts.pipelineInfo')}</strong> {existingThreshold.pipeline?.code} - {existingThreshold.pipeline?.name}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            Note: Pipeline cannot be changed when editing
+            {t('flow.threshold.fields.pipelineNote')}
           </Typography>
         </Alert>
       )}
@@ -239,7 +242,7 @@ export const ThresholdEdit: React.FC = () => {
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
         <Alert severity="warning" sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" gutterBottom>Validation Issues:</Typography>
+          <Typography variant="subtitle2" gutterBottom>{t('flow.threshold.validationIssues')}</Typography>
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             {validationErrors.map((err, idx) => (
               <li key={idx}>{err}</li>
@@ -255,23 +258,23 @@ export const ThresholdEdit: React.FC = () => {
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Pipeline Configuration
+                  {t('flow.threshold.sections.pipelineConfig')}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 
                 <Controller
                   name="pipelineId"
                   control={control}
-                  rules={{ required: 'Pipeline is required', min: { value: 1, message: 'Please select a pipeline' } }}
+                  rules={{ required: t('flow.threshold.fields.required'), min: { value: 1, message: t('flow.threshold.fields.pipelineSelect') } }}
                   render={({ field, fieldState: { error } }) => (
                     <FormControl fullWidth error={!!error}>
-                      <InputLabel>Pipeline *</InputLabel>
+                      <InputLabel>{t('flow.threshold.fields.pipeline')} *</InputLabel>
                       <Select
                         {...field}
-                        label="Pipeline *"
+                        label={`${t('flow.threshold.fields.pipeline')} *`}
                         disabled={mode === 'edit'}
                       >
-                        <MenuItem value={0}>Select a pipeline...</MenuItem>
+                        <MenuItem value={0}>{t('flow.threshold.fields.pipelineSelect')}</MenuItem>
                         {pipelines.map((pipeline) => (
                           <MenuItem key={pipeline.id} value={pipeline.id}>
                             {pipeline.code} - {pipeline.name}
@@ -279,7 +282,7 @@ export const ThresholdEdit: React.FC = () => {
                         ))}
                       </Select>
                       <FormHelperText>
-                        {error?.message || (mode === 'edit' ? 'Pipeline cannot be changed after creation' : 'Select the pipeline for this threshold')}
+                        {error?.message || (mode === 'edit' ? t('flow.threshold.fields.pipelineDisabled') : t('flow.threshold.fields.pipelineHelp'))}
                       </FormHelperText>
                     </FormControl>
                   )}
@@ -294,10 +297,10 @@ export const ThresholdEdit: React.FC = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <SpeedIcon sx={{ mr: 1 }} color="primary" />
-                  <Typography variant="h6">Pressure Thresholds</Typography>
+                  <Typography variant="h6">{t('flow.threshold.sections.pressureThresholds')}</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Range: {FlowThresholdConstraints.pressure.min} - {FlowThresholdConstraints.pressure.max} {FlowThresholdConstraints.pressure.unit}
+                  {t('flow.threshold.constraints.range', { min: FlowThresholdConstraints.pressure.min, max: FlowThresholdConstraints.pressure.max, unit: FlowThresholdConstraints.pressure.unit })}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 
@@ -307,13 +310,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="pressureMin"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: FlowThresholdConstraints.pressure.min, message: 'Too low' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: FlowThresholdConstraints.pressure.min, message: t('flow.threshold.fields.tooLow') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Minimum *"
+                          label={`${t('flow.threshold.fields.minimum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -335,13 +338,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="pressureMax"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        max: { value: FlowThresholdConstraints.pressure.max, message: 'Too high' },
+                        required: t('flow.threshold.fields.required'),
+                        max: { value: FlowThresholdConstraints.pressure.max, message: t('flow.threshold.fields.tooHigh') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Maximum *"
+                          label={`${t('flow.threshold.fields.maximum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -369,10 +372,10 @@ export const ThresholdEdit: React.FC = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <ThermostatIcon sx={{ mr: 1 }} color="error" />
-                  <Typography variant="h6">Temperature Thresholds</Typography>
+                  <Typography variant="h6">{t('flow.threshold.sections.temperatureThresholds')}</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Range: {FlowThresholdConstraints.temperature.min} - {FlowThresholdConstraints.temperature.max} {FlowThresholdConstraints.temperature.unit}
+                  {t('flow.threshold.constraints.range', { min: FlowThresholdConstraints.temperature.min, max: FlowThresholdConstraints.temperature.max, unit: FlowThresholdConstraints.temperature.unit })}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 
@@ -382,13 +385,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="temperatureMin"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: FlowThresholdConstraints.temperature.min, message: 'Too low' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: FlowThresholdConstraints.temperature.min, message: t('flow.threshold.fields.tooLow') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Minimum *"
+                          label={`${t('flow.threshold.fields.minimum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -410,13 +413,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="temperatureMax"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        max: { value: FlowThresholdConstraints.temperature.max, message: 'Too high' },
+                        required: t('flow.threshold.fields.required'),
+                        max: { value: FlowThresholdConstraints.temperature.max, message: t('flow.threshold.fields.tooHigh') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Maximum *"
+                          label={`${t('flow.threshold.fields.maximum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -444,10 +447,10 @@ export const ThresholdEdit: React.FC = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <OpacityIcon sx={{ mr: 1 }} color="info" />
-                  <Typography variant="h6">Flow Rate Thresholds</Typography>
+                  <Typography variant="h6">{t('flow.threshold.sections.flowRateThresholds')}</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Minimum: {FlowThresholdConstraints.flowRate.min} {FlowThresholdConstraints.flowRate.unit}
+                  {t('flow.threshold.constraints.minimum', { min: FlowThresholdConstraints.flowRate.min, unit: FlowThresholdConstraints.flowRate.unit })}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 
@@ -457,13 +460,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="flowRateMin"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: FlowThresholdConstraints.flowRate.min, message: 'Cannot be negative' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: FlowThresholdConstraints.flowRate.min, message: t('flow.threshold.fields.cannotBeNegative') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Minimum *"
+                          label={`${t('flow.threshold.fields.minimum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -485,13 +488,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="flowRateMax"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: 1, message: 'Must be positive' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: 1, message: t('flow.threshold.fields.mustBePositive') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Maximum *"
+                          label={`${t('flow.threshold.fields.maximum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -519,10 +522,10 @@ export const ThresholdEdit: React.FC = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <StorageIcon sx={{ mr: 1 }} color="success" />
-                  <Typography variant="h6">Contained Volume Thresholds</Typography>
+                  <Typography variant="h6">{t('flow.threshold.sections.containedVolumeThresholds')}</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Minimum: {FlowThresholdConstraints.containedVolume.min} {FlowThresholdConstraints.containedVolume.unit}
+                  {t('flow.threshold.constraints.minimum', { min: FlowThresholdConstraints.containedVolume.min, unit: FlowThresholdConstraints.containedVolume.unit })}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 
@@ -532,13 +535,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="containedVolumeMin"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: FlowThresholdConstraints.containedVolume.min, message: 'Cannot be negative' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: FlowThresholdConstraints.containedVolume.min, message: t('flow.threshold.fields.cannotBeNegative') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Minimum *"
+                          label={`${t('flow.threshold.fields.minimum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -560,13 +563,13 @@ export const ThresholdEdit: React.FC = () => {
                       name="containedVolumeMax"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: 1, message: 'Must be positive' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: 1, message: t('flow.threshold.fields.mustBePositive') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Maximum *"
+                          label={`${t('flow.threshold.fields.maximum')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
@@ -594,10 +597,10 @@ export const ThresholdEdit: React.FC = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <WarningIcon sx={{ mr: 1 }} color="warning" />
-                  <Typography variant="h6">Alert Configuration</Typography>
+                  <Typography variant="h6">{t('flow.threshold.sections.alertConfig')}</Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Configure alert tolerance and activation status
+                  {t('flow.threshold.sections.alertConfigDesc')}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 
@@ -607,18 +610,18 @@ export const ThresholdEdit: React.FC = () => {
                       name="alertTolerance"
                       control={control}
                       rules={{
-                        required: 'Required',
-                        min: { value: FlowThresholdConstraints.alertTolerance.min, message: 'Cannot be negative' },
-                        max: { value: FlowThresholdConstraints.alertTolerance.max, message: 'Cannot exceed 50%' },
+                        required: t('flow.threshold.fields.required'),
+                        min: { value: FlowThresholdConstraints.alertTolerance.min, message: t('flow.threshold.fields.cannotBeNegative') },
+                        max: { value: FlowThresholdConstraints.alertTolerance.max, message: t('flow.threshold.fields.cannotExceed50') },
                       }}
                       render={({ field, fieldState: { error } }) => (
                         <TextField
                           {...field}
-                          label="Alert Tolerance *"
+                          label={`${t('flow.threshold.fields.tolerance')} *`}
                           type="number"
                           fullWidth
                           error={!!error}
-                          helperText={error?.message || 'Warning threshold as percentage (±5%)'}
+                          helperText={error?.message || t('flow.threshold.constraints.alertToleranceHelp')}
                           InputProps={{
                             endAdornment: FlowThresholdConstraints.alertTolerance.unit,
                           }}
@@ -649,12 +652,12 @@ export const ThresholdEdit: React.FC = () => {
                             label={
                               <Box>
                                 <Typography variant="body1" fontWeight={500}>
-                                  {field.value ? 'Active' : 'Inactive'}
+                                  {field.value ? t('flow.threshold.fields.active') : t('flow.threshold.fields.inactive')}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
                                   {field.value 
-                                    ? 'Threshold is monitoring the pipeline'
-                                    : 'Threshold is disabled'}
+                                    ? t('flow.threshold.fields.activeMonitoring')
+                                    : t('flow.threshold.fields.inactiveDisabled')}
                                 </Typography>
                               </Box>
                             }
@@ -674,7 +677,7 @@ export const ThresholdEdit: React.FC = () => {
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography variant="caption" color="text.secondary">
-                    * Required fields
+                    {t('flow.threshold.requiredFields')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button
@@ -682,7 +685,7 @@ export const ThresholdEdit: React.FC = () => {
                       onClick={handleCancel}
                       disabled={loading}
                     >
-                      Cancel
+                      {t('flow.threshold.actions.cancel')}
                     </Button>
                     <Button
                       type="submit"
@@ -691,7 +694,7 @@ export const ThresholdEdit: React.FC = () => {
                       startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
                       disabled={loading || validationErrors.length > 0}
                     >
-                      {loading ? 'Saving...' : mode === 'create' ? 'Create Threshold' : 'Update Threshold'}
+                      {loading ? t('flow.threshold.saving') : mode === 'create' ? t('flow.threshold.createButton') : t('flow.threshold.updateButton')}
                     </Button>
                   </Box>
                 </Box>
