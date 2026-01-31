@@ -11,12 +11,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 01-31-2026 - Added i18n translations
  * @updated 01-30-2026 - Aligned with updated FlowOperationDTO and Reading workflow
  * @updated 01-30-2026 - Fixed data validation and error handling
  */
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Box,
@@ -75,22 +77,21 @@ interface NotificationState {
 
 export const OperationEdit: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
-  // Form state
   const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<OperationFormData>({
     defaultValues: {
       infrastructureId: '',
       productId: '',
       typeId: '',
-      operationDate: new Date().toISOString().split('T')[0], // Today
+      operationDate: new Date().toISOString().split('T')[0],
       volume: '',
       notes: '',
     },
   });
 
-  // Component state
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(isEditMode);
   const [currentUser, setCurrentUser] = useState<EmployeeDTO | null>(null);
@@ -106,17 +107,14 @@ export const OperationEdit: React.FC = () => {
     severity: 'info',
   });
 
-  // Load initial data
   useEffect(() => {
     loadInitialData();
   }, [id]);
 
-  // Track unsaved changes
   useEffect(() => {
     setHasUnsavedChanges(isDirty);
   }, [isDirty]);
 
-  // Warn before leaving with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -133,7 +131,6 @@ export const OperationEdit: React.FC = () => {
     try {
       setLoadingData(true);
 
-      // Load current user
       const username = getUsernameFromToken();
       if (!username) {
         throw new Error('No username found in token. Please log in again.');
@@ -146,7 +143,6 @@ export const OperationEdit: React.FC = () => {
         throw new Error('Employee data not found for current user');
       }
 
-      // Load filter options
       const [infras, prods, types, statuses] = await Promise.all([
         InfrastructureService.getAllNoPagination(),
         ProductService.getAllNoPagination(),
@@ -159,7 +155,6 @@ export const OperationEdit: React.FC = () => {
       setOperationTypes(types);
       setValidationStatuses(statuses);
 
-      // Load existing operation if edit mode
       if (isEditMode && id) {
         const operation = await FlowOperationService.getById(Number(id));
         setValue('infrastructureId', operation.infrastructureId);
@@ -171,7 +166,7 @@ export const OperationEdit: React.FC = () => {
       }
     } catch (error: any) {
       showNotification(
-        error.message || 'Failed to load required data',
+        error.message || t('flow.operation.alerts.loadError'),
         'error'
       );
     } finally {
@@ -187,28 +182,26 @@ export const OperationEdit: React.FC = () => {
     try {
       setLoading(true);
 
-      // Validate required fields
       if (!data.infrastructureId) {
-        showNotification('Please select an infrastructure', 'warning');
+        showNotification(t('flow.operation.fields.selectInfrastructure'), 'warning');
         return;
       }
 
       if (!data.productId) {
-        showNotification('Please select a product', 'warning');
+        showNotification(t('flow.operation.fields.selectProduct'), 'warning');
         return;
       }
 
       if (!data.typeId) {
-        showNotification('Please select an operation type', 'warning');
+        showNotification(t('flow.operation.fields.selectType'), 'warning');
         return;
       }
 
       if (!data.operationDate) {
-        showNotification('Please select an operation date', 'warning');
+        showNotification(t('flow.operation.fields.date'), 'warning');
         return;
       }
 
-      // Validate operation date is not in the future
       const operationDate = new Date(data.operationDate);
       const today = new Date();
       today.setHours(23, 59, 59, 999);
@@ -218,7 +211,7 @@ export const OperationEdit: React.FC = () => {
       }
 
       if (!data.volume || data.volume <= 0) {
-        showNotification('Please enter a valid volume', 'warning');
+        showNotification(t('flow.operation.fields.volume'), 'warning');
         return;
       }
 
@@ -227,7 +220,6 @@ export const OperationEdit: React.FC = () => {
         return;
       }
 
-      // Get validation status based on action
       const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
       const validationStatus = validationStatuses.find(s => s.code === statusCode);
 
@@ -235,68 +227,49 @@ export const OperationEdit: React.FC = () => {
         throw new Error(`Validation status '${statusCode}' not found`);
       }
 
-      // Prepare DTO - ensure proper types for backend
       const operationDTO: FlowOperationDTO = {
         infrastructureId: Number(data.infrastructureId),
         productId: Number(data.productId),
         typeId: Number(data.typeId),
-        operationDate: data.operationDate, // Already in YYYY-MM-DD format
-        volume: Number(data.volume), // Ensure it's a number
-        notes: data.notes?.trim() || undefined, // Send undefined if empty
+        operationDate: data.operationDate,
+        volume: Number(data.volume),
+        notes: data.notes?.trim() || undefined,
         recordedById: currentUser.id,
         validationStatusId: validationStatus.id,
       };
 
-      // Log the DTO being sent for debugging
-      console.log('Sending FlowOperationDTO:', operationDTO);
-
-      // Save operation
       if (isEditMode && id) {
         await FlowOperationService.update(Number(id), operationDTO);
-        showNotification('Operation updated successfully', 'success');
+        showNotification(t('flow.operation.alerts.updateSuccess'), 'success');
       } else {
         await FlowOperationService.create(operationDTO);
         showNotification(
           submitForValidation
-            ? 'Operation saved and submitted for validation'
-            : 'Operation saved as draft',
+            ? t('flow.operation.alerts.submitSuccess')
+            : t('flow.operation.alerts.saveDraftSuccess'),
           'success'
         );
       }
 
       setHasUnsavedChanges(false);
 
-      // Navigate back to list
       setTimeout(() => {
         navigate('/flow/operations');
       }, 1000);
     } catch (error: any) {
       console.error('Error saving operation:', error);
-      console.error('Error response:', error.response);
-
-      // Extract detailed error message from backend
-      let errorMessage = 'An unexpected error occurred';
+      
+      let errorMessage = t('flow.operation.alerts.createError');
 
       if (error.response?.status === 400) {
-        // Validation error - try to extract specific message
         if (error.response.data?.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.data?.errors) {
-          // Handle multiple validation errors
           const errors = error.response.data.errors;
           errorMessage = Object.values(errors).join(', ');
         } else if (typeof error.response.data === 'string') {
           errorMessage = error.response.data;
-        } else {
-          errorMessage = 'Please check your input values';
         }
-        
-        // Log full error details for debugging
-        console.error('Validation error details:', error.response.data);
-      } else if (error.response?.status === 403) {
-        errorMessage = 'You are not authorized to record operations';
-      } else if (error.response?.status === 409) {
-        errorMessage = 'An operation already exists with these details';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -332,7 +305,7 @@ export const OperationEdit: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <CircularProgress size={60} />
-        <Typography variant="h6" sx={{ ml: 2 }}>Loading operation data...</Typography>
+        <Typography variant="h6" sx={{ ml: 2 }}>{t('flow.operation.alerts.loadError')}</Typography>
       </Box>
     );
   }
@@ -358,9 +331,11 @@ export const OperationEdit: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {isEditMode ? 'Edit Flow Operation' : 'New Flow Operation'}
-      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4">
+          {isEditMode ? t('flow.operation.edit') : t('flow.operation.create')}
+        </Typography>
+      </Box>
 
       <Card>
         <CardContent>
@@ -369,17 +344,17 @@ export const OperationEdit: React.FC = () => {
               <Controller
                 name="infrastructureId"
                 control={control}
-                rules={{ required: 'Infrastructure is required' }}
+                rules={{ required: t('flow.operation.fields.infrastructure') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Infrastructure *"
+                    label={t('flow.operation.fields.infrastructure') + ' *'}
                     error={!!errors.infrastructureId}
                     helperText={errors.infrastructureId?.message}
                   >
-                    <MenuItem value="">Select Infrastructure</MenuItem>
+                    <MenuItem value="">{t('flow.operation.fields.selectInfrastructure')}</MenuItem>
                     {infrastructures.map((infra) => (
                       <MenuItem key={infra.id} value={infra.id}>
                         {infra.code} - {infra.name}
@@ -394,17 +369,17 @@ export const OperationEdit: React.FC = () => {
               <Controller
                 name="productId"
                 control={control}
-                rules={{ required: 'Product is required' }}
+                rules={{ required: t('flow.operation.fields.product') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Product *"
+                    label={t('flow.operation.fields.product') + ' *'}
                     error={!!errors.productId}
                     helperText={errors.productId?.message}
                   >
-                    <MenuItem value="">Select Product</MenuItem>
+                    <MenuItem value="">{t('flow.operation.fields.selectProduct')}</MenuItem>
                     {products.map((product) => (
                       <MenuItem key={product.id} value={product.id}>
                         {product.designationFr}
@@ -419,17 +394,17 @@ export const OperationEdit: React.FC = () => {
               <Controller
                 name="typeId"
                 control={control}
-                rules={{ required: 'Operation type is required' }}
+                rules={{ required: t('flow.operation.fields.type') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     select
-                    label="Operation Type *"
+                    label={t('flow.operation.fields.type') + ' *'}
                     error={!!errors.typeId}
                     helperText={errors.typeId?.message}
                   >
-                    <MenuItem value="">Select Type</MenuItem>
+                    <MenuItem value="">{t('flow.operation.fields.selectType')}</MenuItem>
                     {operationTypes.map((type) => (
                       <MenuItem key={type.id} value={type.id}>
                         {type.code}
@@ -444,18 +419,18 @@ export const OperationEdit: React.FC = () => {
               <Controller
                 name="operationDate"
                 control={control}
-                rules={{ required: 'Operation date is required' }}
+                rules={{ required: t('flow.operation.fields.date') }}
                 render={({ field }) => (
                   <TextField
                     {...field}
                     fullWidth
                     type="date"
-                    label="Operation Date *"
+                    label={t('flow.operation.fields.date') + ' *'}
                     InputLabelProps={{ shrink: true }}
                     error={!!errors.operationDate}
                     helperText={errors.operationDate?.message || 'Date cannot be in the future'}
                     inputProps={{
-                      max: new Date().toISOString().split('T')[0], // Today
+                      max: new Date().toISOString().split('T')[0],
                     }}
                   />
                 )}
@@ -467,7 +442,7 @@ export const OperationEdit: React.FC = () => {
                 name="volume"
                 control={control}
                 rules={{ 
-                  required: 'Volume is required',
+                  required: t('flow.operation.fields.volume'),
                   min: { value: 0, message: 'Volume must be positive' }
                 }}
                 render={({ field }) => (
@@ -475,7 +450,7 @@ export const OperationEdit: React.FC = () => {
                     {...field}
                     fullWidth
                     type="number"
-                    label="Volume *"
+                    label={t('flow.operation.fields.volume') + ' *'}
                     error={!!errors.volume}
                     helperText={errors.volume?.message}
                     InputProps={{
@@ -497,8 +472,8 @@ export const OperationEdit: React.FC = () => {
                     fullWidth
                     multiline
                     rows={4}
-                    label="Notes"
-                    placeholder="Add any additional information about this operation..."
+                    label={t('flow.operation.fields.notes')}
+                    placeholder={t('flow.operation.fields.notesPlaceholder')}
                     inputProps={{ maxLength: 500 }}
                     helperText={`${field.value?.length || 0}/500 characters`}
                   />
@@ -513,7 +488,7 @@ export const OperationEdit: React.FC = () => {
               startIcon={<CancelIcon />}
               onClick={handleCancel}
             >
-              Cancel
+              {t('flow.operation.actions.cancel')}
             </Button>
             <Button
               variant="outlined"
@@ -521,7 +496,7 @@ export const OperationEdit: React.FC = () => {
               onClick={handleSaveDraft}
               disabled={loading}
             >
-              Save as Draft
+              {t('flow.operation.actions.saveDraft')}
             </Button>
             <Button
               variant="contained"
@@ -529,13 +504,12 @@ export const OperationEdit: React.FC = () => {
               onClick={handleSubmitForValidation}
               disabled={loading}
             >
-              Submit for Validation
+              {t('flow.operation.actions.submitValidation')}
             </Button>
           </Box>
         </CardContent>
       </Card>
 
-      {/* Cancel Confirmation Dialog */}
       <Dialog open={showCancelDialog} onClose={() => setShowCancelDialog(false)}>
         <DialogTitle>Unsaved Changes</DialogTitle>
         <DialogContent>
@@ -551,7 +525,6 @@ export const OperationEdit: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
