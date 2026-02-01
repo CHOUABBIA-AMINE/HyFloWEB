@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-01-2026 - Added NotificationBadge for VALIDATOR users
  * @updated 01-26-2026 - Removed fixed username text, kept tooltip on avatar hover only
  * @updated 01-26-2026 - Added tooltip to display username/employee name on avatar hover
  * @updated 01-20-2026 - Display employee name (language-aware) and picture if available, fallback to username
@@ -36,6 +37,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import BusinessIcon from '@mui/icons-material/Business';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from '../LanguageSwitcher';
+import NotificationBadge from './NotificationBadge';
 import { EmployeeService } from '../../../modules/general/organization/services/EmployeeService';
 import { FileService } from '../../../modules/system/utility/services';
 import { EmployeeDTO } from '../../../modules/general/organization/dto/EmployeeDTO';
@@ -57,6 +59,12 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
   const [loadingEmployee, setLoadingEmployee] = useState(false);
 
   const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
+
+  // Check if user has VALIDATOR role
+  const isValidator = useMemo(() => {
+    const roles = user?.roles || [];
+    return roles.includes('ROLE_VALIDATOR') || roles.includes('VALIDATOR');
+  }, [user?.roles]);
 
   // Load employee data if user has employeeId
   useEffect(() => {
@@ -252,6 +260,9 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
 
         {/* Language Switcher */}
         <LanguageSwitcher />
+
+        {/* Notification Badge - Only for VALIDATOR users */}
+        {isAuthenticated && isValidator && <NotificationBadge />}
 
         {/* User Actions */}
         {isAuthenticated ? (
