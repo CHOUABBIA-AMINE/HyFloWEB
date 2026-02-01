@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 12-22-2025
  * @updated 02-01-2026 - Added NotificationProvider for real-time WebSocket notifications
+ * @updated 02-01-2026 - Fixed ProtectedRoute import to use named export
  * @updated 01-31-2026 - Added Flow Operation validation route
  * @updated 01-29-2026 - Added Flow Forecast and Operation routes
  * @updated 01-28-2026 - Added Flow Threshold routes
@@ -34,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import getTheme from './theme';
 import { AuthProvider } from './shared/context/AuthContext';
 import { NotificationProvider } from './shared/context';
-import ProtectedRoute from './shared/components/ProtectedRoute';
+import { ProtectedRoute } from './shared/components/ProtectedRoute';
 import PublicRoute from './shared/components/PublicRoute';
 import { Layout } from './shared/components/Layout';
 import { Dashboard } from './shared/components/Dashboard';
