@@ -3,10 +3,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-08-2026
+ * @updated 02-01-2026
  */
 
-// Export all context providers and hooks
-// Add exports here as context providers are created
+// Authentication context
+export { AuthProvider, useAuth } from './AuthContext';
 
-// Empty export to make this a valid module
-export {};
+// Notification context for real-time WebSocket notifications
+export { NotificationProvider, useNotifications } from './NotificationContext';
