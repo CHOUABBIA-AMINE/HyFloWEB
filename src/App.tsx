@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-01-2026 - Added NotificationProvider for real-time WebSocket notifications
  * @updated 01-31-2026 - Added Flow Operation validation route
  * @updated 01-29-2026 - Added Flow Forecast and Operation routes
  * @updated 01-28-2026 - Added Flow Threshold routes
@@ -32,6 +33,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { useTranslation } from 'react-i18next';
 import getTheme from './theme';
 import { AuthProvider } from './shared/context/AuthContext';
+import { NotificationProvider } from './shared/context';
 import ProtectedRoute from './shared/components/ProtectedRoute';
 import PublicRoute from './shared/components/PublicRoute';
 import { Layout } from './shared/components/Layout';
@@ -112,654 +114,656 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
-          <Router>
-            <Routes>
-              {/* Public Routes - Outside Layout */}
-              <Route
-                path="/login"
-                element={
-                  <PublicRoute>
-                    <Login />
-                  </PublicRoute>
-                }
-              />
-
-              {/* Protected Routes - Inside Layout */}
-              <Route path="/" element={<Layout />}>
-                {/* Root redirect */}
-                <Route index element={<Navigate to="/dashboard" replace />} />
-
-                {/* Dashboard */}
+          <NotificationProvider>
+            <Router>
+              <Routes>
+                {/* Public Routes - Outside Layout */}
                 <Route
-                  path="dashboard"
+                  path="/login"
                   element={
-                    <ProtectedRoute>
-                      <Dashboard />
-                    </ProtectedRoute>
+                    <PublicRoute>
+                      <Login />
+                    </PublicRoute>
                   }
                 />
 
-                {/* Profile */}
-                <Route
-                  path="profile"
-                  element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
+                {/* Protected Routes - Inside Layout */}
+                <Route path="/" element={<Layout />}>
+                  {/* Root redirect */}
+                  <Route index element={<Navigate to="/dashboard" replace />} />
 
-                {/* Flow Module - Protected */}
-                <Route path="flow">
-                  {/* Flow Readings */}
+                  {/* Dashboard */}
                   <Route
-                    path="readings"
+                    path="dashboard"
                     element={
                       <ProtectedRoute>
-                        <ReadingList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="readings/new"
-                    element={
-                      <ProtectedRoute>
-                        <ReadingEdit mode="create" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="readings/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <ReadingEdit mode="edit" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="readings/:id/validate"
-                    element={
-                      <ProtectedRoute>
-                        <ReadingEdit mode="validate" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="readings/pending"
-                    element={
-                      <ProtectedRoute>
-                        <PendingReadingsList />
+                        <Dashboard />
                       </ProtectedRoute>
                     }
                   />
 
-                  {/* Flow Thresholds */}
+                  {/* Profile */}
                   <Route
-                    path="thresholds"
+                    path="profile"
                     element={
                       <ProtectedRoute>
-                        <ThresholdList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="thresholds/new"
-                    element={
-                      <ProtectedRoute>
-                        <ThresholdEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="thresholds/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <ThresholdEdit />
+                        <Profile />
                       </ProtectedRoute>
                     }
                   />
 
-                  {/* Flow Forecasts */}
-                  <Route
-                    path="forecasts"
-                    element={
-                      <ProtectedRoute>
-                        <ForecastList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="forecasts/new"
-                    element={
-                      <ProtectedRoute>
-                        <ForecastEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="forecasts/edit/:id"
-                    element={
-                      <ProtectedRoute>
-                        <ForecastEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Flow Operations */}
-                  <Route
-                    path="operations"
-                    element={
-                      <ProtectedRoute>
-                        <OperationList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="operations/new"
-                    element={
-                      <ProtectedRoute>
-                        <OperationEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="operations/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <OperationEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="operations/:id/validate"
-                    element={
-                      <ProtectedRoute>
-                        <OperationValidation />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                {/* Security Module - Protected */}
-                <Route path="security">
-                  {/* Users */}
-                  <Route
-                    path="users"
-                    element={
-                      <ProtectedRoute>
-                        <UserList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="users/create"
-                    element={
-                      <ProtectedRoute>
-                        <UserEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="users/:userId/edit"
-                    element={
-                      <ProtectedRoute>
-                        <UserEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Roles */}
-                  <Route
-                    path="roles"
-                    element={
-                      <ProtectedRoute>
-                        <RoleList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="roles/create"
-                    element={
-                      <ProtectedRoute>
-                        <RoleEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="roles/:roleId/edit"
-                    element={
-                      <ProtectedRoute>
-                        <RoleEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Groups */}
-                  <Route
-                    path="groups"
-                    element={
-                      <ProtectedRoute>
-                        <GroupList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="groups/create"
-                    element={
-                      <ProtectedRoute>
-                        <GroupEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="groups/:groupId/edit"
-                    element={
-                      <ProtectedRoute>
-                        <GroupEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                {/* Administration Module - Protected */}
-                <Route path="administration">
-                  {/* Structures */}
-                  <Route
-                    path="structures"
-                    element={
-                      <ProtectedRoute>
-                        <StructureList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="structures/create"
-                    element={
-                      <ProtectedRoute>
-                        <StructureEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="structures/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <StructureEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Employees */}
-                  <Route
-                    path="employees"
-                    element={
-                      <ProtectedRoute>
-                        <EmployeeList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="employees/create"
-                    element={
-                      <ProtectedRoute>
-                        <EmployeeEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="employees/:id/edit"
-                    element={
-                      <ProtectedRoute>
-                        <EmployeeEdit />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                {/* General Module - Protected */}
-                <Route path="general">
-                  {/* Localization */}
-                  <Route path="localization">
-                    {/* Locations */}
+                  {/* Flow Module - Protected */}
+                  <Route path="flow">
+                    {/* Flow Readings */}
                     <Route
-                      path="locations"
+                      path="readings"
                       element={
                         <ProtectedRoute>
-                          <LocationList />
+                          <ReadingList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="locations/create"
+                      path="readings/new"
                       element={
                         <ProtectedRoute>
-                          <LocationEdit />
+                          <ReadingEdit mode="create" />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="locations/:locationId/edit"
+                      path="readings/:id/edit"
                       element={
                         <ProtectedRoute>
-                          <LocationEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-                  </Route>
-                </Route>
-
-                {/* Network Module - Protected */}
-                <Route path="network">
-                  {/* Geovisualization Maps */}
-                  <Route
-                    path="map"
-                    element={
-                      <ProtectedRoute>
-                        <NetworkMapPage />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Pipeline Map - Product-based visualization */}
-                  <Route
-                    path="map/pipelines"
-                    element={
-                      <ProtectedRoute>
-                        <PipelineMapPage />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Geo Debug Page */}
-                  <Route
-                    path="map/debug"
-                    element={
-                      <ProtectedRoute>
-                        <GeoDebugPage />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Flow Monitoring Dashboard */}
-                  <Route
-                    path="flow/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <FlowDashboardPage />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  {/* Common */}
-                  <Route path="common">
-                    {/* Products */}
-                    <Route
-                      path="products"
-                      element={
-                        <ProtectedRoute>
-                          <ProductList />
+                          <ReadingEdit mode="edit" />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="products/create"
+                      path="readings/:id/validate"
                       element={
                         <ProtectedRoute>
-                          <ProductEdit />
+                          <ReadingEdit mode="validate" />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="products/:productId/edit"
+                      path="readings/pending"
                       element={
                         <ProtectedRoute>
-                          <ProductEdit />
+                          <PendingReadingsList />
                         </ProtectedRoute>
                       }
                     />
 
-                    {/* Partners */}
+                    {/* Flow Thresholds */}
                     <Route
-                      path="partners"
+                      path="thresholds"
                       element={
                         <ProtectedRoute>
-                          <PartnerList />
+                          <ThresholdList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="partners/create"
+                      path="thresholds/new"
                       element={
                         <ProtectedRoute>
-                          <PartnerEdit />
+                          <ThresholdEdit />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="partners/:partnerId/edit"
+                      path="thresholds/:id/edit"
                       element={
                         <ProtectedRoute>
-                          <PartnerEdit />
+                          <ThresholdEdit />
                         </ProtectedRoute>
                       }
                     />
 
-                    {/* Vendors */}
+                    {/* Flow Forecasts */}
                     <Route
-                      path="vendors"
+                      path="forecasts"
                       element={
                         <ProtectedRoute>
-                          <VendorList />
+                          <ForecastList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="vendors/create"
+                      path="forecasts/new"
                       element={
                         <ProtectedRoute>
-                          <VendorEdit />
+                          <ForecastEdit />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="vendors/:vendorId/edit"
+                      path="forecasts/edit/:id"
                       element={
                         <ProtectedRoute>
-                          <VendorEdit />
+                          <ForecastEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Flow Operations */}
+                    <Route
+                      path="operations"
+                      element={
+                        <ProtectedRoute>
+                          <OperationList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="operations/new"
+                      element={
+                        <ProtectedRoute>
+                          <OperationEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="operations/:id/edit"
+                      element={
+                        <ProtectedRoute>
+                          <OperationEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="operations/:id/validate"
+                      element={
+                        <ProtectedRoute>
+                          <OperationValidation />
                         </ProtectedRoute>
                       }
                     />
                   </Route>
 
-                  {/* Core Infrastructure */}
-                  <Route path="core">
-                    {/* Stations */}
+                  {/* Security Module - Protected */}
+                  <Route path="security">
+                    {/* Users */}
                     <Route
-                      path="stations"
+                      path="users"
                       element={
                         <ProtectedRoute>
-                          <StationList />
+                          <UserList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="stations/create"
+                      path="users/create"
                       element={
                         <ProtectedRoute>
-                          <StationEdit />
+                          <UserEdit />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="stations/:stationId/edit"
+                      path="users/:userId/edit"
                       element={
                         <ProtectedRoute>
-                          <StationEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    {/* Terminals */}
-                    <Route
-                      path="terminals"
-                      element={
-                        <ProtectedRoute>
-                          <TerminalList />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="terminals/create"
-                      element={
-                        <ProtectedRoute>
-                          <TerminalEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="terminals/:terminalId/edit"
-                      element={
-                        <ProtectedRoute>
-                          <TerminalEdit />
+                          <UserEdit />
                         </ProtectedRoute>
                       }
                     />
 
-                    {/* Production Fields (formerly Hydrocarbon Fields) */}
+                    {/* Roles */}
                     <Route
-                      path="production-fields"
+                      path="roles"
                       element={
                         <ProtectedRoute>
-                          <ProductionFieldList />
+                          <RoleList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="production-fields/create"
+                      path="roles/create"
                       element={
                         <ProtectedRoute>
-                          <ProductionFieldEdit />
+                          <RoleEdit />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="production-fields/:fieldId/edit"
+                      path="roles/:roleId/edit"
                       element={
                         <ProtectedRoute>
-                          <ProductionFieldEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    {/* Backward compatibility redirect */}
-                    <Route path="hydrocarbon-fields" element={<Navigate to="/network/core/production-fields" replace />} />
-                    <Route path="hydrocarbon-fields/create" element={<Navigate to="/network/core/production-fields/create" replace />} />
-                    <Route path="hydrocarbon-fields/:fieldId/edit" element={<Navigate to="/network/core/production-fields/:fieldId/edit" replace />} />
-
-                    {/* Processing Plants */}
-                    <Route
-                      path="processing-plants"
-                      element={
-                        <ProtectedRoute>
-                          <ProcessingPlantList />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="processing-plants/create"
-                      element={
-                        <ProtectedRoute>
-                          <ProcessingPlantEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="processing-plants/:plantId/edit"
-                      element={
-                        <ProtectedRoute>
-                          <ProcessingPlantEdit />
+                          <RoleEdit />
                         </ProtectedRoute>
                       }
                     />
 
-                    {/* Pipelines */}
+                    {/* Groups */}
                     <Route
-                      path="pipelines"
+                      path="groups"
                       element={
                         <ProtectedRoute>
-                          <PipelineList />
+                          <GroupList />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="pipelines/create"
+                      path="groups/create"
                       element={
                         <ProtectedRoute>
-                          <PipelineEdit />
+                          <GroupEdit />
                         </ProtectedRoute>
                       }
                     />
                     <Route
-                      path="pipelines/:pipelineId/edit"
+                      path="groups/:groupId/edit"
                       element={
                         <ProtectedRoute>
-                          <PipelineEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-
-                    {/* Pipeline Systems */}
-                    <Route
-                      path="pipeline-systems"
-                      element={
-                        <ProtectedRoute>
-                          <PipelineSystemList />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="pipeline-systems/create"
-                      element={
-                        <ProtectedRoute>
-                          <PipelineSystemEdit />
-                        </ProtectedRoute>
-                      }
-                    />
-                    <Route
-                      path="pipeline-systems/:pipelineSystemId/edit"
-                      element={
-                        <ProtectedRoute>
-                          <PipelineSystemEdit />
+                          <GroupEdit />
                         </ProtectedRoute>
                       }
                     />
                   </Route>
+
+                  {/* Administration Module - Protected */}
+                  <Route path="administration">
+                    {/* Structures */}
+                    <Route
+                      path="structures"
+                      element={
+                        <ProtectedRoute>
+                          <StructureList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="structures/create"
+                      element={
+                        <ProtectedRoute>
+                          <StructureEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="structures/:id/edit"
+                      element={
+                        <ProtectedRoute>
+                          <StructureEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Employees */}
+                    <Route
+                      path="employees"
+                      element={
+                        <ProtectedRoute>
+                          <EmployeeList />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="employees/create"
+                      element={
+                        <ProtectedRoute>
+                          <EmployeeEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="employees/:id/edit"
+                      element={
+                        <ProtectedRoute>
+                          <EmployeeEdit />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Route>
+
+                  {/* General Module - Protected */}
+                  <Route path="general">
+                    {/* Localization */}
+                    <Route path="localization">
+                      {/* Locations */}
+                      <Route
+                        path="locations"
+                        element={
+                          <ProtectedRoute>
+                            <LocationList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="locations/create"
+                        element={
+                          <ProtectedRoute>
+                            <LocationEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="locations/:locationId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <LocationEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Route>
+                  </Route>
+
+                  {/* Network Module - Protected */}
+                  <Route path="network">
+                    {/* Geovisualization Maps */}
+                    <Route
+                      path="map"
+                      element={
+                        <ProtectedRoute>
+                          <NetworkMapPage />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Pipeline Map - Product-based visualization */}
+                    <Route
+                      path="map/pipelines"
+                      element={
+                        <ProtectedRoute>
+                          <PipelineMapPage />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Geo Debug Page */}
+                    <Route
+                      path="map/debug"
+                      element={
+                        <ProtectedRoute>
+                          <GeoDebugPage />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Flow Monitoring Dashboard */}
+                    <Route
+                      path="flow/dashboard"
+                      element={
+                        <ProtectedRoute>
+                          <FlowDashboardPage />
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Common */}
+                    <Route path="common">
+                      {/* Products */}
+                      <Route
+                        path="products"
+                        element={
+                          <ProtectedRoute>
+                            <ProductList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="products/create"
+                        element={
+                          <ProtectedRoute>
+                            <ProductEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="products/:productId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <ProductEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Partners */}
+                      <Route
+                        path="partners"
+                        element={
+                          <ProtectedRoute>
+                            <PartnerList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="partners/create"
+                        element={
+                          <ProtectedRoute>
+                            <PartnerEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="partners/:partnerId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <PartnerEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Vendors */}
+                      <Route
+                        path="vendors"
+                        element={
+                          <ProtectedRoute>
+                            <VendorList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="vendors/create"
+                        element={
+                          <ProtectedRoute>
+                            <VendorEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="vendors/:vendorId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <VendorEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Route>
+
+                    {/* Core Infrastructure */}
+                    <Route path="core">
+                      {/* Stations */}
+                      <Route
+                        path="stations"
+                        element={
+                          <ProtectedRoute>
+                            <StationList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="stations/create"
+                        element={
+                          <ProtectedRoute>
+                            <StationEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="stations/:stationId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <StationEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Terminals */}
+                      <Route
+                        path="terminals"
+                        element={
+                          <ProtectedRoute>
+                            <TerminalList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="terminals/create"
+                        element={
+                          <ProtectedRoute>
+                            <TerminalEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="terminals/:terminalId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <TerminalEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Production Fields (formerly Hydrocarbon Fields) */}
+                      <Route
+                        path="production-fields"
+                        element={
+                          <ProtectedRoute>
+                            <ProductionFieldList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="production-fields/create"
+                        element={
+                          <ProtectedRoute>
+                            <ProductionFieldEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="production-fields/:fieldId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <ProductionFieldEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Backward compatibility redirect */}
+                      <Route path="hydrocarbon-fields" element={<Navigate to="/network/core/production-fields" replace />} />
+                      <Route path="hydrocarbon-fields/create" element={<Navigate to="/network/core/production-fields/create" replace />} />
+                      <Route path="hydrocarbon-fields/:fieldId/edit" element={<Navigate to="/network/core/production-fields/:fieldId/edit" replace />} />
+
+                      {/* Processing Plants */}
+                      <Route
+                        path="processing-plants"
+                        element={
+                          <ProtectedRoute>
+                            <ProcessingPlantList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="processing-plants/create"
+                        element={
+                          <ProtectedRoute>
+                            <ProcessingPlantEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="processing-plants/:plantId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <ProcessingPlantEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Pipelines */}
+                      <Route
+                        path="pipelines"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="pipelines/create"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="pipelines/:pipelineId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Pipeline Systems */}
+                      <Route
+                        path="pipeline-systems"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineSystemList />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="pipeline-systems/create"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineSystemEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="pipeline-systems/:pipelineSystemId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineSystemEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Route>
+                  </Route>
+
+                  {/* Unauthorized page */}
+                  <Route
+                    path="unauthorized"
+                    element={
+                      <div style={{ padding: 24 }}>
+                        <h1>403 - Unauthorized</h1>
+                        <p>You don't have permission to access this resource.</p>
+                      </div>
+                    }
+                  />
+
+                  {/* 404 - Not Found */}
+                  <Route
+                    path="*"
+                    element={
+                      <div style={{ padding: 24 }}>
+                        <h1>404 - Page Not Found</h1>
+                        <p>The page you're looking for doesn't exist.</p>
+                      </div>
+                    }
+                  />
                 </Route>
-
-                {/* Unauthorized page */}
-                <Route
-                  path="unauthorized"
-                  element={
-                    <div style={{ padding: 24 }}>
-                      <h1>403 - Unauthorized</h1>
-                      <p>You don't have permission to access this resource.</p>
-                    </div>
-                  }
-                />
-
-                {/* 404 - Not Found */}
-                <Route
-                  path="*"
-                  element={
-                    <div style={{ padding: 24 }}>
-                      <h1>404 - Page Not Found</h1>
-                      <p>The page you're looking for doesn't exist.</p>
-                    </div>
-                  }
-                />
-              </Route>
-            </Routes>
-          </Router>
+              </Routes>
+            </Router>
+          </NotificationProvider>
         </AuthProvider>
       </ThemeProvider>
     </CacheProvider>
