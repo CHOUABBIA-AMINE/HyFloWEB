@@ -1,57 +1,68 @@
 /**
  * Protected Route Component
- * Route wrapper that requires authentication
+ * 
+ * Protects routes based on user permissions.
+ * Redirects unauthorized users to a specified page.
  * 
  * @author CHOUABBIA Amine
- * @created 12-22-2025
+ * @created 02-01-2026
  */
 
+import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Box, CircularProgress } from '@mui/material';
+import { CircularProgress, Box } from '@mui/material';
+import { usePermission } from '../hooks/usePermission';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles?: string[];
+  permission?: string;
+  anyPermission?: string[];
+  allPermissions?: string[];
+  role?: string;
+  anyRole?: string[];
+  redirectTo?: string;
 }
 
-const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  permission,
+  anyPermission,
+  allPermissions,
+  role,
+  anyRole,
+  redirectTo = '/unauthorized'
+}) => {
+  const { hasPermission, hasAnyPermission, hasAllPermissions, hasRole, hasAnyRole, isLoading } = usePermission();
 
-  // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '400px',
-        }}
-      >
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  let hasAccess = true;
+
+  if (permission && !hasPermission(permission)) {
+    hasAccess = false;
   }
 
-  // Check role-based access if required
-  if (requiredRoles && requiredRoles.length > 0) {
-    const hasRequiredRole = user?.roles.some((role) =>
-      requiredRoles.includes(role)
-    );
-
-    if (!hasRequiredRole) {
-      // Redirect to unauthorized page or dashboard
-      return <Navigate to="/unauthorized" replace />;
-    }
+  if (anyPermission && anyPermission.length > 0 && !hasAnyPermission(...anyPermission)) {
+    hasAccess = false;
   }
 
-  return <>{children}</>;
+  if (allPermissions && allPermissions.length > 0 && !hasAllPermissions(...allPermissions)) {
+    hasAccess = false;
+  }
+
+  if (role && !hasRole(role)) {
+    hasAccess = false;
+  }
+
+  if (anyRole && anyRole.length > 0 && !hasAnyRole(...anyRole)) {
+    hasAccess = false;
+  }
+
+  return hasAccess ? <>{children}</> : <Navigate to={redirectTo} replace />;
 };
-
-export default ProtectedRoute;
