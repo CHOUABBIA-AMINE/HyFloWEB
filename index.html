@@ -16,6 +16,11 @@
     <meta name="theme-color" content="#1976d2" />
     
     <title>HyFlo - Hydrocarbon Flow Management</title>
+    
+    <!-- Polyfill for SockJS: Define 'global' for browser environments -->
+    <script>
+      window.global = window;
+    </script>
   </head>
   <body>
     <div id="root"></div>
