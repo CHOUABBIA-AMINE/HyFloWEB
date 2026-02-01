@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-01-2026 - Added permission-based menu filtering
  * @updated 01-29-2026 - Added Flow Forecasts and Operations menus
  * @updated 01-28-2026 - Added Flow Thresholds menu
  * @updated 01-25-2026 - Added Flow Readings menu with List, Create, Validate submenus
@@ -36,6 +37,7 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { usePermission } from '@/shared/hooks/usePermission';
 import SecurityIcon from '@mui/icons-material/Security';
 import PeopleIcon from '@mui/icons-material/People';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
@@ -86,12 +88,16 @@ interface MenuItem {
   path?: string;
   children?: MenuItem[];
   parent?: string;
+  permission?: string; // Permission required to view this menu item
+  anyPermission?: string[]; // User needs ANY of these permissions
+  role?: string; // Role required to view this menu item
 }
 
 const Sidebar = ({ open }: SidebarProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { hasPermission, hasAnyPermission, hasRole } = usePermission();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -114,16 +120,19 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.readings.list',
               icon: <ListAltIcon />,
               path: '/flow/readings',
+              permission: 'READING:READ',
             },
             {
               titleKey: 'nav.readings.create',
               icon: <AddCircleIcon />,
               path: '/flow/readings/new',
+              permission: 'READING:CREATE',
             },
             {
               titleKey: 'nav.readings.validate',
               icon: <CheckCircleIcon />,
               path: '/flow/readings/pending',
+              permission: 'READING:VALIDATE', // 👈 Only validators see this
             },
           ],
         },
@@ -135,11 +144,13 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.thresholds.list',
               icon: <ListAltIcon />,
               path: '/flow/thresholds',
+              permission: 'THRESHOLD:READ',
             },
             {
               titleKey: 'nav.thresholds.create',
               icon: <AddCircleIcon />,
               path: '/flow/thresholds/new',
+              permission: 'THRESHOLD:CREATE',
             },
           ],
         },
@@ -151,11 +162,13 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.forecasts.list',
               icon: <ListAltIcon />,
               path: '/flow/forecasts',
+              permission: 'FORECAST:READ',
             },
             {
               titleKey: 'nav.forecasts.create',
               icon: <AddCircleIcon />,
               path: '/flow/forecasts/new',
+              permission: 'FORECAST:CREATE',
             },
           ],
         },
@@ -167,11 +180,13 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.operations.list',
               icon: <ListAltIcon />,
               path: '/flow/operations',
+              permission: 'OPERATION:READ',
             },
             {
               titleKey: 'nav.operations.create',
               icon: <AddCircleIcon />,
               path: '/flow/operations/new',
+              permission: 'OPERATION:CREATE',
             },
           ],
         },
@@ -303,6 +318,7 @@ const Sidebar = ({ open }: SidebarProps) => {
     {
       titleKey: 'nav.system',
       icon: <SettingsIcon />,
+      role: 'ROLE_ADMIN', // 👈 Only admins see System menu
       children: [
         {
           titleKey: 'nav.security',
@@ -354,7 +370,49 @@ const Sidebar = ({ open }: SidebarProps) => {
   const isExpanded = open || isHovered;
   const drawerWidth = isExpanded ? DRAWER_WIDTH_EXPANDED : DRAWER_WIDTH_COLLAPSED;
 
-  const getItemDepth = (itemTitle: string, items: MenuItem[] = menuItems, depth = 0): number => {
+  /**
+   * Check if user has permission to view a menu item
+   */
+  const hasMenuPermission = (item: MenuItem): boolean => {
+    // If no permission/role specified, show to everyone
+    if (!item.permission && !item.anyPermission && !item.role) {
+      return true;
+    }
+
+    // Check role
+    if (item.role && !hasRole(item.role)) {
+      return false;
+    }
+
+    // Check single permission
+    if (item.permission && !hasPermission(item.permission)) {
+      return false;
+    }
+
+    // Check any permission
+    if (item.anyPermission && !hasAnyPermission(...item.anyPermission)) {
+      return false;
+    }
+
+    return true;
+  };
+
+  /**
+   * Filter menu items based on permissions
+   */
+  const filterMenuItems = (items: MenuItem[]): MenuItem[] => {
+    return items
+      .filter(hasMenuPermission)
+      .map(item => ({
+        ...item,
+        children: item.children ? filterMenuItems(item.children) : undefined
+      }))
+      .filter(item => !item.children || item.children.length > 0); // Remove parent items with no visible children
+  };
+
+  const filteredMenuItems = filterMenuItems(menuItems);
+
+  const getItemDepth = (itemTitle: string, items: MenuItem[] = filteredMenuItems, depth = 0): number => {
     for (const item of items) {
       if (t(item.titleKey) === itemTitle) {
         return depth;
@@ -495,7 +553,7 @@ const Sidebar = ({ open }: SidebarProps) => {
         },
       }}
     >
-      <List sx={{ pt: 2, px: 1 }}>{menuItems.map((item, index) => renderMenuItem(item, 0, index))}</List>
+      <List sx={{ pt: 2, px: 1 }}>{filteredMenuItems.map((item, index) => renderMenuItem(item, 0, index))}</List>
     </Drawer>
   );
 };
