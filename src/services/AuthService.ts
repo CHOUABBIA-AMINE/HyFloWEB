@@ -5,23 +5,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-01-2026 - Integrated with AuthorizationService and new auth types
  */
 
 import axiosInstance from '@/shared/config/axios';
-import type { EmployeeDTO } from '@/modules/general/organization/dto/EmployeeDTO';
+import type { LoginRequest, LoginResponse, UserProfile, TokenRefreshResponse } from '@/types/auth';
+import { AuthorizationService } from './AuthorizationService';
 
 const BASE_URL = '/auth';
-
-interface LoginRequest {
-  username: string;
-  password: string;
-}
-
-interface LoginResponse {
-  token: string;
-  refreshToken: string;
-  user: EmployeeDTO;
-}
 
 export class AuthService {
   /**
@@ -30,13 +21,19 @@ export class AuthService {
   static async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await axiosInstance.post<LoginResponse>(`${BASE_URL}/login`, credentials);
     
-    // Store tokens
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('refreshToken', response.data.refreshToken);
-    }
+    const data = response.data;
     
-    return response.data;
+    // Store tokens
+    localStorage.setItem('authToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    
+    // Store user profile
+    localStorage.setItem('currentUser', JSON.stringify(data.user));
+    
+    // Initialize authorization with user permissions
+    AuthorizationService.setUser(data.user);
+    
+    return data;
   }
   
   /**
@@ -49,27 +46,31 @@ export class AuthService {
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('currentUser');
+      AuthorizationService.clear();
     }
   }
   
   /**
-   * Get current authenticated user
+   * Get current authenticated user profile
    */
-  static async getCurrentUser(): Promise<EmployeeDTO> {
+  static async getCurrentUser(): Promise<UserProfile> {
     // Check cache first
     const cached = localStorage.getItem('currentUser');
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const user = JSON.parse(cached);
+        AuthorizationService.setUser(user);
+        return user;
       } catch (e) {
         // Invalid cache, fetch fresh
       }
     }
     
-    const response = await axiosInstance.get<EmployeeDTO>(`${BASE_URL}/me`);
+    const response = await axiosInstance.get<UserProfile>(`${BASE_URL}/me`);
     
     // Cache the user
     localStorage.setItem('currentUser', JSON.stringify(response.data));
+    AuthorizationService.setUser(response.data);
     
     return response.data;
   }
@@ -84,47 +85,16 @@ export class AuthService {
       throw new Error('No refresh token available');
     }
     
-    const response = await axiosInstance.post<{ token: string }>(`${BASE_URL}/refresh`, {
+    const response = await axiosInstance.post<TokenRefreshResponse>(`${BASE_URL}/refresh`, {
       refreshToken,
     });
     
-    localStorage.setItem('authToken', response.data.token);
-    
-    return response.data.token;
-  }
-  
-  /**
-   * Check if user has specific permission
-   */
-  static hasPermission(permission: string): boolean {
-    const cached = localStorage.getItem('currentUser');
-    if (!cached) return false;
-    
-    try {
-      const user: EmployeeDTO = JSON.parse(cached);
-      // Assuming user has permissions array
-      // @ts-ignore - Type may need to be extended
-      return user.permissions?.includes(permission) || false;
-    } catch (e) {
-      return false;
+    localStorage.setItem('authToken', response.data.accessToken);
+    if (response.data.refreshToken) {
+      localStorage.setItem('refreshToken', response.data.refreshToken);
     }
-  }
-  
-  /**
-   * Check if user has specific role
-   */
-  static hasRole(role: string): boolean {
-    const cached = localStorage.getItem('currentUser');
-    if (!cached) return false;
     
-    try {
-      const user: EmployeeDTO = JSON.parse(cached);
-      // Assuming user has roles array
-      // @ts-ignore - Type may need to be extended
-      return user.roles?.includes(role) || false;
-    } catch (e) {
-      return false;
-    }
+    return response.data.accessToken;
   }
   
   /**
@@ -139,5 +109,20 @@ export class AuthService {
    */
   static getToken(): string | null {
     return localStorage.getItem('authToken');
+  }
+  
+  /**
+   * Initialize authentication on app startup
+   */
+  static async initialize(): Promise<void> {
+    if (this.isAuthenticated()) {
+      try {
+        await this.getCurrentUser();
+      } catch (error) {
+        // Token might be expired
+        console.error('Failed to initialize auth:', error);
+        await this.logout();
+      }
+    }
   }
 }
