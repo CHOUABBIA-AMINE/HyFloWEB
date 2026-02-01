@@ -552,6 +552,23 @@
       "create": "New Reading",
       "validate": "Validate Readings"
     },
+	"threshold": "Thresholds",
+    "thresholds": {
+      "list": "All Thresholds",
+      "create": "New Threshold"
+    },
+    
+    "forecast": "Forecasts",
+    "forecasts": {
+      "list": "All Forecasts",
+      "create": "New Forecast"
+    },
+    
+    "operation": "Operations",
+    "operations": {
+      "list": "All Operations",
+      "create": "New Operation"
+    },
 	"maps": "Maps",
     "infrastructureMap": "Infrastructure Map",
     "statistics": "Statistics"
@@ -815,6 +832,258 @@
         "cubicMeter": "m³"
       },
       "notAvailable": "N/A"
+    }
+  },
+  "flow": {
+    "threshold": {
+      "title": "Flow Thresholds",
+      "subtitle": "Manage safe operating ranges for pipeline monitoring",
+      "new": "New Threshold",
+      "edit": "Edit Flow Threshold",
+      "create": "New Flow Threshold",
+      "update": "Update Threshold",
+      "delete": "Delete Threshold",
+      "deleteConfirm": "Are you sure you want to delete threshold #{{id}} for pipeline {{code}}? This action cannot be undone.",
+      "deleteSuccess": "Threshold deleted successfully",
+      "activated": "Threshold activated",
+      "deactivated": "Threshold deactivated",
+      "noThresholds": "No thresholds found",
+      "loadingData": "Loading threshold data...",
+      "saving": "Saving...",
+      "createButton": "Create Threshold",
+      "updateButton": "Update Threshold",
+      "requiredFields": "* Required fields",
+      "validationIssues": "Validation Issues:",
+      "fixErrors": "Please fix validation errors before submitting",
+      "filters": {
+        "title": "Filters",
+        "search": "Search",
+        "searchPlaceholder": "Search thresholds...",
+        "pipeline": "Pipeline",
+        "allPipelines": "All Pipelines",
+        "activeOnly": "Active Only",
+        "refresh": "Refresh",
+        "clear": "Clear Filters"
+      },
+      "fields": {
+        "id": "ID",
+        "pipeline": "Pipeline",
+        "pipelineSelect": "Select a pipeline...",
+        "pipelineHelp": "Select the pipeline for this threshold",
+        "pipelineDisabled": "Pipeline cannot be changed after creation",
+        "pipelineNote": "Pipeline cannot be changed when editing",
+        "pressure": "Pressure",
+        "temperature": "Temperature",
+        "flowRate": "Flow Rate",
+        "containedVolume": "Contained Volume",
+        "tolerance": "Tolerance",
+        "status": "Status",
+        "actions": "Actions",
+        "minimum": "Minimum",
+        "maximum": "Maximum",
+        "active": "Active",
+        "inactive": "Inactive",
+        "activeMonitoring": "Threshold is monitoring the pipeline",
+        "inactiveDisabled": "Threshold is disabled",
+        "required": "Required",
+        "tooLow": "Too low",
+        "tooHigh": "Too high",
+        "cannotBeNegative": "Cannot be negative",
+        "mustBePositive": "Must be positive",
+        "cannotExceed50": "Cannot exceed 50%"
+      },
+      "sections": {
+        "pipelineConfig": "Pipeline Configuration",
+        "pressureThresholds": "Pressure Thresholds",
+        "temperatureThresholds": "Temperature Thresholds",
+        "flowRateThresholds": "Flow Rate Thresholds",
+        "containedVolumeThresholds": "Contained Volume Thresholds",
+        "alertConfig": "Alert Configuration",
+        "alertConfigDesc": "Configure alert tolerance and activation status"
+      },
+      "tooltips": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "clickToActivate": "Click to activate",
+        "clickToDeactivate": "Click to deactivate",
+        "minMax": "Min: {{min}}, Max: {{max}}"
+      },
+      "alerts": {
+        "pipelineInfo": "Pipeline:",
+        "existsForPipeline": "A threshold already exists for this pipeline. Each pipeline can only have one threshold.",
+        "failedToLoad": "Failed to load threshold data",
+        "failedToSave": "Failed to save threshold",
+        "failedToDelete": "Delete failed:",
+        "failedToToggle": "Failed to toggle active status:",
+        "validationFromServer": "Validation error from server"
+      },
+      "constraints": {
+        "range": "Range: {{min}} - {{max}} {{unit}}",
+        "minimum": "Minimum: {{min}} {{unit}}",
+        "alertToleranceHelp": "Warning threshold as percentage (±5%)"
+      },
+      "actions": {
+        "back": "Back",
+        "cancel": "Cancel",
+        "save": "Save"
+      }
+    },
+    "forecast": {
+      "title": "Flow Forecasts",
+      "subtitle": "Production and consumption forecasts",
+      "new": "New Forecast",
+      "edit": "Edit Forecast",
+      "create": "Create New Forecast",
+      "delete": "Delete Forecast",
+      "deleteConfirm": "Are you sure you want to delete this {{type}} forecast for {{infrastructure}} on {{date}}? This action cannot be undone.",
+      "noForecasts": "No forecasts found",
+      "filters": {
+        "search": "Search",
+        "searchPlaceholder": "Search forecasts...",
+        "infrastructure": "Infrastructure",
+        "all": "All",
+        "product": "Product",
+        "type": "Type",
+        "from": "From",
+        "to": "To",
+        "clearFilters": "Clear Filters"
+      },
+      "fields": {
+        "date": "Date",
+        "type": "Type",
+        "infrastructure": "Infrastructure",
+        "product": "Product",
+        "volume": "Volume",
+        "recordedBy": "Recorded By",
+        "actions": "Actions",
+        "selectInfrastructure": "Select infrastructure",
+        "selectProduct": "Select product",
+        "selectType": "Select type",
+        "notes": "Notes",
+        "notesPlaceholder": "Additional notes or comments..."
+      },
+      "types": {
+        "produced": "Production",
+        "consumed": "Consumption"
+      },
+      "tooltips": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "alerts": {
+        "createSuccess": "Forecast created successfully",
+        "updateSuccess": "Forecast updated successfully",
+        "deleteSuccess": "Forecast deleted successfully",
+        "createError": "Failed to create forecast",
+        "updateError": "Failed to update forecast",
+        "deleteError": "Failed to delete forecast",
+        "loadError": "Failed to load forecasts"
+      },
+      "actions": {
+        "back": "Back to List",
+        "cancel": "Cancel",
+        "create": "Create Forecast",
+        "update": "Update Forecast"
+      }
+    },
+    "operation": {
+      "title": "Flow Operations",
+      "subtitle": "Production, transportation, and consumption operations",
+      "new": "New Operation",
+      "edit": "Edit Operation",
+      "create": "Create New Operation",
+      "delete": "Delete Operation",
+      "deleteConfirm": "Are you sure you want to delete this {{type}} operation for {{infrastructure}} on {{date}}? This action cannot be undone.",
+      "noOperations": "No operations found",
+      "validation": {
+        "title": "Validate Operation",
+        "subtitle": "Review and validate or reject this operation",
+        "operationDetails": "Operation Details",
+        "reviewInformation": "Review Information",
+        "status": "Status",
+        "recordedBy": "Recorded By",
+        "recordedAt": "Recorded At",
+        "validatedBy": "Validated By",
+        "validatedAt": "Validated At",
+        "approveOperation": "Approve Operation",
+        "rejectOperation": "Reject Operation",
+        "rejectionReason": "Rejection Reason",
+        "rejectionReasonPlaceholder": "Explain why this operation is being rejected...",
+        "rejectionReasonRequired": "Please provide a reason for rejection",
+        "confirmApprove": "Are you sure you want to approve this operation?",
+        "confirmReject": "Are you sure you want to reject this operation?",
+        "approveSuccess": "Operation approved successfully",
+        "rejectSuccess": "Operation rejected successfully",
+        "approveError": "Failed to approve operation",
+        "rejectError": "Failed to reject operation",
+        "cannotValidate": "Cannot validate operation in {{status}} status",
+        "onlyPending": "Only PENDING operations can be validated",
+        "backToList": "Back to Operations"
+      },
+      "filters": {
+        "search": "Search",
+        "infrastructure": "Infrastructure",
+        "all": "All",
+        "product": "Product",
+        "type": "Type",
+        "from": "From",
+        "to": "To",
+        "clearFilters": "Clear Filters"
+      },
+      "fields": {
+        "date": "Date",
+        "type": "Type",
+        "infrastructure": "Infrastructure",
+        "product": "Product",
+        "volume": "Volume",
+        "recordedBy": "Recorded By",
+        "status": "Status",
+        "actions": "Actions",
+        "selectInfrastructure": "Select infrastructure",
+        "selectProduct": "Select product",
+        "selectType": "Select type",
+        "notes": "Notes",
+        "notesPlaceholder": "Additional notes or comments...",
+        "validationStatus": "Validation Status"
+      },
+      "status": {
+        "draft": "Draft",
+        "pending": "Pending",
+        "validated": "Validated",
+        "rejected": "Rejected"
+      },
+      "types": {
+        "produced": "Production",
+        "transported": "Transportation",
+        "consumed": "Consumption"
+      },
+      "tooltips": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "validate": "Validate",
+        "cannotEditValidated": "Cannot edit validated operation",
+        "cannotDeleteValidated": "Cannot delete validated operation"
+      },
+      "alerts": {
+        "createSuccess": "Operation created successfully",
+        "updateSuccess": "Operation updated successfully",
+        "deleteSuccess": "Operation deleted successfully",
+        "submitSuccess": "Operation submitted for validation",
+        "saveDraftSuccess": "Operation saved as draft",
+        "createError": "Failed to create operation",
+        "updateError": "Failed to update operation",
+        "deleteError": "Failed to delete operation",
+        "loadError": "Failed to load operations"
+      },
+      "actions": {
+        "back": "Back to List",
+        "cancel": "Cancel",
+        "saveDraft": "Save as Draft",
+        "submitValidation": "Submit for Validation",
+        "update": "Update Operation",
+        "approve": "Approve",
+        "reject": "Reject"
+      }
     }
   }
 }

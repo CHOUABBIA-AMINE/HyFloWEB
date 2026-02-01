@@ -128,7 +128,7 @@ const Sidebar = ({ open }: SidebarProps) => {
           ],
         },
         {
-          titleKey: 'nav.thresholds',
+          titleKey: 'nav.threshold',
           icon: <SpeedIcon />,
           children: [
             {
@@ -144,7 +144,7 @@ const Sidebar = ({ open }: SidebarProps) => {
           ],
         },
         {
-          titleKey: 'nav.forecasts',
+          titleKey: 'nav.forecast',
           icon: <TrendingUpIcon />,
           children: [
             {
@@ -160,7 +160,7 @@ const Sidebar = ({ open }: SidebarProps) => {
           ],
         },
         {
-          titleKey: 'nav.operations',
+          titleKey: 'nav.operation',
           icon: <LocalShippingIcon />,
           children: [
             {
