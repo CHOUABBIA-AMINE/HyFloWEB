@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-02-2026 - Updated to use employee from UserProfile (embedded in user object)
  * @updated 02-01-2026 - Added NotificationBadge for VALIDATOR users
  * @updated 01-26-2026 - Removed fixed username text, kept tooltip on avatar hover only
  * @updated 01-26-2026 - Added tooltip to display username/employee name on avatar hover
@@ -38,9 +39,7 @@ import BusinessIcon from '@mui/icons-material/Business';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from '../LanguageSwitcher';
 import NotificationBadge from './NotificationBadge';
-import { EmployeeService } from '../../../modules/general/organization/services/EmployeeService';
 import { FileService } from '../../../modules/system/utility/services';
-import { EmployeeDTO } from '../../../modules/general/organization/dto/EmployeeDTO';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -54,11 +53,13 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoError, setLogoError] = useState(false);
-  const [employee, setEmployee] = useState<EmployeeDTO | null>(null);
   const [employeePicture, setEmployeePicture] = useState<string | null>(null);
-  const [loadingEmployee, setLoadingEmployee] = useState(false);
+  const [loadingPicture, setLoadingPicture] = useState(false);
 
   const lang = useMemo(() => (i18n.language || 'fr').split('-')[0], [i18n.language]);
+
+  // Get employee from user profile (now embedded)
+  const employee = useMemo(() => user?.employee || null, [user?.employee]);
 
   // Check if user has VALIDATOR role
   const isValidator = useMemo(() => {
@@ -66,52 +67,38 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
     return roles.includes('ROLE_VALIDATOR') || roles.includes('VALIDATOR');
   }, [user?.roles]);
 
-  // Load employee data if user has employeeId
+  // Load employee picture if available
   useEffect(() => {
-    const loadEmployee = async () => {
-      if (!user?.employeeId) {
-        setEmployee(null);
+    const loadEmployeePicture = async () => {
+      // Check if employee has a picture
+      const pictureId = employee?.picture?.id;
+      
+      if (!pictureId) {
         setEmployeePicture(null);
         return;
       }
 
       try {
-        setLoadingEmployee(true);
-        const employeeData = await EmployeeService.getById(user.employeeId);
-        setEmployee(employeeData);
-
-        // Load employee picture if available
-        if (employeeData.picture?.id) {
-          try {
-            const blobUrl = await FileService.getFileBlob(employeeData.picture.id);
-            setEmployeePicture(blobUrl);
-          } catch (err) {
-            console.error('Failed to load employee picture:', err);
-            setEmployeePicture(null);
-          }
-        } else {
-          setEmployeePicture(null);
-        }
-      } catch (error) {
-        console.error('Failed to load employee data:', error);
-        setEmployee(null);
+        setLoadingPicture(true);
+        const blobUrl = await FileService.getFileBlob(pictureId);
+        setEmployeePicture(blobUrl);
+      } catch (err) {
+        console.error('Failed to load employee picture:', err);
         setEmployeePicture(null);
       } finally {
-        setLoadingEmployee(false);
+        setLoadingPicture(false);
       }
     };
 
-    loadEmployee();
-  }, [user?.employeeId]);
+    loadEmployeePicture();
 
-  // Cleanup blob URL on unmount
-  useEffect(() => {
+    // Cleanup blob URL on unmount or when employee changes
     return () => {
       if (employeePicture && employeePicture.startsWith('blob:')) {
         URL.revokeObjectURL(employeePicture);
       }
     };
-  }, [employeePicture]);
+  }, [employee?.picture?.id]);
 
   // Get display name based on language and employee data
   const getDisplayName = (): string => {
@@ -272,7 +259,7 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
                 color="inherit" 
                 size="small" 
                 onClick={handleMenuOpen}
-                disabled={isLoggingOut || loadingEmployee}
+                disabled={isLoggingOut || loadingPicture}
               >
                 {employeePicture ? (
                   <Avatar 
@@ -280,7 +267,7 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
                     sx={{ width: 32, height: 32 }}
                     alt={getDisplayName()}
                   />
-                ) : loadingEmployee ? (
+                ) : loadingPicture ? (
                   <CircularProgress size={32} />
                 ) : (
                   <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem' }}>
