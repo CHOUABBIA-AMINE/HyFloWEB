@@ -7,6 +7,7 @@
  * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
  * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 02-02-2026 - Added missing required fields: ownerId, managerId, locationIds
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -24,6 +25,8 @@ import {
   Divider,
   Stack,
   MenuItem,
+  Autocomplete,
+  Chip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -32,6 +35,8 @@ import {
 } from '@mui/icons-material';
 import { PipelineService, PipelineSystemService, TerminalService } from '../services';
 import { VendorService, OperationalStatusService, AlloyService } from '../../common/services';
+import { StructureService } from '@/modules/general/organization/services';
+import { LocationService } from '@/modules/general/geography/services';
 import { PipelineDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -64,11 +69,14 @@ const PipelineEdit = () => {
     nominalConstructionMaterialId: undefined,
     nominalExteriorCoatingId: undefined,
     nominalInteriorCoatingId: undefined,
-    operationalStatusId: 0,
-    vendorId: 0,
+    operationalStatusId: undefined,
+    ownerId: undefined,
+    managerId: undefined,
+    vendorId: undefined,
     pipelineSystemId: undefined,
     departureTerminalId: undefined,
     arrivalTerminalId: undefined,
+    locationIds: [],
   });
 
   // Available options
@@ -77,6 +85,8 @@ const PipelineEdit = () => {
   const [vendors, setVendors] = useState<any[]>([]);
   const [alloys, setAlloys] = useState<any[]>([]);
   const [terminals, setTerminals] = useState<any[]>([]);
+  const [structures, setStructures] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -116,12 +126,16 @@ const PipelineEdit = () => {
         operationalStatusesData,
         alloysData,
         terminalsData,
+        structuresData,
+        locationsData,
       ] = await Promise.allSettled([
         VendorService.getAllNoPagination(),
         PipelineSystemService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
         AlloyService.getAllNoPagination(),
         TerminalService.getAllNoPagination(),
+        StructureService.getAllNoPagination(),
+        LocationService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -180,6 +194,30 @@ const PipelineEdit = () => {
         setTerminals([]);
       }
 
+      // Handle structures
+      if (structuresData.status === 'fulfilled') {
+        const structures = Array.isArray(structuresData.value) 
+          ? structuresData.value 
+          : (Array.isArray((structuresData.value as any)?.data) ? (structuresData.value as any).data 
+            : Array.isArray((structuresData.value as any)?.content) ? (structuresData.value as any).content : []);
+        setStructures(structures);
+      } else {
+        console.error('Failed to load structures:', structuresData.reason);
+        setStructures([]);
+      }
+
+      // Handle locations
+      if (locationsData.status === 'fulfilled') {
+        const locations = Array.isArray(locationsData.value) 
+          ? locationsData.value 
+          : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data 
+            : Array.isArray((locationsData.value as any)?.content) ? (locationsData.value as any).content : []);
+        setLocations(locations);
+      } else {
+        console.error('Failed to load locations:', locationsData.reason);
+        setLocations([]);
+      }
+
       // Set pipeline data if editing
       if (pipelineData) {
         setPipeline(pipelineData);
@@ -209,8 +247,28 @@ const PipelineEdit = () => {
       errors.operationalStatusId = t('common.validation.required', { field: t('common.fields.operationalStatus') });
     }
 
+    if (!pipeline.ownerId) {
+      errors.ownerId = t('common.validation.required', { field: t('common.fields.owner') });
+    }
+
+    if (!pipeline.managerId) {
+      errors.managerId = t('common.validation.required', { field: t('common.fields.manager') });
+    }
+
     if (!pipeline.vendorId) {
       errors.vendorId = t('common.validation.required', { field: t('common.fields.vendor') });
+    }
+
+    if (!pipeline.pipelineSystemId) {
+      errors.pipelineSystemId = t('common.validation.required', { field: t('pipeline.fields.pipelineSystem') });
+    }
+
+    if (!pipeline.departureTerminalId) {
+      errors.departureTerminalId = t('common.validation.required', { field: t('pipeline.fields.departureTerminal') });
+    }
+
+    if (!pipeline.arrivalTerminalId) {
+      errors.arrivalTerminalId = t('common.validation.required', { field: t('pipeline.fields.arrivalTerminal') });
     }
 
     setValidationErrors(errors);
@@ -225,6 +283,11 @@ const PipelineEdit = () => {
     if (validationErrors[field]) {
       setValidationErrors({ ...validationErrors, [field]: '' });
     }
+  };
+
+  const handleLocationsChange = (_: any, newValue: any[]) => {
+    const locationIds = newValue.map(loc => loc.id);
+    setPipeline({ ...pipeline, locationIds });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -258,10 +321,13 @@ const PipelineEdit = () => {
         nominalExteriorCoatingId: pipeline.nominalExteriorCoatingId ? Number(pipeline.nominalExteriorCoatingId) : undefined,
         nominalInteriorCoatingId: pipeline.nominalInteriorCoatingId ? Number(pipeline.nominalInteriorCoatingId) : undefined,
         operationalStatusId: Number(pipeline.operationalStatusId),
+        ownerId: Number(pipeline.ownerId),
+        managerId: Number(pipeline.managerId),
         vendorId: Number(pipeline.vendorId),
-        pipelineSystemId: pipeline.pipelineSystemId ? Number(pipeline.pipelineSystemId) : undefined,
-        departureTerminalId: pipeline.departureTerminalId ? Number(pipeline.departureTerminalId) : undefined,
-        arrivalTerminalId: pipeline.arrivalTerminalId ? Number(pipeline.arrivalTerminalId) : undefined,
+        pipelineSystemId: Number(pipeline.pipelineSystemId),
+        departureTerminalId: Number(pipeline.departureTerminalId),
+        arrivalTerminalId: Number(pipeline.arrivalTerminalId),
+        locationIds: pipeline.locationIds || [],
       };
 
       if (isEditMode) {
@@ -282,6 +348,12 @@ const PipelineEdit = () => {
   const handleCancel = () => {
     navigate('/network/core/pipelines');
   };
+
+  // Get selected locations for Autocomplete
+  const selectedLocations = useMemo(() => {
+    if (!pipeline.locationIds || !locations.length) return [];
+    return locations.filter(loc => pipeline.locationIds?.includes(loc.id));
+  }, [pipeline.locationIds, locations]);
 
   if (loading) {
     return (
@@ -362,6 +434,64 @@ const PipelineEdit = () => {
             </Box>
           </Paper>
 
+          {/* Organizational Details */}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('common.sections.organizationalDetails')}
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label={t('common.fields.owner')}
+                    value={pipeline.ownerId || ''}
+                    onChange={handleChange('ownerId')}
+                    required
+                    error={!!validationErrors.ownerId}
+                    helperText={validationErrors.ownerId || t('common.fields.ownerHelper')}
+                  >
+                    {structures.length > 0 ? (
+                      structures.map((structure) => (
+                        <MenuItem key={structure.id} value={structure.id}>
+                          {structure.name} ({structure.code})
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    select
+                    label={t('common.fields.manager')}
+                    value={pipeline.managerId || ''}
+                    onChange={handleChange('managerId')}
+                    required
+                    error={!!validationErrors.managerId}
+                    helperText={validationErrors.managerId || t('common.fields.managerHelper')}
+                  >
+                    {structures.length > 0 ? (
+                      structures.map((structure) => (
+                        <MenuItem key={structure.id} value={structure.id}>
+                          {structure.name} ({structure.code})
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>{t('common.loading')}</MenuItem>
+                    )}
+                  </TextField>
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
           {/* Dimensional Specifications */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
@@ -379,6 +509,7 @@ const PipelineEdit = () => {
                     value={pipeline.nominalDiameter || '0'}
                     onChange={handleChange('nominalDiameter')}
                     inputProps={{ step: 0.01, min: 0 }}
+                    required
                   />
                 </Grid>
 
@@ -390,6 +521,7 @@ const PipelineEdit = () => {
                     value={pipeline.nominalThickness || '0'}
                     onChange={handleChange('nominalThickness')}
                     inputProps={{ step: 0.01, min: 0 }}
+                    required
                   />
                 </Grid>
 
@@ -401,6 +533,7 @@ const PipelineEdit = () => {
                     value={pipeline.length || 0}
                     onChange={handleChange('length')}
                     inputProps={{ step: 0.01, min: 0 }}
+                    required
                   />
                 </Grid>
 
@@ -412,6 +545,7 @@ const PipelineEdit = () => {
                     value={pipeline.nominalRoughness || '0'}
                     onChange={handleChange('nominalRoughness')}
                     inputProps={{ step: 0.0001, min: 0 }}
+                    required
                   />
                 </Grid>
               </Grid>
@@ -435,6 +569,7 @@ const PipelineEdit = () => {
                     value={pipeline.designMaxServicePressure ?? 0}
                     onChange={handleChange('designMaxServicePressure')}
                     inputProps={{ step: 0.1, min: 0 }}
+                    required
                   />
                 </Grid>
 
@@ -446,6 +581,7 @@ const PipelineEdit = () => {
                     value={pipeline.operationalMaxServicePressure ?? 0}
                     onChange={handleChange('operationalMaxServicePressure')}
                     inputProps={{ step: 0.1, min: 0 }}
+                    required
                   />
                 </Grid>
 
@@ -457,6 +593,7 @@ const PipelineEdit = () => {
                     value={pipeline.designMinServicePressure ?? 0}
                     onChange={handleChange('designMinServicePressure')}
                     inputProps={{ step: 0.1, min: 0 }}
+                    required
                   />
                 </Grid>
 
@@ -468,6 +605,7 @@ const PipelineEdit = () => {
                     value={pipeline.operationalMinServicePressure ?? 0}
                     onChange={handleChange('operationalMinServicePressure')}
                     inputProps={{ step: 0.1, min: 0 }}
+                    required
                   />
                 </Grid>
               </Grid>
@@ -491,6 +629,7 @@ const PipelineEdit = () => {
                     value={pipeline.designCapacity ?? 0}
                     onChange={handleChange('designCapacity')}
                     inputProps={{ step: 0.01, min: 0 }}
+                    required
                     helperText={t('pipeline.fields.designCapacityHelper')}
                   />
                 </Grid>
@@ -503,6 +642,7 @@ const PipelineEdit = () => {
                     value={pipeline.operationalCapacity ?? 0}
                     onChange={handleChange('operationalCapacity')}
                     inputProps={{ step: 0.01, min: 0 }}
+                    required
                     helperText={t('pipeline.fields.operationalCapacityHelper')}
                   />
                 </Grid>
@@ -582,7 +722,7 @@ const PipelineEdit = () => {
               <Divider sx={{ mb: 3 }} />
               
               <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     select
@@ -605,7 +745,7 @@ const PipelineEdit = () => {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     select
@@ -628,15 +768,17 @@ const PipelineEdit = () => {
                   </TextField>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     select
                     label={t('pipeline.fields.pipelineSystem')}
                     value={pipeline.pipelineSystemId || ''}
                     onChange={handleChange('pipelineSystemId')}
+                    required
+                    error={!!validationErrors.pipelineSystemId}
+                    helperText={validationErrors.pipelineSystemId}
                   >
-                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {pipelineSystems.map((system) => (
                       <MenuItem key={system.id} value={system.id}>
                         {system.name}
@@ -664,8 +806,10 @@ const PipelineEdit = () => {
                     label={t('pipeline.fields.departureTerminal')}
                     value={pipeline.departureTerminalId || ''}
                     onChange={handleChange('departureTerminalId')}
+                    required
+                    error={!!validationErrors.departureTerminalId}
+                    helperText={validationErrors.departureTerminalId}
                   >
-                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {terminals.map((terminal) => (
                       <MenuItem key={terminal.id} value={terminal.id}>
                         {terminal.name} ({terminal.code})
@@ -681,14 +825,54 @@ const PipelineEdit = () => {
                     label={t('pipeline.fields.arrivalTerminal')}
                     value={pipeline.arrivalTerminalId || ''}
                     onChange={handleChange('arrivalTerminalId')}
+                    required
+                    error={!!validationErrors.arrivalTerminalId}
+                    helperText={validationErrors.arrivalTerminalId}
                   >
-                    <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
                     {terminals.map((terminal) => (
                       <MenuItem key={terminal.id} value={terminal.id}>
                         {terminal.name} ({terminal.code})
                       </MenuItem>
                     ))}
                   </TextField>
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+
+          {/* Geographic Details */}
+          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+            <Box sx={{ p: 2.5 }}>
+              <Typography variant="h6" fontWeight={600} gutterBottom>
+                {t('common.sections.geographicDetails')}
+              </Typography>
+              <Divider sx={{ mb: 3 }} />
+              
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Autocomplete
+                    multiple
+                    options={locations}
+                    value={selectedLocations}
+                    onChange={handleLocationsChange}
+                    getOptionLabel={(option) => `${option.name} (${option.code})`}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('common.fields.locations')}
+                        helperText={t('common.fields.locationsHelper')}
+                      />
+                    )}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip
+                          label={option.name}
+                          {...getTagProps({ index })}
+                          key={option.id}
+                        />
+                      ))
+                    }
+                  />
                 </Grid>
               </Grid>
             </Box>
