@@ -8,6 +8,7 @@
  * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 02-02-2026 - Added missing required fields: ownerId, managerId, locationIds
+ * @updated 02-02-2026 - Fixed LocationService import path (localization not geography)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -36,7 +37,7 @@ import {
 import { PipelineService, PipelineSystemService, TerminalService } from '../services';
 import { VendorService, OperationalStatusService, AlloyService } from '../../common/services';
 import { StructureService } from '@/modules/general/organization/services';
-import { LocationService } from '@/modules/general/geography/services';
+import { LocationService } from '@/modules/general/localization/services';
 import { PipelineDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -457,7 +458,7 @@ const PipelineEdit = () => {
                     {structures.length > 0 ? (
                       structures.map((structure) => (
                         <MenuItem key={structure.id} value={structure.id}>
-                          {structure.name} ({structure.code})
+                          {structure.designationFr} ({structure.code})
                         </MenuItem>
                       ))
                     ) : (
@@ -480,7 +481,7 @@ const PipelineEdit = () => {
                     {structures.length > 0 ? (
                       structures.map((structure) => (
                         <MenuItem key={structure.id} value={structure.id}>
-                          {structure.name} ({structure.code})
+                          {structure.designationFr} ({structure.code})
                         </MenuItem>
                       ))
                     ) : (
