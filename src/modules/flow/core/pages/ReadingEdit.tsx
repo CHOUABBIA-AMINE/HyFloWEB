@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-02-2026 - Fixed employee data extraction to work with new UserProfile structure
  * @updated 01-25-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  * @updated 01-28-2026 - Added reading date and slot support
  * @updated 01-29-2026 - Fixed: Use getCurrentLocalDateTime for correct timezone display
@@ -50,7 +51,7 @@ import { ValidationReview } from './components/ValidationReview';
 import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingService';
 import { ValidationStatusService } from '@/modules/flow/common/services/ValidationStatusService';
 import UserService from '@/modules/system/security/services/UserService';
-import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
+import { useAuth } from '@/shared/context/AuthContext';
 import { getCurrentLocalDateTime, isoToLocalDateTimeString } from '@/shared/utils/dateTimeLocal';
 
 import type { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
@@ -60,8 +61,8 @@ import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO'
 
 interface ReadingFormData {
   pipelineId?: number;
-  readingDate: string; // NEW: Business date for the reading
-  readingSlotId?: number; // NEW: Slot ID
+  readingDate: string; // Business date for the reading
+  readingSlotId?: number; // Slot ID
   recordedAt: string;
   pressure?: number;
   temperature?: number;
@@ -89,6 +90,7 @@ const steps = [
 export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth(); // Use AuthContext to get current user
   
   // Form state with updated default values
   const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<ReadingFormData>({
@@ -96,7 +98,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       pipelineId: undefined,
       readingDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
       readingSlotId: undefined,
-      recordedAt: getCurrentLocalDateTime(), // FIXED: Use local time utility
+      recordedAt: getCurrentLocalDateTime(),
       pressure: undefined,
       temperature: undefined,
       flowRate: undefined,
@@ -109,12 +111,13 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(mode !== 'create');
-  const [currentUser, setCurrentUser] = useState<EmployeeDTO | null>(null);
+  const [currentEmployee, setCurrentEmployee] = useState<EmployeeDTO | null>(null);
   const [existingReading, setExistingReading] = useState<FlowReadingDTO | null>(null);
   const [validationStatuses, setValidationStatuses] = useState<ValidationStatusDTO[]>([]);
   const [selectedThreshold, setSelectedThreshold] = useState<FlowThresholdDTO | undefined>(undefined);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [notification, setNotification] = useState<NotificationState>({
     open: false,
     message: '',
@@ -128,7 +131,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   // Load initial data
   useEffect(() => {
     loadInitialData();
-  }, [id]);
+  }, [id, user]);
   
   // Track unsaved changes
   useEffect(() => {
@@ -151,21 +154,29 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const loadInitialData = async () => {
     try {
       setLoadingData(true);
+      setAuthError(null);
       
-      // Load current user using JWT token
-      const username = getUsernameFromToken();
-      if (!username) {
-        throw new Error('No username found in token. Please log in again.');
+      // Check if user is authenticated
+      if (!user) {
+        setAuthError('Not authenticated. Please log in.');
+        setLoadingData(false);
+        return;
       }
       
-      // Fetch user data from backend using /user/username/{username}
-      const userData = await UserService.getByUsername(username);
+      console.log('Current user from AuthContext:', user);
       
-      // Extract employee from user data
-      if (userData.employee) {
-        setCurrentUser(userData.employee);
+      // Extract employee from user (now embedded in UserProfile)
+      if (user.employee) {
+        console.log('Employee found:', user.employee);
+        setCurrentEmployee(user.employee);
       } else {
-        throw new Error('Employee data not found for current user');
+        console.warn('No employee associated with user:', user.username);
+        setAuthError(
+          `Your user account (${user.username}) is not linked to an employee profile. ` +
+          'Please contact an administrator to link your account to an employee.'
+        );
+        setLoadingData(false);
+        return;
       }
       
       // Load validation statuses
@@ -179,9 +190,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         
         // Populate form with existing data
         setValue('pipelineId', reading.pipelineId);
-        setValue('readingDate', reading.readingDate); // NEW
-        setValue('readingSlotId', reading.readingSlotId); // NEW
-        // FIXED: Convert ISO string to local datetime string for input
+        setValue('readingDate', reading.readingDate);
+        setValue('readingSlotId', reading.readingSlotId);
         setValue('recordedAt', isoToLocalDateTimeString(reading.recordedAt));
         setValue('pressure', reading.pressure);
         setValue('temperature', reading.temperature);
@@ -195,11 +205,11 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         }
       }
     } catch (error: any) {
+      console.error('Error loading initial data:', error);
       showNotification(
         error.message || 'Failed to load required data',
         'error'
       );
-      // Don't navigate away, let user see the error
     } finally {
       setLoadingData(false);
     }
@@ -244,8 +254,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         return;
       }
       
-      if (!currentUser?.id) {
-        showNotification('User information not available', 'error');
+      if (!currentEmployee?.id) {
+        showNotification('Employee information not available', 'error');
         return;
       }
       
@@ -258,14 +268,13 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       }
       
       // Prepare DTO with new fields
-      // Note: recordedAt is automatically converted to ISO string when sent to backend
       const readingDTO: FlowReadingDTO = {
         ...data,
-        recordedById: currentUser.id,
+        recordedById: currentEmployee.id,
         validationStatusId: validationStatus.id,
         pipelineId: data.pipelineId!,
-        readingDate: data.readingDate, // NEW
-        readingSlotId: data.readingSlotId, // NEW
+        readingDate: data.readingDate,
+        readingSlotId: data.readingSlotId,
       };
       
       // Save reading
@@ -349,19 +358,52 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
     );
   }
   
-  if (!currentUser) {
+  // Show authentication error
+  if (authError) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">
-          <Typography variant="h6">Authentication Required</Typography>
-          <Typography>Unable to load employee information. Please log in again.</Typography>
+          <Typography variant="h6" gutterBottom>Authentication Required</Typography>
+          <Typography paragraph>{authError}</Typography>
+          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              onClick={() => navigate('/login')}
+            >
+              Go to Login
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={() => navigate('/flow/readings')}
+            >
+              Back to Readings List
+            </Button>
+          </Box>
+        </Alert>
+      </Box>
+    );
+  }
+  
+  // Show error if no employee
+  if (!currentEmployee) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">
+          <Typography variant="h6" gutterBottom>Employee Profile Required</Typography>
+          <Typography paragraph>
+            Your user account is not linked to an employee profile. 
+            Readings must be associated with an employee.
+          </Typography>
+          <Typography paragraph>
+            Please contact an administrator to link your account to an employee profile.
+          </Typography>
           <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={() => navigate('/login')}
-            sx={{ mt: 2 }}
+            variant="outlined" 
+            onClick={() => navigate('/flow/readings')}
+            sx={{ mt: 1 }}
           >
-            Go to Login
+            Back to Readings List
           </Button>
         </Alert>
       </Box>
@@ -390,7 +432,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
                 {currentStep === 0 && (
                   <PipelineSelection
                     control={control}
-                    currentUser={currentUser}
+                    currentUser={currentEmployee}
                     selectedPipelineId={watchedPipelineId}
                     onThresholdLoad={setSelectedThreshold}
                   />
