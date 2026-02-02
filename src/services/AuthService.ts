@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-02-2026 - Handle 401 gracefully during logout
  * @updated 02-01-2026 - Integrated with AuthorizationService and new auth types
  */
 
@@ -38,15 +39,28 @@ export class AuthService {
   
   /**
    * Logout user
+   * Handles 401 errors gracefully (token might be expired)
    */
   static async logout(): Promise<void> {
     try {
+      // Try to notify backend about logout
       await axiosInstance.post(`${BASE_URL}/logout`);
+      console.log('Backend logout successful');
+    } catch (error: any) {
+      // Ignore 401 errors - token might be expired already
+      if (error?.response?.status === 401) {
+        console.log('Token already expired, skipping backend logout');
+      } else {
+        // Log other errors but don't throw
+        console.warn('Logout request failed:', error?.message || error);
+      }
     } finally {
+      // Always clear local state regardless of backend response
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('currentUser');
       AuthorizationService.clear();
+      console.log('Local session cleared');
     }
   }
   
