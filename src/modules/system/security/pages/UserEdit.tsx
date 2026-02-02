@@ -3,6 +3,7 @@
  * Comprehensive form for creating and editing users
  * 
  * @author CHOUABBIA Amine
+ * @updated 02-02-2026 - Added password reset functionality for admins
  * @updated 01-21-2026 - Added language handling for structure and employee dropdowns
  * @updated 01-20-2026 - Made employee selection dependent on structure (cascading dropdown)
  * @updated 01-20-2026 - Implemented server-side employee filtering by structure
@@ -33,11 +34,20 @@ import {
   Autocomplete,
   FormControlLabel,
   Switch,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  InputAdornment,
+  IconButton,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   ArrowBack as BackIcon,
+  LockReset as LockResetIcon,
+  Visibility,
+  VisibilityOff,
 } from '@mui/icons-material';
 import { userService, roleService, groupService } from '../services';
 import { UserDTO, RoleDTO, GroupDTO } from '../dto';
@@ -86,6 +96,16 @@ const UserEdit = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Password reset state
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState('');
+  const [resetError, setResetError] = useState('');
 
   useEffect(() => {
     loadData();
@@ -263,6 +283,64 @@ const UserEdit = () => {
     navigate('/security/users');
   };
 
+  // Password Reset handlers
+  const handleOpenResetDialog = () => {
+    setNewPassword('');
+    setConfirmPassword('');
+    setResetError('');
+    setResetSuccess('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setResetDialogOpen(true);
+  };
+
+  const handleCloseResetDialog = () => {
+    setResetDialogOpen(false);
+    setNewPassword('');
+    setConfirmPassword('');
+    setResetError('');
+  };
+
+  const validatePasswordReset = (): boolean => {
+    if (!newPassword || newPassword.length < 6) {
+      setResetError(t('common.validation.minLength', { field: t('user.newPassword'), min: 6 }));
+      return false;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setResetError(t('user.passwordMismatch') || 'Passwords do not match');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleResetPassword = async () => {
+    if (!validatePasswordReset() || !user.username) {
+      return;
+    }
+
+    try {
+      setResettingPassword(true);
+      setResetError('');
+      setResetSuccess('');
+
+      await userService.resetPassword(user.username, newPassword);
+
+      setResetSuccess(t('user.passwordResetSuccess') || 'Password reset successfully');
+      
+      // Auto-close after 2 seconds
+      setTimeout(() => {
+        handleCloseResetDialog();
+      }, 2000);
+    } catch (err: any) {
+      console.error('Failed to reset password:', err);
+      setResetError(err.response?.data?.message || err.message || t('user.passwordResetFailed') || 'Failed to reset password');
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
   /**
    * Get structure label based on current language
    * Priority: Current language > French > English > Arabic > Code
@@ -332,18 +410,33 @@ const UserEdit = () => {
         >
           {t('common.back')}
         </Button>
-        <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode 
-            ? t('common.page.editTitle', { entity: t('user.title') })
-            : t('common.page.createTitle', { entity: t('user.title') })
-          }
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode 
-            ? t('common.page.editSubtitle', { entity: t('user.title') })
-            : t('common.page.createSubtitle', { entity: t('user.title') })
-          }
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <Box>
+            <Typography variant="h4" fontWeight={700} color="text.primary">
+              {isEditMode 
+                ? t('common.page.editTitle', { entity: t('user.title') })
+                : t('common.page.createTitle', { entity: t('user.title') })
+              }
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              {isEditMode 
+                ? t('common.page.editSubtitle', { entity: t('user.title') })
+                : t('common.page.createSubtitle', { entity: t('user.title') })
+              }
+            </Typography>
+          </Box>
+          {isEditMode && (
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<LockResetIcon />}
+              onClick={handleOpenResetDialog}
+              size="large"
+            >
+              {t('user.resetPassword') || 'Reset Password'}
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {/* Error Alert */}
@@ -630,6 +723,113 @@ const UserEdit = () => {
           </Paper>
         </Stack>
       </form>
+
+      {/* Password Reset Dialog */}
+      <Dialog 
+        open={resetDialogOpen} 
+        onClose={handleCloseResetDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LockResetIcon color="warning" />
+            <Typography variant="h6">
+              {t('user.resetPassword') || 'Reset Password'}
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            {resetSuccess && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {resetSuccess}
+              </Alert>
+            )}
+            {resetError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {resetError}
+              </Alert>
+            )}
+
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="body2">
+                {t('user.resetPasswordInfo') || `You are resetting the password for user: ${user.username}`}
+              </Typography>
+            </Alert>
+
+            <Stack spacing={2}>
+              <TextField
+                fullWidth
+                type={showNewPassword ? 'text' : 'password'}
+                label={t('user.newPassword') || 'New Password'}
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setResetError('');
+                }}
+                required
+                autoFocus
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        edge="end"
+                      >
+                        {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                helperText={t('common.validation.minLength', { field: t('user.password'), min: 6 })}
+              />
+
+              <TextField
+                fullWidth
+                type={showConfirmPassword ? 'text' : 'password'}
+                label={t('user.confirmPassword') || 'Confirm Password'}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setResetError('');
+                }}
+                required
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                helperText={t('user.confirmPasswordHelp') || 'Re-enter the password to confirm'}
+              />
+            </Stack>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button 
+            onClick={handleCloseResetDialog}
+            disabled={resettingPassword}
+          >
+            {t('common.cancel')}
+          </Button>
+          <Button
+            onClick={handleResetPassword}
+            variant="contained"
+            color="warning"
+            disabled={resettingPassword || !newPassword || !confirmPassword}
+            startIcon={resettingPassword ? <CircularProgress size={20} /> : <LockResetIcon />}
+          >
+            {resettingPassword ? t('common.resetting') || 'Resetting...' : t('user.resetPassword') || 'Reset Password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
