@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-02-2026 - Updated to use correct localStorage keys (authToken, refreshToken, currentUser)
  * @updated 12-23-2025
  */
 
@@ -52,7 +53,7 @@ const clearRefreshState = () => {
  * Refresh the access token using refresh token
  */
 const refreshAccessToken = async (): Promise<string> => {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = localStorage.getItem('refreshToken');
   
   if (!refreshToken) {
     throw new Error('No refresh token available');
@@ -82,20 +83,20 @@ const refreshAccessToken = async (): Promise<string> => {
 
     // Handle different response structures
     const data = response.data?.data || response.data;
-    const token = data.token || data.accessToken || data.access_token;
+    const token = data.accessToken || data.token || data.access_token;
     const newRefreshToken = data.refreshToken || data.refresh_token;
     
     if (!token) {
       throw new Error('No token in refresh response');
     }
 
-    // Store new tokens
-    localStorage.setItem('access_token', token);
+    // Store new tokens (using new key names)
+    localStorage.setItem('authToken', token);
     console.log('✅ Access token refreshed successfully');
     
     // Update refresh token if provided
     if (newRefreshToken) {
-      localStorage.setItem('refresh_token', newRefreshToken);
+      localStorage.setItem('refreshToken', newRefreshToken);
       console.log('✅ Refresh token updated');
     }
 
@@ -122,9 +123,9 @@ const refreshAccessToken = async (): Promise<string> => {
       } else if (error.response.status === 401 || error.response.status === 403) {
         console.error('🔒 Refresh token invalid or expired');
         // Clear tokens only on authentication errors
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('currentUser');
       }
     } else if (error.request) {
       console.error('⚠️ No response received from server');
@@ -143,7 +144,7 @@ const refreshAccessToken = async (): Promise<string> => {
  */
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('authToken');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -162,10 +163,12 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Skip refresh for auth endpoints (except refresh itself)
+    // Skip refresh for auth endpoints
+    // Allow logout to fail gracefully (token might be expired)
     if (originalRequest?.url?.includes('/auth/login') || 
         originalRequest?.url?.includes('/auth/logout') ||
-        originalRequest?.url?.includes('/auth/register')) {
+        originalRequest?.url?.includes('/auth/register') ||
+        originalRequest?.url?.includes('/auth/refresh')) {
       return Promise.reject(error);
     }
 
