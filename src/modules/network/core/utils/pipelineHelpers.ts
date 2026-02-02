@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-02-2026
+ * @updated 02-02-2026 - Fixed DTO field names (designationFr instead of name)
  */
 
 import type { PipelineDTO } from '../dto/PipelineDTO';
@@ -476,10 +477,10 @@ export const exportPipelinesToCSV = (pipelines: PipelineDTO[]): string => {
     p.designCapacity,
     p.operationalCapacity,
     calculatePipelineUtilization(p).toFixed(2),
-    p.owner?.name || '',
-    p.manager?.name || '',
+    p.owner?.designationFr || '',
+    p.manager?.designationFr || '',
     p.pipelineSystem?.name || '',
-    p.operationalStatus?.name || '',
+    p.operationalStatus?.designationFr || '',
   ]);
   
   const csvContent = [
