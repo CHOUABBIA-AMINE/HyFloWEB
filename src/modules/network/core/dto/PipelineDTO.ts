@@ -2,6 +2,7 @@
  * Pipeline DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
+ * Updated: 02-02-2026 - Fully aligned with backend (all ID fields are number, matching Java Long)
  * Updated: 01-26-2026 - Aligned with backend (added ownerId and managerId)
  * 
  * Complex pipeline entity with detailed physical properties, pressure/capacity specs,
@@ -19,47 +20,49 @@ import { TerminalDTO } from './TerminalDTO';
 
 export interface PipelineDTO {
   // Identifier (from GenericDTO)
-  id?: number;
+  id?: number; // Backend: Long
 
   // Core infrastructure fields
   code: string; // @NotBlank, 2-20 chars (required)
   name: string; // @NotBlank, 3-100 chars (required)
   
   // Date fields (optional)
-  installationDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
-  commissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
-  decommissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD)
+  installationDate?: string; // Backend: LocalDate (ISO format: YYYY-MM-DD)
+  commissioningDate?: string; // Backend: LocalDate (ISO format: YYYY-MM-DD)
+  decommissioningDate?: string; // Backend: LocalDate (ISO format: YYYY-MM-DD)
   
   // Physical dimensions (all required, @NotNull, @PositiveOrZero)
-  nominalDiameter: string; // String in backend (e.g., "24 inches")
-  length: number; // Double - Total length
-  nominalThickness: string; // String in backend (e.g., "0.5 inches")
-  nominalRoughness: string; // String in backend (e.g., "0.045 mm")
+  nominalDiameter: string; // Backend: String (e.g., "24 inches")
+  length: number; // Backend: Double - Total length
+  nominalThickness: string; // Backend: String (e.g., "0.5 inches")
+  nominalRoughness: string; // Backend: String (e.g., "0.045 mm")
   
   // Pressure specifications (all required, @NotNull, @PositiveOrZero)
-  designMaxServicePressure: number; // Double - Design maximum pressure
-  operationalMaxServicePressure: number; // Double - Actual maximum operating pressure
-  designMinServicePressure: number; // Double - Design minimum pressure
-  operationalMinServicePressure: number; // Double - Actual minimum operating pressure
+  designMaxServicePressure: number; // Backend: Double - Design maximum pressure
+  operationalMaxServicePressure: number; // Backend: Double - Actual maximum operating pressure
+  designMinServicePressure: number; // Backend: Double - Design minimum pressure
+  operationalMinServicePressure: number; // Backend: Double - Actual minimum operating pressure
   
   // Capacity specifications (all required, @NotNull, @PositiveOrZero)
-  designCapacity: number; // Double - Design capacity
-  operationalCapacity: number; // Double - Actual operating capacity
+  designCapacity: number; // Backend: Double - Design capacity
+  operationalCapacity: number; // Backend: Double - Actual operating capacity
   
-  // Required relationships (IDs)
+  // Required relationships (IDs) - Backend: Long, Frontend: number
   operationalStatusId: number; // @NotNull (required)
   ownerId: number; // @NotNull (required) - Owner structure
   managerId: number; // @NotNull (required) - Manager structure
-  nominalConstructionMaterialId?: number; // Optional - Alloy material
-  nominalExteriorCoatingId?: number; // Optional - Alloy coating
-  nominalInteriorCoatingId?: number; // Optional - Alloy coating
   vendorId: number; // @NotNull (required)
   pipelineSystemId: number; // @NotNull (required)
   departureTerminalId: number; // @NotNull (required) - Starting terminal endpoint
   arrivalTerminalId: number; // @NotNull (required) - Ending terminal endpoint
   
-  // Collections
-  locationIds?: number[]; // Set<Long> - Array of location IDs along the pipeline route
+  // Optional relationships (IDs) - Backend: Long, Frontend: number
+  nominalConstructionMaterialId?: number; // Optional - Alloy material
+  nominalExteriorCoatingId?: number; // Optional - Alloy coating
+  nominalInteriorCoatingId?: number; // Optional - Alloy coating
+  
+  // Collections - Backend: Set<Long>, Frontend: number[]
+  locationIds?: number[]; // Array of location IDs along the pipeline route
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
@@ -170,3 +173,22 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
   
   return errors;
 };
+
+/**
+ * Creates an empty PipelineDTO with default values
+ */
+export const createEmptyPipelineDTO = (): Partial<PipelineDTO> => ({
+  code: '',
+  name: '',
+  nominalDiameter: '',
+  length: 0,
+  nominalThickness: '',
+  nominalRoughness: '',
+  designMaxServicePressure: 0,
+  operationalMaxServicePressure: 0,
+  designMinServicePressure: 0,
+  operationalMinServicePressure: 0,
+  designCapacity: 0,
+  operationalCapacity: 0,
+  locationIds: [],
+});
