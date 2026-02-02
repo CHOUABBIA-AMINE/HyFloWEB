@@ -3,6 +3,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-01-2026
+ * @updated 02-02-2026 - Added firstName, lastName for convenience (derived from employee)
  */
 
 import type { EmployeeDTO } from '@/modules/general/organization/dto/EmployeeDTO';
@@ -16,6 +17,11 @@ export interface UserProfile {
   
   // Employee details
   employee: EmployeeDTO | null;
+  
+  // Convenience fields (derived from employee.firstNameLt, employee.lastNameLt)
+  // These can be set from the employee object or directly from the backend
+  firstName?: string;
+  lastName?: string;
   
   // Authorization
   roles: string[];
@@ -51,3 +57,38 @@ export interface TokenRefreshResponse {
   tokenType: string;
   expiresIn: number;
 }
+
+/**
+ * Helper function to get user's first name
+ * Checks firstName field first, then falls back to employee.firstNameLt
+ */
+export const getUserFirstName = (user: UserProfile | null): string => {
+  if (!user) return '';
+  return user.firstName || user.employee?.firstNameLt || user.username;
+};
+
+/**
+ * Helper function to get user's last name
+ * Checks lastName field first, then falls back to employee.lastNameLt
+ */
+export const getUserLastName = (user: UserProfile | null): string => {
+  if (!user) return '';
+  return user.lastName || user.employee?.lastNameLt || '';
+};
+
+/**
+ * Helper function to get user's full name
+ * Returns "FirstName LastName" or username if names not available
+ */
+export const getUserFullName = (user: UserProfile | null): string => {
+  if (!user) return '';
+  
+  const firstName = getUserFirstName(user);
+  const lastName = getUserLastName(user);
+  
+  if (lastName) {
+    return `${firstName} ${lastName}`;
+  }
+  
+  return firstName;
+};
