@@ -1,21 +1,20 @@
 /**
  * Network Map Page
  * Main page component for infrastructure geovisualization
+ * Full-screen map layout aligned with PipelineMapPage
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
+ * @updated 02-02-2026 - Updated layout to match PipelineMapPage (full-screen, no container/paper)
  * @updated 12-25-2025
  */
 
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, Paper } from '@mui/material';
-import { useTranslation } from 'react-i18next';
+import { Box } from '@mui/material';
 import { MapView } from '../components';
 import { TileModeToggle } from '../components';
 
 export const NetworkMapPage: React.FC = () => {
-  const { t } = useTranslation();
-  
   // State for tile mode control
   const [useOfflineMode, setUseOfflineMode] = useState(false);
   const [offlineTilesAvailable, setOfflineTilesAvailable] = useState(false);
@@ -36,34 +35,29 @@ export const NetworkMapPage: React.FC = () => {
   }, []);
 
   return (
-    <Container maxWidth={false} sx={{ mt: 3, mb: 3 }}>
-      <Paper sx={{ p: 3 }}>
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h4" gutterBottom>
-              {t('map.title')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('map.description')}
-            </Typography>
-          </Box>
-          
-          {/* Tile mode toggle - now outside the map */}
-          <TileModeToggle
-            useOfflineMode={useOfflineMode}
-            onModeChange={setUseOfflineMode}
-            offlineTilesAvailable={offlineTilesAvailable}
-            isNetworkOnline={isNetworkOnline}
-          />
-        </Box>
+    <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
+      {/* Tile mode toggle - positioned absolutely over the map */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          zIndex: 1000,
+        }}
+      >
+        <TileModeToggle
+          useOfflineMode={useOfflineMode}
+          onModeChange={setUseOfflineMode}
+          offlineTilesAvailable={offlineTilesAvailable}
+          isNetworkOnline={isNetworkOnline}
+        />
+      </Box>
 
-        <Box sx={{ height: 'calc(100vh - 250px)', minHeight: '600px' }}>
-          <MapView 
-            forceOffline={useOfflineMode}
-            onOfflineAvailabilityChange={setOfflineTilesAvailable}
-          />
-        </Box>
-      </Paper>
-    </Container>
+      {/* Full-screen map */}
+      <MapView 
+        forceOffline={useOfflineMode}
+        onOfflineAvailabilityChange={setOfflineTilesAvailable}
+      />
+    </Box>
   );
 };
