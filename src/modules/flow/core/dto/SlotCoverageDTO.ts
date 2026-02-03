@@ -1,187 +1,302 @@
 /**
- * Slot Coverage DTO - Flow Core Module
+ * Slot Coverage DTOs - Flow Core Module
  * 
- * Represents the complete coverage view for a specific reading slot.
- * This is the primary DTO for the slot-centric monitoring dashboard.
- * 
- * SONATRACH Workflow:
- * - 1 day = 1 shift
- * - 1 shift = 12 slots
- * - 1 slot = 2 hours
- * - Each pipeline must have exactly 1 reading per slot
- * 
- * Usage:
- * - Slot Dashboard: Filter by Date + Slot + Structure
- * - Shows ALL pipelines with their reading status
- * - Action buttons driven by permission flags from backend RBAC
+ * DTOs for slot-based monitoring and operational console.
+ * Supports SONATRACH workflow: 1 day = 1 shift, 12 slots per shift.
  * 
  * @author CHOUABBIA Amine
- * @created 02-03-2026
- * @aligned with HyFloAPI slot-centric monitoring process
+ * @created 2026-02-03
+ * @module flow/core/dto
  */
 
 import type { ReadingSlotDTO } from '../../common/dto/ReadingSlotDTO';
-import type { StructureDTO } from '../../../general/organization/dto/StructureDTO';
-import type { PipelineDTO } from '../../../network/core/dto/PipelineDTO';
+import type { StructureDTO } from '@/modules/general/organization/dto/StructureDTO';
+import type { PipelineDTO } from '@/modules/network/core/dto/PipelineDTO';
 import type { FlowReadingDTO } from './FlowReadingDTO';
 
 /**
- * Reading lifecycle status enum
- * Matches backend process workflow
+ * Complete slot coverage response
+ * 
+ * Primary DTO for operational dashboard.
+ * Contains all pipelines managed by a structure for a specific date + slot.
  */
-export type ReadingStatus = 
-  | 'NOT_RECORDED'      // No reading exists for this slot yet
-  | 'DRAFT'            // Operator saved but not submitted
-  | 'SUBMITTED'        // Operator submitted for validation
-  | 'APPROVED'         // Validator approved
-  | 'REJECTED';        // Validator rejected, needs correction
-
-/**
- * Coverage item for a single pipeline within a slot
- * Contains reading data + permission flags for actions
- */
-export interface PipelineCoverageItemDTO {
-  // Pipeline information
-  pipeline: PipelineDTO;
+export interface SlotCoverageDTO {
+  /** Business date (YYYY-MM-DD) */
+  date: string;
   
-  // Current status for this slot
-  status: ReadingStatus;
+  /** Slot details (1-12, each 2 hours) */
+  slot: ReadingSlotDTO;
   
-  // Reading data (null if NOT_RECORDED)
-  reading: FlowReadingDTO | null;
+  /** Structure managing these pipelines */
+  structure: StructureDTO;
   
-  // ========== PERMISSION FLAGS (from backend RBAC) ==========
-  // These flags determine which action buttons are enabled
-  // NO HARDCODED ROLES IN FRONTEND - backend controls these
+  /** All pipelines with their reading status and permissions */
+  pipelineCoverage: PipelineCoverageItemDTO[];
   
-  /** User can create a new reading (only when NOT_RECORDED) */
-  canCreate: boolean;
-  
-  /** User can edit the reading (only when DRAFT or REJECTED) */
-  canEdit: boolean;
-  
-  /** User can submit the reading for validation (only when DRAFT) */
-  canSubmit: boolean;
-  
-  /** User can approve the reading (validator only, when SUBMITTED) */
-  canApprove: boolean;
-  
-  /** User can reject the reading (validator only, when SUBMITTED) */
-  canReject: boolean;
-  
-  /** User can delete the reading (optional, based on business rules) */
-  canDelete?: boolean;
+  /** Aggregated statistics for the slot */
+  summary: CoverageSummaryDTO;
 }
 
 /**
- * Summary statistics for slot coverage
- * Displayed in summary cards at top of dashboard
+ * Individual pipeline coverage item
+ * 
+ * Represents one pipeline's reading status for a specific slot.
+ * Includes permission flags computed by backend RBAC.
+ */
+export interface PipelineCoverageItemDTO {
+  /** Pipeline details */
+  pipeline: PipelineDTO;
+  
+  /** Current reading status for this slot */
+  status: ReadingStatus;
+  
+  /** Reading data (null if NOT_RECORDED) */
+  reading: FlowReadingDTO | null;
+  
+  // ========== Permission Flags (Backend RBAC) ==========
+  /** User can create new reading for this pipeline/slot */
+  canCreate: boolean;
+  
+  /** User can edit existing reading (DRAFT or REJECTED only) */
+  canEdit: boolean;
+  
+  /** User can submit reading for validation (DRAFT only) */
+  canSubmit: boolean;
+  
+  /** User can approve reading (SUBMITTED only, validator role) */
+  canApprove: boolean;
+  
+  /** User can reject reading (SUBMITTED only, validator role) */
+  canReject: boolean;
+  
+  /** User can delete reading */
+  canDelete: boolean;
+}
+
+/**
+ * Reading lifecycle status
+ * 
+ * Workflow: NOT_RECORDED → DRAFT → SUBMITTED → APPROVED | REJECTED
+ */
+export type ReadingStatus =
+  | 'NOT_RECORDED'    // No reading exists for this slot
+  | 'DRAFT'           // Reading created but not submitted
+  | 'SUBMITTED'       // Submitted for validation
+  | 'APPROVED'        // Validated and approved
+  | 'REJECTED';       // Rejected by validator (can be edited and resubmitted)
+
+/**
+ * Coverage summary statistics
+ * 
+ * Aggregated counts for quick slot status overview.
  */
 export interface CoverageSummaryDTO {
-  /** Total number of pipelines managed by this structure */
+  /** Total pipelines managed by structure */
   totalPipelines: number;
   
-  /** Count of pipelines with no reading yet */
+  /** Pipelines with no reading for this slot */
   notRecorded: number;
   
-  /** Count of draft readings (not submitted) */
+  /** Readings in draft status */
   draft: number;
   
-  /** Count of submitted readings awaiting validation */
+  /** Readings awaiting validation */
   submitted: number;
   
-  /** Count of approved readings */
+  /** Approved readings */
   approved: number;
   
-  /** Count of rejected readings needing correction */
+  /** Rejected readings */
   rejected: number;
 }
 
 /**
- * Main Slot Coverage DTO
- * Response from: GET /flow/core/reading/coverage?date={date}&slotNumber={slot}&structureId={structure}
+ * Advanced filtering options for slot coverage
  */
-export interface SlotCoverageDTO {
-  /** Business date for this coverage (YYYY-MM-DD) */
+export interface SlotCoverageFilters {
+  /** Business date (YYYY-MM-DD) - Required */
   date: string;
   
-  /** The reading slot (1-12, with time range) */
-  slot: ReadingSlotDTO;
+  /** Slot number (1-12) - Required */
+  slotNumber: number;
   
-  /** The organizational structure (Direction, Department, etc.) */
-  structure: StructureDTO;
+  /** Structure ID - Required */
+  structureId: number;
   
-  /** Coverage items for each pipeline managed by this structure */
-  pipelineCoverage: PipelineCoverageItemDTO[];
+  // ========== Optional Filters ==========
+  /** Filter by product type */
+  productId?: number;
   
-  /** Aggregated statistics */
-  summary: CoverageSummaryDTO;
+  /** Filter by reading status */
+  status?: ReadingStatus;
   
-  /** Optional metadata */
-  generatedAt?: string;  // ISO datetime when this coverage was generated
-  userRole?: string;     // Current user's role for context
+  /** Filter specific pipeline */
+  pipelineId?: number;
+  
+  /** Filter by operator who recorded */
+  operatorId?: number;
+  
+  /** Only show pipelines with alerts */
+  hasAlerts?: boolean;
+  
+  /** Only show incomplete slots */
+  incompleteOnly?: boolean;
 }
 
 /**
- * Helper to calculate completion percentage
+ * Bulk action result
+ * 
+ * Response for bulk operations (submit all, approve all, etc.)
  */
-export const calculateSlotCompletionPercentage = (summary: CoverageSummaryDTO): number => {
+export interface BulkActionResult {
+  /** Total readings in request */
+  totalRequested: number;
+  
+  /** Successfully processed count */
+  successful: number;
+  
+  /** Failed to process count */
+  failed: number;
+  
+  /** Detailed error information */
+  errors: BulkActionError[];
+  
+  /** IDs of successfully processed readings */
+  successfulIds?: number[];
+}
+
+/**
+ * Individual error in bulk operation
+ */
+export interface BulkActionError {
+  /** Reading ID that failed */
+  readingId: number;
+  
+  /** Error message */
+  error: string;
+  
+  /** Error code (optional) */
+  code?: string;
+}
+
+/**
+ * Daily coverage summary
+ * 
+ * Summary for all 12 slots of a day.
+ * Useful for shift overview dashboards.
+ */
+export interface DailyCoverageSummaryDTO {
+  /** Business date */
+  date: string;
+  
+  /** Structure */
+  structure: StructureDTO;
+  
+  /** Summary for each slot */
+  slotSummaries: SlotSummaryItem[];
+  
+  /** Daily totals */
+  dailyTotal: {
+    totalSlots: number;           // Always 12
+    completedSlots: number;       // Slots with 100% approved
+    partialSlots: number;         // Slots with some readings
+    emptySlots: number;           // Slots with no readings
+    overallCompletionRate: number; // Percentage (0-100)
+  };
+}
+
+/**
+ * Summary for one slot in daily view
+ */
+export interface SlotSummaryItem {
+  slot: ReadingSlotDTO;
+  summary: CoverageSummaryDTO;
+  completionRate: number;  // Percentage (0-100)
+  status: 'complete' | 'partial' | 'empty' | 'pending_validation';
+}
+
+/**
+ * Slot completion statistics (for analytics/reporting)
+ */
+export interface SlotCompletionStatsDTO {
+  /** Business date */
+  date: string;
+  
+  /** Slot number (1-12) */
+  slot: number;
+  
+  /** Completion rate percentage (0-100) */
+  completionRate: number;
+  
+  /** Total pipelines in structure */
+  totalPipelines: number;
+  
+  /** Pipelines with any reading */
+  recordedCount: number;
+  
+  /** Pipelines with approved readings */
+  approvedCount: number;
+  
+  /** Average time to approval (minutes) */
+  avgApprovalTime?: number;
+  
+  /** Structure */
+  structure: StructureDTO;
+}
+
+/**
+ * Helper type guards
+ */
+export const isReadingEditable = (status: ReadingStatus): boolean => {
+  return status === 'DRAFT' || status === 'REJECTED';
+};
+
+export const isReadingSubmittable = (status: ReadingStatus): boolean => {
+  return status === 'DRAFT';
+};
+
+export const isReadingValidatable = (status: ReadingStatus): boolean => {
+  return status === 'SUBMITTED';
+};
+
+export const isReadingFinal = (status: ReadingStatus): boolean => {
+  return status === 'APPROVED';
+};
+
+/**
+ * Calculate completion rate from summary
+ */
+export const calculateCompletionRate = (summary: CoverageSummaryDTO): number => {
   if (summary.totalPipelines === 0) return 0;
   
-  // Consider APPROVED readings as complete
-  const completed = summary.approved;
+  // Completed = approved + submitted (submitted counts as "pending but recorded")
+  const completed = summary.approved + summary.submitted;
   return Math.round((completed / summary.totalPipelines) * 100);
 };
 
 /**
- * Helper to get status color for UI (MUI Chip colors)
+ * Determine slot status from summary
  */
-export const getReadingStatusColor = (
-  status: ReadingStatus
-): 'default' | 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success' => {
-  const colorMap: Record<ReadingStatus, ReturnType<typeof getReadingStatusColor>> = {
-    NOT_RECORDED: 'default',
-    DRAFT: 'info',
-    SUBMITTED: 'warning',
-    APPROVED: 'success',
-    REJECTED: 'error',
-  };
+export const getSlotStatus = (
+  summary: CoverageSummaryDTO
+): 'complete' | 'partial' | 'empty' | 'pending_validation' => {
+  if (summary.totalPipelines === 0) return 'empty';
   
-  return colorMap[status] || 'default';
-};
-
-/**
- * Helper to get status label key for i18n
- */
-export const getReadingStatusLabelKey = (status: ReadingStatus): string => {
-  const labelMap: Record<ReadingStatus, string> = {
-    NOT_RECORDED: 'flow.status.notRecorded',
-    DRAFT: 'flow.status.draft',
-    SUBMITTED: 'flow.status.submitted',
-    APPROVED: 'flow.status.approved',
-    REJECTED: 'flow.status.rejected',
-  };
+  // All approved
+  if (summary.approved === summary.totalPipelines) {
+    return 'complete';
+  }
   
-  return labelMap[status] || 'flow.status.unknown';
-};
-
-/**
- * Helper to check if slot is complete (all readings approved)
- */
-export const isSlotComplete = (summary: CoverageSummaryDTO): boolean => {
-  return summary.approved === summary.totalPipelines && summary.totalPipelines > 0;
-};
-
-/**
- * Helper to check if slot has pending validations
- */
-export const hasPendingValidations = (summary: CoverageSummaryDTO): boolean => {
-  return summary.submitted > 0;
-};
-
-/**
- * Helper to check if slot has issues (rejections or missing)
- */
-export const hasSlotIssues = (summary: CoverageSummaryDTO): boolean => {
-  return summary.rejected > 0 || summary.notRecorded > 0;
+  // Has submitted readings awaiting validation
+  if (summary.submitted > 0) {
+    return 'pending_validation';
+  }
+  
+  // No readings at all
+  if (summary.notRecorded === summary.totalPipelines) {
+    return 'empty';
+  }
+  
+  // Some readings exist
+  return 'partial';
 };
