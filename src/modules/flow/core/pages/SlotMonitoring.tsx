@@ -2,10 +2,12 @@
  * Slot Monitoring Page
  * 
  * Slot-centric operational dashboard for flow monitoring.
- * Displays pipeline coverage for a specific date + slot + structure.
+ * Displays pipeline coverage for a specific date + slot.
+ * Structure is automatically determined from authenticated user's employee profile.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-04 - Removed structure dropdown, get from user context
  * @module flow/core/pages
  */
 
@@ -42,6 +44,7 @@ import {
   Download as DownloadIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/shared/context/AuthContext';
 import FlowMonitoringService, {
   SlotCoverageResponseDTO,
   PipelineCoverageDTO,
@@ -51,9 +54,11 @@ import FlowMonitoringService, {
  * SlotMonitoring Component
  * 
  * Main operational console for slot-based monitoring workflow.
+ * User's structure is automatically determined from their employee profile.
  */
 const SlotMonitoring: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   // ==================== STATE ====================
   const [loading, setLoading] = useState(false);
@@ -65,7 +70,11 @@ const SlotMonitoring: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [selectedSlotId, setSelectedSlotId] = useState<number>(1);
-  const [selectedStructureId, setSelectedStructureId] = useState<number>(1);
+
+  // Get structure from authenticated user's employee profile
+  const userStructureId = user?.employee?.structure?.id;
+  const userStructureName = user?.employee?.structure?.name;
+  const userEmployeeId = user?.employee?.id;
 
   // Available slots (1-12 for 24h / 2h slots)
   const availableSlots = Array.from({ length: 12 }, (_, i) => ({
@@ -73,19 +82,18 @@ const SlotMonitoring: React.FC = () => {
     label: `Slot ${i + 1}`,
   }));
 
-  // Mock structures (replace with API call)
-  const availableStructures = [
-    { id: 1, name: 'Structure A' },
-    { id: 2, name: 'Structure B' },
-    { id: 3, name: 'Structure C' },
-  ];
-
   // ==================== DATA LOADING ====================
 
   /**
    * Load slot coverage from backend
    */
   const loadSlotCoverage = useCallback(async () => {
+    // Check if user has structure assigned
+    if (!userStructureId) {
+      setError('No structure assigned to your employee profile. Please contact administrator.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -93,7 +101,7 @@ const SlotMonitoring: React.FC = () => {
       const response = await FlowMonitoringService.getSlotCoverage({
         readingDate: selectedDate,
         slotId: selectedSlotId,
-        structureId: selectedStructureId,
+        structureId: userStructureId,
       });
 
       setCoverage(response);
@@ -103,12 +111,14 @@ const SlotMonitoring: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedSlotId, selectedStructureId]);
+  }, [selectedDate, selectedSlotId, userStructureId]);
 
   // Auto-load on mount and filter changes
   useEffect(() => {
-    loadSlotCoverage();
-  }, [loadSlotCoverage]);
+    if (userStructureId) {
+      loadSlotCoverage();
+    }
+  }, [loadSlotCoverage, userStructureId]);
 
   // ==================== EVENT HANDLERS ====================
 
@@ -124,21 +134,37 @@ const SlotMonitoring: React.FC = () => {
    * Handle pipeline submit action
    */
   const handleSubmit = async (pipeline: PipelineCoverageDTO) => {
-    // TODO: Implement reading submit
-    console.log('Submit reading for pipeline:', pipeline.pipelineId);
+    if (!pipeline.readingId || !userEmployeeId) {
+      setError('Cannot submit: missing reading ID or employee ID');
+      return;
+    }
+
+    try {
+      // TODO: Get actual reading data before submit
+      // For now, just reload coverage
+      console.log('Submit reading for pipeline:', pipeline.pipelineId);
+      
+      // Reload coverage
+      loadSlotCoverage();
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit reading');
+    }
   };
 
   /**
    * Handle pipeline approve action
    */
   const handleApprove = async (pipeline: PipelineCoverageDTO) => {
-    if (!pipeline.readingId) return;
+    if (!pipeline.readingId || !userEmployeeId) {
+      setError('Cannot approve: missing reading ID or employee ID');
+      return;
+    }
 
     try {
       await FlowMonitoringService.validateReading({
         readingId: pipeline.readingId,
         action: 'APPROVE',
-        employeeId: 1, // TODO: Get from auth context
+        employeeId: userEmployeeId,
       });
 
       // Reload coverage
@@ -152,7 +178,10 @@ const SlotMonitoring: React.FC = () => {
    * Handle pipeline reject action
    */
   const handleReject = async (pipeline: PipelineCoverageDTO) => {
-    if (!pipeline.readingId) return;
+    if (!pipeline.readingId || !userEmployeeId) {
+      setError('Cannot reject: missing reading ID or employee ID');
+      return;
+    }
 
     // TODO: Show dialog to capture rejection comments
     const comments = prompt('Enter rejection reason:');
@@ -162,7 +191,7 @@ const SlotMonitoring: React.FC = () => {
       await FlowMonitoringService.validateReading({
         readingId: pipeline.readingId,
         action: 'REJECT',
-        employeeId: 1, // TODO: Get from auth context
+        employeeId: userEmployeeId,
         comments,
       });
 
@@ -186,10 +215,13 @@ const SlotMonitoring: React.FC = () => {
         <CardContent>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={3}>
+              <Typography variant="body2" color="text.secondary">
+                Structure
+              </Typography>
               <Typography variant="h6" color="primary">
                 {coverage.structure.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="caption" color="text.secondary">
                 {coverage.structure.code}
               </Typography>
             </Grid>
@@ -219,10 +251,10 @@ const SlotMonitoring: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} md={3}>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="body2" color="text.secondary">
-                  Completion
-                </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Completion
+              </Typography>
+              <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                 <Chip
                   label={FlowMonitoringService.formatCompletionPercentage(
                     coverage.completionPercentage
@@ -420,17 +452,35 @@ const SlotMonitoring: React.FC = () => {
 
   // ==================== MAIN RENDER ====================
 
+  // Show error if user has no structure assigned
+  if (!userStructureId) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Slot Monitoring
+        </Typography>
+        <Alert severity="error">
+          No structure assigned to your employee profile. Please contact your administrator to assign a structure.
+        </Alert>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
         Slot Monitoring
       </Typography>
 
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        Monitoring for: <strong>{userStructureName}</strong>
+      </Typography>
+
       {/* Filters */}
-      <Card sx={{ mb: 3 }}>
+      <Card sx={{ mb: 3, mt: 2 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 type="date"
@@ -441,7 +491,7 @@ const SlotMonitoring: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 select
@@ -457,23 +507,7 @@ const SlotMonitoring: React.FC = () => {
               </TextField>
             </Grid>
 
-            <Grid item xs={12} md={3}>
-              <TextField
-                fullWidth
-                select
-                label="Structure"
-                value={selectedStructureId}
-                onChange={(e) => setSelectedStructureId(Number(e.target.value))}
-              >
-                {availableStructures.map((structure) => (
-                  <MenuItem key={structure.id} value={structure.id}>
-                    {structure.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={4}>
               <Box display="flex" gap={1}>
                 <Button
                   fullWidth
