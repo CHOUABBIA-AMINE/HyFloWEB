@@ -5,14 +5,18 @@
  * Displays pipeline coverage for a specific date + slot.
  * Structure is automatically determined from authenticated user's employee job assignment.
  * 
+ * Frontend determines available actions (canEdit, canSubmit, canValidate) based on user roles.
+ * Backend enforces permissions via exceptions in submit/validate methods.
+ * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Removed structure dropdown, get from user context
  * @updated 2026-02-04 - Get structure from employee.job.structure
+ * @updated 2026-02-04 - Added frontend permission calculation based on user roles
  * @module flow/core/pages
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -49,7 +53,18 @@ import { useAuth } from '@/shared/context/AuthContext';
 import FlowMonitoringService, {
   SlotCoverageResponseDTO,
   PipelineCoverageDTO,
+  WorkflowStatus,
 } from '../services/FlowMonitoringService';
+
+/**
+ * Pipeline Permissions Interface
+ * Frontend-calculated permissions based on user roles and workflow status
+ */
+interface PipelinePermissions {
+  canEdit: boolean;
+  canSubmit: boolean;
+  canValidate: boolean;
+}
 
 /**
  * SlotMonitoring Component
@@ -78,11 +93,80 @@ const SlotMonitoring: React.FC = () => {
   const userStructureCode = user?.employee?.job?.structure?.code;
   const userEmployeeId = user?.employee?.id;
 
+  // User roles
+  const userRoles = user?.roles || [];
+  const userPermissions = user?.permissions || [];
+
   // Available slots (1-12 for 24h / 2h slots)
   const availableSlots = Array.from({ length: 12 }, (_, i) => ({
     id: i + 1,
     label: `Slot ${i + 1}`,
   }));
+
+  // ==================== PERMISSION HELPERS ====================
+
+  /**
+   * Check if user has operator role
+   * Operators can create/edit/submit readings
+   */
+  const isOperator = useMemo(() => {
+    return userRoles.includes('ROLE_OPERATOR') || 
+           userRoles.includes('ROLE_FLOW_OPERATOR') ||
+           userPermissions.includes('FLOW_READING_CREATE') ||
+           userPermissions.includes('FLOW_READING_EDIT');
+  }, [userRoles, userPermissions]);
+
+  /**
+   * Check if user has validator role
+   * Validators can approve/reject submitted readings
+   */
+  const isValidator = useMemo(() => {
+    return userRoles.includes('ROLE_VALIDATOR') || 
+           userRoles.includes('ROLE_FLOW_VALIDATOR') ||
+           userRoles.includes('ROLE_SUPERVISOR') ||
+           userPermissions.includes('FLOW_READING_VALIDATE') ||
+           userPermissions.includes('FLOW_READING_APPROVE');
+  }, [userRoles, userPermissions]);
+
+  /**
+   * Calculate permissions for a pipeline based on user role and workflow status
+   * 
+   * @param pipeline - Pipeline coverage data
+   * @returns Permission flags for UI actions
+   */
+  const calculatePipelinePermissions = useCallback((pipeline: PipelineCoverageDTO): PipelinePermissions => {
+    const status = pipeline.workflowStatus;
+
+    // Default: no permissions
+    const permissions: PipelinePermissions = {
+      canEdit: false,
+      canSubmit: false,
+      canValidate: false,
+    };
+
+    // OPERATORS: Can edit/submit readings
+    if (isOperator) {
+      // Can edit if: NOT_RECORDED, DRAFT, or REJECTED
+      if (status === 'NOT_RECORDED' || status === 'DRAFT' || status === 'REJECTED') {
+        permissions.canEdit = true;
+      }
+
+      // Can submit if: DRAFT
+      if (status === 'DRAFT') {
+        permissions.canSubmit = true;
+      }
+    }
+
+    // VALIDATORS: Can approve/reject submitted readings
+    if (isValidator) {
+      // Can validate if: SUBMITTED
+      if (status === 'SUBMITTED') {
+        permissions.canValidate = true;
+      }
+    }
+
+    return permissions;
+  }, [isOperator, isValidator]);
 
   // ==================== DATA LOADING ====================
 
@@ -128,8 +212,10 @@ const SlotMonitoring: React.FC = () => {
    * Handle pipeline edit action
    */
   const handleEdit = (pipeline: PipelineCoverageDTO) => {
-    // TODO: Navigate to reading edit page
+    // TODO: Navigate to reading edit page or show edit dialog
     console.log('Edit reading for pipeline:', pipeline.pipelineId);
+    // For NOT_RECORDED status, this would create a new reading
+    // For DRAFT/REJECTED status, this would edit the existing reading
   };
 
   /**
@@ -147,7 +233,7 @@ const SlotMonitoring: React.FC = () => {
       console.log('Submit reading for pipeline:', pipeline.pipelineId);
       
       // Reload coverage
-      loadSlotCoverage();
+      await loadSlotCoverage();
     } catch (err: any) {
       setError(err.message || 'Failed to submit reading');
     }
@@ -170,9 +256,9 @@ const SlotMonitoring: React.FC = () => {
       });
 
       // Reload coverage
-      loadSlotCoverage();
+      await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.message || 'Failed to approve reading');
+      setError(err.response?.data?.message || err.message || 'Failed to approve reading');
     }
   };
 
@@ -198,9 +284,9 @@ const SlotMonitoring: React.FC = () => {
       });
 
       // Reload coverage
-      loadSlotCoverage();
+      await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.message || 'Failed to reject reading');
+      setError(err.response?.data?.message || err.message || 'Failed to reject reading');
     }
   };
 
@@ -340,112 +426,117 @@ const SlotMonitoring: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {coverage.pipelines.map((pipeline) => (
-              <TableRow
-                key={pipeline.pipelineId}
-                sx={{
-                  backgroundColor: pipeline.isOverdue ? 'error.light' : 'inherit',
-                  opacity: pipeline.isOverdue ? 0.7 : 1,
-                }}
-              >
-                <TableCell>
-                  <Typography variant="body2" fontWeight="medium">
-                    {pipeline.pipelineCode}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {pipeline.pipelineName}
-                  </Typography>
-                </TableCell>
+            {coverage.pipelines.map((pipeline) => {
+              // Calculate permissions for this pipeline based on user role
+              const permissions = calculatePipelinePermissions(pipeline);
 
-                <TableCell>
-                  <Chip
-                    label={pipeline.workflowStatusDisplay}
-                    color={FlowMonitoringService.getStatusColor(pipeline.workflowStatus)}
-                    size="small"
-                  />
-                </TableCell>
+              return (
+                <TableRow
+                  key={pipeline.pipelineId}
+                  sx={{
+                    backgroundColor: pipeline.isOverdue ? 'error.light' : 'inherit',
+                    opacity: pipeline.isOverdue ? 0.7 : 1,
+                  }}
+                >
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="medium">
+                      {pipeline.pipelineCode}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {pipeline.pipelineName}
+                    </Typography>
+                  </TableCell>
 
-                <TableCell>
-                  <Typography variant="body2">
-                    {pipeline.recordedByName || '-'}
-                  </Typography>
-                </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={pipeline.workflowStatusDisplay}
+                      color={FlowMonitoringService.getStatusColor(pipeline.workflowStatus)}
+                      size="small"
+                    />
+                  </TableCell>
 
-                <TableCell>
-                  <Typography variant="body2">
-                    {pipeline.recordedAt
-                      ? new Date(pipeline.recordedAt).toLocaleString()
-                      : '-'}
-                  </Typography>
-                </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {pipeline.recordedByName || '-'}
+                    </Typography>
+                  </TableCell>
 
-                <TableCell>
-                  <Typography variant="body2">
-                    {pipeline.validatedByName || '-'}
-                  </Typography>
-                </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {pipeline.recordedAt
+                        ? new Date(pipeline.recordedAt).toLocaleString()
+                        : '-'}
+                    </Typography>
+                  </TableCell>
 
-                <TableCell>
-                  <Typography variant="body2">
-                    {pipeline.validatedAt
-                      ? new Date(pipeline.validatedAt).toLocaleString()
-                      : '-'}
-                  </Typography>
-                </TableCell>
+                  <TableCell>
+                    <Typography variant="body2">
+                      {pipeline.validatedByName || '-'}
+                    </Typography>
+                  </TableCell>
 
-                <TableCell align="right">
-                  <Box display="flex" gap={0.5} justifyContent="flex-end">
-                    {pipeline.canEdit && (
-                      <Tooltip title="Edit">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleEdit(pipeline)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
+                  <TableCell>
+                    <Typography variant="body2">
+                      {pipeline.validatedAt
+                        ? new Date(pipeline.validatedAt).toLocaleString()
+                        : '-'}
+                    </Typography>
+                  </TableCell>
 
-                    {pipeline.canSubmit && (
-                      <Tooltip title="Submit">
-                        <IconButton
-                          size="small"
-                          color="warning"
-                          onClick={() => handleSubmit(pipeline)}
-                        >
-                          <SendIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    )}
-
-                    {pipeline.canValidate && (
-                      <>
-                        <Tooltip title="Approve">
+                  <TableCell align="right">
+                    <Box display="flex" gap={0.5} justifyContent="flex-end">
+                      {permissions.canEdit && (
+                        <Tooltip title={pipeline.workflowStatus === 'NOT_RECORDED' ? 'Create Reading' : 'Edit Reading'}>
                           <IconButton
                             size="small"
-                            color="success"
-                            onClick={() => handleApprove(pipeline)}
+                            color="primary"
+                            onClick={() => handleEdit(pipeline)}
                           >
-                            <ApproveIcon fontSize="small" />
+                            <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
+                      )}
 
-                        <Tooltip title="Reject">
+                      {permissions.canSubmit && (
+                        <Tooltip title="Submit for Validation">
                           <IconButton
                             size="small"
-                            color="error"
-                            onClick={() => handleReject(pipeline)}
+                            color="warning"
+                            onClick={() => handleSubmit(pipeline)}
                           >
-                            <RejectIcon fontSize="small" />
+                            <SendIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                      </>
-                    )}
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))}
+                      )}
+
+                      {permissions.canValidate && (
+                        <>
+                          <Tooltip title="Approve">
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() => handleApprove(pipeline)}
+                            >
+                              <ApproveIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Reject">
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleReject(pipeline)}
+                            >
+                              <RejectIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </>
+                      )}
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -474,12 +565,24 @@ const SlotMonitoring: React.FC = () => {
         Slot Monitoring
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" gutterBottom>
-        Monitoring for: <strong>{userStructureName}</strong> ({userStructureCode})
-      </Typography>
+      <Box display="flex" alignItems="center" gap={2} mb={2}>
+        <Typography variant="body2" color="text.secondary">
+          Monitoring for: <strong>{userStructureName}</strong> ({userStructureCode})
+        </Typography>
+        
+        {/* Role badges */}
+        <Box display="flex" gap={1}>
+          {isOperator && (
+            <Chip label="Operator" size="small" color="info" />
+          )}
+          {isValidator && (
+            <Chip label="Validator" size="small" color="success" />
+          )}
+        </Box>
+      </Box>
 
       {/* Filters */}
-      <Card sx={{ mb: 3, mt: 2 }}>
+      <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={4}>
