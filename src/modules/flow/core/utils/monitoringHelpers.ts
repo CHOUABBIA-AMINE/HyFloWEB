@@ -2,74 +2,77 @@
  * Monitoring Helpers
  * 
  * Utility functions for flow monitoring operations.
+ * Updated to work with nested DTO structure.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-04 - Updated for nested DTO support
  * @package flow/core/utils
  */
 
-import { WorkflowStatus } from '../types/WorkflowStatus';
 import { PipelineCoverageDTO } from '../dto/PipelineCoverageDTO';
 import { SlotCoverageResponseDTO } from '../dto/SlotCoverageResponseDTO';
+import { getLocalizedDesignation } from '../../common/dto/ReadingSlotDTO';
 
 /**
- * Get status color for UI display.
+ * Get status color for UI display based on validation status.
  * 
- * @param status - Workflow status
+ * @param pipeline - Pipeline coverage with nested validationStatus
  * @returns MUI color
  */
 export const getStatusColor = (
-  status: WorkflowStatus
+  pipeline: PipelineCoverageDTO
 ): 'default' | 'primary' | 'info' | 'warning' | 'success' | 'error' => {
-  const colorMap: Record<WorkflowStatus, 'default' | 'primary' | 'info' | 'warning' | 'success' | 'error'> = {
-    NOT_RECORDED: 'default',
-    DRAFT: 'info',
-    SUBMITTED: 'warning',
-    APPROVED: 'success',
-    REJECTED: 'error',
+  // If no validation status, check if reading exists
+  if (!pipeline.validationStatus) {
+    return pipeline.readingId ? 'info' : 'default';
+  }
+
+  const statusCode = pipeline.validationStatus.code;
+  
+  const colorMap: Record<string, 'default' | 'primary' | 'info' | 'warning' | 'success' | 'error'> = {
+    'NOT_RECORDED': 'default',
+    'DRAFT': 'info',
+    'SUBMITTED': 'warning',
+    'APPROVED': 'success',
+    'REJECTED': 'error',
   };
-  return colorMap[status] || 'default';
+  
+  return colorMap[statusCode] || 'default';
 };
 
 /**
- * Get status label for display.
+ * Get status label for display (localized).
  * 
- * @param status - Workflow status
+ * @param pipeline - Pipeline coverage with nested validationStatus
  * @param lang - Language (en, fr, ar)
  * @returns Localized status label
  */
 export const getStatusLabel = (
-  status: WorkflowStatus,
+  pipeline: PipelineCoverageDTO,
   lang: 'en' | 'fr' | 'ar' = 'en'
 ): string => {
-  const labels: Record<WorkflowStatus, Record<string, string>> = {
-    NOT_RECORDED: {
-      en: 'Not Recorded',
-      fr: 'Non enregistré',
-      ar: 'غير مسجل',
-    },
-    DRAFT: {
-      en: 'Draft',
-      fr: 'Brouillon',
-      ar: 'مسودة',
-    },
-    SUBMITTED: {
-      en: 'Submitted',
-      fr: 'Soumis',
-      ar: 'مقدم',
-    },
-    APPROVED: {
-      en: 'Approved',
-      fr: 'Approuvé',
-      ar: 'موافق عليه',
-    },
-    REJECTED: {
-      en: 'Rejected',
-      fr: 'Rejeté',
-      ar: 'مرفوض',
-    },
-  };
-  return labels[status]?.[lang] || status;
+  if (!pipeline.validationStatus) {
+    const fallbackLabels = {
+      en: pipeline.readingId ? 'Draft' : 'Not Recorded',
+      fr: pipeline.readingId ? 'Brouillon' : 'Non enregistré',
+      ar: pipeline.readingId ? 'مسودة' : 'غير مسجل',
+    };
+    return fallbackLabels[lang];
+  }
+
+  const status = pipeline.validationStatus;
+  
+  // Use designations from ValidationStatusDTO
+  switch (lang) {
+    case 'ar':
+      return status.designationAr || status.designationFr || status.code;
+    case 'en':
+      return status.designationEn || status.designationFr || status.code;
+    case 'fr':
+    default:
+      return status.designationFr || status.code;
+  }
 };
 
 /**
@@ -97,32 +100,48 @@ export const formatSlotTimeRange = (startTime: string, endTime: string): string 
 
 /**
  * Calculate completion rate from summary.
+ * Uses validationCompletionPercentage if available, otherwise falls back to recording.
  * 
  * @param summary - Coverage response
  * @returns Completion percentage (0-100)
  */
 export const calculateCompletionRate = (summary: SlotCoverageResponseDTO): number => {
+  // Prefer validation completion percentage
+  if (summary.validationCompletionPercentage !== undefined) {
+    return Math.round(summary.validationCompletionPercentage);
+  }
+  
+  // Fallback to recording completion
+  if (summary.recordingCompletionPercentage !== undefined) {
+    return Math.round(summary.recordingCompletionPercentage);
+  }
+  
+  // Calculate manually if not provided
   if (summary.totalPipelines === 0) return 0;
   
-  const completed = summary.approvedCount + summary.submittedCount;
+  const completed = summary.approvedCount + summary.rejectedCount;
   return Math.round((completed / summary.totalPipelines) * 100);
 };
 
 /**
  * Get workflow status priority for sorting.
+ * Uses validation status code.
  * 
- * @param status - Workflow status
+ * @param pipeline - Pipeline coverage
  * @returns Priority number (lower = higher priority)
  */
-export const getStatusPriority = (status: WorkflowStatus): number => {
-  const priorities: Record<WorkflowStatus, number> = {
-    NOT_RECORDED: 1,  // Highest priority (needs recording)
-    REJECTED: 2,      // Needs correction
-    DRAFT: 3,         // Needs submission
-    SUBMITTED: 4,     // Needs validation
-    APPROVED: 5,      // Completed
+export const getStatusPriority = (pipeline: PipelineCoverageDTO): number => {
+  const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+  
+  const priorities: Record<string, number> = {
+    'NOT_RECORDED': 1,  // Highest priority (needs recording)
+    'REJECTED': 2,      // Needs correction
+    'DRAFT': 3,         // Needs submission
+    'SUBMITTED': 4,     // Needs validation
+    'APPROVED': 5,      // Completed
   };
-  return priorities[status] || 999;
+  
+  return priorities[statusCode] || 999;
 };
 
 /**
@@ -135,29 +154,32 @@ export const sortPipelinesByPriority = (
   pipelines: PipelineCoverageDTO[]
 ): PipelineCoverageDTO[] => {
   return [...pipelines].sort((a, b) => {
-    const priorityDiff = 
-      getStatusPriority(a.workflowStatus) - 
-      getStatusPriority(b.workflowStatus);
+    const priorityDiff = getStatusPriority(a) - getStatusPriority(b);
     
     if (priorityDiff !== 0) return priorityDiff;
     
     // Secondary sort by pipeline code
-    return a.pipelineCode.localeCompare(b.pipelineCode);
+    const codeA = a.pipeline?.code || '';
+    const codeB = b.pipeline?.code || '';
+    return codeA.localeCompare(codeB);
   });
 };
 
 /**
- * Filter pipelines by status.
+ * Filter pipelines by status code.
  * 
  * @param pipelines - Array of pipeline coverage
- * @param statuses - Statuses to filter by
+ * @param statusCodes - Status codes to filter by
  * @returns Filtered array
  */
 export const filterPipelinesByStatus = (
   pipelines: PipelineCoverageDTO[],
-  statuses: WorkflowStatus[]
+  statusCodes: string[]
 ): PipelineCoverageDTO[] => {
-  return pipelines.filter(p => statuses.includes(p.workflowStatus));
+  return pipelines.filter(p => {
+    const code = p.validationStatus?.code || 'NOT_RECORDED';
+    return statusCodes.includes(code);
+  });
 };
 
 /**
@@ -169,12 +191,15 @@ export const filterPipelinesByStatus = (
 export const getPipelinesRequiringAttention = (
   pipelines: PipelineCoverageDTO[]
 ): PipelineCoverageDTO[] => {
-  return pipelines.filter(p => 
-    p.workflowStatus === 'NOT_RECORDED' ||
-    p.workflowStatus === 'DRAFT' ||
-    p.workflowStatus === 'REJECTED' ||
-    p.isOverdue
-  );
+  return pipelines.filter(p => {
+    const statusCode = p.validationStatus?.code || 'NOT_RECORDED';
+    return (
+      statusCode === 'NOT_RECORDED' ||
+      statusCode === 'DRAFT' ||
+      statusCode === 'REJECTED' ||
+      p.isOverdue === true
+    );
+  });
 };
 
 /**
@@ -186,36 +211,33 @@ export const getPipelinesRequiringAttention = (
 export const getPipelinesPendingValidation = (
   pipelines: PipelineCoverageDTO[]
 ): PipelineCoverageDTO[] => {
-  return pipelines.filter(p => p.workflowStatus === 'SUBMITTED');
+  return pipelines.filter(p => p.validationStatus?.code === 'SUBMITTED');
 };
 
 /**
  * Check if slot is overdue.
  * 
- * @param slotEndTime - Slot end time (HH:mm:ss)
- * @param slotDate - Slot date (YYYY-MM-DD)
- * @returns True if current time is past slot end
+ * @param slotDeadline - Slot deadline (ISO 8601)
+ * @returns True if current time is past slot deadline
  */
-export const isSlotOverdue = (slotEndTime: string, slotDate: string): boolean => {
+export const isSlotOverdue = (slotDeadline?: string): boolean => {
+  if (!slotDeadline) return false;
   const now = new Date();
-  const slotDateTime = new Date(`${slotDate}T${slotEndTime}`);
-  return now > slotDateTime;
+  const deadline = new Date(slotDeadline);
+  return now > deadline;
 };
 
 /**
  * Get time remaining until slot deadline.
  * 
- * @param slotEndTime - Slot end time (HH:mm:ss)
- * @param slotDate - Slot date (YYYY-MM-DD)
+ * @param slotDeadline - Slot deadline (ISO 8601)
  * @returns Time remaining in minutes (negative if overdue)
  */
-export const getTimeRemainingMinutes = (
-  slotEndTime: string,
-  slotDate: string
-): number => {
+export const getTimeRemainingMinutes = (slotDeadline?: string): number => {
+  if (!slotDeadline) return 0;
   const now = new Date();
-  const slotDateTime = new Date(`${slotDate}T${slotEndTime}`);
-  const diffMs = slotDateTime.getTime() - now.getTime();
+  const deadline = new Date(slotDeadline);
+  const diffMs = deadline.getTime() - now.getTime();
   return Math.floor(diffMs / (1000 * 60));
 };
 
@@ -242,4 +264,41 @@ export const formatTimeRemaining = (minutes: number): string => {
     return `${hours}h ${mins}m remaining`;
   }
   return `${mins}m remaining`;
+};
+
+/**
+ * Get pipeline display name.
+ * 
+ * @param pipeline - Pipeline coverage
+ * @param lang - Language
+ * @returns Localized pipeline name
+ */
+export const getPipelineDisplayName = (
+  pipeline: PipelineCoverageDTO,
+  lang: 'en' | 'fr' | 'ar' = 'en'
+): string => {
+  if (!pipeline.pipeline) return `Pipeline ${pipeline.pipelineId}`;
+  
+  const p = pipeline.pipeline;
+  
+  switch (lang) {
+    case 'ar':
+      return p.designationAr || p.designationFr || p.code;
+    case 'en':
+      return p.designationEn || p.designationFr || p.code;
+    case 'fr':
+    default:
+      return p.designationFr || p.code;
+  }
+};
+
+/**
+ * Get employee display name.
+ * 
+ * @param employee - Employee DTO
+ * @returns Full name
+ */
+export const getEmployeeDisplayName = (employee?: { firstNameLt: string; lastNameLt: string }): string => {
+  if (!employee) return '-';
+  return `${employee.firstNameLt} ${employee.lastNameLt}`;
 };

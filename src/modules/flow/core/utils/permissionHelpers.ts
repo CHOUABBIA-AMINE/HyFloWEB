@@ -2,9 +2,11 @@
  * Permission Helpers
  * 
  * Helper functions for checking permissions on pipelines.
+ * Updated to work with nested DTO structure.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-04 - Updated for nested DTO support
  * @package flow/core/utils
  */
 
@@ -17,10 +19,11 @@ import { PipelineCoverageDTO } from '../dto/PipelineCoverageDTO';
  * @returns True if editable
  */
 export const canEditPipeline = (pipeline: PipelineCoverageDTO): boolean => {
-  return pipeline.canEdit && 
-         (pipeline.workflowStatus === 'NOT_RECORDED' || 
-          pipeline.workflowStatus === 'DRAFT' ||
-          pipeline.workflowStatus === 'REJECTED');
+  const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+  return (
+    pipeline.canEdit === true && 
+    (statusCode === 'NOT_RECORDED' || statusCode === 'DRAFT' || statusCode === 'REJECTED')
+  );
 };
 
 /**
@@ -30,7 +33,8 @@ export const canEditPipeline = (pipeline: PipelineCoverageDTO): boolean => {
  * @returns True if submittable
  */
 export const canSubmitPipeline = (pipeline: PipelineCoverageDTO): boolean => {
-  return pipeline.canSubmit && pipeline.workflowStatus === 'DRAFT';
+  const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+  return pipeline.canSubmit === true && statusCode === 'DRAFT';
 };
 
 /**
@@ -40,7 +44,8 @@ export const canSubmitPipeline = (pipeline: PipelineCoverageDTO): boolean => {
  * @returns True if validatable
  */
 export const canValidatePipeline = (pipeline: PipelineCoverageDTO): boolean => {
-  return pipeline.canValidate && pipeline.workflowStatus === 'SUBMITTED';
+  const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+  return pipeline.canValidate === true && statusCode === 'SUBMITTED';
 };
 
 /**
