@@ -2,12 +2,13 @@
  * Flow Monitoring Service
  * 
  * Service for slot-centric flow monitoring APIs.
- * Aligns with backend /flow/monitoring endpoints.
+ * Aligns with backend /flow/core/monitoring endpoints.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Fixed API client import path
  * @updated 2026-02-04 - Fixed duplicate /hyflo/api in BASE_PATH
+ * @updated 2026-02-04 - Corrected to /flow/core/monitoring
  * @module flow/core/services
  */
 
@@ -143,14 +144,15 @@ export type WorkflowStatus =
 export class FlowMonitoringService {
   
   // BASE_PATH is relative to axiosInstance baseURL (/hyflo/api)
-  private static readonly BASE_PATH = '/flow/monitoring';
+  // Full URL: /hyflo/api/flow/core/monitoring
+  private static readonly BASE_PATH = '/flow/core/monitoring';
 
   // ==================== SLOT COVERAGE ====================
 
   /**
    * Get slot coverage for date + slot + structure.
    * 
-   * Backend: POST /hyflo/api/flow/monitoring/slot-coverage
+   * Backend: POST /hyflo/api/flow/core/monitoring/slot-coverage
    * 
    * @param request - Slot coverage request
    * @returns Slot coverage with pipeline statuses
@@ -177,7 +179,7 @@ export class FlowMonitoringService {
   /**
    * Submit or update a reading.
    * 
-   * Backend: POST /hyflo/api/flow/monitoring/readings/submit
+   * Backend: POST /hyflo/api/flow/core/monitoring/readings/submit
    * 
    * @param request - Reading submit request
    * @returns Success (void)
@@ -203,7 +205,7 @@ export class FlowMonitoringService {
   /**
    * Validate a reading (approve or reject).
    * 
-   * Backend: POST /hyflo/api/flow/monitoring/readings/validate
+   * Backend: POST /hyflo/api/flow/core/monitoring/readings/validate
    * 
    * @param request - Reading validation request
    * @returns Success (void)
