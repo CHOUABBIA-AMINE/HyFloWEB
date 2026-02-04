@@ -2,11 +2,12 @@
  * Flow Monitoring Service
  * 
  * Service for slot-centric flow monitoring APIs.
- * Aligns with backend /hyflo/api/flow/monitoring endpoints.
+ * Aligns with backend /flow/monitoring endpoints.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Fixed API client import path
+ * @updated 2026-02-04 - Fixed duplicate /hyflo/api in BASE_PATH
  * @module flow/core/services
  */
 
@@ -137,10 +138,12 @@ export type WorkflowStatus =
  * FlowMonitoringService
  * 
  * Provides slot-centric monitoring operations aligned with backend API.
+ * Base URL is already set in axiosInstance (/hyflo/api), so paths are relative.
  */
 export class FlowMonitoringService {
   
-  private static readonly BASE_PATH = '/hyflo/api/flow/monitoring';
+  // BASE_PATH is relative to axiosInstance baseURL (/hyflo/api)
+  private static readonly BASE_PATH = '/flow/monitoring';
 
   // ==================== SLOT COVERAGE ====================
 
