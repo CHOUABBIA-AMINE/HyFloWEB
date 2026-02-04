@@ -7,6 +7,7 @@
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Updated for nested DTO support
+ * @updated 2026-02-04 - Fixed PipelineDTO field access
  * @package flow/core/utils
  */
 
@@ -268,28 +269,20 @@ export const formatTimeRemaining = (minutes: number): string => {
 
 /**
  * Get pipeline display name.
+ * PipelineDTO only has 'name' field (not multilingual), so we just return it.
  * 
  * @param pipeline - Pipeline coverage
- * @param lang - Language
- * @returns Localized pipeline name
+ * @param lang - Language (ignored for PipelineDTO as it doesn't have multilingual fields)
+ * @returns Pipeline name
  */
 export const getPipelineDisplayName = (
   pipeline: PipelineCoverageDTO,
-  lang: 'en' | 'fr' | 'ar' = 'en'
+  lang?: 'en' | 'fr' | 'ar'
 ): string => {
   if (!pipeline.pipeline) return `Pipeline ${pipeline.pipelineId}`;
   
-  const p = pipeline.pipeline;
-  
-  switch (lang) {
-    case 'ar':
-      return p.designationAr || p.designationFr || p.code;
-    case 'en':
-      return p.designationEn || p.designationFr || p.code;
-    case 'fr':
-    default:
-      return p.designationFr || p.code;
-  }
+  // PipelineDTO only has 'name' and 'code' fields (not multilingual designations)
+  return pipeline.pipeline.name || pipeline.pipeline.code;
 };
 
 /**
