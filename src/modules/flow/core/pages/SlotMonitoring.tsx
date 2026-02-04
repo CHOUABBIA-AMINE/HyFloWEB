@@ -3,11 +3,12 @@
  * 
  * Slot-centric operational dashboard for flow monitoring.
  * Displays pipeline coverage for a specific date + slot.
- * Structure is automatically determined from authenticated user's employee profile.
+ * Structure is automatically determined from authenticated user's organizational structure.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Removed structure dropdown, get from user context
+ * @updated 2026-02-04 - Fixed structure property access from UserProfile
  * @module flow/core/pages
  */
 
@@ -54,7 +55,7 @@ import FlowMonitoringService, {
  * SlotMonitoring Component
  * 
  * Main operational console for slot-based monitoring workflow.
- * User's structure is automatically determined from their employee profile.
+ * User's structure is automatically determined from their organizational structure.
  */
 const SlotMonitoring: React.FC = () => {
   const { t } = useTranslation();
@@ -71,9 +72,10 @@ const SlotMonitoring: React.FC = () => {
   );
   const [selectedSlotId, setSelectedSlotId] = useState<number>(1);
 
-  // Get structure from authenticated user's employee profile
-  const userStructureId = user?.employee?.structure?.id;
-  const userStructureName = user?.employee?.structure?.name;
+  // Get structure from authenticated user's organizational structure
+  const userStructureId = user?.organizationalStructureId;
+  const userStructureName = user?.organizationalStructureName;
+  const userStructureCode = user?.organizationalStructureCode;
   const userEmployeeId = user?.employee?.id;
 
   // Available slots (1-12 for 24h / 2h slots)
@@ -90,7 +92,7 @@ const SlotMonitoring: React.FC = () => {
   const loadSlotCoverage = useCallback(async () => {
     // Check if user has structure assigned
     if (!userStructureId) {
-      setError('No structure assigned to your employee profile. Please contact administrator.');
+      setError('No organizational structure assigned to your profile. Please contact administrator.');
       return;
     }
 
@@ -460,7 +462,7 @@ const SlotMonitoring: React.FC = () => {
           Slot Monitoring
         </Typography>
         <Alert severity="error">
-          No structure assigned to your employee profile. Please contact your administrator to assign a structure.
+          No organizational structure assigned to your profile. Please contact your administrator.
         </Alert>
       </Box>
     );
@@ -473,7 +475,7 @@ const SlotMonitoring: React.FC = () => {
       </Typography>
 
       <Typography variant="body2" color="text.secondary" gutterBottom>
-        Monitoring for: <strong>{userStructureName}</strong>
+        Monitoring for: <strong>{userStructureName}</strong> ({userStructureCode})
       </Typography>
 
       {/* Filters */}
