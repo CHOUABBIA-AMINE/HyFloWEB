@@ -9,6 +9,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-29-2026
+ * @updated 02-04-2026 - Fixed delete dialog to use nameFr (not designationFr)
  * @updated 02-04-2026 - Fixed delete dialog to use correct DTO fields
  * @updated 02-01-2026 - Fixed operationType property reference in delete dialog
  * @updated 01-31-2026 - Added i18n translations
@@ -399,7 +400,7 @@ export const ForecastList: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             {t('flow.forecast.deleteConfirm', {
-              type: forecastToDelete?.operationType?.designationFr || forecastToDelete?.operationType?.code || '',
+              type: forecastToDelete?.operationType?.nameFr || forecastToDelete?.operationType?.code || '',
               infrastructure: forecastToDelete?.infrastructure?.code || '',
               date: forecastToDelete?.forecastDate || ''
             })}
