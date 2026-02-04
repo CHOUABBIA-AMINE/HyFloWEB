@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-04-2026 - Added Slot Monitoring menu
  * @updated 02-01-2026 - Added permission-based menu filtering
  * @updated 01-29-2026 - Added Flow Forecasts and Operations menus
  * @updated 01-28-2026 - Added Flow Thresholds menu
@@ -71,6 +72,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SpeedIcon from '@mui/icons-material/Speed';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -101,7 +103,7 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Top-level order: Home, Workspace (Reading, Thresholds, Forecasts, Operations, Maps, Statistics), General, Network, System
+  // Top-level order: Home, Workspace (Slot Monitoring, Reading, Thresholds, Forecasts, Operations, Maps, Statistics), General, Network, System
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -112,6 +114,12 @@ const Sidebar = ({ open }: SidebarProps) => {
       titleKey: 'nav.workspace',
       icon: <WorkspacesIcon />,
       children: [
+        {
+          titleKey: 'nav.slotMonitoring',
+          icon: <MonitorHeartIcon />,
+          path: '/flow/monitoring',
+          anyPermission: ['READING:READ', 'READING:CREATE', 'READING:VALIDATE'],
+        },
         {
           titleKey: 'nav.reading',
           icon: <MenuBookIcon />,
@@ -132,7 +140,7 @@ const Sidebar = ({ open }: SidebarProps) => {
               titleKey: 'nav.readings.validate',
               icon: <CheckCircleIcon />,
               path: '/flow/readings/pending',
-              permission: 'READING:VALIDATE', // 👈 Only validators see this
+              permission: 'READING:VALIDATE',
             },
           ],
         },
@@ -318,7 +326,7 @@ const Sidebar = ({ open }: SidebarProps) => {
     {
       titleKey: 'nav.system',
       icon: <SettingsIcon />,
-      role: 'ROLE_ADMIN', // 👈 Only admins see System menu
+      role: 'ROLE_ADMIN',
       children: [
         {
           titleKey: 'nav.security',
