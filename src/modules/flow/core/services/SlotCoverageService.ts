@@ -6,10 +6,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-03
+ * @updated 2026-02-04 - Fixed API client import path
  * @module flow/core/services
  */
 
-import { apiClient } from '@/services/api';
+import axiosInstance from '@/shared/config/axios';
 import type { 
   SlotCoverageDTO, 
   PipelineCoverageItemDTO,
@@ -20,7 +21,7 @@ import type {
   SlotCompletionStatsDTO,
   ReadingStatus,
 } from '../dto/SlotCoverageDTO';
-import type { FlowReadingDTO, CreateFlowReadingDTO, UpdateFlowReadingDTO } from '../dto/FlowReadingDTO';
+import type { FlowReadingDTO } from '../dto/FlowReadingDTO';
 import type { StructureDTO } from '@/modules/general/organization/dto/StructureDTO';
 import type { Page, Pageable } from '@/types/pagination';
 
@@ -65,7 +66,7 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<SlotCoverageDTO> {
     try {
-      const response = await apiClient.get<SlotCoverageDTO>('/flow/core/reading/coverage', {
+      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/reading/coverage', {
         params: {
           date,
           slotNumber,
@@ -92,7 +93,7 @@ export class SlotCoverageService {
     filters: SlotCoverageFilters
   ): Promise<SlotCoverageDTO> {
     try {
-      const response = await apiClient.get<SlotCoverageDTO>('/flow/core/reading/coverage/filtered', {
+      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/reading/coverage/filtered', {
         params: filters,
       });
       return response.data;
@@ -117,7 +118,7 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<DailyCoverageSummaryDTO> {
     try {
-      const response = await apiClient.get<DailyCoverageSummaryDTO>('/flow/core/reading/coverage/daily-summary', {
+      const response = await axiosInstance.get<DailyCoverageSummaryDTO>('/flow/core/reading/coverage/daily-summary', {
         params: { date, structureId },
       });
       return response.data;
@@ -153,7 +154,7 @@ export class SlotCoverageService {
    * ```
    */
   static async createSlotReading(
-    data: CreateFlowReadingDTO
+    data: Partial<FlowReadingDTO>
   ): Promise<FlowReadingDTO> {
     try {
       // Validate required slot fields
@@ -167,7 +168,7 @@ export class SlotCoverageService {
         throw new Error('Pipeline is required');
       }
 
-      const response = await apiClient.post<FlowReadingDTO>('/flow/core/reading', data);
+      const response = await axiosInstance.post<FlowReadingDTO>('/flow/core/reading', data);
       return response.data;
     } catch (error: any) {
       throw new Error(
@@ -186,10 +187,10 @@ export class SlotCoverageService {
    */
   static async updateSlotReading(
     readingId: number,
-    data: UpdateFlowReadingDTO
+    data: Partial<FlowReadingDTO>
   ): Promise<FlowReadingDTO> {
     try {
-      const response = await apiClient.put<FlowReadingDTO>(
+      const response = await axiosInstance.put<FlowReadingDTO>(
         `/flow/core/reading/${readingId}`,
         data
       );
@@ -214,7 +215,7 @@ export class SlotCoverageService {
    */
   static async submitReading(readingId: number): Promise<FlowReadingDTO> {
     try {
-      const response = await apiClient.post<FlowReadingDTO>(
+      const response = await axiosInstance.post<FlowReadingDTO>(
         `/flow/core/reading/${readingId}/submit`
       );
       return response.data;
@@ -242,7 +243,7 @@ export class SlotCoverageService {
     notes?: string
   ): Promise<FlowReadingDTO> {
     try {
-      const response = await apiClient.post<FlowReadingDTO>(
+      const response = await axiosInstance.post<FlowReadingDTO>(
         `/flow/core/reading/${readingId}/approve`,
         { notes }
       );
@@ -276,7 +277,7 @@ export class SlotCoverageService {
         throw new Error('Rejection reason is required');
       }
 
-      const response = await apiClient.post<FlowReadingDTO>(
+      const response = await axiosInstance.post<FlowReadingDTO>(
         `/flow/core/reading/${readingId}/reject`,
         { reason }
       );
@@ -301,7 +302,7 @@ export class SlotCoverageService {
    */
   static async recallReading(readingId: number): Promise<FlowReadingDTO> {
     try {
-      const response = await apiClient.post<FlowReadingDTO>(
+      const response = await axiosInstance.post<FlowReadingDTO>(
         `/flow/core/reading/${readingId}/recall`
       );
       return response.data;
@@ -326,7 +327,7 @@ export class SlotCoverageService {
     readingIds: number[]
   ): Promise<BulkActionResult> {
     try {
-      const response = await apiClient.post<BulkActionResult>(
+      const response = await axiosInstance.post<BulkActionResult>(
         '/flow/core/reading/bulk/submit',
         { readingIds }
       );
@@ -351,7 +352,7 @@ export class SlotCoverageService {
     notes?: string
   ): Promise<BulkActionResult> {
     try {
-      const response = await apiClient.post<BulkActionResult>(
+      const response = await axiosInstance.post<BulkActionResult>(
         '/flow/core/reading/bulk/approve',
         { readingIds, notes }
       );
@@ -380,7 +381,7 @@ export class SlotCoverageService {
     notes?: string
   ): Promise<BulkActionResult> {
     try {
-      const response = await apiClient.post<BulkActionResult>(
+      const response = await axiosInstance.post<BulkActionResult>(
         '/flow/core/reading/bulk/approve-slot',
         { date, slotNumber, structureId, notes }
       );
@@ -405,7 +406,7 @@ export class SlotCoverageService {
    */
   static async getUserStructures(): Promise<StructureDTO[]> {
     try {
-      const response = await apiClient.get<StructureDTO[]>(
+      const response = await axiosInstance.get<StructureDTO[]>(
         '/flow/core/reading/user-structures'
       );
       return response.data;
@@ -429,7 +430,7 @@ export class SlotCoverageService {
     structure: StructureDTO;
   } | null> {
     try {
-      const response = await apiClient.get(
+      const response = await axiosInstance.get(
         '/flow/core/reading/current-slot-context'
       );
       return response.data;
@@ -458,7 +459,7 @@ export class SlotCoverageService {
     pageable?: Pageable
   ): Promise<Page<FlowReadingDTO>> {
     try {
-      const response = await apiClient.get<Page<FlowReadingDTO>>(
+      const response = await axiosInstance.get<Page<FlowReadingDTO>>(
         '/flow/core/reading/pending-actions',
         { params: pageable }
       );
@@ -487,7 +488,7 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<SlotCompletionStatsDTO[]> {
     try {
-      const response = await apiClient.get<SlotCompletionStatsDTO[]>(
+      const response = await axiosInstance.get<SlotCompletionStatsDTO[]>(
         '/flow/core/reading/coverage/stats',
         { params: { startDate, endDate, structureId } }
       );
@@ -514,7 +515,7 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<Blob> {
     try {
-      const response = await apiClient.get(
+      const response = await axiosInstance.get(
         '/flow/core/reading/coverage/export',
         {
           params: { date, slotNumber, structureId },
