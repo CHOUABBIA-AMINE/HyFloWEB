@@ -6,10 +6,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-04 - Fixed API client import path
  * @module flow/core/services
  */
 
-import { apiClient } from '@/services/api';
+import axiosInstance from '@/shared/config/axios';
 
 // ==================== TYPE DEFINITIONS ====================
 
@@ -155,7 +156,7 @@ export class FlowMonitoringService {
     request: SlotCoverageRequestDTO
   ): Promise<SlotCoverageResponseDTO> {
     try {
-      const response = await apiClient.post<SlotCoverageResponseDTO>(
+      const response = await axiosInstance.post<SlotCoverageResponseDTO>(
         `${this.BASE_PATH}/slot-coverage`,
         request
       );
@@ -182,7 +183,7 @@ export class FlowMonitoringService {
     request: ReadingSubmitRequestDTO
   ): Promise<void> {
     try {
-      await apiClient.post(
+      await axiosInstance.post(
         `${this.BASE_PATH}/readings/submit`,
         request
       );
@@ -213,7 +214,7 @@ export class FlowMonitoringService {
         throw new Error('Rejection reason is required');
       }
 
-      await apiClient.post(
+      await axiosInstance.post(
         `${this.BASE_PATH}/readings/validate`,
         request
       );
