@@ -14,6 +14,7 @@
  * @updated 2026-02-04 - Get structure from employee.job.structure
  * @updated 2026-02-04 - Added frontend permission calculation based on user roles
  * @updated 2026-02-04 - Added debug logging and fallback for authenticated users
+ * @updated 2026-02-04 - Refactored to use centralized imports and user helpers
  * @module flow/core/pages
  */
 
@@ -51,11 +52,22 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/shared/context/AuthContext';
-import FlowMonitoringService, {
+
+// Centralized imports from flow/core
+import { FlowMonitoringService } from '../services';
+import {
   SlotCoverageResponseDTO,
   PipelineCoverageDTO,
-  WorkflowStatus,
-} from '../services/FlowMonitoringService';
+} from '../dto';
+import { WorkflowStatus } from '../types';
+import {
+  getStatusColor,
+  formatCompletionPercentage,
+  formatSlotTimeRange,
+  getUserStructure,
+  getUserEmployeeId,
+  debugUserStructure,
+} from '../utils';
 
 /**
  * Pipeline Permissions Interface
@@ -88,21 +100,22 @@ const SlotMonitoring: React.FC = () => {
   );
   const [selectedSlotId, setSelectedSlotId] = useState<number>(1);
 
-  // Get structure from authenticated user's employee job
-  const userStructureId = user?.employee?.job?.structure?.id;
-  const userStructureName = user?.employee?.job?.structure?.name;
-  const userStructureCode = user?.employee?.job?.structure?.code;
-  const userEmployeeId = user?.employee?.id;
+  // ==================== USER DATA - CENTRALIZED ACCESS ====================
+  
+  // Get user structure using centralized helper (with fallback)
+  const userStructureInfo = useMemo(() => getUserStructure(user), [user]);
+  const userEmployeeId = useMemo(() => getUserEmployeeId(user), [user]);
 
   // User roles and permissions
   const userRoles = user?.roles || [];
   const userPermissions = user?.permissions || [];
 
-  // Debug: Log user roles and permissions on mount
+  // Debug: Log user structure on mount
   useEffect(() => {
-    console.log('🔐 SlotMonitoring - User Roles:', userRoles);
-    console.log('🔐 SlotMonitoring - User Permissions:', userPermissions);
-  }, [userRoles, userPermissions]);
+    debugUserStructure(user);
+    console.log('🔐 User Roles:', userRoles);
+    console.log('🔐 User Permissions:', userPermissions);
+  }, [user, userRoles, userPermissions]);
 
   // Available slots (1-12 for 24h / 2h slots)
   const availableSlots = Array.from({ length: 12 }, (_, i) => ({
@@ -196,8 +209,12 @@ const SlotMonitoring: React.FC = () => {
    */
   const loadSlotCoverage = useCallback(async () => {
     // Check if user has structure assigned via job
-    if (!userStructureId) {
-      setError('No structure assigned to your job. Please contact administrator.');
+    if (!userStructureInfo.structureId) {
+      setError(
+        userStructureInfo.source === 'none'
+          ? 'No structure assigned to your profile. Please contact your administrator.'
+          : 'Structure information incomplete. Please contact your administrator.'
+      );
       return;
     }
 
@@ -208,7 +225,7 @@ const SlotMonitoring: React.FC = () => {
       const response = await FlowMonitoringService.getSlotCoverage({
         readingDate: selectedDate,
         slotId: selectedSlotId,
-        structureId: userStructureId,
+        structureId: userStructureInfo.structureId,
       });
 
       setCoverage(response);
@@ -219,14 +236,14 @@ const SlotMonitoring: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedSlotId, userStructureId]);
+  }, [selectedDate, selectedSlotId, userStructureInfo]);
 
   // Auto-load on mount and filter changes
   useEffect(() => {
-    if (userStructureId) {
+    if (userStructureInfo.structureId) {
       loadSlotCoverage();
     }
-  }, [loadSlotCoverage, userStructureId]);
+  }, [loadSlotCoverage, userStructureInfo.structureId]);
 
   // ==================== EVENT HANDLERS ====================
 
@@ -333,7 +350,7 @@ const SlotMonitoring: React.FC = () => {
                 Structure
               </Typography>
               <Typography variant="h6" color="primary">
-                {coverage.structure.name}
+                {coverage.structure.designationFr || coverage.structure.code}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {coverage.structure.code}
@@ -357,7 +374,7 @@ const SlotMonitoring: React.FC = () => {
                 {coverage.slot.slotName}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {FlowMonitoringService.formatSlotTimeRange(
+                {formatSlotTimeRange(
                   coverage.slot.startTime,
                   coverage.slot.endTime
                 )}
@@ -370,7 +387,7 @@ const SlotMonitoring: React.FC = () => {
               </Typography>
               <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                 <Chip
-                  label={FlowMonitoringService.formatCompletionPercentage(
+                  label={formatCompletionPercentage(
                     coverage.completionPercentage
                   )}
                   color={coverage.isSlotComplete ? 'success' : 'warning'}
@@ -487,7 +504,7 @@ const SlotMonitoring: React.FC = () => {
                   <TableCell>
                     <Chip
                       label={pipeline.workflowStatusDisplay}
-                      color={FlowMonitoringService.getStatusColor(pipeline.workflowStatus)}
+                      color={getStatusColor(pipeline.workflowStatus)}
                       size="small"
                     />
                   </TableCell>
@@ -583,14 +600,16 @@ const SlotMonitoring: React.FC = () => {
   // ==================== MAIN RENDER ====================
 
   // Show error if user has no structure assigned via job
-  if (!userStructureId) {
+  if (!userStructureInfo.structureId) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
           Slot Monitoring
         </Typography>
         <Alert severity="error">
-          No structure assigned to your job profile. Please contact your administrator to assign a job with a structure.
+          {userStructureInfo.source === 'none'
+            ? 'No structure assigned to your profile. Please contact your administrator to assign a job with a structure.'
+            : 'Structure information incomplete. Please contact your administrator.'}
         </Alert>
       </Box>
     );
@@ -604,7 +623,7 @@ const SlotMonitoring: React.FC = () => {
 
       <Box display="flex" alignItems="center" gap={2} mb={2}>
         <Typography variant="body2" color="text.secondary">
-          Monitoring for: <strong>{userStructureName}</strong> ({userStructureCode})
+          Monitoring for: <strong>{userStructureInfo.structureName}</strong> ({userStructureInfo.structureCode})
         </Typography>
         
         {/* Role badges */}
@@ -619,6 +638,16 @@ const SlotMonitoring: React.FC = () => {
             <Chip label="No Role Assigned" size="small" color="warning" />
           )}
         </Box>
+        
+        {/* Structure source indicator */}
+        {userStructureInfo.source === 'organizational' && (
+          <Chip 
+            label="Using Fallback Structure" 
+            size="small" 
+            color="warning" 
+            variant="outlined"
+          />
+        )}
       </Box>
 
       {/* Filters */}
