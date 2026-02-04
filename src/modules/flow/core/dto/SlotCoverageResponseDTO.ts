@@ -9,7 +9,7 @@
  * @package flow/core/dto
  */
 
-import { ReadingSlotDTO } from './ReadingSlotDTO';
+import { ReadingSlotDTO } from '../../common/dto/ReadingSlotDTO';
 import { StructureDTO } from '@/modules/general/organization/dto/StructureDTO';
 import { PipelineCoverageDTO } from './PipelineCoverageDTO';
 

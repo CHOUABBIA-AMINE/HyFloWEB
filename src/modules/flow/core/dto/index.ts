@@ -5,7 +5,7 @@
  * @created 2026-02-04
  */
 
-export * from './ReadingSlotDTO';
+// ReadingSlotDTO is in flow/common/dto (not duplicated here)
 export * from './PipelineCoverageDTO';
 export * from './SlotCoverageRequestDTO';
 export * from './SlotCoverageResponseDTO';
