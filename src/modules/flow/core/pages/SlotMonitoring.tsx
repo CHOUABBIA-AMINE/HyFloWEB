@@ -13,6 +13,7 @@
  * @updated 2026-02-04 - Removed structure dropdown, get from user context
  * @updated 2026-02-04 - Get structure from employee.job.structure
  * @updated 2026-02-04 - Added frontend permission calculation based on user roles
+ * @updated 2026-02-04 - Added debug logging and fallback for authenticated users
  * @module flow/core/pages
  */
 
@@ -93,9 +94,15 @@ const SlotMonitoring: React.FC = () => {
   const userStructureCode = user?.employee?.job?.structure?.code;
   const userEmployeeId = user?.employee?.id;
 
-  // User roles
+  // User roles and permissions
   const userRoles = user?.roles || [];
   const userPermissions = user?.permissions || [];
+
+  // Debug: Log user roles and permissions on mount
+  useEffect(() => {
+    console.log('🔐 SlotMonitoring - User Roles:', userRoles);
+    console.log('🔐 SlotMonitoring - User Permissions:', userPermissions);
+  }, [userRoles, userPermissions]);
 
   // Available slots (1-12 for 24h / 2h slots)
   const availableSlots = Array.from({ length: 12 }, (_, i) => ({
@@ -108,12 +115,22 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Check if user has operator role
    * Operators can create/edit/submit readings
+   * 
+   * FALLBACK: If no specific roles found, allow all authenticated users to act as operators
    */
   const isOperator = useMemo(() => {
-    return userRoles.includes('ROLE_OPERATOR') || 
-           userRoles.includes('ROLE_FLOW_OPERATOR') ||
-           userPermissions.includes('FLOW_READING_CREATE') ||
-           userPermissions.includes('FLOW_READING_EDIT');
+    const hasOperatorRole = userRoles.includes('ROLE_OPERATOR') || 
+                            userRoles.includes('ROLE_FLOW_OPERATOR') ||
+                            userPermissions.includes('FLOW_READING_CREATE') ||
+                            userPermissions.includes('FLOW_READING_EDIT');
+    
+    // Fallback: If no roles/permissions defined yet, allow authenticated users
+    const fallback = userRoles.length === 0 && userPermissions.length === 0;
+    
+    const result = hasOperatorRole || fallback;
+    console.log('👷 isOperator:', result, '(hasRole:', hasOperatorRole, ', fallback:', fallback, ')');
+    
+    return result;
   }, [userRoles, userPermissions]);
 
   /**
@@ -121,11 +138,15 @@ const SlotMonitoring: React.FC = () => {
    * Validators can approve/reject submitted readings
    */
   const isValidator = useMemo(() => {
-    return userRoles.includes('ROLE_VALIDATOR') || 
-           userRoles.includes('ROLE_FLOW_VALIDATOR') ||
-           userRoles.includes('ROLE_SUPERVISOR') ||
-           userPermissions.includes('FLOW_READING_VALIDATE') ||
-           userPermissions.includes('FLOW_READING_APPROVE');
+    const hasValidatorRole = userRoles.includes('ROLE_VALIDATOR') || 
+                             userRoles.includes('ROLE_FLOW_VALIDATOR') ||
+                             userRoles.includes('ROLE_SUPERVISOR') ||
+                             userPermissions.includes('FLOW_READING_VALIDATE') ||
+                             userPermissions.includes('FLOW_READING_APPROVE');
+    
+    console.log('✅ isValidator:', hasValidatorRole);
+    
+    return hasValidatorRole;
   }, [userRoles, userPermissions]);
 
   /**
@@ -191,9 +212,10 @@ const SlotMonitoring: React.FC = () => {
       });
 
       setCoverage(response);
+      console.log('📊 Slot coverage loaded:', response.pipelines.length, 'pipelines');
     } catch (err: any) {
       setError(err.message || 'Failed to load slot coverage');
-      console.error('Error loading slot coverage:', err);
+      console.error('❌ Error loading slot coverage:', err);
     } finally {
       setLoading(false);
     }
@@ -213,7 +235,7 @@ const SlotMonitoring: React.FC = () => {
    */
   const handleEdit = (pipeline: PipelineCoverageDTO) => {
     // TODO: Navigate to reading edit page or show edit dialog
-    console.log('Edit reading for pipeline:', pipeline.pipelineId);
+    console.log('✏️ Edit reading for pipeline:', pipeline.pipelineId, pipeline.pipelineCode);
     // For NOT_RECORDED status, this would create a new reading
     // For DRAFT/REJECTED status, this would edit the existing reading
   };
@@ -230,7 +252,7 @@ const SlotMonitoring: React.FC = () => {
     try {
       // TODO: Get actual reading data before submit
       // For now, just reload coverage
-      console.log('Submit reading for pipeline:', pipeline.pipelineId);
+      console.log('📤 Submit reading for pipeline:', pipeline.pipelineId);
       
       // Reload coverage
       await loadSlotCoverage();
@@ -255,6 +277,8 @@ const SlotMonitoring: React.FC = () => {
         employeeId: userEmployeeId,
       });
 
+      console.log('✅ Reading approved for pipeline:', pipeline.pipelineId);
+      
       // Reload coverage
       await loadSlotCoverage();
     } catch (err: any) {
@@ -283,6 +307,8 @@ const SlotMonitoring: React.FC = () => {
         comments,
       });
 
+      console.log('❌ Reading rejected for pipeline:', pipeline.pipelineId);
+      
       // Reload coverage
       await loadSlotCoverage();
     } catch (err: any) {
@@ -429,6 +455,17 @@ const SlotMonitoring: React.FC = () => {
             {coverage.pipelines.map((pipeline) => {
               // Calculate permissions for this pipeline based on user role
               const permissions = calculatePipelinePermissions(pipeline);
+              
+              // Debug log for first pipeline
+              if (coverage.pipelines.indexOf(pipeline) === 0) {
+                console.log('🔍 First pipeline permissions:', {
+                  pipeline: pipeline.pipelineCode,
+                  status: pipeline.workflowStatus,
+                  permissions,
+                  isOperator,
+                  isValidator,
+                });
+              }
 
               return (
                 <TableRow
@@ -577,6 +614,9 @@ const SlotMonitoring: React.FC = () => {
           )}
           {isValidator && (
             <Chip label="Validator" size="small" color="success" />
+          )}
+          {!isOperator && !isValidator && (
+            <Chip label="No Role Assigned" size="small" color="warning" />
           )}
         </Box>
       </Box>
