@@ -15,6 +15,7 @@
  * @updated 2026-02-04 - Added frontend permission calculation based on user roles
  * @updated 2026-02-04 - Added debug logging and fallback for authenticated users
  * @updated 2026-02-04 - Refactored to use centralized imports and user helpers
+ * @updated 2026-02-04 - Fixed ReadingSlotDTO field names and added translations
  * @module flow/core/pages
  */
 
@@ -68,6 +69,7 @@ import {
   getUserEmployeeId,
   debugUserStructure,
 } from '../utils';
+import { getLocalizedDesignation } from '../../common/dto/ReadingSlotDTO';
 
 /**
  * Pipeline Permissions Interface
@@ -86,8 +88,11 @@ interface PipelinePermissions {
  * User's structure is automatically determined from their employee's job assignment.
  */
 const SlotMonitoring: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
+
+  // Get current language for localized slot names
+  const currentLang = i18n.language as 'ar' | 'en' | 'fr';
 
   // ==================== STATE ====================
   const [loading, setLoading] = useState(false);
@@ -120,7 +125,7 @@ const SlotMonitoring: React.FC = () => {
   // Available slots (1-12 for 24h / 2h slots)
   const availableSlots = Array.from({ length: 12 }, (_, i) => ({
     id: i + 1,
-    label: `Slot ${i + 1}`,
+    label: t(`flow.slots.slot${i + 1}`, `Slot ${i + 1}`),
   }));
 
   // ==================== PERMISSION HELPERS ====================
@@ -212,8 +217,8 @@ const SlotMonitoring: React.FC = () => {
     if (!userStructureInfo.structureId) {
       setError(
         userStructureInfo.source === 'none'
-          ? 'No structure assigned to your profile. Please contact your administrator.'
-          : 'Structure information incomplete. Please contact your administrator.'
+          ? t('flow.monitoring.errors.noStructure', 'No structure assigned to your profile. Please contact your administrator.')
+          : t('flow.monitoring.errors.incompleteStructure', 'Structure information incomplete. Please contact your administrator.')
       );
       return;
     }
@@ -231,12 +236,12 @@ const SlotMonitoring: React.FC = () => {
       setCoverage(response);
       console.log('📊 Slot coverage loaded:', response.pipelines.length, 'pipelines');
     } catch (err: any) {
-      setError(err.message || 'Failed to load slot coverage');
+      setError(err.message || t('flow.monitoring.errors.loadFailed', 'Failed to load slot coverage'));
       console.error('❌ Error loading slot coverage:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedDate, selectedSlotId, userStructureInfo]);
+  }, [selectedDate, selectedSlotId, userStructureInfo, t]);
 
   // Auto-load on mount and filter changes
   useEffect(() => {
@@ -262,7 +267,7 @@ const SlotMonitoring: React.FC = () => {
    */
   const handleSubmit = async (pipeline: PipelineCoverageDTO) => {
     if (!pipeline.readingId || !userEmployeeId) {
-      setError('Cannot submit: missing reading ID or employee ID');
+      setError(t('flow.monitoring.errors.submitMissing', 'Cannot submit: missing reading ID or employee ID'));
       return;
     }
 
@@ -274,7 +279,7 @@ const SlotMonitoring: React.FC = () => {
       // Reload coverage
       await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.message || 'Failed to submit reading');
+      setError(err.message || t('flow.monitoring.errors.submitFailed', 'Failed to submit reading'));
     }
   };
 
@@ -283,7 +288,7 @@ const SlotMonitoring: React.FC = () => {
    */
   const handleApprove = async (pipeline: PipelineCoverageDTO) => {
     if (!pipeline.readingId || !userEmployeeId) {
-      setError('Cannot approve: missing reading ID or employee ID');
+      setError(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID or employee ID'));
       return;
     }
 
@@ -299,7 +304,7 @@ const SlotMonitoring: React.FC = () => {
       // Reload coverage
       await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to approve reading');
+      setError(err.response?.data?.message || err.message || t('flow.monitoring.errors.approveFailed', 'Failed to approve reading'));
     }
   };
 
@@ -308,12 +313,12 @@ const SlotMonitoring: React.FC = () => {
    */
   const handleReject = async (pipeline: PipelineCoverageDTO) => {
     if (!pipeline.readingId || !userEmployeeId) {
-      setError('Cannot reject: missing reading ID or employee ID');
+      setError(t('flow.monitoring.errors.rejectMissing', 'Cannot reject: missing reading ID or employee ID'));
       return;
     }
 
     // TODO: Show dialog to capture rejection comments
-    const comments = prompt('Enter rejection reason:');
+    const comments = prompt(t('flow.monitoring.prompts.rejectReason', 'Enter rejection reason:'));
     if (!comments) return;
 
     try {
@@ -329,7 +334,7 @@ const SlotMonitoring: React.FC = () => {
       // Reload coverage
       await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'Failed to reject reading');
+      setError(err.response?.data?.message || err.message || t('flow.monitoring.errors.rejectFailed', 'Failed to reject reading'));
     }
   };
 
@@ -347,7 +352,7 @@ const SlotMonitoring: React.FC = () => {
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={3}>
               <Typography variant="body2" color="text.secondary">
-                Structure
+                {t('flow.monitoring.structure', 'Structure')}
               </Typography>
               <Typography variant="h6" color="primary">
                 {coverage.structure.designationFr || coverage.structure.code}
@@ -359,19 +364,19 @@ const SlotMonitoring: React.FC = () => {
 
             <Grid item xs={12} md={3}>
               <Typography variant="body2" color="text.secondary">
-                Date
+                {t('flow.monitoring.date', 'Date')}
               </Typography>
               <Typography variant="h6">
-                {new Date(coverage.readingDate).toLocaleDateString()}
+                {new Date(coverage.readingDate).toLocaleDateString(currentLang)}
               </Typography>
             </Grid>
 
             <Grid item xs={12} md={3}>
               <Typography variant="body2" color="text.secondary">
-                Slot
+                {t('flow.monitoring.slot', 'Slot')}
               </Typography>
               <Typography variant="h6">
-                {coverage.slot.slotName}
+                {getLocalizedDesignation(coverage.slot, currentLang)}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {formatSlotTimeRange(
@@ -383,7 +388,7 @@ const SlotMonitoring: React.FC = () => {
 
             <Grid item xs={12} md={3}>
               <Typography variant="body2" color="text.secondary">
-                Completion
+                {t('flow.monitoring.completion', 'Completion')}
               </Typography>
               <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                 <Chip
@@ -414,12 +419,12 @@ const SlotMonitoring: React.FC = () => {
     if (!coverage) return null;
 
     const summaryItems = [
-      { label: 'Total Pipelines', value: coverage.totalPipelines, color: 'primary' },
-      { label: 'Recorded', value: coverage.recordedCount, color: 'info' },
-      { label: 'Submitted', value: coverage.submittedCount, color: 'warning' },
-      { label: 'Approved', value: coverage.approvedCount, color: 'success' },
-      { label: 'Rejected', value: coverage.rejectedCount, color: 'error' },
-      { label: 'Missing', value: coverage.missingCount, color: 'default' },
+      { label: t('flow.monitoring.summary.total', 'Total Pipelines'), value: coverage.totalPipelines, color: 'primary' },
+      { label: t('flow.monitoring.summary.recorded', 'Recorded'), value: coverage.recordedCount, color: 'info' },
+      { label: t('flow.monitoring.summary.submitted', 'Submitted'), value: coverage.submittedCount, color: 'warning' },
+      { label: t('flow.monitoring.summary.approved', 'Approved'), value: coverage.approvedCount, color: 'success' },
+      { label: t('flow.monitoring.summary.rejected', 'Rejected'), value: coverage.rejectedCount, color: 'error' },
+      { label: t('flow.monitoring.summary.missing', 'Missing'), value: coverage.missingCount, color: 'default' },
     ];
 
     return (
@@ -449,7 +454,7 @@ const SlotMonitoring: React.FC = () => {
     if (!coverage || coverage.pipelines.length === 0) {
       return (
         <Alert severity="info">
-          No pipelines found for this structure.
+          {t('flow.monitoring.noPipelines', 'No pipelines found for this structure.')}
         </Alert>
       );
     }
@@ -459,13 +464,13 @@ const SlotMonitoring: React.FC = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Pipeline</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Recorded By</TableCell>
-              <TableCell>Recorded At</TableCell>
-              <TableCell>Validated By</TableCell>
-              <TableCell>Validated At</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>{t('flow.monitoring.table.pipeline', 'Pipeline')}</TableCell>
+              <TableCell>{t('flow.monitoring.table.status', 'Status')}</TableCell>
+              <TableCell>{t('flow.monitoring.table.recordedBy', 'Recorded By')}</TableCell>
+              <TableCell>{t('flow.monitoring.table.recordedAt', 'Recorded At')}</TableCell>
+              <TableCell>{t('flow.monitoring.table.validatedBy', 'Validated By')}</TableCell>
+              <TableCell>{t('flow.monitoring.table.validatedAt', 'Validated At')}</TableCell>
+              <TableCell align="right">{t('flow.monitoring.table.actions', 'Actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -518,7 +523,7 @@ const SlotMonitoring: React.FC = () => {
                   <TableCell>
                     <Typography variant="body2">
                       {pipeline.recordedAt
-                        ? new Date(pipeline.recordedAt).toLocaleString()
+                        ? new Date(pipeline.recordedAt).toLocaleString(currentLang)
                         : '-'}
                     </Typography>
                   </TableCell>
@@ -532,7 +537,7 @@ const SlotMonitoring: React.FC = () => {
                   <TableCell>
                     <Typography variant="body2">
                       {pipeline.validatedAt
-                        ? new Date(pipeline.validatedAt).toLocaleString()
+                        ? new Date(pipeline.validatedAt).toLocaleString(currentLang)
                         : '-'}
                     </Typography>
                   </TableCell>
@@ -540,7 +545,10 @@ const SlotMonitoring: React.FC = () => {
                   <TableCell align="right">
                     <Box display="flex" gap={0.5} justifyContent="flex-end">
                       {permissions.canEdit && (
-                        <Tooltip title={pipeline.workflowStatus === 'NOT_RECORDED' ? 'Create Reading' : 'Edit Reading'}>
+                        <Tooltip title={pipeline.workflowStatus === 'NOT_RECORDED' 
+                          ? t('flow.monitoring.actions.create', 'Create Reading')
+                          : t('flow.monitoring.actions.edit', 'Edit Reading')
+                        }>
                           <IconButton
                             size="small"
                             color="primary"
@@ -552,7 +560,7 @@ const SlotMonitoring: React.FC = () => {
                       )}
 
                       {permissions.canSubmit && (
-                        <Tooltip title="Submit for Validation">
+                        <Tooltip title={t('flow.monitoring.actions.submit', 'Submit for Validation')}>
                           <IconButton
                             size="small"
                             color="warning"
@@ -565,7 +573,7 @@ const SlotMonitoring: React.FC = () => {
 
                       {permissions.canValidate && (
                         <>
-                          <Tooltip title="Approve">
+                          <Tooltip title={t('flow.monitoring.actions.approve', 'Approve')}>
                             <IconButton
                               size="small"
                               color="success"
@@ -575,7 +583,7 @@ const SlotMonitoring: React.FC = () => {
                             </IconButton>
                           </Tooltip>
 
-                          <Tooltip title="Reject">
+                          <Tooltip title={t('flow.monitoring.actions.reject', 'Reject')}>
                             <IconButton
                               size="small"
                               color="error"
@@ -604,12 +612,12 @@ const SlotMonitoring: React.FC = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
-          Slot Monitoring
+          {t('flow.monitoring.title', 'Slot Monitoring')}
         </Typography>
         <Alert severity="error">
           {userStructureInfo.source === 'none'
-            ? 'No structure assigned to your profile. Please contact your administrator to assign a job with a structure.'
-            : 'Structure information incomplete. Please contact your administrator.'}
+            ? t('flow.monitoring.errors.noStructure', 'No structure assigned to your profile. Please contact your administrator to assign a job with a structure.')
+            : t('flow.monitoring.errors.incompleteStructure', 'Structure information incomplete. Please contact your administrator.')}
         </Alert>
       </Box>
     );
@@ -618,31 +626,31 @@ const SlotMonitoring: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Slot Monitoring
+        {t('flow.monitoring.title', 'Slot Monitoring')}
       </Typography>
 
       <Box display="flex" alignItems="center" gap={2} mb={2}>
         <Typography variant="body2" color="text.secondary">
-          Monitoring for: <strong>{userStructureInfo.structureName}</strong> ({userStructureInfo.structureCode})
+          {t('flow.monitoring.monitoringFor', 'Monitoring for')}: <strong>{userStructureInfo.structureName}</strong> ({userStructureInfo.structureCode})
         </Typography>
         
         {/* Role badges */}
         <Box display="flex" gap={1}>
           {isOperator && (
-            <Chip label="Operator" size="small" color="info" />
+            <Chip label={t('flow.monitoring.roles.operator', 'Operator')} size="small" color="info" />
           )}
           {isValidator && (
-            <Chip label="Validator" size="small" color="success" />
+            <Chip label={t('flow.monitoring.roles.validator', 'Validator')} size="small" color="success" />
           )}
           {!isOperator && !isValidator && (
-            <Chip label="No Role Assigned" size="small" color="warning" />
+            <Chip label={t('flow.monitoring.roles.noRole', 'No Role Assigned')} size="small" color="warning" />
           )}
         </Box>
         
         {/* Structure source indicator */}
         {userStructureInfo.source === 'organizational' && (
           <Chip 
-            label="Using Fallback Structure" 
+            label={t('flow.monitoring.fallbackStructure', 'Using Fallback Structure')} 
             size="small" 
             color="warning" 
             variant="outlined"
@@ -658,7 +666,7 @@ const SlotMonitoring: React.FC = () => {
               <TextField
                 fullWidth
                 type="date"
-                label="Date"
+                label={t('flow.monitoring.filters.date', 'Date')}
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 InputLabelProps={{ shrink: true }}
@@ -669,7 +677,7 @@ const SlotMonitoring: React.FC = () => {
               <TextField
                 fullWidth
                 select
-                label="Slot"
+                label={t('flow.monitoring.filters.slot', 'Slot')}
                 value={selectedSlotId}
                 onChange={(e) => setSelectedSlotId(Number(e.target.value))}
               >
@@ -690,10 +698,10 @@ const SlotMonitoring: React.FC = () => {
                   onClick={loadSlotCoverage}
                   disabled={loading}
                 >
-                  Refresh
+                  {t('flow.monitoring.actions.refresh', 'Refresh')}
                 </Button>
 
-                <Tooltip title="Export to Excel">
+                <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
                   <IconButton color="primary" disabled={!coverage}>
                     <DownloadIcon />
                   </IconButton>
