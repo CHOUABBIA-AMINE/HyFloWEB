@@ -3,12 +3,12 @@
  * 
  * Slot-centric operational dashboard for flow monitoring.
  * Displays pipeline coverage for a specific date + slot.
- * Structure is automatically determined from authenticated user's organizational structure.
+ * Structure is automatically determined from authenticated user's employee job assignment.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Removed structure dropdown, get from user context
- * @updated 2026-02-04 - Fixed structure property access from UserProfile
+ * @updated 2026-02-04 - Get structure from employee.job.structure
  * @module flow/core/pages
  */
 
@@ -55,7 +55,7 @@ import FlowMonitoringService, {
  * SlotMonitoring Component
  * 
  * Main operational console for slot-based monitoring workflow.
- * User's structure is automatically determined from their organizational structure.
+ * User's structure is automatically determined from their employee's job assignment.
  */
 const SlotMonitoring: React.FC = () => {
   const { t } = useTranslation();
@@ -72,10 +72,10 @@ const SlotMonitoring: React.FC = () => {
   );
   const [selectedSlotId, setSelectedSlotId] = useState<number>(1);
 
-  // Get structure from authenticated user's organizational structure
-  const userStructureId = user?.organizationalStructureId;
-  const userStructureName = user?.organizationalStructureName;
-  const userStructureCode = user?.organizationalStructureCode;
+  // Get structure from authenticated user's employee job
+  const userStructureId = user?.employee?.job?.structure?.id;
+  const userStructureName = user?.employee?.job?.structure?.name;
+  const userStructureCode = user?.employee?.job?.structure?.code;
   const userEmployeeId = user?.employee?.id;
 
   // Available slots (1-12 for 24h / 2h slots)
@@ -90,9 +90,9 @@ const SlotMonitoring: React.FC = () => {
    * Load slot coverage from backend
    */
   const loadSlotCoverage = useCallback(async () => {
-    // Check if user has structure assigned
+    // Check if user has structure assigned via job
     if (!userStructureId) {
-      setError('No organizational structure assigned to your profile. Please contact administrator.');
+      setError('No structure assigned to your job. Please contact administrator.');
       return;
     }
 
@@ -454,7 +454,7 @@ const SlotMonitoring: React.FC = () => {
 
   // ==================== MAIN RENDER ====================
 
-  // Show error if user has no structure assigned
+  // Show error if user has no structure assigned via job
   if (!userStructureId) {
     return (
       <Box sx={{ p: 3 }}>
@@ -462,7 +462,7 @@ const SlotMonitoring: React.FC = () => {
           Slot Monitoring
         </Typography>
         <Alert severity="error">
-          No organizational structure assigned to your profile. Please contact your administrator.
+          No structure assigned to your job profile. Please contact your administrator to assign a job with a structure.
         </Alert>
       </Box>
     );
