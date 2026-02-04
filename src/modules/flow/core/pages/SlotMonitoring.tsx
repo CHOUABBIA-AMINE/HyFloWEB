@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-04 - Improved role detection and messaging
  * @updated 2026-02-04 - Updated to work with nested DTO structure
  * @module flow/core/pages
  */
@@ -45,6 +46,7 @@ import {
   Cancel as RejectIcon,
   Refresh as RefreshIcon,
   Download as DownloadIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/shared/context/AuthContext';
@@ -128,8 +130,6 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Check if user has operator role
    * Operators can create/edit/submit readings
-   * 
-   * FALLBACK: If no specific roles found, allow all authenticated users to act as operators
    */
   const isOperator = useMemo(() => {
     const hasOperatorRole = userRoles.includes('ROLE_OPERATOR') || 
@@ -137,13 +137,8 @@ const SlotMonitoring: React.FC = () => {
                             userPermissions.includes('FLOW_READING_CREATE') ||
                             userPermissions.includes('FLOW_READING_EDIT');
     
-    // Fallback: If no roles/permissions defined yet, allow authenticated users
-    const fallback = userRoles.length === 0 && userPermissions.length === 0;
-    
-    const result = hasOperatorRole || fallback;
-    console.log('👷 isOperator:', result, '(hasRole:', hasOperatorRole, ', fallback:', fallback, ')');
-    
-    return result;
+    console.log('👷 isOperator:', hasOperatorRole);
+    return hasOperatorRole;
   }, [userRoles, userPermissions]);
 
   /**
@@ -158,9 +153,15 @@ const SlotMonitoring: React.FC = () => {
                              userPermissions.includes('FLOW_READING_APPROVE');
     
     console.log('✅ isValidator:', hasValidatorRole);
-    
     return hasValidatorRole;
   }, [userRoles, userPermissions]);
+
+  /**
+   * Check if user has any flow-related role
+   */
+  const hasFlowRole = useMemo(() => {
+    return isOperator || isValidator;
+  }, [isOperator, isValidator]);
 
   /**
    * Calculate permissions for a pipeline based on user role and workflow status
@@ -590,6 +591,13 @@ const SlotMonitoring: React.FC = () => {
                           </Tooltip>
                         </>
                       )}
+                      
+                      {/* Show info if no permissions */}
+                      {!permissions.canEdit && !permissions.canSubmit && !permissions.canValidate && (
+                        <Typography variant="caption" color="text.secondary">
+                          -
+                        </Typography>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -625,6 +633,26 @@ const SlotMonitoring: React.FC = () => {
         {t('flow.monitoring.title', 'Slot Monitoring')}
       </Typography>
 
+      {/* Access warning if no flow roles */}
+      {!hasFlowRole && (
+        <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
+          <Typography variant="body2" fontWeight="bold">
+            {t('flow.monitoring.warnings.noFlowRole.title', 'Limited Access - No Flow Role Assigned')}
+          </Typography>
+          <Typography variant="body2">
+            {t('flow.monitoring.warnings.noFlowRole.message', 
+              'You can view flow monitoring data, but you cannot create, edit, or validate readings. To perform these actions, you need one of the following roles:')}
+          </Typography>
+          <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
+            <li><Typography variant="body2">ROLE_OPERATOR or ROLE_FLOW_OPERATOR (to create/edit readings)</Typography></li>
+            <li><Typography variant="body2">ROLE_VALIDATOR, ROLE_FLOW_VALIDATOR, or ROLE_SUPERVISOR (to approve/reject readings)</Typography></li>
+          </Box>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            {t('flow.monitoring.warnings.noFlowRole.contact', 'Contact your administrator to request the appropriate role.')}
+          </Typography>
+        </Alert>
+      )}
+
       <Box display="flex" alignItems="center" gap={2} mb={2}>
         <Typography variant="body2" color="text.secondary">
           {t('flow.monitoring.monitoringFor', 'Monitoring for')}: <strong>{userStructureInfo.structureName}</strong> ({userStructureInfo.structureCode})
@@ -638,8 +666,13 @@ const SlotMonitoring: React.FC = () => {
           {isValidator && (
             <Chip label={t('flow.monitoring.roles.validator', 'Validator')} size="small" color="success" />
           )}
-          {!isOperator && !isValidator && (
-            <Chip label={t('flow.monitoring.roles.noRole', 'No Role Assigned')} size="small" color="warning" />
+          {!hasFlowRole && (
+            <Chip 
+              label={t('flow.monitoring.roles.viewOnly', 'View Only')} 
+              size="small" 
+              color="default"
+              icon={<WarningIcon />}
+            />
           )}
         </Box>
         
