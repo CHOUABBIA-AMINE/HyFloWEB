@@ -10,12 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
- * @updated 2026-02-04 - Removed structure dropdown, get from user context
- * @updated 2026-02-04 - Get structure from employee.job.structure
- * @updated 2026-02-04 - Added frontend permission calculation based on user roles
- * @updated 2026-02-04 - Added debug logging and fallback for authenticated users
- * @updated 2026-02-04 - Refactored to use centralized imports and user helpers
- * @updated 2026-02-04 - Fixed ReadingSlotDTO field names and added translations
+ * @updated 2026-02-04 - Updated to work with nested DTO structure
  * @module flow/core/pages
  */
 
@@ -60,15 +55,15 @@ import {
   SlotCoverageResponseDTO,
   PipelineCoverageDTO,
 } from '../dto';
-import { WorkflowStatus } from '../types';
 import {
-  getStatusColor,
   formatCompletionPercentage,
   formatSlotTimeRange,
-  getUserStructure,
-  getUserEmployeeId,
-  debugUserStructure,
-} from '../utils';
+  getStatusColor,
+  getStatusLabel,
+  getPipelineDisplayName,
+  getEmployeeDisplayName,
+} from '../utils/monitoringHelpers';
+import { getUserStructure, getUserEmployeeId, debugUserStructure } from '../utils/userHelpers';
 import { getLocalizedDesignation } from '../../common/dto/ReadingSlotDTO';
 
 /**
@@ -174,7 +169,7 @@ const SlotMonitoring: React.FC = () => {
    * @returns Permission flags for UI actions
    */
   const calculatePipelinePermissions = useCallback((pipeline: PipelineCoverageDTO): PipelinePermissions => {
-    const status = pipeline.workflowStatus;
+    const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
 
     // Default: no permissions
     const permissions: PipelinePermissions = {
@@ -186,12 +181,12 @@ const SlotMonitoring: React.FC = () => {
     // OPERATORS: Can edit/submit readings
     if (isOperator) {
       // Can edit if: NOT_RECORDED, DRAFT, or REJECTED
-      if (status === 'NOT_RECORDED' || status === 'DRAFT' || status === 'REJECTED') {
+      if (statusCode === 'NOT_RECORDED' || statusCode === 'DRAFT' || statusCode === 'REJECTED') {
         permissions.canEdit = true;
       }
 
       // Can submit if: DRAFT
-      if (status === 'DRAFT') {
+      if (statusCode === 'DRAFT') {
         permissions.canSubmit = true;
       }
     }
@@ -199,7 +194,7 @@ const SlotMonitoring: React.FC = () => {
     // VALIDATORS: Can approve/reject submitted readings
     if (isValidator) {
       // Can validate if: SUBMITTED
-      if (status === 'SUBMITTED') {
+      if (statusCode === 'SUBMITTED') {
         permissions.canValidate = true;
       }
     }
@@ -257,7 +252,7 @@ const SlotMonitoring: React.FC = () => {
    */
   const handleEdit = (pipeline: PipelineCoverageDTO) => {
     // TODO: Navigate to reading edit page or show edit dialog
-    console.log('✏️ Edit reading for pipeline:', pipeline.pipelineId, pipeline.pipelineCode);
+    console.log('✏️ Edit reading for pipeline:', pipeline.pipelineId, pipeline.pipeline?.code);
     // For NOT_RECORDED status, this would create a new reading
     // For DRAFT/REJECTED status, this would edit the existing reading
   };
@@ -393,7 +388,7 @@ const SlotMonitoring: React.FC = () => {
               <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                 <Chip
                   label={formatCompletionPercentage(
-                    coverage.completionPercentage
+                    coverage.validationCompletionPercentage || 0
                   )}
                   color={coverage.isSlotComplete ? 'success' : 'warning'}
                   size="small"
@@ -401,7 +396,7 @@ const SlotMonitoring: React.FC = () => {
               </Box>
               <LinearProgress
                 variant="determinate"
-                value={coverage.completionPercentage}
+                value={coverage.validationCompletionPercentage || 0}
                 sx={{ mt: 1 }}
                 color={coverage.isSlotComplete ? 'success' : 'warning'}
               />
@@ -481,8 +476,8 @@ const SlotMonitoring: React.FC = () => {
               // Debug log for first pipeline
               if (coverage.pipelines.indexOf(pipeline) === 0) {
                 console.log('🔍 First pipeline permissions:', {
-                  pipeline: pipeline.pipelineCode,
-                  status: pipeline.workflowStatus,
+                  pipeline: pipeline.pipeline?.code,
+                  status: pipeline.validationStatus?.code,
                   permissions,
                   isOperator,
                   isValidator,
@@ -499,24 +494,24 @@ const SlotMonitoring: React.FC = () => {
                 >
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
-                      {pipeline.pipelineCode}
+                      {pipeline.pipeline?.code || `Pipeline ${pipeline.pipelineId}`}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {pipeline.pipelineName}
+                      {getPipelineDisplayName(pipeline, currentLang)}
                     </Typography>
                   </TableCell>
 
                   <TableCell>
                     <Chip
-                      label={pipeline.workflowStatusDisplay}
-                      color={getStatusColor(pipeline.workflowStatus)}
+                      label={getStatusLabel(pipeline, currentLang)}
+                      color={getStatusColor(pipeline)}
                       size="small"
                     />
                   </TableCell>
 
                   <TableCell>
                     <Typography variant="body2">
-                      {pipeline.recordedByName || '-'}
+                      {getEmployeeDisplayName(pipeline.recordedBy)}
                     </Typography>
                   </TableCell>
 
@@ -530,7 +525,7 @@ const SlotMonitoring: React.FC = () => {
 
                   <TableCell>
                     <Typography variant="body2">
-                      {pipeline.validatedByName || '-'}
+                      {getEmployeeDisplayName(pipeline.validatedBy)}
                     </Typography>
                   </TableCell>
 
@@ -545,9 +540,10 @@ const SlotMonitoring: React.FC = () => {
                   <TableCell align="right">
                     <Box display="flex" gap={0.5} justifyContent="flex-end">
                       {permissions.canEdit && (
-                        <Tooltip title={pipeline.workflowStatus === 'NOT_RECORDED' 
-                          ? t('flow.monitoring.actions.create', 'Create Reading')
-                          : t('flow.monitoring.actions.edit', 'Edit Reading')
+                        <Tooltip title={
+                          (pipeline.validationStatus?.code || 'NOT_RECORDED') === 'NOT_RECORDED' 
+                            ? t('flow.monitoring.actions.create', 'Create Reading')
+                            : t('flow.monitoring.actions.edit', 'Edit Reading')
                         }>
                           <IconButton
                             size="small"
