@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-04-2026 - Added SlotMonitoring route
  * @updated 02-01-2026 - Added NotificationProvider for real-time WebSocket notifications
  * @updated 02-01-2026 - Fixed ProtectedRoute import to use named export
  * @updated 01-31-2026 - Added Flow Operation validation route
@@ -73,6 +74,7 @@ import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
 
 // Flow Core Module
 import { 
+  SlotMonitoring,
   ReadingList, 
   ReadingEdit, 
   PendingReadingsList,
@@ -155,6 +157,16 @@ function App() {
 
                   {/* Flow Module - Protected */}
                   <Route path="flow">
+                    {/* Slot Monitoring - NEW */}
+                    <Route
+                      path="monitoring"
+                      element={
+                        <ProtectedRoute>
+                          <SlotMonitoring />
+                        </ProtectedRoute>
+                      }
+                    />
+
                     {/* Flow Readings */}
                     <Route
                       path="readings"
