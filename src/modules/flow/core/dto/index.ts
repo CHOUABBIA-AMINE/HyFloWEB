@@ -6,6 +6,7 @@
  */
 
 // ReadingSlotDTO is in flow/common/dto (not duplicated here)
+export * from './FlowReadingDTO';
 export * from './PipelineCoverageDTO';
 export * from './SlotCoverageRequestDTO';
 export * from './SlotCoverageResponseDTO';
