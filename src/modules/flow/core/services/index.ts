@@ -1,15 +1,9 @@
 /**
- * Flow Core Services Export
- * 
- * Centralized export for all flow core services
+ * Flow Core Services - Barrel Export
  * 
  * @author CHOUABBIA Amine
- * @created 01-25-2026
+ * @created 2026-02-04
  */
 
-export { FlowReadingService } from './FlowReadingService';
-export { FlowOperationService } from './FlowOperationService';
-export { FlowAlertService } from './FlowAlertService';
-export { FlowEventService } from './FlowEventService';
-export { FlowForecastService } from './FlowForecastService';
-export { FlowThresholdService } from './FlowThresholdService';
+export * from './FlowMonitoringService';
+export { default } from './FlowMonitoringService';
