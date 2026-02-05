@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Auto-populate pipeline and context from SlotMonitoring navigation
  * @updated 02-02-2026 - Fixed employee data extraction to work with new UserProfile structure
  * @updated 01-25-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  * @updated 01-28-2026 - Added reading date and slot support
@@ -17,7 +18,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import {
   Box,
@@ -36,12 +37,14 @@ import {
   DialogContentText,
   DialogActions,
   Snackbar,
+  Chip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Send as SendIcon,
   ArrowBack as ArrowBackIcon,
   ArrowForward as ArrowForwardIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 
 import { PipelineSelection } from './components/PipelineSelection';
@@ -81,6 +84,19 @@ interface NotificationState {
   severity: 'success' | 'error' | 'warning' | 'info';
 }
 
+/**
+ * Navigation state from SlotMonitoring
+ */
+interface NavigationState {
+  pipelineId?: number;
+  pipelineCode?: string;
+  pipelineName?: string;
+  readingDate?: string;
+  slotId?: number;
+  structureId?: number;
+  returnTo?: string;
+}
+
 const steps = [
   'Select Pipeline',
   'Enter Measurements',
@@ -89,8 +105,13 @@ const steps = [
 
 export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth(); // Use AuthContext to get current user
+  
+  // Get navigation state from SlotMonitoring
+  const navigationState = location.state as NavigationState | undefined;
+  const isFromSlotMonitoring = !!navigationState?.pipelineId;
   
   // Form state with updated default values
   const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<ReadingFormData>({
@@ -132,6 +153,32 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   useEffect(() => {
     loadInitialData();
   }, [id, user]);
+  
+  // Auto-populate from navigation state (SlotMonitoring context)
+  useEffect(() => {
+    if (isFromSlotMonitoring && navigationState && mode === 'create') {
+      console.log('📍 Auto-populating from SlotMonitoring:', navigationState);
+      
+      // Set pipeline and context fields
+      if (navigationState.pipelineId) {
+        setValue('pipelineId', navigationState.pipelineId);
+      }
+      if (navigationState.readingDate) {
+        setValue('readingDate', navigationState.readingDate);
+      }
+      if (navigationState.slotId) {
+        setValue('readingSlotId', navigationState.slotId);
+      }
+      
+      // Skip to measurement step since pipeline is already selected
+      setCurrentStep(1);
+      
+      showNotification(
+        `Pipeline ${navigationState.pipelineCode || navigationState.pipelineId} pre-selected from monitoring dashboard`,
+        'info'
+      );
+    }
+  }, [isFromSlotMonitoring, navigationState, mode, setValue]);
   
   // Track unsaved changes
   useEffect(() => {
@@ -230,6 +277,12 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   };
   
   const handlePrevious = () => {
+    // Don't allow going back to pipeline selection if coming from SlotMonitoring
+    if (currentStep === 1 && isFromSlotMonitoring) {
+      showNotification('Pipeline is pre-selected from monitoring dashboard', 'info');
+      return;
+    }
+    
     setCurrentStep(prev => Math.max(prev - 1, 0));
   };
   
@@ -294,9 +347,10 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       setHasUnsavedChanges(false);
       
-      // Navigate to list page
+      // Navigate to return path or default to list page
       setTimeout(() => {
-        navigate('/flow/readings');
+        const returnTo = navigationState?.returnTo || '/flow/readings';
+        navigate(returnTo);
       }, 1000);
       
     } catch (error: any) {
@@ -340,13 +394,16 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
     if (hasUnsavedChanges) {
       setShowCancelDialog(true);
     } else {
-      navigate('/flow/readings');
+      // Return to SlotMonitoring or default list page
+      const returnTo = navigationState?.returnTo || '/flow/readings';
+      navigate(returnTo);
     }
   };
   
   const handleConfirmCancel = () => {
     setShowCancelDialog(false);
-    navigate('/flow/readings');
+    const returnTo = navigationState?.returnTo || '/flow/readings';
+    navigate(returnTo);
   };
   
   if (loadingData) {
@@ -412,18 +469,32 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {mode === 'create' ? 'New Flow Reading' : mode === 'edit' ? 'Edit Flow Reading' : 'Validate Reading'}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h4">
+          {mode === 'create' ? 'New Flow Reading' : mode === 'edit' ? 'Edit Flow Reading' : 'Validate Reading'}
+        </Typography>
+        
+        {/* Show context chip if coming from SlotMonitoring */}
+        {isFromSlotMonitoring && navigationState && (
+          <Chip
+            icon={<CheckCircleIcon />}
+            label={`Pipeline: ${navigationState.pipelineCode || navigationState.pipelineId}`}
+            color="primary"
+            variant="outlined"
+          />
+        )}
+      </Box>
       
       <Card>
         <CardContent>
           {mode !== 'validate' && (
             <>
               <Stepper activeStep={currentStep} sx={{ mb: 4 }}>
-                {steps.map((label) => (
+                {steps.map((label, index) => (
                   <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
+                    <StepLabel>
+                      {index === 0 && isFromSlotMonitoring ? `${label} ✓` : label}
+                    </StepLabel>
                   </Step>
                 ))}
               </Stepper>
@@ -460,7 +531,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
                 <Button
                   startIcon={<ArrowBackIcon />}
                   onClick={handlePrevious}
-                  disabled={currentStep === 0}
+                  disabled={currentStep === 0 || (currentStep === 1 && isFromSlotMonitoring)}
                 >
                   Previous
                 </Button>
