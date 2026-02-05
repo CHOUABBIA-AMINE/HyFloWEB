@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-05-2026 - Added React Router v7 future flags
  * @updated 02-04-2026 - Added SlotMonitoring route
  * @updated 02-01-2026 - Added NotificationProvider for real-time WebSocket notifications
  * @updated 02-01-2026 - Fixed ProtectedRoute import to use named export
@@ -118,7 +119,12 @@ function App() {
         <CssBaseline />
         <AuthProvider>
           <NotificationProvider>
-            <Router>
+            <Router
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
               <Routes>
                 {/* Public Routes - Outside Layout */}
                 <Route
