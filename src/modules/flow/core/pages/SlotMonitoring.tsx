@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-05 - Changed refresh to icon button matching export button style
  * @updated 2026-02-05 - Fixed return path to /flow/monitoring
  * @updated 2026-02-05 - Fixed disabled Tooltip warning by wrapping IconButton with span
  * @updated 2026-02-05 - Added navigation to reading form from action buttons
@@ -752,16 +753,18 @@ const SlotMonitoring: React.FC = () => {
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <Box display="flex" gap={1}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<RefreshIcon />}
-                  onClick={loadSlotCoverage}
-                  disabled={loading}
-                >
-                  {t('flow.monitoring.actions.refresh', 'Refresh')}
-                </Button>
+              <Box display="flex" gap={1} justifyContent="flex-end">
+                <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
+                  <span>
+                    <IconButton 
+                      color="primary" 
+                      onClick={loadSlotCoverage}
+                      disabled={loading}
+                    >
+                      <RefreshIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
 
                 <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
                   <span>
