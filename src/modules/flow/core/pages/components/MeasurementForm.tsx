@@ -7,6 +7,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Fixed uncontrolled to controlled input warning
  * @updated 01-28-2026 - Added reading date and slot selection
  * @updated 01-28-2026 - Added threshold validation for contained volume
  */
@@ -148,6 +149,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             <Box>
               <TextField
                 {...field}
+                value={field.value ?? ''} // Ensure controlled input with empty string default
                 label={`${label} (${unit})`}
                 type="number"
                 fullWidth
@@ -242,6 +244,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
+                value={field.value ?? ''} // Ensure controlled input
                 label="Reading Date *"
                 type="date"
                 fullWidth
@@ -267,6 +270,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
                 <InputLabel>Reading Slot *</InputLabel>
                 <Select
                   {...field}
+                  value={field.value ?? ''} // Ensure controlled input
                   label="Reading Slot *"
                   disabled={loadingSlots}
                 >
@@ -300,6 +304,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
+                value={field.value ?? ''} // Ensure controlled input
                 label="System Submission Time *"
                 type="datetime-local"
                 fullWidth
@@ -374,6 +379,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
+                value={field.value ?? ''} // Ensure controlled input
                 label="Notes"
                 multiline
                 rows={4}
