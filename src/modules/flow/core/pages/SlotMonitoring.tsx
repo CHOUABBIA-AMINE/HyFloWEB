@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-05 - Fixed disabled Tooltip warning by wrapping IconButton with span
  * @updated 2026-02-05 - Added navigation to reading form from action buttons
  * @updated 2026-02-04 - Improved role detection and messaging
  * @updated 2026-02-04 - Updated to work with nested DTO structure
@@ -762,9 +763,11 @@ const SlotMonitoring: React.FC = () => {
                 </Button>
 
                 <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
-                  <IconButton color="primary" disabled={!coverage}>
-                    <DownloadIcon />
-                  </IconButton>
+                  <span>
+                    <IconButton color="primary" disabled={!coverage}>
+                      <DownloadIcon />
+                    </IconButton>
+                  </span>
                 </Tooltip>
               </Box>
             </Grid>
