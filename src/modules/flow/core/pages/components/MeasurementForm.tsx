@@ -7,6 +7,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Made context fields read-only when pre-populated from monitoring
  * @updated 02-05-2026 - Show threshold limits immediately before typing
  * @updated 02-05-2026 - Fixed out-of-range slot value warning by handling timing
  * @updated 02-05-2026 - Fixed uncontrolled to controlled input warning
@@ -37,6 +38,7 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
   Info as InfoIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 
 import { ReadingSlotService } from '@/modules/flow/common/services';
@@ -49,6 +51,7 @@ interface MeasurementFormProps {
   errors: FieldErrors;
   pipelineId: number;
   threshold?: FlowThresholdDTO;
+  isFromMonitoring?: boolean; // NEW: Indicates if context is pre-populated from monitoring
 }
 
 interface ThresholdStatus {
@@ -63,6 +66,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
   errors,
   pipelineId,
   threshold,
+  isFromMonitoring = false,
 }) => {
   const [slots, setSlots] = useState<ReadingSlotDTO[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(true);
@@ -308,8 +312,19 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
         </Alert>
       )}
       
+      {isFromMonitoring && (
+        <Alert severity="info" sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LockIcon fontSize="small" />
+            <Typography variant="body2">
+              <strong>Monitoring Context:</strong> Reading date, slot, and timestamp are locked for this specific monitoring entry.
+            </Typography>
+          </Box>
+        </Alert>
+      )}
+      
       <Grid container spacing={3}>
-        {/* ========== NEW: Reading Date ========== */}
+        {/* ========== Reading Date (READ-ONLY if from monitoring) ========== */}
         <Grid item xs={12} md={6}>
           <Controller
             name="readingDate"
@@ -322,25 +337,35 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
                 label="Reading Date *"
                 type="date"
                 fullWidth
+                disabled={isFromMonitoring}
                 error={!!error}
-                helperText={error?.message || 'Business date for this reading'}
+                helperText={
+                  isFromMonitoring 
+                    ? '🔒 Pre-selected from monitoring dashboard' 
+                    : error?.message || 'Business date for this reading'
+                }
                 InputLabelProps={{ shrink: true }}
                 inputProps={{
-                  max: new Date().toISOString().split('T')[0], // Cannot select future dates
+                  max: new Date().toISOString().split('T')[0],
                 }}
+                sx={isFromMonitoring ? {
+                  '& .MuiInputBase-input.Mui-disabled': {
+                    WebkitTextFillColor: 'text.primary',
+                    color: 'text.primary',
+                  },
+                } : {}}
               />
             )}
           />
         </Grid>
         
-        {/* ========== NEW: Reading Slot ========== */}
+        {/* ========== Reading Slot (READ-ONLY if from monitoring) ========== */}
         <Grid item xs={12} md={6}>
           <Controller
             name="readingSlotId"
             control={control}
             rules={{ required: 'Reading slot is required' }}
             render={({ field, fieldState: { error } }) => {
-              // Only show the value if slots are loaded and it exists in the list
               const currentValue = loadingSlots 
                 ? '' 
                 : (field.value && slots.some(s => s.id === field.value) ? field.value : '');
@@ -352,7 +377,13 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
                     {...field}
                     value={currentValue}
                     label="Reading Slot *"
-                    disabled={loadingSlots}
+                    disabled={loadingSlots || isFromMonitoring}
+                    sx={isFromMonitoring ? {
+                      '& .MuiSelect-select.Mui-disabled': {
+                        WebkitTextFillColor: 'text.primary',
+                        color: 'text.primary',
+                      },
+                    } : {}}
                   >
                     {slots.map((slot) => (
                       <MenuItem key={slot.id} value={slot.id}>
@@ -368,7 +399,10 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
                     ))}
                   </Select>
                   <FormHelperText>
-                    {error?.message || (loadingSlots ? 'Loading slots...' : 'Select the time slot for this reading')}
+                    {isFromMonitoring 
+                      ? '🔒 Pre-selected from monitoring dashboard'
+                      : error?.message || (loadingSlots ? 'Loading slots...' : 'Select the time slot for this reading')
+                    }
                   </FormHelperText>
                 </FormControl>
               );
@@ -376,7 +410,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
           />
         </Grid>
         
-        {/* Recording Timestamp (System submission time) */}
+        {/* ========== Recording Timestamp (ALWAYS READ-ONLY) ========== */}
         <Grid item xs={12}>
           <Controller
             name="recordedAt"
@@ -389,9 +423,16 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
                 label="System Submission Time *"
                 type="datetime-local"
                 fullWidth
+                disabled={true}
                 error={!!error}
-                helperText={error?.message || 'When this reading is being submitted to the system'}
+                helperText='🔒 Auto-generated - System timestamp when this reading is submitted'
                 InputLabelProps={{ shrink: true }}
+                sx={{
+                  '& .MuiInputBase-input.Mui-disabled': {
+                    WebkitTextFillColor: 'text.primary',
+                    color: 'text.primary',
+                  },
+                }}
               />
             )}
           />
@@ -438,7 +479,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
           />
         </Grid>
         
-        {/* Contained Volume - NOW WITH THRESHOLD VALIDATION */}
+        {/* Contained Volume */}
         <Grid item xs={12} md={6}>
           <MeasurementInput
             name="containedVolume"
@@ -481,7 +522,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
         <Typography variant="body2">
           • <strong>Reading Date</strong>: The business date for this reading (e.g., which day's operations)<br />
           • <strong>Reading Slot</strong>: The scheduled time window for this reading<br />
-          • <strong>Submission Time</strong>: When you're entering this reading into the system<br />
+          • <strong>Submission Time</strong>: When this reading is being submitted to the system<br />
           • Ensure all measuring instruments are properly calibrated<br />
           • Record values at stable operating conditions<br />
           • Add notes for any unusual observations or conditions
