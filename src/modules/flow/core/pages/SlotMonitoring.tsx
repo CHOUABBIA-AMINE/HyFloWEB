@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-05 - UI improvements: removed monitoring line, centered badges, aligned header fields
  * @updated 2026-02-05 - Changed refresh to icon button matching export button style
  * @updated 2026-02-05 - Fixed return path to /flow/monitoring
  * @updated 2026-02-05 - Fixed disabled Tooltip warning by wrapping IconButton with span
@@ -371,6 +372,23 @@ const SlotMonitoring: React.FC = () => {
   // ==================== RENDERING ====================
 
   /**
+   * Get localized structure name
+   */
+  const getStructureName = (structure: any): string => {
+    if (!structure) return '';
+    
+    switch (currentLang) {
+      case 'ar':
+        return structure.designationAr || structure.designationFr || structure.designationEn || structure.code;
+      case 'fr':
+        return structure.designationFr || structure.designationEn || structure.code;
+      case 'en':
+      default:
+        return structure.designationEn || structure.designationFr || structure.code;
+    }
+  };
+
+  /**
    * Render slot header with date + slot info
    */
   const renderSlotHeader = () => {
@@ -379,16 +397,13 @@ const SlotMonitoring: React.FC = () => {
     return (
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Grid container spacing={2} alignItems="center">
+          <Grid container spacing={2} alignItems="flex-start">
             <Grid item xs={12} md={3}>
               <Typography variant="body2" color="text.secondary">
                 {t('flow.monitoring.structure', 'Structure')}
               </Typography>
               <Typography variant="h6" color="primary">
-                {coverage.structure.designationFr || coverage.structure.code}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {coverage.structure.code}
+                {getStructureName(coverage.structure)}
               </Typography>
             </Grid>
 
@@ -687,30 +702,22 @@ const SlotMonitoring: React.FC = () => {
         </Alert>
       )}
 
-      <Box display="flex" alignItems="center" gap={2} mb={2}>
-        <Typography variant="body2" color="text.secondary">
-          {t('flow.monitoring.monitoringFor', 'Monitoring for')}: <strong>{userStructureInfo.structureName}</strong> ({userStructureInfo.structureCode})
-        </Typography>
-        
-        {/* Role badges */}
-        <Box display="flex" gap={1}>
-          {isOperator && (
-            <Chip label={t('flow.monitoring.roles.operator', 'Operator')} size="small" color="info" />
-          )}
-          {isValidator && (
-            <Chip label={t('flow.monitoring.roles.validator', 'Validator')} size="small" color="success" />
-          )}
-          {!hasFlowRole && (
-            <Chip 
-              label={t('flow.monitoring.roles.viewOnly', 'View Only')} 
-              size="small" 
-              color="default"
-              icon={<WarningIcon />}
-            />
-          )}
-        </Box>
-        
-        {/* Structure source indicator */}
+      {/* Role badges - centered */}
+      <Box display="flex" justifyContent="center" gap={1} mb={2}>
+        {isOperator && (
+          <Chip label={t('flow.monitoring.roles.operator', 'Operator')} size="small" color="info" />
+        )}
+        {isValidator && (
+          <Chip label={t('flow.monitoring.roles.validator', 'Validator')} size="small" color="success" />
+        )}
+        {!hasFlowRole && (
+          <Chip 
+            label={t('flow.monitoring.roles.viewOnly', 'View Only')} 
+            size="small" 
+            color="default"
+            icon={<WarningIcon />}
+          />
+        )}
         {userStructureInfo.source === 'organizational' && (
           <Chip 
             label={t('flow.monitoring.fallbackStructure', 'Using Fallback Structure')} 
