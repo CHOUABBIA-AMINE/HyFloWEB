@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Fixed threshold loading when auto-populating from SlotMonitoring
  * @updated 02-05-2026 - Auto-populate pipeline and context from SlotMonitoring navigation
  * @updated 02-02-2026 - Fixed employee data extraction to work with new UserProfile structure
  * @updated 01-25-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
@@ -52,6 +53,7 @@ import { MeasurementForm } from './components/MeasurementForm';
 import { ValidationReview } from './components/ValidationReview';
 
 import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingService';
+import { FlowThresholdService } from '@/modules/flow/core/services/FlowThresholdService';
 import { ValidationStatusService } from '@/modules/flow/common/services/ValidationStatusService';
 import UserService from '@/modules/system/security/services/UserService';
 import { useAuth } from '@/shared/context/AuthContext';
@@ -162,6 +164,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       // Set pipeline and context fields
       if (navigationState.pipelineId) {
         setValue('pipelineId', navigationState.pipelineId);
+        // Load threshold for the pre-selected pipeline
+        loadThreshold(navigationState.pipelineId);
       }
       if (navigationState.readingDate) {
         setValue('readingDate', navigationState.readingDate);
@@ -246,6 +250,9 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         setValue('containedVolume', reading.containedVolume);
         setValue('notes', reading.notes || '');
         
+        // Load threshold for existing reading's pipeline
+        loadThreshold(reading.pipelineId);
+        
         // If validation mode, skip to review step
         if (mode === 'validate') {
           setCurrentStep(2);
@@ -259,6 +266,33 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       );
     } finally {
       setLoadingData(false);
+    }
+  };
+  
+  /**
+   * Load threshold configuration for a pipeline
+   * Called when pipeline is auto-populated from SlotMonitoring
+   */
+  const loadThreshold = async (pipelineId: number) => {
+    try {
+      console.log('🎯 Loading threshold for pipeline:', pipelineId);
+      
+      // Get all thresholds for this pipeline (returns array)
+      const thresholds = await FlowThresholdService.getByPipeline(pipelineId);
+      
+      // Filter for active thresholds and get the first one
+      const activeThresholds = thresholds.filter(t => t.active);
+      
+      if (activeThresholds.length > 0) {
+        console.log('✅ Active threshold found:', activeThresholds[0]);
+        setSelectedThreshold(activeThresholds[0]);
+      } else {
+        console.log('⚠️ No active threshold found for pipeline:', pipelineId);
+        setSelectedThreshold(undefined);
+      }
+    } catch (error) {
+      console.error('❌ Error loading threshold:', error);
+      setSelectedThreshold(undefined);
     }
   };
   
