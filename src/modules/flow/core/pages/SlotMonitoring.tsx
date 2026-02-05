@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-05 - Fixed return path to /flow/monitoring
  * @updated 2026-02-05 - Fixed disabled Tooltip warning by wrapping IconButton with span
  * @updated 2026-02-05 - Added navigation to reading form from action buttons
  * @updated 2026-02-04 - Improved role detection and messaging
@@ -267,13 +268,13 @@ const SlotMonitoring: React.FC = () => {
           readingDate: selectedDate,
           slotId: selectedSlotId,
           structureId: userStructureInfo.structureId,
-          returnTo: '/flow/monitoring/slot',
+          returnTo: '/flow/monitoring',
         }
       });
     } else {
       // EDIT EXISTING READING (DRAFT or REJECTED)
       if (pipeline.readingId) {
-        navigate(`/flow/readings/edit/${pipeline.readingId}`, {
+        navigate(`/flow/readings/${pipeline.readingId}/edit`, {
           state: {
             pipelineId: pipeline.pipelineId,
             pipelineCode: pipeline.pipeline?.code,
@@ -281,7 +282,7 @@ const SlotMonitoring: React.FC = () => {
             readingDate: selectedDate,
             slotId: selectedSlotId,
             structureId: userStructureInfo.structureId,
-            returnTo: '/flow/monitoring/slot',
+            returnTo: '/flow/monitoring',
           }
         });
       } else {
