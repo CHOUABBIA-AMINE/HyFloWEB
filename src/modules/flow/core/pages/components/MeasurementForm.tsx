@@ -7,6 +7,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Fixed out-of-range slot value warning by handling timing
  * @updated 02-05-2026 - Fixed uncontrolled to controlled input warning
  * @updated 01-28-2026 - Added reading date and slot selection
  * @updated 01-28-2026 - Added threshold validation for contained volume
@@ -149,7 +150,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             <Box>
               <TextField
                 {...field}
-                value={field.value ?? ''} // Ensure controlled input with empty string default
+                value={field.value ?? ''}
                 label={`${label} (${unit})`}
                 type="number"
                 fullWidth
@@ -244,7 +245,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                value={field.value ?? ''} // Ensure controlled input
+                value={field.value ?? ''}
                 label="Reading Date *"
                 type="date"
                 fullWidth
@@ -265,33 +266,40 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             name="readingSlotId"
             control={control}
             rules={{ required: 'Reading slot is required' }}
-            render={({ field, fieldState: { error } }) => (
-              <FormControl fullWidth error={!!error}>
-                <InputLabel>Reading Slot *</InputLabel>
-                <Select
-                  {...field}
-                  value={field.value ?? ''} // Ensure controlled input
-                  label="Reading Slot *"
-                  disabled={loadingSlots}
-                >
-                  {slots.map((slot) => (
-                    <MenuItem key={slot.id} value={slot.id}>
-                      <Box>
-                        <Typography variant="body1">
-                          {getLocalizedDesignation(slot, 'en')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatTimeRange(slot)}
-                        </Typography>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-                <FormHelperText>
-                  {error?.message || 'Select the time slot for this reading'}
-                </FormHelperText>
-              </FormControl>
-            )}
+            render={({ field, fieldState: { error } }) => {
+              // Only show the value if slots are loaded and it exists in the list
+              const currentValue = loadingSlots 
+                ? '' 
+                : (field.value && slots.some(s => s.id === field.value) ? field.value : '');
+              
+              return (
+                <FormControl fullWidth error={!!error}>
+                  <InputLabel>Reading Slot *</InputLabel>
+                  <Select
+                    {...field}
+                    value={currentValue}
+                    label="Reading Slot *"
+                    disabled={loadingSlots}
+                  >
+                    {slots.map((slot) => (
+                      <MenuItem key={slot.id} value={slot.id}>
+                        <Box>
+                          <Typography variant="body1">
+                            {getLocalizedDesignation(slot, 'en')}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {formatTimeRange(slot)}
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>
+                    {error?.message || (loadingSlots ? 'Loading slots...' : 'Select the time slot for this reading')}
+                  </FormHelperText>
+                </FormControl>
+              );
+            }}
           />
         </Grid>
         
@@ -304,7 +312,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                value={field.value ?? ''} // Ensure controlled input
+                value={field.value ?? ''}
                 label="System Submission Time *"
                 type="datetime-local"
                 fullWidth
@@ -379,7 +387,7 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             render={({ field, fieldState: { error } }) => (
               <TextField
                 {...field}
-                value={field.value ?? ''} // Ensure controlled input
+                value={field.value ?? ''}
                 label="Notes"
                 multiline
                 rows={4}
