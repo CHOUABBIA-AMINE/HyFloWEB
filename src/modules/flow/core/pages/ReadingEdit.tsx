@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Pass isFromMonitoring flag to MeasurementForm for read-only context
  * @updated 02-05-2026 - Fixed: Use SUBMITTED instead of PENDING for validation status
  * @updated 02-05-2026 - Improved validation status loading and error handling
  * @updated 02-05-2026 - Fixed threshold loading when auto-populating from SlotMonitoring
@@ -589,6 +590,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
                     errors={errors}
                     pipelineId={watchedPipelineId}
                     threshold={selectedThreshold}
+                    isFromMonitoring={isFromSlotMonitoring}
                   />
                 )}
                 
