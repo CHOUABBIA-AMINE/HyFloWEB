@@ -10,12 +10,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-05 - Added navigation to reading form from action buttons
  * @updated 2026-02-04 - Improved role detection and messaging
  * @updated 2026-02-04 - Updated to work with nested DTO structure
  * @module flow/core/pages
  */
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -87,6 +89,7 @@ interface PipelinePermissions {
 const SlotMonitoring: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Get current language for localized slot names
   const currentLang = i18n.language as 'ar' | 'en' | 'fr';
@@ -250,12 +253,45 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Handle pipeline edit action
+   * Navigates to reading form (create new or edit existing)
    */
   const handleEdit = (pipeline: PipelineCoverageDTO) => {
-    // TODO: Navigate to reading edit page or show edit dialog
+    const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+    
     console.log('✏️ Edit reading for pipeline:', pipeline.pipelineId, pipeline.pipeline?.code);
-    // For NOT_RECORDED status, this would create a new reading
-    // For DRAFT/REJECTED status, this would edit the existing reading
+    
+    // Build route with query parameters for context
+    if (statusCode === 'NOT_RECORDED') {
+      // CREATE NEW READING
+      navigate(`/flow/readings/new`, {
+        state: {
+          pipelineId: pipeline.pipelineId,
+          pipelineCode: pipeline.pipeline?.code,
+          pipelineName: pipeline.pipeline?.name,
+          readingDate: selectedDate,
+          slotId: selectedSlotId,
+          structureId: userStructureInfo.structureId,
+          returnTo: '/flow/monitoring/slot',
+        }
+      });
+    } else {
+      // EDIT EXISTING READING (DRAFT or REJECTED)
+      if (pipeline.readingId) {
+        navigate(`/flow/readings/edit/${pipeline.readingId}`, {
+          state: {
+            pipelineId: pipeline.pipelineId,
+            pipelineCode: pipeline.pipeline?.code,
+            pipelineName: pipeline.pipeline?.name,
+            readingDate: selectedDate,
+            slotId: selectedSlotId,
+            structureId: userStructureInfo.structureId,
+            returnTo: '/flow/monitoring/slot',
+          }
+        });
+      } else {
+        setError('Cannot edit: reading ID not found');
+      }
+    }
   };
 
   /**
