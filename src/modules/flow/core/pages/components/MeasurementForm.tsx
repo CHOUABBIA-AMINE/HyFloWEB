@@ -7,6 +7,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Show threshold limits immediately before typing
  * @updated 02-05-2026 - Fixed out-of-range slot value warning by handling timing
  * @updated 02-05-2026 - Fixed uncontrolled to controlled input warning
  * @updated 01-28-2026 - Added reading date and slot selection
@@ -35,6 +36,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material';
 
 import { ReadingSlotService } from '@/modules/flow/common/services';
@@ -50,7 +52,7 @@ interface MeasurementFormProps {
 }
 
 interface ThresholdStatus {
-  color: 'success' | 'warning' | 'error';
+  color: 'success' | 'warning' | 'error' | 'info';
   icon: React.ReactNode;
   message: string;
   percentage: number;
@@ -123,6 +125,55 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
     };
   };
   
+  /**
+   * Threshold info display (shown before user enters value)
+   */
+  const ThresholdInfo: React.FC<{
+    label: string;
+    unit: string;
+    thresholdMin?: number;
+    thresholdMax?: number;
+    tolerance?: number;
+  }> = ({ label, unit, thresholdMin, thresholdMax, tolerance }) => {
+    if (thresholdMin === undefined || thresholdMax === undefined || tolerance === undefined) {
+      return null;
+    }
+
+    return (
+      <Paper elevation={0} sx={{ mt: 1, p: 2, bgcolor: 'info.50', borderLeft: 3, borderColor: 'info.main' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          <Box sx={{ color: 'info.main', mr: 1 }}>
+            <InfoIcon fontSize="small" />
+          </Box>
+          <Typography variant="body2" color="info.main" fontWeight="medium">
+            Acceptable Range
+          </Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Chip 
+            label={`Min: ${thresholdMin} ${unit}`} 
+            size="small" 
+            color="info"
+            variant="outlined"
+          />
+          <Chip 
+            label={`Max: ${thresholdMax} ${unit}`} 
+            size="small" 
+            color="info"
+            variant="outlined"
+          />
+          <Chip 
+            label={`Tolerance: ${tolerance}%`} 
+            size="small" 
+            color="default"
+            variant="outlined"
+          />
+        </Box>
+      </Paper>
+    );
+  };
+  
   const MeasurementInput: React.FC<{
     name: string;
     label: string;
@@ -146,6 +197,9 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
             ? getThresholdStatus(field.value, thresholdMin, thresholdMax, tolerance)
             : null;
           
+          // Show threshold info if no value entered yet, otherwise show validation status
+          const hasValue = field.value !== undefined && field.value !== null && field.value !== '';
+          
           return (
             <Box>
               <TextField
@@ -164,7 +218,19 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
                 onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
               />
               
-              {status && (
+              {/* Show threshold info BEFORE user types */}
+              {!hasValue && (
+                <ThresholdInfo 
+                  label={label}
+                  unit={unit}
+                  thresholdMin={thresholdMin}
+                  thresholdMax={thresholdMax}
+                  tolerance={tolerance}
+                />
+              )}
+              
+              {/* Show validation status AFTER user types */}
+              {hasValue && status && (
                 <Paper elevation={0} sx={{ mt: 1, p: 2, bgcolor: `${status.color}.50` }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <Box sx={{ color: `${status.color}.main`, mr: 1 }}>
@@ -232,6 +298,13 @@ export const MeasurementForm: React.FC<MeasurementFormProps> = ({
         <Alert severity="warning" sx={{ mb: 3 }}>
           <AlertTitle>No Active Threshold</AlertTitle>
           No threshold configuration found for this pipeline. Values will be validated against absolute limits only.
+        </Alert>
+      )}
+      
+      {threshold && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <AlertTitle>Threshold Configuration Active</AlertTitle>
+          Acceptable ranges are displayed below each measurement field. Values will be validated in real-time as you enter them.
         </Alert>
       )}
       
