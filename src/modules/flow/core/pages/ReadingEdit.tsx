@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Fixed: Use SUBMITTED instead of PENDING for validation status
  * @updated 02-05-2026 - Improved validation status loading and error handling
  * @updated 02-05-2026 - Fixed threshold loading when auto-populating from SlotMonitoring
  * @updated 02-05-2026 - Auto-populate pipeline and context from SlotMonitoring navigation
@@ -239,16 +240,16 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       // Verify required statuses exist
       const draftStatus = statuses.find(s => s.code === 'DRAFT');
-      const pendingStatus = statuses.find(s => s.code === 'PENDING');
+      const submittedStatus = statuses.find(s => s.code === 'SUBMITTED');
       
-      if (!draftStatus || !pendingStatus) {
+      if (!draftStatus || !submittedStatus) {
         console.error('❌ Missing required validation statuses:', {
           draft: draftStatus,
-          pending: pendingStatus,
+          submitted: submittedStatus,
           allStatuses: statuses
         });
         throw new Error(
-          'Required validation statuses (DRAFT, PENDING) not found in the system. ' +
+          'Required validation statuses (DRAFT, SUBMITTED) not found in the system. ' +
           'Please contact an administrator.'
         );
       }
@@ -368,7 +369,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       }
       
       // Get validation status
-      const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
+      // SUBMITTED = ready for validation, DRAFT = work in progress
+      const statusCode = submitForValidation ? 'SUBMITTED' : 'DRAFT';
       console.log(`🔍 Looking for validation status: ${statusCode}`);
       console.log('📋 Available statuses:', validationStatuses);
       
