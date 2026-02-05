@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-05-2026 - Improved validation status loading and error handling
  * @updated 02-05-2026 - Fixed threshold loading when auto-populating from SlotMonitoring
  * @updated 02-05-2026 - Auto-populate pipeline and context from SlotMonitoring navigation
  * @updated 02-02-2026 - Fixed employee data extraction to work with new UserProfile structure
@@ -231,8 +232,26 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       }
       
       // Load validation statuses
+      console.log('🔄 Loading validation statuses...');
       const statuses = await ValidationStatusService.getAllNoPagination();
+      console.log('✅ Validation statuses loaded:', statuses);
       setValidationStatuses(statuses);
+      
+      // Verify required statuses exist
+      const draftStatus = statuses.find(s => s.code === 'DRAFT');
+      const pendingStatus = statuses.find(s => s.code === 'PENDING');
+      
+      if (!draftStatus || !pendingStatus) {
+        console.error('❌ Missing required validation statuses:', {
+          draft: draftStatus,
+          pending: pendingStatus,
+          allStatuses: statuses
+        });
+        throw new Error(
+          'Required validation statuses (DRAFT, PENDING) not found in the system. ' +
+          'Please contact an administrator.'
+        );
+      }
       
       // Load existing reading if edit/validate mode
       if ((mode === 'edit' || mode === 'validate') && id) {
@@ -259,7 +278,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         }
       }
     } catch (error: any) {
-      console.error('Error loading initial data:', error);
+      console.error('❌ Error loading initial data:', error);
       showNotification(
         error.message || 'Failed to load required data',
         'error'
@@ -324,6 +343,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
     try {
       setLoading(true);
       
+      console.log('💾 Submitting reading data:', { data, submitForValidation });
+      
       // Validate required fields
       if (!data.readingDate) {
         showNotification('Reading date is required', 'warning');
@@ -348,11 +369,24 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       // Get validation status
       const statusCode = submitForValidation ? 'PENDING' : 'DRAFT';
+      console.log(`🔍 Looking for validation status: ${statusCode}`);
+      console.log('📋 Available statuses:', validationStatuses);
+      
       const validationStatus = validationStatuses.find(s => s.code === statusCode);
       
       if (!validationStatus?.id) {
-        throw new Error('Validation status not found');
+        console.error('❌ Validation status not found:', {
+          requestedCode: statusCode,
+          availableStatuses: validationStatuses.map(s => ({ id: s.id, code: s.code, name: s.name }))
+        });
+        
+        throw new Error(
+          `Validation status '${statusCode}' not found. Available statuses: ${validationStatuses.map(s => s.code).join(', ')}. ` +
+          'Please refresh the page or contact an administrator.'
+        );
       }
+      
+      console.log('✅ Using validation status:', validationStatus);
       
       // Prepare DTO with new fields
       const readingDTO: FlowReadingDTO = {
@@ -363,6 +397,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         readingDate: data.readingDate,
         readingSlotId: data.readingSlotId,
       };
+      
+      console.log('📦 Prepared DTO:', readingDTO);
       
       // Save reading
       let savedReading: FlowReadingDTO;
@@ -379,6 +415,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         );
       }
       
+      console.log('✅ Reading saved:', savedReading);
+      
       setHasUnsavedChanges(false);
       
       // Navigate to return path or default to list page
@@ -388,7 +426,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       }, 1000);
       
     } catch (error: any) {
-      console.error('Error saving reading:', error);
+      console.error('❌ Error saving reading:', error);
       
       if (error.response?.status === 400) {
         showNotification(
