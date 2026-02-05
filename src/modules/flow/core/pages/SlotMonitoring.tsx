@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-05 - Removed role badges line, format date as dd-mm-yyyy
  * @updated 2026-02-05 - UI improvements: removed monitoring line, centered badges, aligned header fields
  * @updated 2026-02-05 - Changed refresh to icon button matching export button style
  * @updated 2026-02-05 - Fixed return path to /flow/monitoring
@@ -389,6 +390,17 @@ const SlotMonitoring: React.FC = () => {
   };
 
   /**
+   * Format date as dd-mm-yyyy
+   */
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  /**
    * Render slot header with date + slot info
    */
   const renderSlotHeader = () => {
@@ -412,7 +424,7 @@ const SlotMonitoring: React.FC = () => {
                 {t('flow.monitoring.date', 'Date')}
               </Typography>
               <Typography variant="h6">
-                {new Date(coverage.readingDate).toLocaleDateString(currentLang)}
+                {formatDate(coverage.readingDate)}
               </Typography>
             </Grid>
 
@@ -701,32 +713,6 @@ const SlotMonitoring: React.FC = () => {
           </Typography>
         </Alert>
       )}
-
-      {/* Role badges - centered */}
-      <Box display="flex" justifyContent="center" gap={1} mb={2}>
-        {isOperator && (
-          <Chip label={t('flow.monitoring.roles.operator', 'Operator')} size="small" color="info" />
-        )}
-        {isValidator && (
-          <Chip label={t('flow.monitoring.roles.validator', 'Validator')} size="small" color="success" />
-        )}
-        {!hasFlowRole && (
-          <Chip 
-            label={t('flow.monitoring.roles.viewOnly', 'View Only')} 
-            size="small" 
-            color="default"
-            icon={<WarningIcon />}
-          />
-        )}
-        {userStructureInfo.source === 'organizational' && (
-          <Chip 
-            label={t('flow.monitoring.fallbackStructure', 'Using Fallback Structure')} 
-            size="small" 
-            color="warning" 
-            variant="outlined"
-          />
-        )}
-      </Box>
 
       {/* Filters */}
       <Card sx={{ mb: 3 }}>
