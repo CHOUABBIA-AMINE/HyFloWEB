@@ -135,10 +135,8 @@ const SlotMonitoring: React.FC = () => {
    * Operators can create/edit/submit readings
    */
   const isOperator = useMemo(() => {
-    const hasOperatorRole = userRoles.includes('ROLE_OPERATOR') || 
-                            userRoles.includes('ROLE_FLOW_OPERATOR') ||
-                            userPermissions.includes('FLOW_READING_CREATE') ||
-                            userPermissions.includes('FLOW_READING_EDIT');
+    const hasOperatorRole = userRoles.includes('MONITORING_ADMIN') || 
+                            userRoles.includes('MONITORING_OPERATOR');
     
     console.log('👷 isOperator:', hasOperatorRole);
     return hasOperatorRole;
@@ -149,11 +147,8 @@ const SlotMonitoring: React.FC = () => {
    * Validators can approve/reject submitted readings
    */
   const isValidator = useMemo(() => {
-    const hasValidatorRole = userRoles.includes('ROLE_VALIDATOR') || 
-                             userRoles.includes('ROLE_FLOW_VALIDATOR') ||
-                             userRoles.includes('ROLE_SUPERVISOR') ||
-                             userPermissions.includes('FLOW_READING_VALIDATE') ||
-                             userPermissions.includes('FLOW_READING_APPROVE');
+    const hasValidatorRole = userRoles.includes('MONITORING_ADMIN') || 
+                             userRoles.includes('MONITORING_VALIDATOR');
     
     console.log('✅ isValidator:', hasValidatorRole);
     return hasValidatorRole;
