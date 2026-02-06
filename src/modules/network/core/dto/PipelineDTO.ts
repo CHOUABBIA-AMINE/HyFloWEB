@@ -1,13 +1,9 @@
 /**
  * Pipeline DTO - Network Core Module
  * 
- * Strictly aligned with backend MODEL: dz.sh.trc.hyflo.network.core.model.Pipeline
- * Updated: 02-06-2026 - CRITICAL FIX: Aligned with backend Model (source of truth)
- *   - nominalDiameter: String (e.g., '48 inches', '1200 mm')
- *   - nominalThickness: String (e.g., '12.7 mm', '0.5 inch')
- *   - nominalRoughness: Double/number (e.g., 0.045)
- *   - Added coordinates field (List<Coordinate>)
- *   - vendors is Many-to-Many (but DTO keeps single vendorId for backward compatibility)
+ * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
+ * Updated: 02-06-2026 18:52 - CRITICAL: Backend removed locations, changed to coordinateIds + vendorIds Set
+ * Updated: 02-06-2026 18:21 - Aligned with backend Model (nominalDiameter/Thickness as string, coordinates support)
  * Updated: 02-02-2026 - Fully aligned with backend (all ID fields are number, matching Java Long)
  * Updated: 01-26-2026 - Aligned with backend (added ownerId and managerId)
  * 
@@ -58,7 +54,6 @@ export interface PipelineDTO {
   operationalStatusId: number; // @NotNull (required)
   ownerId: number; // @NotNull (required) - Owner structure
   managerId: number; // @NotNull (required) - Manager structure
-  vendorId: number; // @NotNull (required) - Primary vendor (backend supports multiple via ManyToMany)
   pipelineSystemId: number; // @NotNull (required)
   departureTerminalId: number; // @NotNull (required) - Starting terminal endpoint
   arrivalTerminalId: number; // @NotNull (required) - Ending terminal endpoint
@@ -68,9 +63,9 @@ export interface PipelineDTO {
   nominalExteriorCoatingId?: number; // Optional - Alloy coating
   nominalInteriorCoatingId?: number; // Optional - Alloy coating
   
-  // Collections - Backend: Set<Long>/List, Frontend: number[]
-  locationIds?: number[]; // Array of location IDs along the pipeline route
-  vendorIds?: number[]; // Array of vendor IDs (backend supports ManyToMany)
+  // Collections - Backend: Set<Long>, Frontend: number[]
+  coordinateIds?: number[]; // Backend: Set<Long> coordinateIds - Coordinate IDs defining pipeline path
+  vendorIds?: number[]; // Backend: Set<Long> vendorIds - Multiple vendor IDs (ManyToMany)
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
@@ -79,12 +74,12 @@ export interface PipelineDTO {
   nominalConstructionMaterial?: AlloyDTO;
   nominalExteriorCoating?: AlloyDTO;
   nominalInteriorCoating?: AlloyDTO;
-  vendor?: VendorDTO; // Primary vendor (for backward compatibility)
-  vendors?: VendorDTO[]; // All vendors (ManyToMany)
   pipelineSystem?: PipelineSystemDTO;
   departureTerminal?: TerminalDTO; // Starting terminal
   arrivalTerminal?: TerminalDTO; // Ending terminal
-  coordinates?: CoordinateDTO[]; // NEW: Coordinates defining the pipeline path
+  
+  // DEPRECATED: Backend removed locations, use coordinateIds instead
+  // locationIds?: number[]; // REMOVED from backend
 }
 
 /**
@@ -168,7 +163,6 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
     { name: 'operationalStatusId', label: 'Operational status' },
     { name: 'ownerId', label: 'Owner structure' },
     { name: 'managerId', label: 'Manager structure' },
-    { name: 'vendorId', label: 'Vendor' },
     { name: 'pipelineSystemId', label: 'Pipeline system' },
     { name: 'departureTerminalId', label: 'Departure terminal' },
     { name: 'arrivalTerminalId', label: 'Arrival terminal' }
@@ -208,7 +202,6 @@ export const createEmptyPipelineDTO = (): Partial<PipelineDTO> => ({
   operationalMinServicePressure: 0,
   designCapacity: 0,
   operationalCapacity: 0,
-  locationIds: [],
-  vendorIds: [],
-  coordinates: [],
+  coordinateIds: [],            // NEW: coordinateIds instead of locationIds
+  vendorIds: [],                // NEW: vendorIds array (Set in backend)
 });
