@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-06-2026 - Fixed: Use designationFr instead of name in ValidationStatusDTO
  * @updated 02-05-2026 - Pass isFromMonitoring flag to MeasurementForm for read-only context
  * @updated 02-05-2026 - Fixed: Use SUBMITTED instead of PENDING for validation status
  * @updated 02-05-2026 - Improved validation status loading and error handling
@@ -380,7 +381,11 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       if (!validationStatus?.id) {
         console.error('❌ Validation status not found:', {
           requestedCode: statusCode,
-          availableStatuses: validationStatuses.map(s => ({ id: s.id, code: s.code, name: s.name }))
+          availableStatuses: validationStatuses.map(s => ({ 
+            id: s.id, 
+            code: s.code, 
+            designation: s.designationFr // Use designationFr instead of name
+          }))
         });
         
         throw new Error(
