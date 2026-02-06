@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-02-2026
+ * @updated 02-06-2026 - Fixed coordinateIds/vendorIds (removed old coordinates/vendors/vendorId fields)
  * @updated 02-06-2026 - Aligned with updated PipelineDTO (nominalDiameter/Thickness as string, coordinates support)
  * @updated 02-02-2026 - Fixed DTO field names (designationFr instead of name)
  */
@@ -185,7 +186,6 @@ export const isPipelineComplete = (pipeline: Partial<PipelineDTO>): boolean => {
     'operationalStatusId',
     'ownerId',
     'managerId',
-    'vendorId',
     'pipelineSystemId',
     'departureTerminalId',
     'arrivalTerminalId',
@@ -224,7 +224,6 @@ export const getMissingPipelineFields = (pipeline: Partial<PipelineDTO>): string
     'operationalStatusId',
     'ownerId',
     'managerId',
-    'vendorId',
     'pipelineSystemId',
     'departureTerminalId',
     'arrivalTerminalId',
@@ -391,14 +390,14 @@ export const getPipelineLifecycleStatus = (pipeline: PipelineDTO): string => {
  * @returns Number of coordinates defining the pipeline path
  */
 export const getPipelineCoordinatesCount = (pipeline: PipelineDTO): number => {
-  return pipeline?.coordinates?.length || 0;
+  return pipeline?.coordinateIds?.length || 0;
 };
 
 /**
  * Check if pipeline has coordinate path defined
  * 
  * @param pipeline - Pipeline DTO
- * @returns True if coordinates array exists and has at least 2 points
+ * @returns True if coordinateIds array exists and has at least 2 points
  */
 export const hasPipelinePath = (pipeline: PipelineDTO): boolean => {
   return getPipelineCoordinatesCount(pipeline) >= 2;
@@ -411,13 +410,7 @@ export const hasPipelinePath = (pipeline: PipelineDTO): boolean => {
  * @returns Number of vendors associated with pipeline
  */
 export const getPipelineVendorCount = (pipeline: PipelineDTO): number => {
-  if (pipeline?.vendors?.length) {
-    return pipeline.vendors.length;
-  }
-  if (pipeline?.vendorIds?.length) {
-    return pipeline.vendorIds.length;
-  }
-  return pipeline?.vendorId ? 1 : 0;
+  return pipeline?.vendorIds?.length || 0;
 };
 
 /**
