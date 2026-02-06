@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-06-2026 - Simplified forecast menu to direct navigation
  * @updated 02-06-2026 - Reorganized workspace: removed readings submenu, threshold/operation navigate to list
  * @updated 02-04-2026 - Added Slot Monitoring menu
  * @updated 02-01-2026 - Added permission-based menu filtering
@@ -70,8 +71,6 @@ import SpeedIcon from '@mui/icons-material/Speed';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -128,20 +127,8 @@ const Sidebar = ({ open }: SidebarProps) => {
         {
           titleKey: 'nav.forecast',
           icon: <TrendingUpIcon />,
-          children: [
-            {
-              titleKey: 'nav.forecasts.list',
-              icon: <ListAltIcon />,
-              path: '/flow/forecasts',
-              permission: 'FLOW_FORECAST:READ',
-            },
-            {
-              titleKey: 'nav.forecasts.create',
-              icon: <AddCircleIcon />,
-              path: '/flow/forecasts/new',
-              permission: 'FLOW_FORECAST:CREATE',
-            },
-          ],
+          path: '/flow/forecasts',
+          permission: 'FLOW_FORECAST:READ',
         },
         {
           titleKey: 'nav.operation',
