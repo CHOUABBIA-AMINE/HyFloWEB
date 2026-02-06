@@ -6,7 +6,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 01-01-2026
- * @updated 01-08-2026
+ * @updated 02-06-2026 - Fixed vendor column to use vendorIds (ManyToMany)
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-18-2026 - Fixed translation key: common.actions → list.actions
  */
@@ -297,14 +297,35 @@ const PipelineSystemEdit = () => {
       },
     },
     {
-      field: 'vendorId',
+      field: 'vendorIds',
       headerName: t('common.fields.vendor'),
       minWidth: 200,
       flex: 1,
       renderCell: (params) => {
         const row = params.row as PipelineDTO;
-        if (row.vendor?.name) return <>{row.vendor.name}</>;
-        return <>{row.vendorId}</>;
+        // Pipeline now supports multiple vendors (ManyToMany)
+        if (row.vendors && row.vendors.length > 0) {
+          // Display first vendor name + count if multiple
+          const firstVendor = row.vendors[0];
+          const vendorName = firstVendor.name || `Vendor #${firstVendor.id}`;
+          return (
+            <>
+              {vendorName}
+              {row.vendors.length > 1 && (
+                <Chip 
+                  label={`+${row.vendors.length - 1}`} 
+                  size="small" 
+                  sx={{ ml: 1 }} 
+                />
+              )}
+            </>
+          );
+        }
+        // Fallback: show count of vendor IDs
+        if (row.vendorIds && row.vendorIds.length > 0) {
+          return <>{row.vendorIds.length} vendor{row.vendorIds.length > 1 ? 's' : ''}</>;
+        }
+        return <>-</>;
       },
     },
     {
