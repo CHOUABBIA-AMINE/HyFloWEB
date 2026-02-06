@@ -2,11 +2,12 @@
  * Geo Service
  * API service for fetching infrastructure geolocation data
  * 
+ * Updated: 02-06-2026 - CRITICAL: Backend removed locationIds, changed to coordinateIds
  * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-16-2026
+ * @updated 02-06-2026
  */
 
 import axiosInstance from '../../../../shared/config/axios';
@@ -30,17 +31,15 @@ interface PageResponse<T> {
 }
 
 /**
- * Backend LocationDTO structure
- * NOTE: Backend has latitude/longitude SWAPPED in the database!
- * What backend calls "latitude" is actually longitude, and vice versa.
+ * Backend CoordinateDTO structure
+ * Coordinates define the geographic path of pipelines
  */
-interface LocationDTO {
+interface CoordinateDTO {
   id: number;
-  code: string;
-  latitude: number;  // Actually longitude in the backend!
-  longitude: number; // Actually latitude in the backend!
-  elevation?: number;
-  localityId?: number;
+  latitude: number;
+  longitude: number;
+  altitude?: number;
+  sequence?: number;
 }
 
 class GeoService {
@@ -108,41 +107,44 @@ class GeoService {
   }
 
   /**
-   * Fetch specific locations by their IDs
+   * Fetch specific coordinates by their IDs
+   * Backend now uses Coordinate entity instead of Location
    */
-  private async getLocationsByIds(locationIds: number[]): Promise<LocationPoint[]> {
+  private async getCoordinatesByIds(coordinateIds: number[]): Promise<LocationPoint[]> {
     try {
-      if (!locationIds || locationIds.length === 0) {
+      if (!coordinateIds || coordinateIds.length === 0) {
         return [];
       }
       
-      // Fetch all locations in parallel
-      const locationPromises = locationIds.map(id => 
-        axiosInstance.get(`/general/localization/location/${id}`)
+      // Fetch all coordinates in parallel
+      const coordinatePromises = coordinateIds.map(id => 
+        axiosInstance.get(`/general/localization/coordinate/${id}`)
           .then(response => response.data)
           .catch(error => {
-            console.error(`GeoService - Error fetching location ${id}:`, error);
+            console.error(`GeoService - Error fetching coordinate ${id}:`, error);
             return null;
           })
       );
       
-      const locations = await Promise.all(locationPromises);
+      const coordinates = await Promise.all(coordinatePromises);
       
       // Filter out failed requests and convert to LocationPoint format
-      // IMPORTANT: Swap latitude/longitude because backend has them reversed!
-      const validLocations: LocationPoint[] = locations
-        .filter((loc): loc is LocationDTO => loc !== null)
-        .map((loc, index) => ({
-          id: loc.id,
-          latitude: loc.longitude,  // SWAP: backend's "longitude" is actually latitude
-          longitude: loc.latitude,  // SWAP: backend's "latitude" is actually longitude
-          altitude: loc.elevation,
-          sequence: index
+      const validCoordinates: LocationPoint[] = coordinates
+        .filter((coord): coord is CoordinateDTO => coord !== null)
+        .map((coord, index) => ({
+          id: coord.id,
+          latitude: coord.latitude,
+          longitude: coord.longitude,
+          altitude: coord.altitude,
+          sequence: coord.sequence ?? index
         }));
       
-      return validLocations;
+      // Sort by sequence if available
+      validCoordinates.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+      
+      return validCoordinates;
     } catch (error) {
-      console.error('GeoService - Error fetching locations:', error);
+      console.error('GeoService - Error fetching coordinates:', error);
       return [];
     }
   }
@@ -171,7 +173,7 @@ class GeoService {
         productCode: samplePipeline.pipelineSystem?.product?.code,
       });
       
-      // Fetch locations for each pipeline that has locationIds
+      // Fetch coordinates for each pipeline that has coordinateIds
       const pipelinesWithGeo = await Promise.all(
         pipelines.map(async (pipeline) => {
           // Log product data for debugging - check pipelineSystem.product
@@ -182,15 +184,15 @@ class GeoService {
             console.warn(`Pipeline ${pipeline.code} - NO PRODUCT DATA (pipelineSystem: ${!!pipeline.pipelineSystem})`);
           }
 
-          // Check if pipeline has locationIds
-          if (pipeline.locationIds && pipeline.locationIds.length > 0) {
+          // Check if pipeline has coordinateIds (NEW: replaced locationIds)
+          if (pipeline.coordinateIds && pipeline.coordinateIds.length > 0) {
             // Convert Set to Array if needed, and ensure it's number[]
-            const locationIdArray: number[] = Array.isArray(pipeline.locationIds) 
-              ? pipeline.locationIds as number[]
-              : Array.from(pipeline.locationIds) as number[];
+            const coordinateIdArray: number[] = Array.isArray(pipeline.coordinateIds) 
+              ? pipeline.coordinateIds as number[]
+              : Array.from(pipeline.coordinateIds) as number[];
             
-            // Fetch the actual location data (with coordinate correction)
-            const locations = await this.getLocationsByIds(locationIdArray);
+            // Fetch the actual coordinate data
+            const locations = await this.getCoordinatesByIds(coordinateIdArray);
             
             // Validate coordinates before adding
             if (locations.length >= 2 && validatePipelineCoordinates(locations)) {
@@ -201,10 +203,10 @@ class GeoService {
                 coordinates
               };
             } else {
-              console.warn(`Pipeline ${pipeline.code} - Invalid or insufficient coordinates`);
+              console.warn(`Pipeline ${pipeline.code} - Invalid or insufficient coordinates (need at least 2, got ${locations.length})`);
             }
           } else {
-            console.warn(`Pipeline ${pipeline.code} - No location IDs`);
+            console.warn(`Pipeline ${pipeline.code} - No coordinate IDs`);
           }
           return null;
         })
