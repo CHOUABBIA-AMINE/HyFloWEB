@@ -6,12 +6,13 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
+ * @updated 02-06-2026 - Fixed infinite render loop blocking navigation
  * @updated 02-06-2026 - Aligned cancel button with ForecastEdit/OperationEdit pattern
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume Min/Max fields
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -95,8 +96,18 @@ export const ThresholdEdit: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
-  // Watch form values for real-time validation
-  const watchedValues = watch();
+  // Watch individual fields to avoid infinite loop from watch()
+  const pipelineId = watch('pipelineId');
+  const pressureMin = watch('pressureMin');
+  const pressureMax = watch('pressureMax');
+  const temperatureMin = watch('temperatureMin');
+  const temperatureMax = watch('temperatureMax');
+  const flowRateMin = watch('flowRateMin');
+  const flowRateMax = watch('flowRateMax');
+  const containedVolumeMin = watch('containedVolumeMin');
+  const containedVolumeMax = watch('containedVolumeMax');
+  const alertTolerance = watch('alertTolerance');
+  const active = watch('active');
   
   // Load initial data
   useEffect(() => {
@@ -106,11 +117,40 @@ export const ThresholdEdit: React.FC = () => {
     }
   }, [id, mode]);
   
-  // Validate form in real-time
+  // Validate form in real-time using useMemo to avoid infinite loop
+  const currentValidationErrors = useMemo(() => {
+    const watchedValues = {
+      pipelineId,
+      pressureMin,
+      pressureMax,
+      temperatureMin,
+      temperatureMax,
+      flowRateMin,
+      flowRateMax,
+      containedVolumeMin,
+      containedVolumeMax,
+      alertTolerance,
+      active,
+    };
+    return validateFlowThresholdDTO(watchedValues);
+  }, [
+    pipelineId,
+    pressureMin,
+    pressureMax,
+    temperatureMin,
+    temperatureMax,
+    flowRateMin,
+    flowRateMax,
+    containedVolumeMin,
+    containedVolumeMax,
+    alertTolerance,
+    active,
+  ]);
+  
+  // Update validation errors only when they actually change
   useEffect(() => {
-    const errors = validateFlowThresholdDTO(watchedValues);
-    setValidationErrors(errors);
-  }, [watchedValues]);
+    setValidationErrors(currentValidationErrors);
+  }, [currentValidationErrors.length, currentValidationErrors.join('|')]);
   
   const loadPipelines = async () => {
     try {
