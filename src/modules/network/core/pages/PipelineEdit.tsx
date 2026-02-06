@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
+ * @updated 02-06-2026 20:07 - Integrated coordinate management (CoordinateList + CoordinateEditDialog)
  * @updated 02-06-2026 19:42 - Restructured: Header+Actions at top, tabs for content sections
  * @updated 02-06-2026 18:52 - CRITICAL: Backend removed locations, changed to coordinateIds only
  * @updated 02-06-2026 18:38 - Aligned with backend Model (nominalDiameter/Thickness as string text fields, 4 decimals for Double)
@@ -47,7 +48,10 @@ import { VendorService, OperationalStatusService, AlloyService } from '../../com
 import { StructureService } from '@/modules/general/organization/services';
 import { CoordinateService } from '@/modules/general/localization/services';
 import { PipelineDTO } from '../dto/PipelineDTO';
+import { CoordinateDTO } from '@/modules/general/localization/dto/CoordinateDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
+import CoordinateList from '../components/CoordinateList';
+import CoordinateEditDialog from '../components/CoordinateEditDialog';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -120,7 +124,7 @@ const PipelineEdit = () => {
   const [alloys, setAlloys] = useState<any[]>([]);
   const [terminals, setTerminals] = useState<any[]>([]);
   const [structures, setStructures] = useState<any[]>([]);
-  const [coordinates, setCoordinates] = useState<any[]>([]);
+  const [coordinates, setCoordinates] = useState<CoordinateDTO[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -128,6 +132,11 @@ const PipelineEdit = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Coordinate management state (Pattern: Structure→Job)
+  const [coordinateDialogOpen, setCoordinateDialogOpen] = useState(false);
+  const [selectedCoordinate, setSelectedCoordinate] = useState<CoordinateDTO | null>(null);
+  const [coordinateRefreshTrigger, setCoordinateRefreshTrigger] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -343,6 +352,49 @@ const PipelineEdit = () => {
     setActiveTab(newValue);
   };
 
+  // Coordinate management handlers (Pattern: Structure→Job)
+  const handleAddCoordinate = () => {
+    setSelectedCoordinate(null);
+    setCoordinateDialogOpen(true);
+  };
+
+  const handleEditCoordinate = (coordinate: CoordinateDTO) => {
+    setSelectedCoordinate(coordinate);
+    setCoordinateDialogOpen(true);
+  };
+
+  const handleCoordinateDialogClose = () => {
+    setCoordinateDialogOpen(false);
+    setSelectedCoordinate(null);
+  };
+
+  const handleCoordinateSaved = () => {
+    setCoordinateRefreshTrigger((prev) => prev + 1);
+    // Reload coordinates to update the list
+    loadCoordinatesForPipeline();
+  };
+
+  const loadCoordinatesForPipeline = async () => {
+    if (!isEditMode || !pipelineId) return;
+    
+    try {
+      const coords = await CoordinateService.getByInfrastructure(Number(pipelineId));
+      const coordIds = coords.map(c => c.id).filter((id): id is number => id !== undefined);
+      setPipeline(prev => ({ ...prev, coordinateIds: coordIds }));
+    } catch (err) {
+      console.error('Failed to load pipeline coordinates:', err);
+    }
+  };
+
+  // Get max sequence number for auto-increment
+  const maxSequence = useMemo(() => {
+    if (!isEditMode || !pipelineId) return 0;
+    const pipelineCoords = coordinates.filter(c => c.infrastructureId === Number(pipelineId));
+    return pipelineCoords.length > 0 
+      ? Math.max(...pipelineCoords.map(c => c.sequence))
+      : 0;
+  }, [coordinates, pipelineId, isEditMode, coordinateRefreshTrigger]);
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     
@@ -388,8 +440,11 @@ const PipelineEdit = () => {
         await PipelineService.update(Number(pipelineId), { id: Number(pipelineId), ...pipelineData } as PipelineDTO);
         setSuccess(t('common.messages.updateSuccess'));
       } else {
-        await PipelineService.create(pipelineData as PipelineDTO);
+        const created = await PipelineService.create(pipelineData as PipelineDTO);
         setSuccess(t('common.messages.createSuccess'));
+        // Redirect to edit mode after creation to allow coordinate management
+        setTimeout(() => navigate(`/network/core/pipelines/${created.id}/edit`), 1500);
+        return;
       }
 
       setTimeout(() => navigate('/network/core/pipelines'), 1000);
@@ -494,7 +549,7 @@ const PipelineEdit = () => {
           }}
         >
           <Tab label={t('pipeline.tabs.generalInformation')} />
-          <Tab label={t('pipeline.tabs.pipelinePath')} />
+          <Tab label={t('pipeline.tabs.pipelinePath')} disabled={!isEditMode} />
         </Tabs>
 
         <CardContent sx={{ p: 3 }}>
@@ -1005,56 +1060,32 @@ const PipelineEdit = () => {
             </form>
           </TabPanel>
 
-          {/* Tab 1: Pipeline Path (Coordinates) */}
+          {/* Tab 1: Pipeline Path (Coordinates) - Pattern: Structure→Job */}
           <TabPanel value={activeTab} index={1}>
-            <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
-              <Box sx={{ p: 2.5 }}>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  {t('pipeline.sections.pipelinePath')}
-                </Typography>
-                <Divider sx={{ mb: 3 }} />
-                
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Autocomplete
-                      multiple
-                      options={coordinates}
-                      value={selectedCoordinates}
-                      onChange={handleCoordinatesChange}
-                      getOptionLabel={(option) => `${option.latitude}, ${option.longitude} (${option.id})`}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label={t('pipeline.fields.coordinates')}
-                          helperText="Define pipeline path by selecting coordinates in sequence"
-                        />
-                      )}
-                      renderTags={(value, getTagProps) =>
-                        value.map((option, index) => (
-                          <Chip
-                            label={`Point ${index + 1}: ${option.latitude}, ${option.longitude}`}
-                            {...getTagProps({ index })}
-                            key={option.id}
-                          />
-                        ))
-                      }
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <Alert severity="info">
-                      <Typography variant="body2">
-                        <strong>Pipeline Path:</strong> Select coordinates in sequence to define the pipeline route from departure to arrival terminal.
-                        The coordinates represent waypoints along the pipeline path.
-                      </Typography>
-                    </Alert>
-                  </Grid>
-                </Grid>
-              </Box>
-            </Paper>
+            {isEditMode && (
+              <CoordinateList
+                pipelineId={Number(pipelineId)}
+                coordinateIds={pipeline.coordinateIds || []}
+                onEdit={handleEditCoordinate}
+                onAdd={handleAddCoordinate}
+                refreshTrigger={coordinateRefreshTrigger}
+              />
+            )}
           </TabPanel>
         </CardContent>
       </Card>
+
+      {/* Coordinate Edit Dialog - Pattern: Structure→Job */}
+      {isEditMode && (
+        <CoordinateEditDialog
+          open={coordinateDialogOpen}
+          onClose={handleCoordinateDialogClose}
+          onSave={handleCoordinateSaved}
+          pipelineId={Number(pipelineId)}
+          coordinate={selectedCoordinate}
+          maxSequence={maxSequence}
+        />
+      )}
     </Box>
   );
 };
