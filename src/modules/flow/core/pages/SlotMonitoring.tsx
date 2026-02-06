@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-06 20:30 - Fixed: Approve button now navigates to ReadingEdit with validation mode for notes editing
  * @updated 2026-02-05 - Removed role badges line, format date as dd-mm-yyyy
  * @updated 2026-02-05 - UI improvements: removed monitoring line, centered badges, aligned header fields
  * @updated 2026-02-05 - Changed refresh to icon button matching export button style
@@ -317,27 +318,29 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Handle pipeline approve action
+   * Navigate to ReadingEdit in validation mode (readings disabled, notes editable)
    */
-  const handleApprove = async (pipeline: PipelineCoverageDTO) => {
-    if (!pipeline.readingId || !userEmployeeId) {
-      setError(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID or employee ID'));
+  const handleApprove = (pipeline: PipelineCoverageDTO) => {
+    if (!pipeline.readingId) {
+      setError(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID'));
       return;
     }
 
-    try {
-      await FlowMonitoringService.validateReading({
-        readingId: pipeline.readingId,
-        action: 'APPROVE',
-        employeeId: userEmployeeId,
-      });
-
-      console.log('✅ Reading approved for pipeline:', pipeline.pipelineId);
-      
-      // Reload coverage
-      await loadSlotCoverage();
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || t('flow.monitoring.errors.approveFailed', 'Failed to approve reading'));
-    }
+    console.log('✅ Navigating to validation for pipeline:', pipeline.pipelineId, pipeline.pipeline?.code);
+    
+    // Navigate to ReadingEdit in validation mode
+    navigate(`/flow/readings/${pipeline.readingId}/validate`, {
+      state: {
+        pipelineId: pipeline.pipelineId,
+        pipelineCode: pipeline.pipeline?.code,
+        pipelineName: pipeline.pipeline?.name,
+        readingDate: selectedDate,
+        slotId: selectedSlotId,
+        structureId: userStructureInfo.structureId,
+        returnTo: '/flow/monitoring',
+        isValidation: true, // Flag to indicate validation mode
+      }
+    });
   };
 
   /**
@@ -631,7 +634,7 @@ const SlotMonitoring: React.FC = () => {
 
                       {permissions.canValidate && (
                         <>
-                          <Tooltip title={t('flow.monitoring.actions.approve', 'Approve')}>
+                          <Tooltip title={t('flow.monitoring.actions.approve', 'Review & Approve')}>
                             <IconButton
                               size="small"
                               color="success"
