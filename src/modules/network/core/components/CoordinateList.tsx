@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-06-2026
+ * @updated 02-06-2026 19:05 - Fixed: use elevation (not altitude), display sequence from DTO
  */
 
 import { useState, useEffect } from 'react';
@@ -77,6 +78,9 @@ const CoordinateList = ({
         allCoordinates = await CoordinateService.getAllNoPagination();
       }
       
+      // Sort by sequence
+      allCoordinates.sort((a, b) => a.sequence - b.sequence);
+      
       setCoordinates(allCoordinates);
       setError('');
     } catch (err: any) {
@@ -127,30 +131,21 @@ const CoordinateList = ({
     }
   };
 
-  // Add sequence number to selected coordinates
-  const getSequenceNumber = (coordinateId: number): number | null => {
-    const index = coordinateIds.indexOf(coordinateId);
-    return index >= 0 ? index + 1 : null;
-  };
-
   const columns: GridColDef<CoordinateDTO>[] = [
     {
       field: 'sequence',
       headerName: 'Seq',
-      width: 70,
+      width: 80,
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => {
-        const seq = getSequenceNumber(params.row.id!);
-        return seq ? (
-          <Chip 
-            label={seq} 
-            color="primary" 
-            size="small" 
-            sx={{ fontWeight: 600 }}
-          />
-        ) : null;
-      },
+      renderCell: (params) => (
+        <Chip 
+          label={params.value} 
+          color="primary" 
+          size="small" 
+          sx={{ fontWeight: 600 }}
+        />
+      ),
     },
     {
       field: 'latitude',
@@ -175,8 +170,8 @@ const CoordinateList = ({
       ),
     },
     {
-      field: 'altitude',
-      headerName: t('coordinate.fields.altitude'),
+      field: 'elevation',
+      headerName: t('coordinate.fields.elevation'),
       width: 100,
       renderCell: (params) => (
         <Typography variant="body2">
@@ -244,7 +239,7 @@ const CoordinateList = ({
           )}
         </Box>
         <Typography variant="body2" color="text.secondary">
-          {t('pipeline.coordinatesList.subtitle')}
+          Manage coordinates that define the pipeline route. Coordinates are ordered by sequence number.
         </Typography>
       </Box>
 
@@ -290,7 +285,8 @@ const CoordinateList = ({
       {/* Info Alert */}
       <Alert severity="info" sx={{ mt: 2 }}>
         <Typography variant="body2">
-          <strong>{t('pipeline.coordinatesList.info.title')}:</strong> {t('pipeline.coordinatesList.info.description')}
+          <strong>Pipeline Route:</strong> Coordinates are ordered by their sequence number. 
+          Each point represents a waypoint along the pipeline path from departure to arrival terminal.
         </Typography>
       </Alert>
 
