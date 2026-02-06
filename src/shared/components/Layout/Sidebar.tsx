@@ -4,6 +4,7 @@
  *
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-06-2026 - Reorganized workspace: removed readings submenu, threshold/operation navigate to list
  * @updated 02-04-2026 - Added Slot Monitoring menu
  * @updated 02-01-2026 - Added permission-based menu filtering
  * @updated 01-29-2026 - Added Flow Forecasts and Operations menus
@@ -65,14 +66,12 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import AppsIcon from '@mui/icons-material/Apps';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SpeedIcon from '@mui/icons-material/Speed';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 
@@ -103,7 +102,7 @@ const Sidebar = ({ open }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Top-level order: Home, Workspace (Slot Monitoring, Reading, Thresholds, Forecasts, Operations, Maps, Statistics), General, Network, System
+  // Top-level order: Home, Workspace (Slot Monitoring, Thresholds, Forecasts, Operations, Maps, Statistics), General, Network, System
   const menuItems: MenuItem[] = [
     {
       titleKey: 'nav.home',
@@ -121,46 +120,10 @@ const Sidebar = ({ open }: SidebarProps) => {
           anyPermission: ['FLOW_READING:READ', 'FLOW_READING:CREATE', 'FLOW_READING:VALIDATE'],
         },
         {
-          titleKey: 'nav.reading',
-          icon: <MenuBookIcon />,
-          children: [
-            {
-              titleKey: 'nav.readings.list',
-              icon: <ListAltIcon />,
-              path: '/flow/readings',
-              permission: 'FLOW_READING:READ',
-            },
-            {
-              titleKey: 'nav.readings.create',
-              icon: <AddCircleIcon />,
-              path: '/flow/readings/new',
-              permission: 'FLOW_READING:CREATE',
-            },
-            {
-              titleKey: 'nav.readings.validate',
-              icon: <CheckCircleIcon />,
-              path: '/flow/readings/pending',
-              permission: 'FLOW_READING:VALIDATE',
-            },
-          ],
-        },
-        {
           titleKey: 'nav.threshold',
           icon: <SpeedIcon />,
-          children: [
-            {
-              titleKey: 'nav.thresholds.list',
-              icon: <ListAltIcon />,
-              path: '/flow/thresholds',
-              permission: 'FLOW_THRESHOLD:READ',
-            },
-            {
-              titleKey: 'nav.thresholds.create',
-              icon: <AddCircleIcon />,
-              path: '/flow/thresholds/new',
-              permission: 'FLOW_THRESHOLD:CREATE',
-            },
-          ],
+          path: '/flow/thresholds',
+          permission: 'FLOW_THRESHOLD:READ',
         },
         {
           titleKey: 'nav.forecast',
@@ -183,20 +146,8 @@ const Sidebar = ({ open }: SidebarProps) => {
         {
           titleKey: 'nav.operation',
           icon: <LocalShippingIcon />,
-          children: [
-            {
-              titleKey: 'nav.operations.list',
-              icon: <ListAltIcon />,
-              path: '/flow/operations',
-              permission: 'FLOW_OPERATION:READ',
-            },
-            {
-              titleKey: 'nav.operations.create',
-              icon: <AddCircleIcon />,
-              path: '/flow/operations/new',
-              permission: 'FLOW_OPERATION:CREATE',
-            },
-          ],
+          path: '/flow/operations',
+          permission: 'FLOW_OPERATION:READ',
         },
         {
           titleKey: 'nav.maps',
