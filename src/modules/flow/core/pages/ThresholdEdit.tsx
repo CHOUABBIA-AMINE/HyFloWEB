@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
+ * @updated 02-06-2026 - Fixed cancel button blocking issue
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume Min/Max fields
  */
@@ -191,7 +192,9 @@ export const ThresholdEdit: React.FC = () => {
     }
   };
   
-  const handleCancel = () => {
+  const handleCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     navigate('/flow/thresholds');
   };
   
@@ -683,7 +686,7 @@ export const ThresholdEdit: React.FC = () => {
                     <Button
                       variant="outlined"
                       onClick={handleCancel}
-                      disabled={loading}
+                      type="button"
                     >
                       {t('flow.threshold.actions.cancel')}
                     </Button>
