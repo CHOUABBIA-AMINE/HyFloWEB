@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-06-2026
+ * @updated 02-06-2026 19:02 - Fixed: use elevation (not altitude), sequence required
  */
 
 import { useState, useEffect } from 'react';
@@ -28,6 +29,7 @@ interface CoordinateEditDialogProps {
   open: boolean;
   coordinate?: CoordinateDTO | null;
   pipelineId?: number;  // Optional: pre-set pipeline for new coordinates
+  maxSequence?: number;  // Current max sequence for auto-incrementing
   onClose: () => void;
   onSave: () => void;
 }
@@ -35,16 +37,18 @@ interface CoordinateEditDialogProps {
 const CoordinateEditDialog = ({ 
   open, 
   coordinate, 
-  pipelineId, 
+  pipelineId,
+  maxSequence = 0,
   onClose, 
   onSave 
 }: CoordinateEditDialogProps) => {
   const { t } = useTranslation();
   
   const [formData, setFormData] = useState<Partial<CoordinateDTO>>({
+    sequence: 1,
     latitude: 0,
     longitude: 0,
-    altitude: undefined,
+    elevation: undefined,
     infrastructureId: pipelineId,
   });
   const [loading, setLoading] = useState(false);
@@ -54,22 +58,25 @@ const CoordinateEditDialog = ({
   useEffect(() => {
     if (coordinate) {
       setFormData({
+        sequence: coordinate.sequence,
         latitude: coordinate.latitude,
         longitude: coordinate.longitude,
-        altitude: coordinate.altitude,
+        elevation: coordinate.elevation,
         infrastructureId: coordinate.infrastructureId || pipelineId,
       });
     } else {
+      // Auto-increment sequence for new coordinates
       setFormData({
+        sequence: maxSequence + 1,
         latitude: 0,
         longitude: 0,
-        altitude: undefined,
+        elevation: undefined,
         infrastructureId: pipelineId,
       });
     }
     setValidationErrors({});
     setError('');
-  }, [coordinate, open, pipelineId]);
+  }, [coordinate, open, pipelineId, maxSequence]);
 
   const handleChange = (field: keyof CoordinateDTO) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -89,6 +96,10 @@ const CoordinateEditDialog = ({
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
+    if (formData.sequence === undefined || formData.sequence === null || formData.sequence <= 0) {
+      errors.sequence = 'Sequence must be a positive number';
+    }
+
     if (formData.latitude === undefined || formData.latitude === null) {
       errors.latitude = t('common.validation.required', { field: t('coordinate.fields.latitude') });
     } else if (formData.latitude < -90 || formData.latitude > 90) {
@@ -99,6 +110,10 @@ const CoordinateEditDialog = ({
       errors.longitude = t('common.validation.required', { field: t('coordinate.fields.longitude') });
     } else if (formData.longitude < -180 || formData.longitude > 180) {
       errors.longitude = 'Longitude must be between -180 and 180';
+    }
+
+    if (!formData.infrastructureId) {
+      errors.infrastructureId = 'Infrastructure ID is required';
     }
 
     setValidationErrors(errors);
@@ -118,9 +133,10 @@ const CoordinateEditDialog = ({
       setError('');
 
       const coordinateData: CoordinateDTO = {
+        sequence: formData.sequence!,
         latitude: formData.latitude!,
         longitude: formData.longitude!,
-        altitude: formData.altitude,
+        elevation: formData.elevation,
         infrastructureId: formData.infrastructureId || pipelineId,
       };
 
@@ -171,6 +187,23 @@ const CoordinateEditDialog = ({
             <Grid item xs={12}>
               <TextField
                 fullWidth
+                label={t('coordinate.fields.sequence')}
+                type="number"
+                value={formData.sequence ?? ''}
+                onChange={handleChange('sequence')}
+                required
+                error={!!validationErrors.sequence}
+                helperText={validationErrors.sequence || 'Order of coordinate along pipeline route (positive integer)'}
+                inputProps={{ 
+                  step: 1, 
+                  min: 1
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
                 label={t('coordinate.fields.latitude')}
                 type="number"
                 value={formData.latitude ?? ''}
@@ -207,11 +240,11 @@ const CoordinateEditDialog = ({
             <Grid item xs={12}>
               <TextField
                 fullWidth
-                label={t('coordinate.fields.altitude')}
+                label={t('coordinate.fields.elevation')}
                 type="number"
-                value={formData.altitude ?? ''}
-                onChange={handleChange('altitude')}
-                helperText="Altitude in meters (optional)"
+                value={formData.elevation ?? ''}
+                onChange={handleChange('elevation')}
+                helperText="Elevation above sea level in meters (optional)"
                 inputProps={{ 
                   step: '0.01' 
                 }}
@@ -221,7 +254,8 @@ const CoordinateEditDialog = ({
 
           <Alert severity="info" sx={{ mt: 2 }}>
             <Typography variant="body2">
-              <strong>Note:</strong> Use decimal degrees format (e.g., 36.753768, 3.042048)
+              <strong>Note:</strong> Use decimal degrees format (e.g., 36.753768, 3.042048). 
+              Sequence number determines the order of coordinates along the pipeline route.
             </Typography>
           </Alert>
         </DialogContent>
