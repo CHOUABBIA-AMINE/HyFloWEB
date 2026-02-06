@@ -4,11 +4,12 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
- * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
- * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 02-06-2026 - CRITICAL: Aligned with backend Model (nominalDiameter/Thickness as string text fields, 4 decimals for Double)
  * @updated 02-02-2026 - Added missing required fields: ownerId, managerId, locationIds
  * @updated 02-02-2026 - Fixed LocationService import path (localization not geography)
+ * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
+ * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
+ * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -50,17 +51,17 @@ const PipelineEdit = () => {
   // Get current language
   const currentLanguage = i18n.language || 'en';
 
-  // Form state matching backend fields - using strings for fields that backend expects as strings
+  // Form state matching backend fields
   const [pipeline, setPipeline] = useState<Partial<PipelineDTO>>({
     code: '',
     name: '',
     installationDate: undefined,
     commissioningDate: undefined,
     decommissioningDate: undefined,
-    nominalDiameter: '0',
+    nominalDiameter: '',              // String with unit (e.g., "48 inches")
     length: 0,
-    nominalThickness: '0',
-    nominalRoughness: '0',
+    nominalThickness: '',             // String with unit (e.g., "12.7 mm")
+    nominalRoughness: 0,              // Number (Double)
     designMaxServicePressure: 0,
     operationalMaxServicePressure: 0,
     designMinServicePressure: 0,
@@ -244,6 +245,16 @@ const PipelineEdit = () => {
       errors.code = t('common.validation.codeRequired');
     }
 
+    // Validate nominalDiameter (string)
+    if (!pipeline.nominalDiameter || pipeline.nominalDiameter.trim() === '') {
+      errors.nominalDiameter = t('common.validation.required', { field: t('pipeline.fields.nominalDiameter') });
+    }
+
+    // Validate nominalThickness (string)
+    if (!pipeline.nominalThickness || pipeline.nominalThickness.trim() === '') {
+      errors.nominalThickness = t('common.validation.required', { field: t('pipeline.fields.nominalThickness') });
+    }
+
     if (!pipeline.operationalStatusId) {
       errors.operationalStatusId = t('common.validation.required', { field: t('common.fields.operationalStatus') });
     }
@@ -308,10 +319,10 @@ const PipelineEdit = () => {
         installationDate: pipeline.installationDate,
         commissioningDate: pipeline.commissioningDate,
         decommissioningDate: pipeline.decommissioningDate,
-        nominalDiameter: String(pipeline.nominalDiameter || '0'),
+        nominalDiameter: pipeline.nominalDiameter || '',          // String
         length: pipeline.length !== undefined ? Number(pipeline.length) : 0,
-        nominalThickness: String(pipeline.nominalThickness || '0'),
-        nominalRoughness: String(pipeline.nominalRoughness || '0'),
+        nominalThickness: pipeline.nominalThickness || '',        // String
+        nominalRoughness: pipeline.nominalRoughness !== undefined ? Number(pipeline.nominalRoughness) : 0,  // Number
         designMaxServicePressure: pipeline.designMaxServicePressure !== undefined ? Number(pipeline.designMaxServicePressure) : 0,
         operationalMaxServicePressure: pipeline.operationalMaxServicePressure !== undefined ? Number(pipeline.operationalMaxServicePressure) : 0,
         designMinServicePressure: pipeline.designMinServicePressure !== undefined ? Number(pipeline.designMinServicePressure) : 0,
@@ -506,11 +517,13 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     label={t('pipeline.fields.nominalDiameter')}
-                    type="number"
-                    value={pipeline.nominalDiameter || '0'}
+                    type="text"
+                    value={pipeline.nominalDiameter || ''}
                     onChange={handleChange('nominalDiameter')}
-                    inputProps={{ step: 0.01, min: 0 }}
                     required
+                    error={!!validationErrors.nominalDiameter}
+                    helperText={validationErrors.nominalDiameter || 'e.g., "48 inches", "1200 mm"'}
+                    placeholder="48 inches"
                   />
                 </Grid>
 
@@ -518,11 +531,13 @@ const PipelineEdit = () => {
                   <TextField
                     fullWidth
                     label={t('pipeline.fields.nominalThickness')}
-                    type="number"
-                    value={pipeline.nominalThickness || '0'}
+                    type="text"
+                    value={pipeline.nominalThickness || ''}
                     onChange={handleChange('nominalThickness')}
-                    inputProps={{ step: 0.01, min: 0 }}
                     required
+                    error={!!validationErrors.nominalThickness}
+                    helperText={validationErrors.nominalThickness || 'e.g., "12.7 mm", "0.5 inch"'}
+                    placeholder="12.7 mm"
                   />
                 </Grid>
 
@@ -533,8 +548,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.length || 0}
                     onChange={handleChange('length')}
-                    inputProps={{ step: 0.01, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
+                    helperText="Length in kilometers (4 decimals)"
                   />
                 </Grid>
 
@@ -543,10 +559,11 @@ const PipelineEdit = () => {
                     fullWidth
                     label={t('pipeline.fields.nominalRoughness')}
                     type="number"
-                    value={pipeline.nominalRoughness || '0'}
+                    value={pipeline.nominalRoughness || 0}
                     onChange={handleChange('nominalRoughness')}
                     inputProps={{ step: 0.0001, min: 0 }}
                     required
+                    helperText="Roughness in mm (4 decimals)"
                   />
                 </Grid>
               </Grid>
@@ -569,8 +586,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.designMaxServicePressure ?? 0}
                     onChange={handleChange('designMaxServicePressure')}
-                    inputProps={{ step: 0.1, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
+                    helperText="Pressure in bar (4 decimals)"
                   />
                 </Grid>
 
@@ -581,8 +599,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.operationalMaxServicePressure ?? 0}
                     onChange={handleChange('operationalMaxServicePressure')}
-                    inputProps={{ step: 0.1, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
+                    helperText="Pressure in bar (4 decimals)"
                   />
                 </Grid>
 
@@ -593,8 +612,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.designMinServicePressure ?? 0}
                     onChange={handleChange('designMinServicePressure')}
-                    inputProps={{ step: 0.1, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
+                    helperText="Pressure in bar (4 decimals)"
                   />
                 </Grid>
 
@@ -605,8 +625,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.operationalMinServicePressure ?? 0}
                     onChange={handleChange('operationalMinServicePressure')}
-                    inputProps={{ step: 0.1, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
+                    helperText="Pressure in bar (4 decimals)"
                   />
                 </Grid>
               </Grid>
@@ -629,9 +650,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.designCapacity ?? 0}
                     onChange={handleChange('designCapacity')}
-                    inputProps={{ step: 0.01, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
-                    helperText={t('pipeline.fields.designCapacityHelper')}
+                    helperText="Capacity in m³/day (4 decimals)"
                   />
                 </Grid>
 
@@ -642,9 +663,9 @@ const PipelineEdit = () => {
                     type="number"
                     value={pipeline.operationalCapacity ?? 0}
                     onChange={handleChange('operationalCapacity')}
-                    inputProps={{ step: 0.01, min: 0 }}
+                    inputProps={{ step: 0.0001, min: 0 }}
                     required
-                    helperText={t('pipeline.fields.operationalCapacityHelper')}
+                    helperText="Capacity in m³/day (4 decimals)"
                   />
                 </Grid>
               </Grid>
