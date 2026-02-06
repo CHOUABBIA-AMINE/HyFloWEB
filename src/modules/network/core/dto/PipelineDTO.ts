@@ -2,6 +2,7 @@
  * Pipeline DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
+ * Updated: 02-06-2026 19:12 - Added vendors array for nested vendor objects in responses
  * Updated: 02-06-2026 18:52 - CRITICAL: Backend removed locations, changed to coordinateIds + vendorIds Set
  * Updated: 02-06-2026 18:21 - Aligned with backend Model (nominalDiameter/Thickness as string, coordinates support)
  * Updated: 02-02-2026 - Fully aligned with backend (all ID fields are number, matching Java Long)
@@ -74,6 +75,7 @@ export interface PipelineDTO {
   nominalConstructionMaterial?: AlloyDTO;
   nominalExteriorCoating?: AlloyDTO;
   nominalInteriorCoating?: AlloyDTO;
+  vendors?: VendorDTO[]; // Backend: Set<Vendor> - Populated vendor objects (ManyToMany)
   pipelineSystem?: PipelineSystemDTO;
   departureTerminal?: TerminalDTO; // Starting terminal
   arrivalTerminal?: TerminalDTO; // Ending terminal
