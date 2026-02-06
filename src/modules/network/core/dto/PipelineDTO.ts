@@ -1,7 +1,13 @@
 /**
  * Pipeline DTO - Network Core Module
  * 
- * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
+ * Strictly aligned with backend MODEL: dz.sh.trc.hyflo.network.core.model.Pipeline
+ * Updated: 02-06-2026 - CRITICAL FIX: Aligned with backend Model (source of truth)
+ *   - nominalDiameter: String (e.g., '48 inches', '1200 mm')
+ *   - nominalThickness: String (e.g., '12.7 mm', '0.5 inch')
+ *   - nominalRoughness: Double/number (e.g., 0.045)
+ *   - Added coordinates field (List<Coordinate>)
+ *   - vendors is Many-to-Many (but DTO keeps single vendorId for backward compatibility)
  * Updated: 02-02-2026 - Fully aligned with backend (all ID fields are number, matching Java Long)
  * Updated: 01-26-2026 - Aligned with backend (added ownerId and managerId)
  * 
@@ -17,6 +23,7 @@ import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { VendorDTO } from '../../common/dto/VendorDTO';
 import { PipelineSystemDTO } from './PipelineSystemDTO';
 import { TerminalDTO } from './TerminalDTO';
+import { CoordinateDTO } from '../../../general/localization/dto/CoordinateDTO';
 
 export interface PipelineDTO {
   // Identifier (from GenericDTO)
@@ -31,27 +38,27 @@ export interface PipelineDTO {
   commissioningDate?: string; // Backend: LocalDate (ISO format: YYYY-MM-DD)
   decommissioningDate?: string; // Backend: LocalDate (ISO format: YYYY-MM-DD)
   
-  // Physical dimensions (all required, @NotNull, @PositiveOrZero)
-  nominalDiameter: string; // Backend: String (e.g., "24 inches")
-  length: number; // Backend: Double - Total length
-  nominalThickness: string; // Backend: String (e.g., "0.5 inches")
-  nominalRoughness: string; // Backend: String (e.g., "0.045 mm")
+  // Physical dimensions (all required, @NotNull)
+  nominalDiameter: string; // Backend: String - Diameter with unit (e.g., "48 inches", "1200 mm")
+  length: number; // Backend: Double - Total length in kilometers
+  nominalThickness: string; // Backend: String - Wall thickness with unit (e.g., "12.7 mm", "0.5 inch")
+  nominalRoughness: number; // Backend: Double - Surface roughness (e.g., 0.045)
   
-  // Pressure specifications (all required, @NotNull, @PositiveOrZero)
-  designMaxServicePressure: number; // Backend: Double - Design maximum pressure
-  operationalMaxServicePressure: number; // Backend: Double - Actual maximum operating pressure
-  designMinServicePressure: number; // Backend: Double - Design minimum pressure
-  operationalMinServicePressure: number; // Backend: Double - Actual minimum operating pressure
+  // Pressure specifications (all required, @NotNull, @Positive)
+  designMaxServicePressure: number; // Backend: Double - Design maximum pressure in bar
+  operationalMaxServicePressure: number; // Backend: Double - Actual maximum operating pressure in bar
+  designMinServicePressure: number; // Backend: Double - Design minimum pressure in bar
+  operationalMinServicePressure: number; // Backend: Double - Actual minimum operating pressure in bar
   
-  // Capacity specifications (all required, @NotNull, @PositiveOrZero)
-  designCapacity: number; // Backend: Double - Design capacity
-  operationalCapacity: number; // Backend: Double - Actual operating capacity
+  // Capacity specifications (all required, @NotNull, @Positive)
+  designCapacity: number; // Backend: Double - Design capacity in m³/day
+  operationalCapacity: number; // Backend: Double - Actual operating capacity in m³/day
   
   // Required relationships (IDs) - Backend: Long, Frontend: number
   operationalStatusId: number; // @NotNull (required)
   ownerId: number; // @NotNull (required) - Owner structure
   managerId: number; // @NotNull (required) - Manager structure
-  vendorId: number; // @NotNull (required)
+  vendorId: number; // @NotNull (required) - Primary vendor (backend supports multiple via ManyToMany)
   pipelineSystemId: number; // @NotNull (required)
   departureTerminalId: number; // @NotNull (required) - Starting terminal endpoint
   arrivalTerminalId: number; // @NotNull (required) - Ending terminal endpoint
@@ -61,8 +68,9 @@ export interface PipelineDTO {
   nominalExteriorCoatingId?: number; // Optional - Alloy coating
   nominalInteriorCoatingId?: number; // Optional - Alloy coating
   
-  // Collections - Backend: Set<Long>, Frontend: number[]
+  // Collections - Backend: Set<Long>/List, Frontend: number[]
   locationIds?: number[]; // Array of location IDs along the pipeline route
+  vendorIds?: number[]; // Array of vendor IDs (backend supports ManyToMany)
   
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
@@ -71,10 +79,12 @@ export interface PipelineDTO {
   nominalConstructionMaterial?: AlloyDTO;
   nominalExteriorCoating?: AlloyDTO;
   nominalInteriorCoating?: AlloyDTO;
-  vendor?: VendorDTO;
+  vendor?: VendorDTO; // Primary vendor (for backward compatibility)
+  vendors?: VendorDTO[]; // All vendors (ManyToMany)
   pipelineSystem?: PipelineSystemDTO;
   departureTerminal?: TerminalDTO; // Starting terminal
   arrivalTerminal?: TerminalDTO; // Ending terminal
+  coordinates?: CoordinateDTO[]; // NEW: Coordinates defining the pipeline path
 }
 
 /**
@@ -97,21 +107,29 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
     errors.push("Name must be between 3 and 100 characters");
   }
   
-  // Physical dimensions validation (String fields)
-  if (!data.nominalDiameter) {
+  // Physical dimensions validation
+  if (!data.nominalDiameter || data.nominalDiameter.trim() === '') {
     errors.push("Nominal diameter is required");
+  } else if (data.nominalDiameter.length > 255) {
+    errors.push("Nominal diameter must not exceed 255 characters");
   }
-  if (!data.nominalThickness) {
+  
+  if (!data.nominalThickness || data.nominalThickness.trim() === '') {
     errors.push("Nominal thickness is required");
+  } else if (data.nominalThickness.length > 255) {
+    errors.push("Nominal thickness must not exceed 255 characters");
   }
-  if (!data.nominalRoughness) {
+  
+  if (data.nominalRoughness === undefined || data.nominalRoughness === null) {
     errors.push("Nominal roughness is required");
+  } else if (data.nominalRoughness <= 0) {
+    errors.push("Nominal roughness must be positive");
   }
   
   // Length validation (numeric)
   if (data.length === undefined || data.length === null) {
     errors.push("Length is required");
-  } else if (data.length < 0) {
+  } else if (data.length <= 0) {
     errors.push("Length must be positive");
   }
   
@@ -127,7 +145,7 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
     const value = data[name];
     if (value === undefined || value === null) {
       errors.push(`${label} is required`);
-    } else if (value < 0) {
+    } else if (value <= 0) {
       errors.push(`${label} must be positive`);
     }
   });
@@ -135,13 +153,13 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
   // Capacity specifications validation
   if (data.designCapacity === undefined || data.designCapacity === null) {
     errors.push("Design capacity is required");
-  } else if (data.designCapacity < 0) {
+  } else if (data.designCapacity <= 0) {
     errors.push("Design capacity must be positive");
   }
   
   if (data.operationalCapacity === undefined || data.operationalCapacity === null) {
     errors.push("Operational capacity is required");
-  } else if (data.operationalCapacity < 0) {
+  } else if (data.operationalCapacity <= 0) {
     errors.push("Operational capacity must be positive");
   }
   
@@ -180,10 +198,10 @@ export const validatePipelineDTO = (data: Partial<PipelineDTO>): string[] => {
 export const createEmptyPipelineDTO = (): Partial<PipelineDTO> => ({
   code: '',
   name: '',
-  nominalDiameter: '',
+  nominalDiameter: '',          // String with unit
   length: 0,
-  nominalThickness: '',
-  nominalRoughness: '',
+  nominalThickness: '',         // String with unit
+  nominalRoughness: 0,          // Numeric value
   designMaxServicePressure: 0,
   operationalMaxServicePressure: 0,
   designMinServicePressure: 0,
@@ -191,4 +209,6 @@ export const createEmptyPipelineDTO = (): Partial<PipelineDTO> => ({
   designCapacity: 0,
   operationalCapacity: 0,
   locationIds: [],
+  vendorIds: [],
+  coordinates: [],
 });
