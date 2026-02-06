@@ -5,7 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 02-06-2026 20:12 - Fixed: type guard for coordinate.id in selectedCoordinates
+ * @updated 02-06-2026 20:15 - Fixed: Restored complete file with TypeScript fix
  * @updated 02-06-2026 20:07 - Integrated coordinate management (CoordinateList + CoordinateEditDialog)
  * @updated 02-06-2026 19:42 - Restructured: Header+Actions at top, tabs for content sections
  * @updated 02-06-2026 18:52 - CRITICAL: Backend removed locations, changed to coordinateIds only
@@ -467,7 +467,7 @@ const PipelineEdit = () => {
     return vendors.filter(vendor => pipeline.vendorIds?.includes(vendor.id));
   }, [pipeline.vendorIds, vendors]);
 
-  // Get selected coordinates for Autocomplete (with type guard)
+  // Get selected coordinates for Autocomplete (with type guard for TypeScript)
   const selectedCoordinates = useMemo(() => {
     if (!pipeline.coordinateIds || !coordinates.length) return [];
     return coordinates.filter(coord => 
@@ -596,8 +596,469 @@ const PipelineEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Rest of the form sections remain the same... */}
-                {/* (For brevity, I'm keeping this comment to show the file continues) */}
+                {/* Organizational Details */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.organizationalDetails')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('common.fields.owner')}
+                          value={pipeline.ownerId || ''}
+                          onChange={handleChange('ownerId')}
+                          required
+                          error={!!validationErrors.ownerId}
+                          helperText={validationErrors.ownerId || t('common.fields.ownerHelper')}
+                        >
+                          {structures.length > 0 ? (
+                            structures.map((structure) => (
+                              <MenuItem key={structure.id} value={structure.id}>
+                                {structure.designationFr} ({structure.code})
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
+                          )}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('common.fields.manager')}
+                          value={pipeline.managerId || ''}
+                          onChange={handleChange('managerId')}
+                          required
+                          error={!!validationErrors.managerId}
+                          helperText={validationErrors.managerId || t('common.fields.managerHelper')}
+                        >
+                          {structures.length > 0 ? (
+                            structures.map((structure) => (
+                              <MenuItem key={structure.id} value={structure.id}>
+                                {structure.designationFr} ({structure.code})
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
+                          )}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Dimensional Specifications */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('pipeline.sections.dimensionalSpecs')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.nominalDiameter')}
+                          type="text"
+                          value={pipeline.nominalDiameter || ''}
+                          onChange={handleChange('nominalDiameter')}
+                          required
+                          error={!!validationErrors.nominalDiameter}
+                          helperText={validationErrors.nominalDiameter || 'e.g., "48 inches", "1200 mm"'}
+                          placeholder="48 inches"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.nominalThickness')}
+                          type="text"
+                          value={pipeline.nominalThickness || ''}
+                          onChange={handleChange('nominalThickness')}
+                          required
+                          error={!!validationErrors.nominalThickness}
+                          helperText={validationErrors.nominalThickness || 'e.g., "12.7 mm", "0.5 inch"'}
+                          placeholder="12.7 mm"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.length')}
+                          type="number"
+                          value={pipeline.length || 0}
+                          onChange={handleChange('length')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Length in kilometers (4 decimals)"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.nominalRoughness')}
+                          type="number"
+                          value={pipeline.nominalRoughness || 0}
+                          onChange={handleChange('nominalRoughness')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Roughness in mm (4 decimals)"
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Pressure Specifications */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('pipeline.sections.pressureSpecs')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.designMaxServicePressure')}
+                          type="number"
+                          value={pipeline.designMaxServicePressure ?? 0}
+                          onChange={handleChange('designMaxServicePressure')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Pressure in bar (4 decimals)"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.operationalMaxServicePressure')}
+                          type="number"
+                          value={pipeline.operationalMaxServicePressure ?? 0}
+                          onChange={handleChange('operationalMaxServicePressure')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Pressure in bar (4 decimals)"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.designMinServicePressure')}
+                          type="number"
+                          value={pipeline.designMinServicePressure ?? 0}
+                          onChange={handleChange('designMinServicePressure')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Pressure in bar (4 decimals)"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={3}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.operationalMinServicePressure')}
+                          type="number"
+                          value={pipeline.operationalMinServicePressure ?? 0}
+                          onChange={handleChange('operationalMinServicePressure')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Pressure in bar (4 decimals)"
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Capacity Specifications */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('pipeline.sections.capacitySpecs')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.designCapacity')}
+                          type="number"
+                          value={pipeline.designCapacity ?? 0}
+                          onChange={handleChange('designCapacity')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Capacity in m³/day (4 decimals)"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label={t('pipeline.fields.operationalCapacity')}
+                          type="number"
+                          value={pipeline.operationalCapacity ?? 0}
+                          onChange={handleChange('operationalCapacity')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          helperText="Capacity in m³/day (4 decimals)"
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Material & Coating */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('pipeline.sections.materialCoating')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('pipeline.fields.nominalConstructionMaterial')}
+                          value={pipeline.nominalConstructionMaterialId || ''}
+                          onChange={handleChange('nominalConstructionMaterialId')}
+                        >
+                          <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
+                          {sortedAlloys.map((alloy) => (
+                            <MenuItem key={alloy.id} value={alloy.id}>
+                              {getLocalizedName(alloy, currentLanguage)}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('pipeline.fields.nominalExteriorCoating')}
+                          value={pipeline.nominalExteriorCoatingId || ''}
+                          onChange={handleChange('nominalExteriorCoatingId')}
+                        >
+                          <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
+                          {sortedAlloys.map((alloy) => (
+                            <MenuItem key={alloy.id} value={alloy.id}>
+                              {getLocalizedName(alloy, currentLanguage)}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('pipeline.fields.nominalInteriorCoating')}
+                          value={pipeline.nominalInteriorCoatingId || ''}
+                          onChange={handleChange('nominalInteriorCoatingId')}
+                        >
+                          <MenuItem value="">{t('common.actions.selectNone')}</MenuItem>
+                          {sortedAlloys.map((alloy) => (
+                            <MenuItem key={alloy.id} value={alloy.id}>
+                              {getLocalizedName(alloy, currentLanguage)}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Operational Details */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.operationalDetails')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('common.fields.operationalStatus')}
+                          value={pipeline.operationalStatusId || ''}
+                          onChange={handleChange('operationalStatusId')}
+                          required
+                          error={!!validationErrors.operationalStatusId}
+                          helperText={validationErrors.operationalStatusId}
+                        >
+                          {sortedOperationalStatuses.length > 0 ? (
+                            sortedOperationalStatuses.map((status) => (
+                              <MenuItem key={status.id} value={status.id}>
+                                {getLocalizedName(status, currentLanguage)}
+                              </MenuItem>
+                            ))
+                          ) : (
+                            <MenuItem disabled>{t('common.loading')}</MenuItem>
+                          )}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <Autocomplete
+                          multiple
+                          options={vendors}
+                          value={selectedVendors}
+                          onChange={handleVendorsChange}
+                          getOptionLabel={(option) => option.name}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              label={t('common.fields.vendors')}
+                              helperText="Select multiple vendors (optional)"
+                            />
+                          )}
+                          renderTags={(value, getTagProps) =>
+                            value.map((option, index) => (
+                              <Chip
+                                label={option.name}
+                                {...getTagProps({ index })}
+                                key={option.id}
+                              />
+                            ))
+                          }
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('pipeline.fields.pipelineSystem')}
+                          value={pipeline.pipelineSystemId || ''}
+                          onChange={handleChange('pipelineSystemId')}
+                          required
+                          error={!!validationErrors.pipelineSystemId}
+                          helperText={validationErrors.pipelineSystemId}
+                        >
+                          {pipelineSystems.map((system) => (
+                            <MenuItem key={system.id} value={system.id}>
+                              {system.name}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Connected Terminals */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('pipeline.sections.connectedTerminals')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('pipeline.fields.departureTerminal')}
+                          value={pipeline.departureTerminalId || ''}
+                          onChange={handleChange('departureTerminalId')}
+                          required
+                          error={!!validationErrors.departureTerminalId}
+                          helperText={validationErrors.departureTerminalId}
+                        >
+                          {terminals.map((terminal) => (
+                            <MenuItem key={terminal.id} value={terminal.id}>
+                              {terminal.name} ({terminal.code})
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label={t('pipeline.fields.arrivalTerminal')}
+                          value={pipeline.arrivalTerminalId || ''}
+                          onChange={handleChange('arrivalTerminalId')}
+                          required
+                          error={!!validationErrors.arrivalTerminalId}
+                          helperText={validationErrors.arrivalTerminalId}
+                        >
+                          {terminals.map((terminal) => (
+                            <MenuItem key={terminal.id} value={terminal.id}>
+                              {terminal.name} ({terminal.code})
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Important Dates */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      {t('common.sections.importantDates')}
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label={t('common.fields.installationDate')}
+                          type="date"
+                          value={pipeline.installationDate || ''}
+                          onChange={handleChange('installationDate')}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label={t('common.fields.commissioningDate')}
+                          type="date"
+                          value={pipeline.commissioningDate || ''}
+                          onChange={handleChange('commissioningDate')}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label={t('common.fields.decommissioningDate')}
+                          type="date"
+                          value={pipeline.decommissioningDate || ''}
+                          onChange={handleChange('decommissioningDate')}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
               </Stack>
             </form>
           </TabPanel>
