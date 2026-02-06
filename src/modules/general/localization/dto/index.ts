@@ -8,12 +8,16 @@
  * - DistrictDTO: dz.sh.trc.hyflo.general.localization.dto.DistrictDTO
  * - ZoneDTO: dz.sh.trc.hyflo.general.localization.dto.ZoneDTO
  * - LocationDTO: dz.sh.trc.hyflo.general.localization.dto.LocationDTO
+ * - CoordinateDTO: dz.sh.trc.hyflo.general.localization.dto.CoordinateDTO (NEW)
  * 
+ * Updated: 02-06-2026 - Added CoordinateDTO for pipeline route tracing
  * Updated: 01-15-2026 - Added DistrictDTO
  * 
  * Geographic Hierarchy (No relationship between Country and State):
  * Country (Independent)
  * State (Independent) → Locality → District → Location
+ * 
+ * Coordinate: Ordered waypoint for linear infrastructure (pipelines)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -35,3 +39,6 @@ export { validateLocationDTO } from './LocationDTO';
 
 export type { ZoneDTO } from './ZoneDTO';
 export { validateZoneDTO } from './ZoneDTO';
+
+export type { CoordinateDTO } from './CoordinateDTO';
+export { validateCoordinateDTO, createEmptyCoordinateDTO, sortCoordinatesBySequence, validateCoordinateRoute } from './CoordinateDTO';
