@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-06-2026 22:40 - Fixed: Use FlowMonitoringService.validateReading() instead of FlowReadingService.validate()
  * @updated 01-27-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  * @updated 01-28-2026 - Added threshold validation for contained volume
  */
@@ -40,6 +41,7 @@ import {
 } from '@mui/icons-material';
 
 import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingService';
+import { FlowMonitoringService } from '@/modules/flow/core/services/FlowMonitoringService';
 import UserService from '@/modules/system/security/services/UserService';
 import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
 
@@ -125,7 +127,7 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
       const currentEmployeeId = userData.employee.id;
       
       // Update reading with validation notes if provided
-      if (validationNotes) {
+      if (validationNotes.trim()) {
         await FlowReadingService.update(existingReading.id, {
           ...existingReading,
           notes: existingReading.notes 
@@ -134,11 +136,16 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
         });
       }
       
-      // Validate the reading
-      await FlowReadingService.validate(existingReading.id, currentEmployeeId);
+      // Validate the reading using FlowMonitoringService
+      await FlowMonitoringService.validateReading({
+        readingId: existingReading.id,
+        action: 'APPROVE',
+        employeeId: currentEmployeeId,
+        comments: validationNotes.trim() || undefined,
+      });
       
-      alert('Reading validated successfully');
-      navigate('/flow/readings');
+      alert('Reading approved successfully');
+      navigate('/flow/monitoring');
     } catch (error: any) {
       console.error('Validation failed:', error);
       alert(`Validation failed: ${error.message || 'An unexpected error occurred'}`);
@@ -176,12 +183,17 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
       
       const currentEmployeeId = userData.employee.id;
       
-      // Reject the reading
-      await FlowReadingService.reject(existingReading.id, currentEmployeeId, validationNotes);
+      // Reject the reading using FlowMonitoringService
+      await FlowMonitoringService.validateReading({
+        readingId: existingReading.id,
+        action: 'REJECT',
+        employeeId: currentEmployeeId,
+        comments: validationNotes,
+      });
       
       setShowRejectDialog(false);
       alert('Reading rejected successfully');
-      navigate('/flow/readings');
+      navigate('/flow/monitoring');
     } catch (error: any) {
       console.error('Rejection failed:', error);
       alert(`Rejection failed: ${error.message || 'An unexpected error occurred'}`);
