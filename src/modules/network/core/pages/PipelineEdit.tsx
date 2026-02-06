@@ -4,7 +4,8 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
- * @updated 02-06-2026 - CRITICAL: Aligned with backend Model (nominalDiameter/Thickness as string text fields, 4 decimals for Double)
+ * @updated 02-06-2026 18:52 - CRITICAL: Backend removed locations, changed to coordinateIds only
+ * @updated 02-06-2026 18:38 - Aligned with backend Model (nominalDiameter/Thickness as string text fields, 4 decimals for Double)
  * @updated 02-02-2026 - Added missing required fields: ownerId, managerId, locationIds
  * @updated 02-02-2026 - Fixed LocationService import path (localization not geography)
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
@@ -38,7 +39,7 @@ import {
 import { PipelineService, PipelineSystemService, TerminalService } from '../services';
 import { VendorService, OperationalStatusService, AlloyService } from '../../common/services';
 import { StructureService } from '@/modules/general/organization/services';
-import { LocationService } from '@/modules/general/localization/services';
+import { CoordinateService } from '@/modules/general/localization/services';
 import { PipelineDTO } from '../dto/PipelineDTO';
 import { getLocalizedName, sortByLocalizedName } from '../utils/localizationUtils';
 
@@ -74,11 +75,11 @@ const PipelineEdit = () => {
     operationalStatusId: undefined,
     ownerId: undefined,
     managerId: undefined,
-    vendorId: undefined,
     pipelineSystemId: undefined,
     departureTerminalId: undefined,
     arrivalTerminalId: undefined,
-    locationIds: [],
+    coordinateIds: [],                // NEW: coordinateIds instead of locationIds
+    vendorIds: [],                    // NEW: vendorIds Set instead of single vendorId
   });
 
   // Available options
@@ -88,7 +89,7 @@ const PipelineEdit = () => {
   const [alloys, setAlloys] = useState<any[]>([]);
   const [terminals, setTerminals] = useState<any[]>([]);
   const [structures, setStructures] = useState<any[]>([]);
-  const [locations, setLocations] = useState<any[]>([]);
+  const [coordinates, setCoordinates] = useState<any[]>([]);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -129,7 +130,7 @@ const PipelineEdit = () => {
         alloysData,
         terminalsData,
         structuresData,
-        locationsData,
+        coordinatesData,
       ] = await Promise.allSettled([
         VendorService.getAllNoPagination(),
         PipelineSystemService.getAllNoPagination(),
@@ -137,7 +138,7 @@ const PipelineEdit = () => {
         AlloyService.getAllNoPagination(),
         TerminalService.getAllNoPagination(),
         StructureService.getAllNoPagination(),
-        LocationService.getAllNoPagination(),
+        CoordinateService.getAllNoPagination(),
       ]);
 
       // Handle vendors
@@ -208,16 +209,16 @@ const PipelineEdit = () => {
         setStructures([]);
       }
 
-      // Handle locations
-      if (locationsData.status === 'fulfilled') {
-        const locations = Array.isArray(locationsData.value) 
-          ? locationsData.value 
-          : (Array.isArray((locationsData.value as any)?.data) ? (locationsData.value as any).data 
-            : Array.isArray((locationsData.value as any)?.content) ? (locationsData.value as any).content : []);
-        setLocations(locations);
+      // Handle coordinates
+      if (coordinatesData.status === 'fulfilled') {
+        const coordinates = Array.isArray(coordinatesData.value) 
+          ? coordinatesData.value 
+          : (Array.isArray((coordinatesData.value as any)?.data) ? (coordinatesData.value as any).data 
+            : Array.isArray((coordinatesData.value as any)?.content) ? (coordinatesData.value as any).content : []);
+        setCoordinates(coordinates);
       } else {
-        console.error('Failed to load locations:', locationsData.reason);
-        setLocations([]);
+        console.error('Failed to load coordinates:', coordinatesData.reason);
+        setCoordinates([]);
       }
 
       // Set pipeline data if editing
@@ -267,9 +268,8 @@ const PipelineEdit = () => {
       errors.managerId = t('common.validation.required', { field: t('common.fields.manager') });
     }
 
-    if (!pipeline.vendorId) {
-      errors.vendorId = t('common.validation.required', { field: t('common.fields.vendor') });
-    }
+    // Vendors are now optional (ManyToMany relationship)
+    // No validation needed for vendorIds
 
     if (!pipeline.pipelineSystemId) {
       errors.pipelineSystemId = t('common.validation.required', { field: t('pipeline.fields.pipelineSystem') });
@@ -297,9 +297,14 @@ const PipelineEdit = () => {
     }
   };
 
-  const handleLocationsChange = (_: any, newValue: any[]) => {
-    const locationIds = newValue.map(loc => loc.id);
-    setPipeline({ ...pipeline, locationIds });
+  const handleVendorsChange = (_: any, newValue: any[]) => {
+    const vendorIds = newValue.map(vendor => vendor.id);
+    setPipeline({ ...pipeline, vendorIds });
+  };
+
+  const handleCoordinatesChange = (_: any, newValue: any[]) => {
+    const coordinateIds = newValue.map(coord => coord.id);
+    setPipeline({ ...pipeline, coordinateIds });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -335,11 +340,11 @@ const PipelineEdit = () => {
         operationalStatusId: Number(pipeline.operationalStatusId),
         ownerId: Number(pipeline.ownerId),
         managerId: Number(pipeline.managerId),
-        vendorId: Number(pipeline.vendorId),
         pipelineSystemId: Number(pipeline.pipelineSystemId),
         departureTerminalId: Number(pipeline.departureTerminalId),
         arrivalTerminalId: Number(pipeline.arrivalTerminalId),
-        locationIds: pipeline.locationIds || [],
+        coordinateIds: pipeline.coordinateIds || [],
+        vendorIds: pipeline.vendorIds || [],
       };
 
       if (isEditMode) {
@@ -361,11 +366,17 @@ const PipelineEdit = () => {
     navigate('/network/core/pipelines');
   };
 
-  // Get selected locations for Autocomplete
-  const selectedLocations = useMemo(() => {
-    if (!pipeline.locationIds || !locations.length) return [];
-    return locations.filter(loc => pipeline.locationIds?.includes(loc.id));
-  }, [pipeline.locationIds, locations]);
+  // Get selected vendors for Autocomplete
+  const selectedVendors = useMemo(() => {
+    if (!pipeline.vendorIds || !vendors.length) return [];
+    return vendors.filter(vendor => pipeline.vendorIds?.includes(vendor.id));
+  }, [pipeline.vendorIds, vendors]);
+
+  // Get selected coordinates for Autocomplete
+  const selectedCoordinates = useMemo(() => {
+    if (!pipeline.coordinateIds || !coordinates.length) return [];
+    return coordinates.filter(coord => pipeline.coordinateIds?.includes(coord.id));
+  }, [pipeline.coordinateIds, coordinates]);
 
   if (loading) {
     return (
@@ -768,26 +779,29 @@ const PipelineEdit = () => {
                 </Grid>
 
                 <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    select
-                    label={t('common.fields.vendor')}
-                    value={pipeline.vendorId || ''}
-                    onChange={handleChange('vendorId')}
-                    required
-                    error={!!validationErrors.vendorId}
-                    helperText={validationErrors.vendorId}
-                  >
-                    {vendors.length > 0 ? (
-                      vendors.map((vendor) => (
-                        <MenuItem key={vendor.id} value={vendor.id}>
-                          {vendor.name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled>{t('common.loading')}</MenuItem>
+                  <Autocomplete
+                    multiple
+                    options={vendors}
+                    value={selectedVendors}
+                    onChange={handleVendorsChange}
+                    getOptionLabel={(option) => option.name}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={t('common.fields.vendors')}
+                        helperText="Select multiple vendors (optional)"
+                      />
                     )}
-                  </TextField>
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip
+                          label={option.name}
+                          {...getTagProps({ index })}
+                          key={option.id}
+                        />
+                      ))
+                    }
+                  />
                 </Grid>
 
                 <Grid item xs={12} md={4}>
@@ -862,11 +876,11 @@ const PipelineEdit = () => {
             </Box>
           </Paper>
 
-          {/* Geographic Details */}
+          {/* Pipeline Path Coordinates */}
           <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
             <Box sx={{ p: 2.5 }}>
               <Typography variant="h6" fontWeight={600} gutterBottom>
-                {t('common.sections.geographicDetails')}
+                {t('pipeline.sections.pipelinePath')}
               </Typography>
               <Divider sx={{ mb: 3 }} />
               
@@ -874,21 +888,21 @@ const PipelineEdit = () => {
                 <Grid item xs={12}>
                   <Autocomplete
                     multiple
-                    options={locations}
-                    value={selectedLocations}
-                    onChange={handleLocationsChange}
-                    getOptionLabel={(option) => `${option.name} (${option.code})`}
+                    options={coordinates}
+                    value={selectedCoordinates}
+                    onChange={handleCoordinatesChange}
+                    getOptionLabel={(option) => `${option.latitude}, ${option.longitude} (${option.id})`}
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label={t('common.fields.locations')}
-                        helperText={t('common.fields.locationsHelper')}
+                        label={t('pipeline.fields.coordinates')}
+                        helperText="Define pipeline path by selecting coordinates"
                       />
                     )}
                     renderTags={(value, getTagProps) =>
                       value.map((option, index) => (
                         <Chip
-                          label={option.name}
+                          label={`${option.latitude}, ${option.longitude}`}
                           {...getTagProps({ index })}
                           key={option.id}
                         />
