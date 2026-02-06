@@ -6,13 +6,12 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-28-2026
- * @updated 02-06-2026 - Fixed cancel button blocking with alternative navigation
- * @updated 02-06-2026 - Fixed cancel button blocking issue
+ * @updated 02-06-2026 - Aligned cancel button with ForecastEdit/OperationEdit pattern
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume Min/Max fields
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -193,12 +192,6 @@ export const ThresholdEdit: React.FC = () => {
     }
   };
   
-  // Use useCallback to ensure function stability
-  const handleCancel = useCallback(() => {
-    // Force navigation using window.location as a fallback
-    window.location.href = '/flow/thresholds';
-  }, []);
-  
   if (loadingData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -214,7 +207,7 @@ export const ThresholdEdit: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <Button
           startIcon={<ArrowBackIcon />}
-          onClick={handleCancel}
+          onClick={() => navigate('/flow/thresholds')}
           sx={{ mr: 2 }}
         >
           {t('flow.threshold.actions.back')}
@@ -686,8 +679,7 @@ export const ThresholdEdit: React.FC = () => {
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button
                       variant="outlined"
-                      onClick={handleCancel}
-                      type="button"
+                      onClick={() => navigate('/flow/thresholds')}
                     >
                       {t('flow.threshold.actions.cancel')}
                     </Button>
