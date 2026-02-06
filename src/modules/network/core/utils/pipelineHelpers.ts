@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-02-2026
+ * @updated 02-06-2026 - Aligned with updated PipelineDTO (nominalDiameter/Thickness as string, coordinates support)
  * @updated 02-02-2026 - Fixed DTO field names (designationFr instead of name)
  */
 
@@ -171,10 +172,10 @@ export const isPipelineComplete = (pipeline: Partial<PipelineDTO>): boolean => {
   const requiredFields: (keyof PipelineDTO)[] = [
     'code',
     'name',
-    'nominalDiameter',
+    'nominalDiameter',      // String (e.g., "48 inches")
     'length',
-    'nominalThickness',
-    'nominalRoughness',
+    'nominalThickness',     // String (e.g., "12.7 mm")
+    'nominalRoughness',     // Number (e.g., 0.045)
     'designMaxServicePressure',
     'operationalMaxServicePressure',
     'designMinServicePressure',
@@ -192,7 +193,11 @@ export const isPipelineComplete = (pipeline: Partial<PipelineDTO>): boolean => {
   
   return requiredFields.every(field => {
     const value = pipeline[field];
-    return value !== undefined && value !== null && value !== '';
+    // For strings: check not empty, for numbers: check not null/undefined
+    if (typeof value === 'string') {
+      return value.trim() !== '';
+    }
+    return value !== undefined && value !== null;
   });
 };
 
@@ -227,7 +232,10 @@ export const getMissingPipelineFields = (pipeline: Partial<PipelineDTO>): string
   
   return requiredFields.filter(field => {
     const value = pipeline[field];
-    return value === undefined || value === null || value === '';
+    if (typeof value === 'string') {
+      return value.trim() === '';
+    }
+    return value === undefined || value === null;
   });
 };
 
@@ -250,6 +258,55 @@ export const formatPipelineLength = (
 ): string => {
   if (!pipeline) return '';
   return `${pipeline.length.toFixed(decimals)} ${unit}`;
+};
+
+/**
+ * Format pipeline diameter (already includes unit from backend)
+ * 
+ * @param pipeline - Pipeline DTO
+ * @returns Formatted diameter with unit (e.g., "48 inches", "1200 mm")
+ * 
+ * @example
+ * formatPipelineDiameter(pipeline)
+ * // Returns: "48 inches"
+ */
+export const formatPipelineDiameter = (pipeline: PipelineDTO): string => {
+  if (!pipeline) return '';
+  return pipeline.nominalDiameter; // Already includes unit from backend
+};
+
+/**
+ * Format pipeline thickness (already includes unit from backend)
+ * 
+ * @param pipeline - Pipeline DTO
+ * @returns Formatted thickness with unit (e.g., "12.7 mm", "0.5 inch")
+ * 
+ * @example
+ * formatPipelineThickness(pipeline)
+ * // Returns: "12.7 mm"
+ */
+export const formatPipelineThickness = (pipeline: PipelineDTO): string => {
+  if (!pipeline) return '';
+  return pipeline.nominalThickness; // Already includes unit from backend
+};
+
+/**
+ * Format pipeline roughness (numeric value, add unit if needed)
+ * 
+ * @param pipeline - Pipeline DTO
+ * @param unit - Roughness unit (default: 'mm')
+ * @returns Formatted roughness
+ * 
+ * @example
+ * formatPipelineRoughness(pipeline, 'mm')
+ * // Returns: "0.045 mm"
+ */
+export const formatPipelineRoughness = (
+  pipeline: PipelineDTO,
+  unit: string = 'mm'
+): string => {
+  if (!pipeline) return '';
+  return `${pipeline.nominalRoughness} ${unit}`;
 };
 
 /**
@@ -328,6 +385,42 @@ export const getPipelineLifecycleStatus = (pipeline: PipelineDTO): string => {
 };
 
 /**
+ * Get count of pipeline coordinates (path points)
+ * 
+ * @param pipeline - Pipeline DTO
+ * @returns Number of coordinates defining the pipeline path
+ */
+export const getPipelineCoordinatesCount = (pipeline: PipelineDTO): number => {
+  return pipeline?.coordinates?.length || 0;
+};
+
+/**
+ * Check if pipeline has coordinate path defined
+ * 
+ * @param pipeline - Pipeline DTO
+ * @returns True if coordinates array exists and has at least 2 points
+ */
+export const hasPipelinePath = (pipeline: PipelineDTO): boolean => {
+  return getPipelineCoordinatesCount(pipeline) >= 2;
+};
+
+/**
+ * Get pipeline vendor count (supports ManyToMany)
+ * 
+ * @param pipeline - Pipeline DTO
+ * @returns Number of vendors associated with pipeline
+ */
+export const getPipelineVendorCount = (pipeline: PipelineDTO): number => {
+  if (pipeline?.vendors?.length) {
+    return pipeline.vendors.length;
+  }
+  if (pipeline?.vendorIds?.length) {
+    return pipeline.vendorIds.length;
+  }
+  return pipeline?.vendorId ? 1 : 0;
+};
+
+/**
  * Create pipeline summary object for display
  * 
  * @param pipeline - Pipeline DTO
@@ -338,6 +431,9 @@ export const createPipelineSummary = (pipeline: PipelineDTO) => {
     displayName: formatPipelineDisplayName(pipeline),
     route: getPipelineRoute(pipeline),
     length: formatPipelineLength(pipeline),
+    diameter: formatPipelineDiameter(pipeline),
+    thickness: formatPipelineThickness(pipeline),
+    roughness: formatPipelineRoughness(pipeline),
     capacity: formatPipelineCapacity(pipeline),
     pressureRange: formatPipelinePressureRange(pipeline),
     utilization: calculatePipelineUtilization(pipeline),
@@ -347,6 +443,9 @@ export const createPipelineSummary = (pipeline: PipelineDTO) => {
     isNearCapacity: isPipelineNearCapacity(pipeline),
     isCommissioned: isPipelineCommissioned(pipeline),
     isDecommissioned: isPipelineDecommissioned(pipeline),
+    hasPath: hasPipelinePath(pipeline),
+    coordinatesCount: getPipelineCoordinatesCount(pipeline),
+    vendorCount: getPipelineVendorCount(pipeline),
   };
 };
 
@@ -458,8 +557,10 @@ export const exportPipelinesToCSV = (pipelines: PipelineDTO[]): string => {
   const headers = [
     'Code',
     'Name',
-    'Length',
+    'Length (km)',
     'Diameter',
+    'Thickness',
+    'Roughness',
     'Design Capacity',
     'Operational Capacity',
     'Utilization %',
@@ -467,13 +568,17 @@ export const exportPipelinesToCSV = (pipelines: PipelineDTO[]): string => {
     'Manager',
     'System',
     'Status',
+    'Vendors',
+    'Coordinates',
   ];
   
   const rows = pipelines.map(p => [
     p.code,
     p.name,
     p.length,
-    p.nominalDiameter,
+    p.nominalDiameter,        // Now string with unit
+    p.nominalThickness,       // Now string with unit
+    p.nominalRoughness,       // Now number
     p.designCapacity,
     p.operationalCapacity,
     calculatePipelineUtilization(p).toFixed(2),
@@ -481,6 +586,8 @@ export const exportPipelinesToCSV = (pipelines: PipelineDTO[]): string => {
     p.manager?.designationFr || '',
     p.pipelineSystem?.name || '',
     p.operationalStatus?.designationFr || '',
+    getPipelineVendorCount(p),
+    getPipelineCoordinatesCount(p),
   ]);
   
   const csvContent = [
