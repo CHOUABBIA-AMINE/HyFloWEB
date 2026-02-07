@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-07 16:25 - Fixed: Correct slot calculation to choose slot directly before current time
  * @updated 2026-02-07 16:00 - Auto-select and lock slot based on current time for non-admin users
  * @updated 2026-02-07 11:10 - Removed colored row backgrounds for better readability - color only on status badge
  * @updated 2026-02-06 20:30 - Fixed: Approve button now navigates to ReadingEdit with validation mode for notes editing
@@ -182,48 +183,51 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Determine which slot should be selected based on current time
+   * 
+   * Rule: Select the slot whose time range is DIRECTLY BEFORE the current time
+   * This means: select the slot that just ENDED before the current time
+   * 
    * Slots are 2-hour periods:
    * Slot 1: 00:00-02:00, Slot 2: 02:00-04:00, ..., Slot 12: 22:00-24:00
    * 
-   * Rule: Select the slot whose time range is directly before the current time
-   * Example: If current time is 15:30, select Slot 7 (14:00-16:00) because it contains current time
-   *          If current time is 16:01, select Slot 8 (16:00-18:00) because it just started
+   * Examples:
+   * - Current time 03:45 → Slot 2 (02:00-04:00) just ended? NO, we're IN Slot 2 → Select Slot 1 (00:00-02:00)
+   * - Current time 14:30 → Slot 8 (14:00-16:00) just ended? NO, we're IN Slot 8 → Select Slot 7 (12:00-14:00)
+   * - Current time 16:23 → Slot 9 (16:00-18:00) just ended? NO, we're IN Slot 9 → Select Slot 8 (14:00-16:00)
+   * - Current time 16:00 → Slot 9 (16:00-18:00) just started → Select Slot 8 (14:00-16:00) that just ended
+   * 
+   * Formula: 
+   * - Calculate current slot: floor(currentHour / 2) + 1
+   * - Then select the PREVIOUS slot: currentSlot - 1
+   * - Handle wrap-around: if result is 0, select Slot 12
    */
   const getAutoSelectedSlotId = useCallback((): number => {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Calculate slot based on current time
-    // Each slot is 2 hours, starting from 00:00
-    // Slot 1: 00:00-02:00 (hours 0-1)
-    // Slot 2: 02:00-04:00 (hours 2-3)
-    // ...
-    // Slot 12: 22:00-24:00 (hours 22-23)
-    
+    // Calculate which slot contains the current time
     // Formula: slotId = floor(currentHour / 2) + 1
-    // But we want the slot that is "directly before" current time
-    // So if we're in the first minute of a new slot, we select the previous slot
+    const currentSlot = Math.floor(currentHour / 2) + 1;
     
-    let slotId: number;
+    // Select the PREVIOUS slot (the one that ended before current time)
+    let selectedSlot = currentSlot - 1;
     
-    if (currentMinute === 0 && currentHour % 2 === 0) {
-      // Exactly at the start of a new slot (e.g., 14:00)
-      // Select the previous slot
-      slotId = Math.floor(currentHour / 2);
-      if (slotId === 0) slotId = 12; // Wrap around to slot 12 if at midnight
-    } else {
-      // Normal case: select the slot that contains current time
-      slotId = Math.floor(currentHour / 2) + 1;
+    // Handle wrap-around: if we're in Slot 1, previous slot is Slot 12
+    if (selectedSlot === 0) {
+      selectedSlot = 12;
     }
     
     console.log('🕐 Auto-selecting slot:', {
       currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`,
-      calculatedSlotId: slotId,
-      slotTimeRange: `${((slotId - 1) * 2).toString().padStart(2, '0')}:00 - ${(slotId * 2).toString().padStart(2, '0')}:00`
+      currentSlot: currentSlot,
+      currentSlotRange: `${((currentSlot - 1) * 2).toString().padStart(2, '0')}:00 - ${(currentSlot * 2).toString().padStart(2, '0')}:00`,
+      selectedSlot: selectedSlot,
+      selectedSlotRange: `${((selectedSlot - 1) * 2).toString().padStart(2, '0')}:00 - ${(selectedSlot * 2).toString().padStart(2, '0')}:00`,
+      logic: 'Selecting slot directly BEFORE current time'
     });
     
-    return slotId;
+    return selectedSlot;
   }, []);
 
   /**
