@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-07 16:00 - Auto-select and lock slot based on current time for non-admin users
  * @updated 2026-02-07 11:10 - Removed colored row backgrounds for better readability - color only on status badge
  * @updated 2026-02-06 20:30 - Fixed: Approve button now navigates to ReadingEdit with validation mode for notes editing
  * @updated 2026-02-05 - Removed role badges line, format date as dd-mm-yyyy
@@ -56,6 +57,7 @@ import {
   Refresh as RefreshIcon,
   Download as DownloadIcon,
   Warning as WarningIcon,
+  Lock as LockIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/shared/context/AuthContext';
@@ -138,6 +140,16 @@ const SlotMonitoring: React.FC = () => {
   // ==================== PERMISSION HELPERS ====================
 
   /**
+   * Check if user is MONITORING_ADMIN
+   * Only admins can change slot selection freely
+   */
+  const isAdmin = useMemo(() => {
+    const hasAdminRole = userRoles.includes('MONITORING_ADMIN');
+    console.log('👑 isAdmin:', hasAdminRole);
+    return hasAdminRole;
+  }, [userRoles]);
+
+  /**
    * Check if user has operator role
    * Operators can create/edit/submit readings
    */
@@ -167,6 +179,71 @@ const SlotMonitoring: React.FC = () => {
   const hasFlowRole = useMemo(() => {
     return isOperator || isValidator;
   }, [isOperator, isValidator]);
+
+  /**
+   * Determine which slot should be selected based on current time
+   * Slots are 2-hour periods:
+   * Slot 1: 00:00-02:00, Slot 2: 02:00-04:00, ..., Slot 12: 22:00-24:00
+   * 
+   * Rule: Select the slot whose time range is directly before the current time
+   * Example: If current time is 15:30, select Slot 7 (14:00-16:00) because it contains current time
+   *          If current time is 16:01, select Slot 8 (16:00-18:00) because it just started
+   */
+  const getAutoSelectedSlotId = useCallback((): number => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Calculate slot based on current time
+    // Each slot is 2 hours, starting from 00:00
+    // Slot 1: 00:00-02:00 (hours 0-1)
+    // Slot 2: 02:00-04:00 (hours 2-3)
+    // ...
+    // Slot 12: 22:00-24:00 (hours 22-23)
+    
+    // Formula: slotId = floor(currentHour / 2) + 1
+    // But we want the slot that is "directly before" current time
+    // So if we're in the first minute of a new slot, we select the previous slot
+    
+    let slotId: number;
+    
+    if (currentMinute === 0 && currentHour % 2 === 0) {
+      // Exactly at the start of a new slot (e.g., 14:00)
+      // Select the previous slot
+      slotId = Math.floor(currentHour / 2);
+      if (slotId === 0) slotId = 12; // Wrap around to slot 12 if at midnight
+    } else {
+      // Normal case: select the slot that contains current time
+      slotId = Math.floor(currentHour / 2) + 1;
+    }
+    
+    console.log('🕐 Auto-selecting slot:', {
+      currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`,
+      calculatedSlotId: slotId,
+      slotTimeRange: `${((slotId - 1) * 2).toString().padStart(2, '0')}:00 - ${(slotId * 2).toString().padStart(2, '0')}:00`
+    });
+    
+    return slotId;
+  }, []);
+
+  /**
+   * Determine if slot selection should be locked
+   * Locked for all users except MONITORING_ADMIN
+   */
+  const isSlotLocked = useMemo(() => {
+    return !isAdmin;
+  }, [isAdmin]);
+
+  /**
+   * Auto-select slot on mount for non-admin users
+   */
+  useEffect(() => {
+    if (isSlotLocked) {
+      const autoSlotId = getAutoSelectedSlotId();
+      setSelectedSlotId(autoSlotId);
+      console.log('🔒 Slot auto-selected and locked:', autoSlotId);
+    }
+  }, [isSlotLocked, getAutoSelectedSlotId]);
 
   /**
    * Calculate permissions for a pipeline based on user role and workflow status
@@ -712,6 +789,16 @@ const SlotMonitoring: React.FC = () => {
         </Alert>
       )}
 
+      {/* Slot Auto-Selection Info for Non-Admins */}
+      {isSlotLocked && (
+        <Alert severity="info" icon={<LockIcon />} sx={{ mb: 2 }}>
+          <Typography variant="body2">
+            <strong>Slot Auto-Selected:</strong> The time slot has been automatically selected based on the current time. 
+            Only administrators can change the slot selection.
+          </Typography>
+        </Alert>
+      )}
+
       {/* Filters */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -734,6 +821,14 @@ const SlotMonitoring: React.FC = () => {
                 label={t('flow.monitoring.filters.slot', 'Slot')}
                 value={selectedSlotId}
                 onChange={(e) => setSelectedSlotId(Number(e.target.value))}
+                disabled={isSlotLocked}
+                InputProps={{
+                  endAdornment: isSlotLocked ? (
+                    <Tooltip title="Slot is auto-selected based on current time. Only admins can change it.">
+                      <LockIcon sx={{ mr: 1, color: 'action.disabled' }} />
+                    </Tooltip>
+                  ) : null,
+                }}
               >
                 {availableSlots.map((slot) => (
                   <MenuItem key={slot.id} value={slot.id}>
