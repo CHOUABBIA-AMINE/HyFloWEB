@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-07 11:10 - Removed colored row backgrounds for better readability - color only on status badge
  * @updated 2026-02-06 20:30 - Fixed: Approve button now navigates to ReadingEdit with validation mode for notes editing
  * @updated 2026-02-05 - Removed role badges line, format date as dd-mm-yyyy
  * @updated 2026-02-05 - UI improvements: removed monitoring line, centered badges, aligned header fields
@@ -550,13 +551,7 @@ const SlotMonitoring: React.FC = () => {
               }
 
               return (
-                <TableRow
-                  key={pipeline.pipelineId}
-                  sx={{
-                    backgroundColor: pipeline.isOverdue ? 'error.light' : 'inherit',
-                    opacity: pipeline.isOverdue ? 0.7 : 1,
-                  }}
-                >
+                <TableRow key={pipeline.pipelineId}>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
                       {pipeline.pipeline?.code || `Pipeline ${pipeline.pipelineId}`}
