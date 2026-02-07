@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-07-2026 15:10 - Changed default return path to /flow/monitoring (SlotMonitoring is now primary interface)
  * @updated 02-06-2026 - Fixed: Use designationFr instead of name in ValidationStatusDTO
  * @updated 02-05-2026 - Pass isFromMonitoring flag to MeasurementForm for read-only context
  * @updated 02-05-2026 - Fixed: Use SUBMITTED instead of PENDING for validation status
@@ -427,9 +428,9 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       setHasUnsavedChanges(false);
       
-      // Navigate to return path or default to list page
+      // Navigate to return path or default to SlotMonitoring
       setTimeout(() => {
-        const returnTo = navigationState?.returnTo || '/flow/readings';
+        const returnTo = navigationState?.returnTo || '/flow/monitoring';
         navigate(returnTo);
       }, 1000);
       
@@ -474,15 +475,15 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
     if (hasUnsavedChanges) {
       setShowCancelDialog(true);
     } else {
-      // Return to SlotMonitoring or default list page
-      const returnTo = navigationState?.returnTo || '/flow/readings';
+      // Return to SlotMonitoring or specified return path
+      const returnTo = navigationState?.returnTo || '/flow/monitoring';
       navigate(returnTo);
     }
   };
   
   const handleConfirmCancel = () => {
     setShowCancelDialog(false);
-    const returnTo = navigationState?.returnTo || '/flow/readings';
+    const returnTo = navigationState?.returnTo || '/flow/monitoring';
     navigate(returnTo);
   };
   
@@ -512,9 +513,9 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
             </Button>
             <Button 
               variant="outlined" 
-              onClick={() => navigate('/flow/readings')}
+              onClick={() => navigate('/flow/monitoring')}
             >
-              Back to Readings List
+              Back to Slot Monitoring
             </Button>
           </Box>
         </Alert>
@@ -537,10 +538,10 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
           </Typography>
           <Button 
             variant="outlined" 
-            onClick={() => navigate('/flow/readings')}
+            onClick={() => navigate('/flow/monitoring')}
             sx={{ mt: 1 }}
           >
-            Back to Readings List
+            Back to Slot Monitoring
           </Button>
         </Alert>
       </Box>
