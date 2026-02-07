@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-07 16:29 - Fixed: Operational day starts at 08:00 (Slot 1), not midnight
  * @updated 2026-02-07 16:25 - Fixed: Correct slot calculation to choose slot directly before current time
  * @updated 2026-02-07 16:00 - Auto-select and lock slot based on current time for non-admin users
  * @updated 2026-02-07 11:10 - Removed colored row backgrounds for better readability - color only on status badge
@@ -184,31 +185,47 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Determine which slot should be selected based on current time
    * 
-   * Rule: Select the slot whose time range is DIRECTLY BEFORE the current time
-   * This means: select the slot that just ENDED before the current time
+   * IMPORTANT: Operational day starts at 08:00, not midnight!
    * 
-   * Slots are 2-hour periods:
-   * Slot 1: 00:00-02:00, Slot 2: 02:00-04:00, ..., Slot 12: 22:00-24:00
+   * Slot mapping (24-hour operational day from 08:00 to 08:00 next day):
+   * Slot 1:  08:00-10:00  (day starts here)
+   * Slot 2:  10:00-12:00
+   * Slot 3:  12:00-14:00
+   * Slot 4:  14:00-16:00
+   * Slot 5:  16:00-18:00
+   * Slot 6:  18:00-20:00
+   * Slot 7:  20:00-22:00
+   * Slot 8:  22:00-24:00 (midnight)
+   * Slot 9:  00:00-02:00  (crosses to next calendar day)
+   * Slot 10: 02:00-04:00
+   * Slot 11: 04:00-06:00
+   * Slot 12: 06:00-08:00  (last slot, ends when new operational day starts)
+   * 
+   * Rule: Select the slot whose time range is DIRECTLY BEFORE the current time
    * 
    * Examples:
-   * - Current time 03:45 → Slot 2 (02:00-04:00) just ended? NO, we're IN Slot 2 → Select Slot 1 (00:00-02:00)
-   * - Current time 14:30 → Slot 8 (14:00-16:00) just ended? NO, we're IN Slot 8 → Select Slot 7 (12:00-14:00)
-   * - Current time 16:23 → Slot 9 (16:00-18:00) just ended? NO, we're IN Slot 9 → Select Slot 8 (14:00-16:00)
-   * - Current time 16:00 → Slot 9 (16:00-18:00) just started → Select Slot 8 (14:00-16:00) that just ended
-   * 
-   * Formula: 
-   * - Calculate current slot: floor(currentHour / 2) + 1
-   * - Then select the PREVIOUS slot: currentSlot - 1
-   * - Handle wrap-around: if result is 0, select Slot 12
+   * - Current time 09:30 → We're in Slot 1 (08:00-10:00) → Select Slot 12 (06:00-08:00)
+   * - Current time 14:30 → We're in Slot 4 (14:00-16:00) → Select Slot 3 (12:00-14:00)
+   * - Current time 16:23 → We're in Slot 5 (16:00-18:00) → Select Slot 4 (14:00-16:00) ✓
+   * - Current time 01:00 → We're in Slot 9 (00:00-02:00) → Select Slot 8 (22:00-24:00)
    */
   const getAutoSelectedSlotId = useCallback((): number => {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Calculate which slot contains the current time
-    // Formula: slotId = floor(currentHour / 2) + 1
-    const currentSlot = Math.floor(currentHour / 2) + 1;
+    // Calculate slot based on operational day starting at 08:00
+    let currentSlot: number;
+    
+    if (currentHour >= 8) {
+      // 08:00-23:59: Slots 1-8
+      // Hour 8-9 = Slot 1, Hour 10-11 = Slot 2, ..., Hour 22-23 = Slot 8
+      currentSlot = Math.floor((currentHour - 8) / 2) + 1;
+    } else {
+      // 00:00-07:59: Slots 9-12 (next day morning)
+      // Hour 0-1 = Slot 9, Hour 2-3 = Slot 10, Hour 4-5 = Slot 11, Hour 6-7 = Slot 12
+      currentSlot = Math.floor(currentHour / 2) + 9;
+    }
     
     // Select the PREVIOUS slot (the one that ended before current time)
     let selectedSlot = currentSlot - 1;
@@ -218,13 +235,26 @@ const SlotMonitoring: React.FC = () => {
       selectedSlot = 12;
     }
     
+    // Get display time ranges for logging
+    const getSlotTimeRange = (slotId: number): string => {
+      if (slotId >= 1 && slotId <= 8) {
+        const startHour = 8 + (slotId - 1) * 2;
+        const endHour = 8 + slotId * 2;
+        return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+      } else {
+        const startHour = (slotId - 9) * 2;
+        const endHour = (slotId - 8) * 2;
+        return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+      }
+    };
+    
     console.log('🕐 Auto-selecting slot:', {
       currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`,
       currentSlot: currentSlot,
-      currentSlotRange: `${((currentSlot - 1) * 2).toString().padStart(2, '0')}:00 - ${(currentSlot * 2).toString().padStart(2, '0')}:00`,
+      currentSlotRange: getSlotTimeRange(currentSlot),
       selectedSlot: selectedSlot,
-      selectedSlotRange: `${((selectedSlot - 1) * 2).toString().padStart(2, '0')}:00 - ${(selectedSlot * 2).toString().padStart(2, '0')}:00`,
-      logic: 'Selecting slot directly BEFORE current time'
+      selectedSlotRange: getSlotTimeRange(selectedSlot),
+      logic: 'Selecting slot directly BEFORE current time (operational day starts at 08:00)'
     });
     
     return selectedSlot;
