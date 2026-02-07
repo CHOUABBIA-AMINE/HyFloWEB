@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-07-2026 16:30 - Aligned form types with FlowReadingDTO for better type safety
  * @updated 02-07-2026 15:10 - Changed default return path to /flow/monitoring (SlotMonitoring is now primary interface)
  * @updated 02-06-2026 - Fixed: Use designationFr instead of name in ValidationStatusDTO
  * @updated 02-05-2026 - Pass isFromMonitoring flag to MeasurementForm for read-only context
@@ -69,17 +70,16 @@ import type { ValidationStatusDTO } from '@/modules/flow/common/dto/ValidationSt
 import type { EmployeeDTO } from '@/modules/general/organization/dto/EmployeeDTO';
 import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO';
 
-interface ReadingFormData {
-  pipelineId?: number;
-  readingDate: string; // Business date for the reading
-  readingSlotId?: number; // Slot ID
-  recordedAt: string;
-  pressure?: number;
-  temperature?: number;
-  flowRate?: number;
-  containedVolume?: number;
-  notes?: string;
-}
+/**
+ * Form data type - Uses FlowReadingDTO as base with form-specific modifications
+ * Makes creation fields optional while maintaining DTO structure
+ */
+type ReadingFormData = Omit<FlowReadingDTO, 'id' | 'recordedById' | 'validationStatusId' | 'recordedBy' | 'validatedBy' | 'validationStatus' | 'pipeline' | 'readingSlot'> & {
+  pipelineId: number;
+  readingSlotId: number;
+  recordedById?: number; // Optional for form, required on submit
+  validationStatusId?: number; // Set during submit
+};
 
 interface ReadingEditProps {
   mode: 'create' | 'edit' | 'validate';
@@ -120,18 +120,20 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   const navigationState = location.state as NavigationState | undefined;
   const isFromSlotMonitoring = !!navigationState?.pipelineId;
   
-  // Form state with updated default values
+  // Form state with DTO-aligned default values
   const { control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm<ReadingFormData>({
     defaultValues: {
-      pipelineId: undefined,
+      pipelineId: undefined as any, // Will be set from navigation or selection
       readingDate: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
-      readingSlotId: undefined,
+      readingSlotId: undefined as any, // Will be set from slot selection
       recordedAt: getCurrentLocalDateTime(),
       pressure: undefined,
       temperature: undefined,
       flowRate: undefined,
       containedVolume: undefined,
       notes: '',
+      validatedAt: undefined,
+      validatedById: undefined,
     },
   });
   
@@ -262,7 +264,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         const reading = await FlowReadingService.getById(Number(id));
         setExistingReading(reading);
         
-        // Populate form with existing data
+        // Populate form with existing data (DTO fields match form fields)
         setValue('pipelineId', reading.pipelineId);
         setValue('readingDate', reading.readingDate);
         setValue('readingSlotId', reading.readingSlotId);
@@ -272,6 +274,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         setValue('flowRate', reading.flowRate);
         setValue('containedVolume', reading.containedVolume);
         setValue('notes', reading.notes || '');
+        setValue('validatedAt', reading.validatedAt || undefined);
+        setValue('validatedById', reading.validatedById || undefined);
         
         // Load threshold for existing reading's pipeline
         loadThreshold(reading.pipelineId);
@@ -397,12 +401,12 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
       
       console.log('✅ Using validation status:', validationStatus);
       
-      // Prepare DTO with new fields
+      // Prepare DTO - all fields from form are DTO-compatible
       const readingDTO: FlowReadingDTO = {
         ...data,
         recordedById: currentEmployee.id,
         validationStatusId: validationStatus.id,
-        pipelineId: data.pipelineId!,
+        pipelineId: data.pipelineId,
         readingDate: data.readingDate,
         readingSlotId: data.readingSlotId,
       };
