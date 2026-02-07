@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-07 16:37 - Hide date and slot filters for non-admin users (auto-selected)
  * @updated 2026-02-07 16:29 - Fixed: Operational day starts at 08:00 (Slot 1), not midnight
  * @updated 2026-02-07 16:25 - Fixed: Correct slot calculation to choose slot directly before current time
  * @updated 2026-02-07 16:00 - Auto-select and lock slot based on current time for non-admin users
@@ -261,23 +262,24 @@ const SlotMonitoring: React.FC = () => {
   }, []);
 
   /**
-   * Determine if slot selection should be locked
-   * Locked for all users except MONITORING_ADMIN
-   */
-  const isSlotLocked = useMemo(() => {
-    return !isAdmin;
-  }, [isAdmin]);
-
-  /**
-   * Auto-select slot on mount for non-admin users
+   * Auto-select date and slot on mount for non-admin users
    */
   useEffect(() => {
-    if (isSlotLocked) {
+    if (!isAdmin) {
+      // Auto-select current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      setSelectedDate(currentDate);
+      
+      // Auto-select slot based on current time
       const autoSlotId = getAutoSelectedSlotId();
       setSelectedSlotId(autoSlotId);
-      console.log('🔒 Slot auto-selected and locked:', autoSlotId);
+      
+      console.log('🔒 Date and Slot auto-selected and locked:', {
+        date: currentDate,
+        slotId: autoSlotId
+      });
     }
-  }, [isSlotLocked, getAutoSelectedSlotId]);
+  }, [isAdmin, getAutoSelectedSlotId]);
 
   /**
    * Calculate permissions for a pipeline based on user role and workflow status
@@ -824,80 +826,99 @@ const SlotMonitoring: React.FC = () => {
       )}
 
       {/* Slot Auto-Selection Info for Non-Admins */}
-      {isSlotLocked && (
+      {!isAdmin && (
         <Alert severity="info" icon={<LockIcon />} sx={{ mb: 2 }}>
           <Typography variant="body2">
-            <strong>Slot Auto-Selected:</strong> The time slot has been automatically selected based on the current time. 
-            Only administrators can change the slot selection.
+            <strong>Auto-Selected:</strong> Date and time slot have been automatically selected based on the current time. 
+            Only administrators can change the selection.
           </Typography>
         </Alert>
       )}
 
-      {/* Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                type="date"
-                label={t('flow.monitoring.filters.date', 'Date')}
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
+      {/* Filters - Only visible for MONITORING_ADMIN */}
+      {isAdmin && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="date"
+                  label={t('flow.monitoring.filters.date', 'Date')}
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
 
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                select
-                label={t('flow.monitoring.filters.slot', 'Slot')}
-                value={selectedSlotId}
-                onChange={(e) => setSelectedSlotId(Number(e.target.value))}
-                disabled={isSlotLocked}
-                InputProps={{
-                  endAdornment: isSlotLocked ? (
-                    <Tooltip title="Slot is auto-selected based on current time. Only admins can change it.">
-                      <LockIcon sx={{ mr: 1, color: 'action.disabled' }} />
-                    </Tooltip>
-                  ) : null,
-                }}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  select
+                  label={t('flow.monitoring.filters.slot', 'Slot')}
+                  value={selectedSlotId}
+                  onChange={(e) => setSelectedSlotId(Number(e.target.value))}
+                >
+                  {availableSlots.map((slot) => (
+                    <MenuItem key={slot.id} value={slot.id}>
+                      {slot.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} md={4}>
+                <Box display="flex" gap={1} justifyContent="flex-end">
+                  <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
+                    <span>
+                      <IconButton 
+                        color="primary" 
+                        onClick={loadSlotCoverage}
+                        disabled={loading}
+                      >
+                        <RefreshIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+
+                  <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
+                    <span>
+                      <IconButton color="primary" disabled={!coverage}>
+                        <DownloadIcon />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Action Buttons for Non-Admin (Refresh and Export only) */}
+      {!isAdmin && (
+        <Box display="flex" gap={1} justifyContent="flex-end" sx={{ mb: 3 }}>
+          <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
+            <span>
+              <IconButton 
+                color="primary" 
+                onClick={loadSlotCoverage}
+                disabled={loading}
               >
-                {availableSlots.map((slot) => (
-                  <MenuItem key={slot.id} value={slot.id}>
-                    {slot.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+                <RefreshIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
 
-            <Grid item xs={12} md={4}>
-              <Box display="flex" gap={1} justifyContent="flex-end">
-                <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
-                  <span>
-                    <IconButton 
-                      color="primary" 
-                      onClick={loadSlotCoverage}
-                      disabled={loading}
-                    >
-                      <RefreshIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-
-                <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
-                  <span>
-                    <IconButton color="primary" disabled={!coverage}>
-                      <DownloadIcon />
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Box>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+          <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
+            <span>
+              <IconButton color="primary" disabled={!coverage}>
+                <DownloadIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Box>
+      )}
 
       {/* Error Alert */}
       {error && (
