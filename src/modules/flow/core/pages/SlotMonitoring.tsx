@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-07 16:59 - Integrate page title into filter row for compact layout
  * @updated 2026-02-07 16:37 - Hide date and slot filters for non-admin users (auto-selected)
  * @updated 2026-02-07 16:29 - Fixed: Operational day starts at 08:00 (Slot 1), not midnight
  * @updated 2026-02-07 16:25 - Fixed: Correct slot calculation to choose slot directly before current time
@@ -801,10 +802,6 @@ const SlotMonitoring: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {t('flow.monitoring.title', 'Slot Monitoring')}
-      </Typography>
-
       {/* Access warning if no flow roles */}
       {!hasFlowRole && (
         <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
@@ -835,90 +832,76 @@ const SlotMonitoring: React.FC = () => {
         </Alert>
       )}
 
-      {/* Filters - Only visible for MONITORING_ADMIN */}
-      {isAdmin && (
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label={t('flow.monitoring.filters.date', 'Date')}
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  select
-                  label={t('flow.monitoring.filters.slot', 'Slot')}
-                  value={selectedSlotId}
-                  onChange={(e) => setSelectedSlotId(Number(e.target.value))}
-                >
-                  {availableSlots.map((slot) => (
-                    <MenuItem key={slot.id} value={slot.id}>
-                      {slot.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <Box display="flex" gap={1} justifyContent="flex-end">
-                  <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
-                    <span>
-                      <IconButton 
-                        color="primary" 
-                        onClick={loadSlotCoverage}
-                        disabled={loading}
-                      >
-                        <RefreshIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-
-                  <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
-                    <span>
-                      <IconButton color="primary" disabled={!coverage}>
-                        <DownloadIcon />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </Box>
-              </Grid>
+      {/* Header with Title and Filters - Integrated in one row */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Grid container spacing={2} alignItems="center">
+            {/* Page Title */}
+            <Grid item xs={12} md={isAdmin ? 3 : 9}>
+              <Typography variant="h4" component="h1">
+                {t('flow.monitoring.title', 'Slot Monitoring')}
+              </Typography>
             </Grid>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Action Buttons for Non-Admin (Refresh and Export only) */}
-      {!isAdmin && (
-        <Box display="flex" gap={1} justifyContent="flex-end" sx={{ mb: 3 }}>
-          <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
-            <span>
-              <IconButton 
-                color="primary" 
-                onClick={loadSlotCoverage}
-                disabled={loading}
-              >
-                <RefreshIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
+            {/* Admin Filters */}
+            {isAdmin && (
+              <>
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label={t('flow.monitoring.filters.date', 'Date')}
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
 
-          <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
-            <span>
-              <IconButton color="primary" disabled={!coverage}>
-                <DownloadIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-        </Box>
-      )}
+                <Grid item xs={12} md={3}>
+                  <TextField
+                    fullWidth
+                    select
+                    label={t('flow.monitoring.filters.slot', 'Slot')}
+                    value={selectedSlotId}
+                    onChange={(e) => setSelectedSlotId(Number(e.target.value))}
+                  >
+                    {availableSlots.map((slot) => (
+                      <MenuItem key={slot.id} value={slot.id}>
+                        {slot.label}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </Grid>
+              </>
+            )}
+
+            {/* Action Buttons */}
+            <Grid item xs={12} md={3}>
+              <Box display="flex" gap={1} justifyContent="flex-end">
+                <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
+                  <span>
+                    <IconButton 
+                      color="primary" 
+                      onClick={loadSlotCoverage}
+                      disabled={loading}
+                    >
+                      <RefreshIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+
+                <Tooltip title={t('flow.monitoring.actions.export', 'Export to Excel')}>
+                  <span>
+                    <IconButton color="primary" disabled={!coverage}>
+                      <DownloadIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Box>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Error Alert */}
       {error && (
