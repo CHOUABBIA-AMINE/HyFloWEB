@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-07-2026 15:10 - Removed /flow/readings route - SlotMonitoring is now the primary flow interface
  * @updated 02-05-2026 - Added React Router v7 future flags
  * @updated 02-04-2026 - Added SlotMonitoring route
  * @updated 02-01-2026 - Added NotificationProvider for real-time WebSocket notifications
@@ -76,7 +77,6 @@ import { DashboardPage as FlowDashboardPage } from './modules/dashboard';
 // Flow Core Module
 import { 
   SlotMonitoring,
-  ReadingList, 
   ReadingEdit, 
   PendingReadingsList,
   ThresholdList,
@@ -163,7 +163,7 @@ function App() {
 
                   {/* Flow Module - Protected */}
                   <Route path="flow">
-                    {/* Slot Monitoring - NEW */}
+                    {/* Slot Monitoring - PRIMARY INTERFACE */}
                     <Route
                       path="monitoring"
                       element={
@@ -173,15 +173,7 @@ function App() {
                       }
                     />
 
-                    {/* Flow Readings */}
-                    <Route
-                      path="readings"
-                      element={
-                        <ProtectedRoute>
-                          <ReadingList />
-                        </ProtectedRoute>
-                      }
-                    />
+                    {/* Reading Edit/Create/Validate - Accessed from SlotMonitoring */}
                     <Route
                       path="readings/new"
                       element={
@@ -206,6 +198,8 @@ function App() {
                         </ProtectedRoute>
                       }
                     />
+
+                    {/* Pending Readings List - For validators */}
                     <Route
                       path="readings/pending"
                       element={
