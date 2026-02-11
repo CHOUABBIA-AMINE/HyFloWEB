@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-11 13:20 - Fixed: Use SlotCoverageService and correct DTO imports
  * @updated 2026-02-11 13:00 - Integrate ReadingWorkflowService, replace browser prompt with dialog
  * @updated 2026-02-11 13:00 - Use centralized date formatting from shared/utils
  * @updated 2026-02-07 16:59 - Integrate page title into filter row for compact layout
@@ -73,19 +74,23 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/shared/context/AuthContext';
 
-// Centralized imports from flow/core
-import { FlowMonitoringService } from '../services';
+// ✅ FIXED: Use SlotCoverageService (not removed FlowMonitoringService)
+import { SlotCoverageService } from '../services';
 import { ReadingWorkflowService } from '@/modules/flow/workflow/services';
-import {
-  SlotCoverageResponseDTO,
-  PipelineCoverageDTO,
-} from '../dto';
+
+// ✅ FIXED: Import correct DTOs from SlotCoverageDTO
+import type {
+  SlotCoverageDTO,
+  PipelineCoverageItemDTO,
+} from '../dto/SlotCoverageDTO';
+
 import {
   formatCompletionPercentage,
   getStatusColor,
   getStatusLabel,
   getPipelineDisplayName,
   getEmployeeDisplayName,
+  calculateCompletionRate,
 } from '../utils/monitoringHelpers';
 import { getUserStructure, getUserEmployeeId, debugUserStructure } from '../utils/userHelpers';
 import { getLocalizedDesignation } from '../../common/dto/ReadingSlotDTO';
@@ -108,7 +113,7 @@ interface PipelinePermissions {
  */
 interface RejectDialogState {
   open: boolean;
-  pipeline: PipelineCoverageDTO | null;
+  pipeline: PipelineCoverageItemDTO | null;
   reason: string;
 }
 
@@ -138,7 +143,7 @@ const SlotMonitoring: React.FC = () => {
   // ==================== STATE ====================
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [coverage, setCoverage] = useState<SlotCoverageResponseDTO | null>(null);
+  const [coverage, setCoverage] = useState<SlotCoverageDTO | null>(null);
 
   // Filter state
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -300,8 +305,8 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Calculate permissions for a pipeline based on user role and workflow status
    */
-  const calculatePipelinePermissions = useCallback((pipeline: PipelineCoverageDTO): PipelinePermissions => {
-    const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+  const calculatePipelinePermissions = useCallback((pipeline: PipelineCoverageItemDTO): PipelinePermissions => {
+    const status = pipeline.status || 'NOT_RECORDED';
 
     const permissions: PipelinePermissions = {
       canEdit: false,
@@ -311,17 +316,17 @@ const SlotMonitoring: React.FC = () => {
 
     // OPERATORS: Can edit/submit readings
     if (isOperator) {
-      if (statusCode === 'NOT_RECORDED' || statusCode === 'DRAFT' || statusCode === 'REJECTED') {
+      if (status === 'NOT_RECORDED' || status === 'DRAFT' || status === 'REJECTED') {
         permissions.canEdit = true;
       }
-      if (statusCode === 'DRAFT') {
+      if (status === 'DRAFT') {
         permissions.canSubmit = true;
       }
     }
 
     // VALIDATORS: Can approve/reject submitted readings
     if (isValidator) {
-      if (statusCode === 'SUBMITTED') {
+      if (status === 'SUBMITTED') {
         permissions.canValidate = true;
       }
     }
@@ -338,7 +343,7 @@ const SlotMonitoring: React.FC = () => {
   // ==================== DATA LOADING ====================
 
   /**
-   * Load slot coverage from backend
+   * Load slot coverage from backend using SlotCoverageService
    */
   const loadSlotCoverage = useCallback(async () => {
     if (!userStructureInfo.structureId) {
@@ -354,14 +359,15 @@ const SlotMonitoring: React.FC = () => {
     setError(null);
 
     try {
-      const response = await FlowMonitoringService.getSlotCoverage({
-        readingDate: selectedDate,
-        slotId: selectedSlotId,
-        structureId: userStructureInfo.structureId,
-      });
+      // ✅ FIXED: Use SlotCoverageService.getSlotCoverage()
+      const response = await SlotCoverageService.getSlotCoverage(
+        selectedDate,
+        selectedSlotId,
+        userStructureInfo.structureId
+      );
 
       setCoverage(response);
-      console.log('📊 Slot coverage loaded:', response.pipelines.length, 'pipelines');
+      console.log('📊 Slot coverage loaded:', response.pipelineCoverage.length, 'pipelines');
     } catch (err: any) {
       setError(err.message || t('flow.monitoring.errors.loadFailed', 'Failed to load slot coverage'));
       console.error('❌ Error loading slot coverage:', err);
@@ -383,16 +389,16 @@ const SlotMonitoring: React.FC = () => {
    * Handle pipeline edit action
    * Navigates to reading form (create new or edit existing)
    */
-  const handleEdit = (pipeline: PipelineCoverageDTO) => {
-    const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
+  const handleEdit = (pipeline: PipelineCoverageItemDTO) => {
+    const status = pipeline.status || 'NOT_RECORDED';
     
-    console.log('✏️ Edit reading for pipeline:', pipeline.pipelineId, pipeline.pipeline?.code);
+    console.log('✏️ Edit reading for pipeline:', pipeline.pipeline?.code);
     
-    if (statusCode === 'NOT_RECORDED') {
+    if (status === 'NOT_RECORDED') {
       // CREATE NEW READING
       navigate(`/flow/readings/new`, {
         state: {
-          pipelineId: pipeline.pipelineId,
+          pipelineId: pipeline.pipeline?.id,
           pipelineCode: pipeline.pipeline?.code,
           pipelineName: pipeline.pipeline?.name,
           readingDate: selectedDate,
@@ -403,10 +409,10 @@ const SlotMonitoring: React.FC = () => {
       });
     } else {
       // EDIT EXISTING READING (DRAFT or REJECTED)
-      if (pipeline.readingId) {
-        navigate(`/flow/readings/${pipeline.readingId}/edit`, {
+      if (pipeline.reading?.id) {
+        navigate(`/flow/readings/${pipeline.reading.id}/edit`, {
           state: {
-            pipelineId: pipeline.pipelineId,
+            pipelineId: pipeline.pipeline?.id,
             pipelineCode: pipeline.pipeline?.code,
             pipelineName: pipeline.pipeline?.name,
             readingDate: selectedDate,
@@ -425,8 +431,8 @@ const SlotMonitoring: React.FC = () => {
    * Handle pipeline submit action
    * Changes status from DRAFT to SUBMITTED using ReadingWorkflowService
    */
-  const handleSubmit = async (pipeline: PipelineCoverageDTO) => {
-    if (!pipeline.readingId || !userEmployeeId) {
+  const handleSubmit = async (pipeline: PipelineCoverageItemDTO) => {
+    if (!pipeline.reading?.id || !userEmployeeId) {
       showNotification(t('flow.monitoring.errors.submitMissing', 'Cannot submit: missing reading ID or employee ID'), 'error');
       return;
     }
@@ -434,12 +440,12 @@ const SlotMonitoring: React.FC = () => {
     try {
       setLoading(true);
       console.log('📤 Submitting reading for validation:', { 
-        readingId: pipeline.readingId, 
+        readingId: pipeline.reading.id, 
         employeeId: userEmployeeId 
       });
       
       // Use workflow service to change status from DRAFT to SUBMITTED
-      await ReadingWorkflowService.validate(pipeline.readingId, userEmployeeId);
+      await ReadingWorkflowService.validate(pipeline.reading.id, userEmployeeId);
       
       showNotification(
         t('flow.monitoring.messages.submitSuccess', 'Reading submitted for validation'),
@@ -463,18 +469,18 @@ const SlotMonitoring: React.FC = () => {
    * Handle pipeline approve action
    * Navigate to ReadingEdit in validation mode (readings disabled, notes editable)
    */
-  const handleApprove = (pipeline: PipelineCoverageDTO) => {
-    if (!pipeline.readingId) {
+  const handleApprove = (pipeline: PipelineCoverageItemDTO) => {
+    if (!pipeline.reading?.id) {
       showNotification(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID'), 'error');
       return;
     }
 
-    console.log('✅ Navigating to validation for pipeline:', pipeline.pipelineId, pipeline.pipeline?.code);
+    console.log('✅ Navigating to validation for pipeline:', pipeline.pipeline?.code);
     
     // Navigate to ReadingEdit in validation mode
-    navigate(`/flow/readings/${pipeline.readingId}/validate`, {
+    navigate(`/flow/readings/${pipeline.reading.id}/validate`, {
       state: {
-        pipelineId: pipeline.pipelineId,
+        pipelineId: pipeline.pipeline?.id,
         pipelineCode: pipeline.pipeline?.code,
         pipelineName: pipeline.pipeline?.name,
         readingDate: selectedDate,
@@ -489,8 +495,8 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Handle pipeline reject action - Open dialog
    */
-  const handleReject = (pipeline: PipelineCoverageDTO) => {
-    if (!pipeline.readingId || !userEmployeeId) {
+  const handleReject = (pipeline: PipelineCoverageItemDTO) => {
+    if (!pipeline.reading?.id || !userEmployeeId) {
       showNotification(t('flow.monitoring.errors.rejectMissing', 'Cannot reject: missing reading ID or employee ID'), 'error');
       return;
     }
@@ -508,7 +514,7 @@ const SlotMonitoring: React.FC = () => {
   const confirmReject = async () => {
     const { pipeline, reason } = rejectDialog;
     
-    if (!pipeline?.readingId || !userEmployeeId) {
+    if (!pipeline?.reading?.id || !userEmployeeId) {
       showNotification('Cannot reject: missing reading ID or employee ID', 'error');
       return;
     }
@@ -521,14 +527,14 @@ const SlotMonitoring: React.FC = () => {
     try {
       setLoading(true);
       console.log('❌ Rejecting reading:', { 
-        readingId: pipeline.readingId, 
+        readingId: pipeline.reading.id, 
         employeeId: userEmployeeId, 
         reason: reason.trim() 
       });
 
       // Use workflow service to reject reading
       await ReadingWorkflowService.reject(
-        pipeline.readingId,
+        pipeline.reading.id,
         userEmployeeId,
         reason.trim()
       );
@@ -597,7 +603,7 @@ const SlotMonitoring: React.FC = () => {
                 {t('flow.monitoring.date', 'Date')}
               </Typography>
               <Typography variant="h6">
-                {formatDate(coverage.readingDate, 'dd-MM-yyyy')}
+                {formatDate(coverage.date, 'dd-MM-yyyy')}
               </Typography>
             </Grid>
 
@@ -619,16 +625,16 @@ const SlotMonitoring: React.FC = () => {
               </Typography>
               <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                 <Chip
-                  label={formatCompletionPercentage(coverage.validationCompletionPercentage || 0)}
-                  color={coverage.isSlotComplete ? 'success' : 'warning'}
+                  label={formatCompletionPercentage(calculateCompletionRate(coverage))}
+                  color={coverage.summary.approved === coverage.summary.totalPipelines ? 'success' : 'warning'}
                   size="small"
                 />
               </Box>
               <LinearProgress
                 variant="determinate"
-                value={coverage.validationCompletionPercentage || 0}
+                value={calculateCompletionRate(coverage)}
                 sx={{ mt: 1 }}
-                color={coverage.isSlotComplete ? 'success' : 'warning'}
+                color={coverage.summary.approved === coverage.summary.totalPipelines ? 'success' : 'warning'}
               />
             </Grid>
           </Grid>
@@ -644,12 +650,12 @@ const SlotMonitoring: React.FC = () => {
     if (!coverage) return null;
 
     const summaryItems = [
-      { label: t('flow.monitoring.summary.total', 'Total Pipelines'), value: coverage.totalPipelines, color: 'primary' },
-      { label: t('flow.monitoring.summary.recorded', 'Recorded'), value: coverage.recordedCount, color: 'info' },
-      { label: t('flow.monitoring.summary.submitted', 'Submitted'), value: coverage.submittedCount, color: 'warning' },
-      { label: t('flow.monitoring.summary.approved', 'Approved'), value: coverage.approvedCount, color: 'success' },
-      { label: t('flow.monitoring.summary.rejected', 'Rejected'), value: coverage.rejectedCount, color: 'error' },
-      { label: t('flow.monitoring.summary.missing', 'Missing'), value: coverage.missingCount, color: 'default' },
+      { label: t('flow.monitoring.summary.total', 'Total Pipelines'), value: coverage.summary.totalPipelines, color: 'primary' },
+      { label: t('flow.monitoring.summary.recorded', 'Draft'), value: coverage.summary.draft, color: 'info' },
+      { label: t('flow.monitoring.summary.submitted', 'Submitted'), value: coverage.summary.submitted, color: 'warning' },
+      { label: t('flow.monitoring.summary.approved', 'Approved'), value: coverage.summary.approved, color: 'success' },
+      { label: t('flow.monitoring.summary.rejected', 'Rejected'), value: coverage.summary.rejected, color: 'error' },
+      { label: t('flow.monitoring.summary.missing', 'Missing'), value: coverage.summary.notRecorded, color: 'default' },
     ];
 
     return (
@@ -676,7 +682,7 @@ const SlotMonitoring: React.FC = () => {
    * Render pipeline coverage table
    */
   const renderPipelineTable = () => {
-    if (!coverage || coverage.pipelines.length === 0) {
+    if (!coverage || coverage.pipelineCoverage.length === 0) {
       return (
         <Alert severity="info">
           {t('flow.monitoring.noPipelines', 'No pipelines found for this structure.')}
@@ -693,20 +699,18 @@ const SlotMonitoring: React.FC = () => {
               <TableCell>{t('flow.monitoring.table.status', 'Status')}</TableCell>
               <TableCell>{t('flow.monitoring.table.recordedBy', 'Recorded By')}</TableCell>
               <TableCell>{t('flow.monitoring.table.recordedAt', 'Recorded At')}</TableCell>
-              <TableCell>{t('flow.monitoring.table.validatedBy', 'Validated By')}</TableCell>
-              <TableCell>{t('flow.monitoring.table.validatedAt', 'Validated At')}</TableCell>
               <TableCell align="right">{t('flow.monitoring.table.actions', 'Actions')}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {coverage.pipelines.map((pipeline) => {
+            {coverage.pipelineCoverage.map((pipeline: PipelineCoverageItemDTO) => {
               const permissions = calculatePipelinePermissions(pipeline);
 
               return (
-                <TableRow key={pipeline.pipelineId}>
+                <TableRow key={pipeline.pipeline.id}>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
-                      {pipeline.pipeline?.code || `Pipeline ${pipeline.pipelineId}`}
+                      {pipeline.pipeline?.code || `Pipeline ${pipeline.pipeline.id}`}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {getPipelineDisplayName(pipeline, currentLang)}
@@ -723,28 +727,14 @@ const SlotMonitoring: React.FC = () => {
 
                   <TableCell>
                     <Typography variant="body2">
-                      {getEmployeeDisplayName(pipeline.recordedBy)}
+                      {pipeline.reading ? getEmployeeDisplayName(pipeline.reading.recordedBy) : '-'}
                     </Typography>
                   </TableCell>
 
                   <TableCell>
                     <Typography variant="body2">
-                      {pipeline.recordedAt
-                        ? new Date(pipeline.recordedAt).toLocaleString(currentLang)
-                        : '-'}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography variant="body2">
-                      {getEmployeeDisplayName(pipeline.validatedBy)}
-                    </Typography>
-                  </TableCell>
-
-                  <TableCell>
-                    <Typography variant="body2">
-                      {pipeline.validatedAt
-                        ? new Date(pipeline.validatedAt).toLocaleString(currentLang)
+                      {pipeline.reading?.recordedAt
+                        ? new Date(pipeline.reading.recordedAt).toLocaleString(currentLang)
                         : '-'}
                     </Typography>
                   </TableCell>
@@ -753,7 +743,7 @@ const SlotMonitoring: React.FC = () => {
                     <Box display="flex" gap={0.5} justifyContent="flex-end">
                       {permissions.canEdit && (
                         <Tooltip title={
-                          (pipeline.validationStatus?.code || 'NOT_RECORDED') === 'NOT_RECORDED' 
+                          (pipeline.status || 'NOT_RECORDED') === 'NOT_RECORDED' 
                             ? t('flow.monitoring.actions.create', 'Create Reading')
                             : t('flow.monitoring.actions.edit', 'Edit Reading')
                         }>
