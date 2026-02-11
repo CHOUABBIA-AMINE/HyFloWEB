@@ -6,13 +6,14 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-11-2026 13:00 - Replace FlowMonitoringService with ReadingWorkflowService
+ * @updated 02-11-2026 13:00 - Use centralized date/time formatting from shared/utils
  * @updated 02-06-2026 22:40 - Fixed: Use FlowMonitoringService.validateReading() instead of FlowReadingService.validate()
  * @updated 01-27-2026 - Fixed: Use UserService.getByUsername() instead of AuthService.getCurrentUser()
  * @updated 01-28-2026 - Added threshold validation for contained volume
  */
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Grid,
@@ -30,6 +31,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -40,10 +43,8 @@ import {
   Edit as EditIcon,
 } from '@mui/icons-material';
 
-import { FlowReadingService } from '@/modules/flow/core/services/FlowReadingService';
-import { FlowMonitoringService } from '@/modules/flow/core/services/FlowMonitoringService';
-import UserService from '@/modules/system/security/services/UserService';
-import { getUsernameFromToken } from '@/shared/utils/jwtUtils';
+import { ReadingWorkflowService } from '@/modules/flow/workflow/services';
+import { formatDateTime } from '@/shared/utils/dateTimeLocal';
 
 import type { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
 import type { FlowThresholdDTO } from '@/modules/flow/core/dto/FlowThresholdDTO';
@@ -54,6 +55,17 @@ interface ValidationReviewProps {
   pipelineId?: number;
   existingReading?: FlowReadingDTO;
   isValidationMode?: boolean;
+  onApprove?: () => Promise<void>;
+  onReject?: (reason: string) => Promise<void>;
+  currentEmployeeId?: number;
+  isLoading?: boolean;
+  onNavigateToEdit?: () => void;
+}
+
+interface NotificationState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error' | 'warning' | 'info';
 }
 
 export const ValidationReview: React.FC<ValidationReviewProps> = ({
@@ -62,16 +74,20 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
   pipelineId,
   existingReading,
   isValidationMode = false,
+  onApprove,
+  onReject,
+  currentEmployeeId,
+  isLoading = false,
+  onNavigateToEdit,
 }) => {
-  const navigate = useNavigate();
   const [validationNotes, setValidationNotes] = useState('');
-  const [loading, setLoading] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
-  
-  const formatDateTime = (dateString?: string): string => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString();
-  };
+  const [localLoading, setLocalLoading] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
   
   const formatValue = (value?: number, unit?: string): string => {
     if (value === undefined || value === null) return 'Not recorded';
@@ -101,104 +117,101 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
     
     return { color: 'success', icon: <CheckCircleIcon />, text: 'Recorded' };
   };
+
+  const showNotification = (message: string, severity: NotificationState['severity']) => {
+    setNotification({ open: true, message, severity });
+  };
   
   const handleValidate = async () => {
-    if (!existingReading?.id) {
-      alert('Reading ID is missing');
+    // If parent provides onApprove handler, use it
+    if (onApprove) {
+      try {
+        await onApprove();
+      } catch (error: any) {
+        showNotification(error.message || 'Approval failed', 'error');
+      }
+      return;
+    }
+
+    // Fallback: Direct workflow service call (if parent doesn't provide handler)
+    if (!existingReading?.id || !currentEmployeeId) {
+      showNotification('Reading ID or employee ID is missing', 'error');
       return;
     }
     
     try {
-      setLoading(true);
+      setLocalLoading(true);
       
-      // Get current user using JWT token
-      const username = getUsernameFromToken();
-      if (!username) {
-        throw new Error('No username found in token. Please log in again.');
-      }
+      await ReadingWorkflowService.validate(
+        existingReading.id,
+        currentEmployeeId,
+        validationNotes.trim() || undefined
+      );
       
-      // Fetch user data from backend
-      const userData = await UserService.getByUsername(username);
+      showNotification('Reading approved successfully', 'success');
       
-      if (!userData?.employee?.id) {
-        throw new Error('Employee information not found for current user');
-      }
-      
-      const currentEmployeeId = userData.employee.id;
-      
-      // Update reading with validation notes if provided
-      if (validationNotes.trim()) {
-        await FlowReadingService.update(existingReading.id, {
-          ...existingReading,
-          notes: existingReading.notes 
-            ? `${existingReading.notes}\n\nValidation Notes: ${validationNotes}`
-            : `Validation Notes: ${validationNotes}`,
-        });
-      }
-      
-      // Validate the reading using FlowMonitoringService
-      await FlowMonitoringService.validateReading({
-        readingId: existingReading.id,
-        action: 'APPROVE',
-        employeeId: currentEmployeeId,
-        comments: validationNotes.trim() || undefined,
-      });
-      
-      alert('Reading approved successfully');
-      navigate('/flow/monitoring');
+      // Give time for notification before navigation
+      setTimeout(() => {
+        window.location.href = '/flow/monitoring';
+      }, 1500);
     } catch (error: any) {
       console.error('Validation failed:', error);
-      alert(`Validation failed: ${error.message || 'An unexpected error occurred'}`);
+      showNotification(
+        error.response?.data?.message || error.message || 'Validation failed',
+        'error'
+      );
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
   
   const handleReject = async () => {
-    if (!existingReading?.id) {
-      alert('Reading ID is missing');
+    if (!validationNotes.trim() || validationNotes.trim().length < 5) {
+      showNotification('Please provide a reason for rejection (minimum 5 characters)', 'warning');
       return;
     }
-    
-    if (!validationNotes.trim()) {
-      alert('Please provide a reason for rejection');
+
+    // If parent provides onReject handler, use it
+    if (onReject) {
+      try {
+        await onReject(validationNotes.trim());
+        setShowRejectDialog(false);
+      } catch (error: any) {
+        showNotification(error.message || 'Rejection failed', 'error');
+      }
+      return;
+    }
+
+    // Fallback: Direct workflow service call (if parent doesn't provide handler)
+    if (!existingReading?.id || !currentEmployeeId) {
+      showNotification('Reading ID or employee ID is missing', 'error');
       return;
     }
     
     try {
-      setLoading(true);
+      setLocalLoading(true);
       
-      // Get current user using JWT token
-      const username = getUsernameFromToken();
-      if (!username) {
-        throw new Error('No username found in token. Please log in again.');
-      }
-      
-      // Fetch user data from backend
-      const userData = await UserService.getByUsername(username);
-      
-      if (!userData?.employee?.id) {
-        throw new Error('Employee information not found for current user');
-      }
-      
-      const currentEmployeeId = userData.employee.id;
-      
-      // Reject the reading using FlowMonitoringService
-      await FlowMonitoringService.validateReading({
-        readingId: existingReading.id,
-        action: 'REJECT',
-        employeeId: currentEmployeeId,
-        comments: validationNotes,
-      });
+      await ReadingWorkflowService.reject(
+        existingReading.id,
+        currentEmployeeId,
+        validationNotes.trim()
+      );
       
       setShowRejectDialog(false);
-      alert('Reading rejected successfully');
-      navigate('/flow/monitoring');
+      showNotification('Reading rejected successfully', 'success');
+      
+      // Give time for notification before navigation
+      setTimeout(() => {
+        window.location.href = '/flow/monitoring';
+      }, 1500);
     } catch (error: any) {
       console.error('Rejection failed:', error);
-      alert(`Rejection failed: ${error.message || 'An unexpected error occurred'}`);
+      showNotification(
+        error.response?.data?.message || error.message || 'Rejection failed',
+        'error'
+      );
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
   
@@ -212,6 +225,8 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
     temperatureStatus.color === 'error' || 
     flowRateStatus.color === 'error' ||
     containedVolumeStatus.color === 'error';
+  
+  const loading = isLoading || localLoading;
   
   return (
     <Box>
@@ -259,7 +274,9 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               </Grid>
               <Grid item xs={6}>
                 <Typography variant="caption" color="text.secondary">Recorded At</Typography>
-                <Typography variant="body2">{formatDateTime(existingReading.recordedAt)}</Typography>
+                <Typography variant="body2">
+                  {formatDateTime(existingReading.recordedAt || new Date())}
+                </Typography>
               </Grid>
             </Grid>
           </CardContent>
@@ -351,7 +368,7 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               </Box>
             </Grid>
             
-            {/* Contained Volume - NOW WITH THRESHOLD VALIDATION */}
+            {/* Contained Volume */}
             <Grid item xs={12} sm={6} md={3}>
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -382,7 +399,9 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               <Typography variant="caption" color="text.secondary" display="block" mb={1}>
                 Recording Time
               </Typography>
-              <Typography variant="body1">{formatDateTime(formData.recordedAt)}</Typography>
+              <Typography variant="body1">
+                {formatDateTime(formData.recordedAt || new Date())}
+              </Typography>
             </Grid>
             
             {/* Notes */}
@@ -415,6 +434,9 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               value={validationNotes}
               onChange={(e) => setValidationNotes(e.target.value)}
               placeholder="Add comments about this reading or reasons for rejection..."
+              helperText="Minimum 5 characters required for rejection"
+              disabled={loading}
+              error={showRejectDialog && validationNotes.trim().length > 0 && validationNotes.trim().length < 5}
               sx={{ mb: 2 }}
             />
             
@@ -422,11 +444,12 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
               <Button
                 variant="contained"
                 color="success"
-                startIcon={<CheckIcon />}
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <CheckIcon />}
                 onClick={handleValidate}
                 disabled={loading}
+                size="large"
               >
-                Approve
+                Approve Reading
               </Button>
               <Button
                 variant="contained"
@@ -434,37 +457,74 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
                 startIcon={<CloseIcon />}
                 onClick={() => setShowRejectDialog(true)}
                 disabled={loading}
+                size="large"
               >
-                Reject
+                Reject Reading
               </Button>
-              <Button
-                variant="outlined"
-                startIcon={<EditIcon />}
-                onClick={() => navigate(`/flow/readings/${existingReading?.id}/edit`)}
-              >
-                Modify Values
-              </Button>
+              {onNavigateToEdit && (
+                <Button
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  onClick={onNavigateToEdit}
+                  disabled={loading}
+                >
+                  Modify Values
+                </Button>
+              )}
             </Box>
           </CardContent>
         </Card>
       )}
       
       {/* Reject Confirmation Dialog */}
-      <Dialog open={showRejectDialog} onClose={() => setShowRejectDialog(false)}>
+      <Dialog 
+        open={showRejectDialog} 
+        onClose={() => !loading && setShowRejectDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Confirm Rejection</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to reject this reading? 
+            Are you sure you want to reject this reading?
             {!validationNotes.trim() && ' Please provide a reason for rejection in the notes field.'}
+            {validationNotes.trim().length > 0 && validationNotes.trim().length < 5 && ' Reason must be at least 5 characters.'}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowRejectDialog(false)}>Cancel</Button>
-          <Button onClick={handleReject} color="error" disabled={!validationNotes.trim() || loading}>
+          <Button 
+            onClick={() => setShowRejectDialog(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleReject} 
+            color="error" 
+            variant="contained"
+            disabled={validationNotes.trim().length < 5 || loading}
+            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : undefined}
+          >
             Reject Reading
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setNotification(prev => ({ ...prev, open: false }))} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
