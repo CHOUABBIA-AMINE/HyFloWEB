@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-03
+ * @updated 2026-02-11 14:45 - Fixed: Use correct '/flow/core/slot-coverage' endpoint
  * @updated 2026-02-04 - Fixed API client import path
  * @module flow/core/services
  */
@@ -66,7 +67,8 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<SlotCoverageDTO> {
     try {
-      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/reading/coverage', {
+      // ✅ FIXED: Use '/flow/core/slot-coverage' to avoid conflict with '/flow/core/reading/{id}'
+      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/slot-coverage', {
         params: {
           date,
           slotNumber,
@@ -93,7 +95,7 @@ export class SlotCoverageService {
     filters: SlotCoverageFilters
   ): Promise<SlotCoverageDTO> {
     try {
-      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/reading/coverage/filtered', {
+      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/slot-coverage/filtered', {
         params: filters,
       });
       return response.data;
@@ -118,7 +120,7 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<DailyCoverageSummaryDTO> {
     try {
-      const response = await axiosInstance.get<DailyCoverageSummaryDTO>('/flow/core/reading/coverage/daily-summary', {
+      const response = await axiosInstance.get<DailyCoverageSummaryDTO>('/flow/core/slot-coverage/daily-summary', {
         params: { date, structureId },
       });
       return response.data;
@@ -382,7 +384,7 @@ export class SlotCoverageService {
   ): Promise<BulkActionResult> {
     try {
       const response = await axiosInstance.post<BulkActionResult>(
-        '/flow/core/reading/bulk/approve-slot',
+        '/flow/core/slot-coverage/bulk-approve',
         { date, slotNumber, structureId, notes }
       );
       return response.data;
@@ -407,7 +409,7 @@ export class SlotCoverageService {
   static async getUserStructures(): Promise<StructureDTO[]> {
     try {
       const response = await axiosInstance.get<StructureDTO[]>(
-        '/flow/core/reading/user-structures'
+        '/flow/core/slot-coverage/user-structures'
       );
       return response.data;
     } catch (error: any) {
@@ -431,7 +433,7 @@ export class SlotCoverageService {
   } | null> {
     try {
       const response = await axiosInstance.get(
-        '/flow/core/reading/current-slot-context'
+        '/flow/core/slot-coverage/current-context'
       );
       return response.data;
     } catch (error: any) {
@@ -460,7 +462,7 @@ export class SlotCoverageService {
   ): Promise<Page<FlowReadingDTO>> {
     try {
       const response = await axiosInstance.get<Page<FlowReadingDTO>>(
-        '/flow/core/reading/pending-actions',
+        '/flow/core/slot-coverage/pending-actions',
         { params: pageable }
       );
       return response.data;
@@ -489,7 +491,7 @@ export class SlotCoverageService {
   ): Promise<SlotCompletionStatsDTO[]> {
     try {
       const response = await axiosInstance.get<SlotCompletionStatsDTO[]>(
-        '/flow/core/reading/coverage/stats',
+        '/flow/core/slot-coverage/stats',
         { params: { startDate, endDate, structureId } }
       );
       return response.data;
@@ -516,7 +518,7 @@ export class SlotCoverageService {
   ): Promise<Blob> {
     try {
       const response = await axiosInstance.get(
-        '/flow/core/reading/coverage/export',
+        '/flow/core/slot-coverage/export',
         {
           params: { date, slotNumber, structureId },
           responseType: 'blob',
