@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-03
+ * @updated 2026-02-11 21:50 - Added response transformation to map backend fields to frontend DTO
  * @updated 2026-02-11 14:45 - Fixed: Use correct '/flow/core/slot-coverage' endpoint
  * @updated 2026-02-04 - Fixed API client import path
  * @module flow/core/services
@@ -27,6 +28,37 @@ import type { StructureDTO } from '@/modules/general/organization/dto/StructureD
 import type { Page, Pageable } from '@/types/pagination';
 
 /**
+ * Backend Response Structure (SlotCoverageResponseDTO from backend)
+ * 
+ * The backend uses technical/database-oriented naming:
+ * - readingDate (specific: emphasizes this is a reading date)
+ * - pipelines (generic: just a list of pipeline entities)
+ * - missingCount (technical: count of missing records)
+ * 
+ * We transform this to frontend's semantic/business-oriented naming:
+ * - date (simpler: context makes it obvious)
+ * - pipelineCoverage (semantic: describes WHAT we're showing - coverage)
+ * - notRecorded (business: describes the state, not the count)
+ */
+interface BackendSlotCoverageResponse {
+  readingDate: string;                    // Backend: technical naming
+  slot: any;
+  structure: any;
+  generatedAt: string;
+  slotDeadline: string;
+  totalPipelines: number;
+  recordedCount: number;                  // Pipelines with any reading
+  submittedCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  missingCount: number;                   // Backend: technical naming
+  recordingCompletionPercentage: number;
+  validationCompletionPercentage: number;
+  isSlotComplete: boolean;
+  pipelines: any[];                       // Backend: generic naming
+}
+
+/**
  * SlotCoverageService
  * 
  * PRIMARY service for operational console.
@@ -41,6 +73,8 @@ export class SlotCoverageService {
    * 
    * This is the MAIN API for the operational dashboard.
    * Returns all pipelines managed by the structure with their reading status.
+   * 
+   * TRANSFORMATION: Maps backend technical naming to frontend semantic naming.
    * 
    * @param date - Business date (YYYY-MM-DD format)
    * @param slotNumber - Slot number (1-12)
@@ -67,16 +101,65 @@ export class SlotCoverageService {
     structureId: number
   ): Promise<SlotCoverageDTO> {
     try {
-      // ✅ FIXED: Use '/flow/core/slot-coverage' to avoid conflict with '/flow/core/reading/{id}'
-      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/slot-coverage', {
+      // Fetch from backend using technical naming
+      const response = await axiosInstance.get<BackendSlotCoverageResponse>('/flow/core/slot-coverage', {
         params: {
           date,
           slotNumber,
           structureId,
         },
       });
-      return response.data;
+
+      const backendData = response.data;
+
+      // Transform backend response to frontend semantic DTO
+      const transformedData: SlotCoverageDTO = {
+        // Map readingDate → date (simpler, context is obvious)
+        date: backendData.readingDate,
+        
+        slot: backendData.slot,
+        structure: backendData.structure,
+        
+        // Map pipelines → pipelineCoverage (semantic: describes coverage, not just entities)
+        pipelineCoverage: backendData.pipelines || [],
+        
+        // Build summary object from individual counts
+        summary: {
+          totalPipelines: backendData.totalPipelines || 0,
+          
+          // Map missingCount → notRecorded (business language)
+          notRecorded: backendData.missingCount || 0,
+          
+          // Calculate draft count: recorded but not yet submitted/approved/rejected
+          draft: Math.max(0, 
+            (backendData.recordedCount || 0) - 
+            (backendData.submittedCount || 0) - 
+            (backendData.approvedCount || 0) - 
+            (backendData.rejectedCount || 0)
+          ),
+          
+          submitted: backendData.submittedCount || 0,
+          approved: backendData.approvedCount || 0,
+          rejected: backendData.rejectedCount || 0,
+        },
+      };
+
+      console.log('✅ Transformed backend response:', {
+        backend: {
+          readingDate: backendData.readingDate,
+          pipelines: backendData.pipelines?.length,
+          missingCount: backendData.missingCount,
+        },
+        frontend: {
+          date: transformedData.date,
+          pipelineCoverage: transformedData.pipelineCoverage?.length,
+          notRecorded: transformedData.summary.notRecorded,
+        },
+      });
+
+      return transformedData;
     } catch (error: any) {
+      console.error('❌ Error fetching slot coverage:', error.response?.data || error.message);
       throw new Error(
         error.response?.data?.message || 
         `Failed to load slot coverage for ${date}, slot ${slotNumber}`
@@ -95,10 +178,32 @@ export class SlotCoverageService {
     filters: SlotCoverageFilters
   ): Promise<SlotCoverageDTO> {
     try {
-      const response = await axiosInstance.get<SlotCoverageDTO>('/flow/core/slot-coverage/filtered', {
+      const response = await axiosInstance.get<BackendSlotCoverageResponse>('/flow/core/slot-coverage/filtered', {
         params: filters,
       });
-      return response.data;
+      
+      const backendData = response.data;
+      
+      // Apply same transformation
+      return {
+        date: backendData.readingDate,
+        slot: backendData.slot,
+        structure: backendData.structure,
+        pipelineCoverage: backendData.pipelines || [],
+        summary: {
+          totalPipelines: backendData.totalPipelines || 0,
+          notRecorded: backendData.missingCount || 0,
+          draft: Math.max(0, 
+            (backendData.recordedCount || 0) - 
+            (backendData.submittedCount || 0) - 
+            (backendData.approvedCount || 0) - 
+            (backendData.rejectedCount || 0)
+          ),
+          submitted: backendData.submittedCount || 0,
+          approved: backendData.approvedCount || 0,
+          rejected: backendData.rejectedCount || 0,
+        },
+      };
     } catch (error: any) {
       throw new Error(
         error.response?.data?.message || 
