@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-11-2026 13:10 - Fixed: validate() only accepts 2 parameters
  * @updated 02-11-2026 13:00 - Replace FlowMonitoringService with ReadingWorkflowService
  * @updated 02-11-2026 13:00 - Use centralized date/time formatting from shared/utils
  * @updated 02-06-2026 22:40 - Fixed: Use FlowMonitoringService.validateReading() instead of FlowReadingService.validate()
@@ -142,10 +143,11 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
     try {
       setLocalLoading(true);
       
+      // ✅ FIXED: validate() only accepts 2 parameters (id, validatedById)
+      // Validation notes are NOT supported by backend validate endpoint
       await ReadingWorkflowService.validate(
         existingReading.id,
-        currentEmployeeId,
-        validationNotes.trim() || undefined
+        currentEmployeeId
       );
       
       showNotification('Reading approved successfully', 'success');
@@ -427,7 +429,7 @@ export const ValidationReview: React.FC<ValidationReviewProps> = ({
             <Divider sx={{ my: 1 }} />
             
             <TextField
-              label="Validation Notes"
+              label="Validation Notes (Optional for approval, required for rejection)"
               multiline
               rows={4}
               fullWidth
