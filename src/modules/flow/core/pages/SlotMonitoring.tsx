@@ -10,6 +10,8 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-11 13:00 - Integrate ReadingWorkflowService, replace browser prompt with dialog
+ * @updated 2026-02-11 13:00 - Use centralized date formatting from shared/utils
  * @updated 2026-02-07 16:59 - Integrate page title into filter row for compact layout
  * @updated 2026-02-07 16:37 - Hide date and slot filters for non-admin users (auto-selected)
  * @updated 2026-02-07 16:29 - Fixed: Operational day starts at 08:00 (Slot 1), not midnight
@@ -52,6 +54,11 @@ import {
   Tooltip,
   Alert,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -68,13 +75,13 @@ import { useAuth } from '@/shared/context/AuthContext';
 
 // Centralized imports from flow/core
 import { FlowMonitoringService } from '../services';
+import { ReadingWorkflowService } from '@/modules/flow/workflow/services';
 import {
   SlotCoverageResponseDTO,
   PipelineCoverageDTO,
 } from '../dto';
 import {
   formatCompletionPercentage,
-  formatSlotTimeRange,
   getStatusColor,
   getStatusLabel,
   getPipelineDisplayName,
@@ -82,6 +89,9 @@ import {
 } from '../utils/monitoringHelpers';
 import { getUserStructure, getUserEmployeeId, debugUserStructure } from '../utils/userHelpers';
 import { getLocalizedDesignation } from '../../common/dto/ReadingSlotDTO';
+
+// Use centralized date/time utilities
+import { formatDate, formatSlotTimeRange } from '@/shared/utils/dateTimeLocal';
 
 /**
  * Pipeline Permissions Interface
@@ -91,6 +101,24 @@ interface PipelinePermissions {
   canEdit: boolean;
   canSubmit: boolean;
   canValidate: boolean;
+}
+
+/**
+ * Rejection Dialog State
+ */
+interface RejectDialogState {
+  open: boolean;
+  pipeline: PipelineCoverageDTO | null;
+  reason: string;
+}
+
+/**
+ * Notification State
+ */
+interface NotificationState {
+  open: boolean;
+  message: string;
+  severity: 'success' | 'error' | 'warning' | 'info';
 }
 
 /**
@@ -117,6 +145,20 @@ const SlotMonitoring: React.FC = () => {
     new Date().toISOString().split('T')[0]
   );
   const [selectedSlotId, setSelectedSlotId] = useState<number>(1);
+
+  // Rejection dialog state
+  const [rejectDialog, setRejectDialog] = useState<RejectDialogState>({
+    open: false,
+    pipeline: null,
+    reason: '',
+  });
+
+  // Notification state
+  const [notification, setNotification] = useState<NotificationState>({
+    open: false,
+    message: '',
+    severity: 'info',
+  });
 
   // ==================== USER DATA - CENTRALIZED ACCESS ====================
   
@@ -163,7 +205,7 @@ const SlotMonitoring: React.FC = () => {
     
     console.log('👷 isOperator:', hasOperatorRole);
     return hasOperatorRole;
-  }, [userRoles, userPermissions]);
+  }, [userRoles]);
 
   /**
    * Check if user has validator role
@@ -175,7 +217,7 @@ const SlotMonitoring: React.FC = () => {
     
     console.log('✅ isValidator:', hasValidatorRole);
     return hasValidatorRole;
-  }, [userRoles, userPermissions]);
+  }, [userRoles]);
 
   /**
    * Check if user has any flow-related role
@@ -204,12 +246,6 @@ const SlotMonitoring: React.FC = () => {
    * Slot 12: 06:00-08:00  (last slot, ends when new operational day starts)
    * 
    * Rule: Select the slot whose time range is DIRECTLY BEFORE the current time
-   * 
-   * Examples:
-   * - Current time 09:30 → We're in Slot 1 (08:00-10:00) → Select Slot 12 (06:00-08:00)
-   * - Current time 14:30 → We're in Slot 4 (14:00-16:00) → Select Slot 3 (12:00-14:00)
-   * - Current time 16:23 → We're in Slot 5 (16:00-18:00) → Select Slot 4 (14:00-16:00) ✓
-   * - Current time 01:00 → We're in Slot 9 (00:00-02:00) → Select Slot 8 (22:00-24:00)
    */
   const getAutoSelectedSlotId = useCallback((): number => {
     const now = new Date();
@@ -220,12 +256,8 @@ const SlotMonitoring: React.FC = () => {
     let currentSlot: number;
     
     if (currentHour >= 8) {
-      // 08:00-23:59: Slots 1-8
-      // Hour 8-9 = Slot 1, Hour 10-11 = Slot 2, ..., Hour 22-23 = Slot 8
       currentSlot = Math.floor((currentHour - 8) / 2) + 1;
     } else {
-      // 00:00-07:59: Slots 9-12 (next day morning)
-      // Hour 0-1 = Slot 9, Hour 2-3 = Slot 10, Hour 4-5 = Slot 11, Hour 6-7 = Slot 12
       currentSlot = Math.floor(currentHour / 2) + 9;
     }
     
@@ -237,25 +269,10 @@ const SlotMonitoring: React.FC = () => {
       selectedSlot = 12;
     }
     
-    // Get display time ranges for logging
-    const getSlotTimeRange = (slotId: number): string => {
-      if (slotId >= 1 && slotId <= 8) {
-        const startHour = 8 + (slotId - 1) * 2;
-        const endHour = 8 + slotId * 2;
-        return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
-      } else {
-        const startHour = (slotId - 9) * 2;
-        const endHour = (slotId - 8) * 2;
-        return `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
-      }
-    };
-    
     console.log('🕐 Auto-selecting slot:', {
       currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`,
-      currentSlot: currentSlot,
-      currentSlotRange: getSlotTimeRange(currentSlot),
-      selectedSlot: selectedSlot,
-      selectedSlotRange: getSlotTimeRange(selectedSlot),
+      currentSlot,
+      selectedSlot,
       logic: 'Selecting slot directly BEFORE current time (operational day starts at 08:00)'
     });
     
@@ -267,11 +284,9 @@ const SlotMonitoring: React.FC = () => {
    */
   useEffect(() => {
     if (!isAdmin) {
-      // Auto-select current date
       const currentDate = new Date().toISOString().split('T')[0];
       setSelectedDate(currentDate);
       
-      // Auto-select slot based on current time
       const autoSlotId = getAutoSelectedSlotId();
       setSelectedSlotId(autoSlotId);
       
@@ -284,14 +299,10 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Calculate permissions for a pipeline based on user role and workflow status
-   * 
-   * @param pipeline - Pipeline coverage data
-   * @returns Permission flags for UI actions
    */
   const calculatePipelinePermissions = useCallback((pipeline: PipelineCoverageDTO): PipelinePermissions => {
     const statusCode = pipeline.validationStatus?.code || 'NOT_RECORDED';
 
-    // Default: no permissions
     const permissions: PipelinePermissions = {
       canEdit: false,
       canSubmit: false,
@@ -300,12 +311,9 @@ const SlotMonitoring: React.FC = () => {
 
     // OPERATORS: Can edit/submit readings
     if (isOperator) {
-      // Can edit if: NOT_RECORDED, DRAFT, or REJECTED
       if (statusCode === 'NOT_RECORDED' || statusCode === 'DRAFT' || statusCode === 'REJECTED') {
         permissions.canEdit = true;
       }
-
-      // Can submit if: DRAFT
       if (statusCode === 'DRAFT') {
         permissions.canSubmit = true;
       }
@@ -313,7 +321,6 @@ const SlotMonitoring: React.FC = () => {
 
     // VALIDATORS: Can approve/reject submitted readings
     if (isValidator) {
-      // Can validate if: SUBMITTED
       if (statusCode === 'SUBMITTED') {
         permissions.canValidate = true;
       }
@@ -322,13 +329,18 @@ const SlotMonitoring: React.FC = () => {
     return permissions;
   }, [isOperator, isValidator]);
 
+  // ==================== NOTIFICATION HELPER ====================
+
+  const showNotification = (message: string, severity: NotificationState['severity']) => {
+    setNotification({ open: true, message, severity });
+  };
+
   // ==================== DATA LOADING ====================
 
   /**
    * Load slot coverage from backend
    */
   const loadSlotCoverage = useCallback(async () => {
-    // Check if user has structure assigned via job
     if (!userStructureInfo.structureId) {
       setError(
         userStructureInfo.source === 'none'
@@ -376,7 +388,6 @@ const SlotMonitoring: React.FC = () => {
     
     console.log('✏️ Edit reading for pipeline:', pipeline.pipelineId, pipeline.pipeline?.code);
     
-    // Build route with query parameters for context
     if (statusCode === 'NOT_RECORDED') {
       // CREATE NEW READING
       navigate(`/flow/readings/new`, {
@@ -405,29 +416,46 @@ const SlotMonitoring: React.FC = () => {
           }
         });
       } else {
-        setError('Cannot edit: reading ID not found');
+        showNotification('Cannot edit: reading ID not found', 'error');
       }
     }
   };
 
   /**
    * Handle pipeline submit action
+   * Changes status from DRAFT to SUBMITTED using ReadingWorkflowService
    */
   const handleSubmit = async (pipeline: PipelineCoverageDTO) => {
     if (!pipeline.readingId || !userEmployeeId) {
-      setError(t('flow.monitoring.errors.submitMissing', 'Cannot submit: missing reading ID or employee ID'));
+      showNotification(t('flow.monitoring.errors.submitMissing', 'Cannot submit: missing reading ID or employee ID'), 'error');
       return;
     }
 
     try {
-      // TODO: Get actual reading data before submit
-      // For now, just reload coverage
-      console.log('📤 Submit reading for pipeline:', pipeline.pipelineId);
+      setLoading(true);
+      console.log('📤 Submitting reading for validation:', { 
+        readingId: pipeline.readingId, 
+        employeeId: userEmployeeId 
+      });
       
-      // Reload coverage
+      // Use workflow service to change status from DRAFT to SUBMITTED
+      await ReadingWorkflowService.validate(pipeline.readingId, userEmployeeId);
+      
+      showNotification(
+        t('flow.monitoring.messages.submitSuccess', 'Reading submitted for validation'),
+        'success'
+      );
+      
+      // Reload coverage to show updated status
       await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.message || t('flow.monitoring.errors.submitFailed', 'Failed to submit reading'));
+      console.error('❌ Error submitting reading:', err);
+      showNotification(
+        err.response?.data?.message || err.message || t('flow.monitoring.errors.submitFailed', 'Failed to submit reading'),
+        'error'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -437,7 +465,7 @@ const SlotMonitoring: React.FC = () => {
    */
   const handleApprove = (pipeline: PipelineCoverageDTO) => {
     if (!pipeline.readingId) {
-      setError(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID'));
+      showNotification(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID'), 'error');
       return;
     }
 
@@ -453,38 +481,76 @@ const SlotMonitoring: React.FC = () => {
         slotId: selectedSlotId,
         structureId: userStructureInfo.structureId,
         returnTo: '/flow/monitoring',
-        isValidation: true, // Flag to indicate validation mode
+        isValidation: true,
       }
     });
   };
 
   /**
-   * Handle pipeline reject action
+   * Handle pipeline reject action - Open dialog
    */
-  const handleReject = async (pipeline: PipelineCoverageDTO) => {
+  const handleReject = (pipeline: PipelineCoverageDTO) => {
     if (!pipeline.readingId || !userEmployeeId) {
-      setError(t('flow.monitoring.errors.rejectMissing', 'Cannot reject: missing reading ID or employee ID'));
+      showNotification(t('flow.monitoring.errors.rejectMissing', 'Cannot reject: missing reading ID or employee ID'), 'error');
       return;
     }
 
-    // TODO: Show dialog to capture rejection comments
-    const comments = prompt(t('flow.monitoring.prompts.rejectReason', 'Enter rejection reason:'));
-    if (!comments) return;
+    setRejectDialog({
+      open: true,
+      pipeline,
+      reason: '',
+    });
+  };
+
+  /**
+   * Confirm rejection with reason using ReadingWorkflowService
+   */
+  const confirmReject = async () => {
+    const { pipeline, reason } = rejectDialog;
+    
+    if (!pipeline?.readingId || !userEmployeeId) {
+      showNotification('Cannot reject: missing reading ID or employee ID', 'error');
+      return;
+    }
+
+    if (!reason.trim() || reason.trim().length < 5) {
+      showNotification(t('flow.monitoring.errors.rejectReasonRequired', 'Rejection reason must be at least 5 characters'), 'warning');
+      return;
+    }
 
     try {
-      await FlowMonitoringService.validateReading({
-        readingId: pipeline.readingId,
-        action: 'REJECT',
-        employeeId: userEmployeeId,
-        comments,
+      setLoading(true);
+      console.log('❌ Rejecting reading:', { 
+        readingId: pipeline.readingId, 
+        employeeId: userEmployeeId, 
+        reason: reason.trim() 
       });
 
-      console.log('❌ Reading rejected for pipeline:', pipeline.pipelineId);
+      // Use workflow service to reject reading
+      await ReadingWorkflowService.reject(
+        pipeline.readingId,
+        userEmployeeId,
+        reason.trim()
+      );
+
+      showNotification(
+        t('flow.monitoring.messages.rejectSuccess', 'Reading rejected'),
+        'success'
+      );
+      
+      // Close dialog and reset
+      setRejectDialog({ open: false, pipeline: null, reason: '' });
       
       // Reload coverage
       await loadSlotCoverage();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || t('flow.monitoring.errors.rejectFailed', 'Failed to reject reading'));
+      console.error('❌ Error rejecting reading:', err);
+      showNotification(
+        err.response?.data?.message || err.message || t('flow.monitoring.errors.rejectFailed', 'Failed to reject reading'),
+        'error'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -505,17 +571,6 @@ const SlotMonitoring: React.FC = () => {
       default:
         return structure.designationEn || structure.designationFr || structure.code;
     }
-  };
-
-  /**
-   * Format date as dd-mm-yyyy
-   */
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
   };
 
   /**
@@ -542,7 +597,7 @@ const SlotMonitoring: React.FC = () => {
                 {t('flow.monitoring.date', 'Date')}
               </Typography>
               <Typography variant="h6">
-                {formatDate(coverage.readingDate)}
+                {formatDate(coverage.readingDate, 'dd-MM-yyyy')}
               </Typography>
             </Grid>
 
@@ -554,10 +609,7 @@ const SlotMonitoring: React.FC = () => {
                 {getLocalizedDesignation(coverage.slot, currentLang)}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {formatSlotTimeRange(
-                  coverage.slot.startTime,
-                  coverage.slot.endTime
-                )}
+                {formatSlotTimeRange(coverage.slot.startTime, coverage.slot.endTime)}
               </Typography>
             </Grid>
 
@@ -567,9 +619,7 @@ const SlotMonitoring: React.FC = () => {
               </Typography>
               <Box display="flex" alignItems="center" gap={1} mt={0.5}>
                 <Chip
-                  label={formatCompletionPercentage(
-                    coverage.validationCompletionPercentage || 0
-                  )}
+                  label={formatCompletionPercentage(coverage.validationCompletionPercentage || 0)}
                   color={coverage.isSlotComplete ? 'success' : 'warning'}
                   size="small"
                 />
@@ -650,19 +700,7 @@ const SlotMonitoring: React.FC = () => {
           </TableHead>
           <TableBody>
             {coverage.pipelines.map((pipeline) => {
-              // Calculate permissions for this pipeline based on user role
               const permissions = calculatePipelinePermissions(pipeline);
-              
-              // Debug log for first pipeline
-              if (coverage.pipelines.indexOf(pipeline) === 0) {
-                console.log('🔍 First pipeline permissions:', {
-                  pipeline: pipeline.pipeline?.code,
-                  status: pipeline.validationStatus?.code,
-                  permissions,
-                  isOperator,
-                  isValidator,
-                });
-              }
 
               return (
                 <TableRow key={pipeline.pipelineId}>
@@ -723,6 +761,7 @@ const SlotMonitoring: React.FC = () => {
                             size="small"
                             color="primary"
                             onClick={() => handleEdit(pipeline)}
+                            disabled={loading}
                           >
                             <EditIcon fontSize="small" />
                           </IconButton>
@@ -735,6 +774,7 @@ const SlotMonitoring: React.FC = () => {
                             size="small"
                             color="warning"
                             onClick={() => handleSubmit(pipeline)}
+                            disabled={loading}
                           >
                             <SendIcon fontSize="small" />
                           </IconButton>
@@ -748,6 +788,7 @@ const SlotMonitoring: React.FC = () => {
                               size="small"
                               color="success"
                               onClick={() => handleApprove(pipeline)}
+                              disabled={loading}
                             >
                               <ApproveIcon fontSize="small" />
                             </IconButton>
@@ -758,6 +799,7 @@ const SlotMonitoring: React.FC = () => {
                               size="small"
                               color="error"
                               onClick={() => handleReject(pipeline)}
+                              disabled={loading}
                             >
                               <RejectIcon fontSize="small" />
                             </IconButton>
@@ -765,7 +807,6 @@ const SlotMonitoring: React.FC = () => {
                         </>
                       )}
                       
-                      {/* Show info if no permissions */}
                       {!permissions.canEdit && !permissions.canSubmit && !permissions.canValidate && (
                         <Typography variant="caption" color="text.secondary">
                           -
@@ -784,7 +825,6 @@ const SlotMonitoring: React.FC = () => {
 
   // ==================== MAIN RENDER ====================
 
-  // Show error if user has no structure assigned via job
   if (!userStructureInfo.structureId) {
     return (
       <Box sx={{ p: 3 }}>
@@ -802,7 +842,6 @@ const SlotMonitoring: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Access warning if no flow roles */}
       {!hasFlowRole && (
         <Alert severity="warning" icon={<WarningIcon />} sx={{ mb: 2 }}>
           <Typography variant="body2" fontWeight="bold">
@@ -810,19 +849,11 @@ const SlotMonitoring: React.FC = () => {
           </Typography>
           <Typography variant="body2">
             {t('flow.monitoring.warnings.noFlowRole.message', 
-              'You can view flow monitoring data, but you cannot create, edit, or validate readings. To perform these actions, you need one of the following roles:')}
-          </Typography>
-          <Box component="ul" sx={{ mt: 1, mb: 0, pl: 2 }}>
-            <li><Typography variant="body2">ROLE_OPERATOR or ROLE_FLOW_OPERATOR (to create/edit readings)</Typography></li>
-            <li><Typography variant="body2">ROLE_VALIDATOR, ROLE_FLOW_VALIDATOR, or ROLE_SUPERVISOR (to approve/reject readings)</Typography></li>
-          </Box>
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            {t('flow.monitoring.warnings.noFlowRole.contact', 'Contact your administrator to request the appropriate role.')}
+              'You can view flow monitoring data, but you cannot create, edit, or validate readings.')}
           </Typography>
         </Alert>
       )}
 
-      {/* Slot Auto-Selection Info for Non-Admins */}
       {!isAdmin && (
         <Alert severity="info" icon={<LockIcon />} sx={{ mb: 2 }}>
           <Typography variant="body2">
@@ -832,18 +863,15 @@ const SlotMonitoring: React.FC = () => {
         </Alert>
       )}
 
-      {/* Header with Title and Filters - Integrated in one row */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            {/* Page Title */}
             <Grid item xs={12} md={isAdmin ? 3 : 9}>
               <Typography variant="h4" component="h1">
                 {t('flow.monitoring.title', 'Slot Monitoring')}
               </Typography>
             </Grid>
 
-            {/* Admin Filters */}
             {isAdmin && (
               <>
                 <Grid item xs={12} md={3}>
@@ -875,7 +903,6 @@ const SlotMonitoring: React.FC = () => {
               </>
             )}
 
-            {/* Action Buttons */}
             <Grid item xs={12} md={3}>
               <Box display="flex" gap={1} justifyContent="flex-end">
                 <Tooltip title={t('flow.monitoring.actions.refresh', 'Refresh')}>
@@ -903,21 +930,18 @@ const SlotMonitoring: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Error Alert */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
 
-      {/* Loading */}
       {loading && (
         <Box display="flex" justifyContent="center" py={4}>
           <CircularProgress />
         </Box>
       )}
 
-      {/* Coverage Display */}
       {!loading && coverage && (
         <>
           {renderSlotHeader()}
@@ -925,6 +949,63 @@ const SlotMonitoring: React.FC = () => {
           {renderPipelineTable()}
         </>
       )}
+
+      {/* Rejection Dialog */}
+      <Dialog 
+        open={rejectDialog.open} 
+        onClose={() => !loading && setRejectDialog(prev => ({ ...prev, open: false }))}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>{t('flow.monitoring.dialogs.reject.title', 'Reject Reading')}</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label={t('flow.monitoring.dialogs.reject.reasonLabel', 'Rejection Reason')}
+            value={rejectDialog.reason}
+            onChange={(e) => setRejectDialog(prev => ({ ...prev, reason: e.target.value }))}
+            required
+            helperText={t('flow.monitoring.dialogs.reject.reasonHelper', 'Please provide a detailed reason (minimum 5 characters)')}
+            error={rejectDialog.reason.trim().length > 0 && rejectDialog.reason.trim().length < 5}
+            disabled={loading}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setRejectDialog({ open: false, pipeline: null, reason: '' })}
+            disabled={loading}
+          >
+            {t('common.cancel', 'Cancel')}
+          </Button>
+          <Button 
+            onClick={confirmReject} 
+            color="error" 
+            variant="contained"
+            disabled={loading || rejectDialog.reason.trim().length < 5}
+          >
+            {loading ? <CircularProgress size={20} /> : t('flow.monitoring.dialogs.reject.confirm', 'Confirm Rejection')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={() => setNotification(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setNotification(prev => ({ ...prev, open: false }))} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
