@@ -11,6 +11,7 @@
  * @updated 01-27-2026 - Updated validate/reject to use query params
  * @updated 01-28-2026 - Added slot-based query methods
  * @updated 01-28-2026 - Fixed getLatestByPipeline to handle wrapped responses
+ * @updated 02-11-2026 - Removed workflow methods (moved to ReadingWorkflowService)
  */
 
 import axiosInstance from '@/shared/config/axios';
@@ -172,53 +173,6 @@ export class FlowReadingService {
   }
 
   /**
-   * Validate flow reading
-   * Updates validation status to VALIDATED and sets validated timestamp
-   * 
-   * Backend endpoint: POST /flow/core/reading/{id}/validate?validatedById={employeeId}
-   */
-  static async validate(id: number, validatedById: number): Promise<FlowReadingDTO> {
-    const response = await axiosInstance.post<FlowReadingDTO>(
-      `${BASE_URL}/${id}/validate`,
-      null,
-      {
-        params: {
-          validatedById,
-        },
-      }
-    );
-    return response.data;
-  }
-
-  /**
-   * Reject flow reading
-   * Updates validation status to REJECTED and adds rejection notes
-   * 
-   * Backend endpoint: POST /flow/core/reading/{id}/reject?rejectedById={employeeId}&rejectionReason={reason}
-   * 
-   * @param id - Reading ID
-   * @param rejectedById - ID of employee rejecting the reading
-   * @param rejectionReason - Reason for rejection
-   */
-  static async reject(
-    id: number,
-    rejectedById: number,
-    rejectionReason: string
-  ): Promise<FlowReadingDTO> {
-    const response = await axiosInstance.post<FlowReadingDTO>(
-      `${BASE_URL}/${id}/reject`,
-      null,
-      {
-        params: {
-          rejectedById,
-          rejectionReason,
-        },
-      }
-    );
-    return response.data;
-  }
-
-  /**
    * Get flow readings with anomalies
    * Returns readings with values outside normal ranges
    */
@@ -272,7 +226,7 @@ export class FlowReadingService {
     return response.data;
   }
 
-  // ========== NEW: Slot-based query methods ==========
+  // ========== Slot-based query methods ==========
 
   /**
    * Get all readings for a specific pipeline on a specific date
@@ -367,4 +321,47 @@ export class FlowReadingService {
 
     return this.getByPipelineAndDateRange(pipelineId, startDate, endDate);
   }
+
+  // ========== WORKFLOW METHODS REMOVED ==========
+
+  /**
+   * ⚠️ DEPRECATED: Workflow methods moved to ReadingWorkflowService
+   * 
+   * The following methods were removed to maintain Single Responsibility Principle:
+   * 
+   * 1. validate(id: number, validatedById: number)
+   *    ❌ REMOVED from FlowReadingService
+   *    ✅ Use: ReadingWorkflowService.validate(id, validatedById)
+   *    📍 Path: POST /flow/core/workflow/readings/{id}/validate
+   *    📦 Import: import { ReadingWorkflowService } from '@/modules/flow/workflow/services';
+   * 
+   * 2. reject(id: number, rejectedById: number, rejectionReason: string)
+   *    ❌ REMOVED from FlowReadingService
+   *    ✅ Use: ReadingWorkflowService.reject(id, rejectedById, rejectionReason)
+   *    📍 Path: POST /flow/core/workflow/readings/{id}/reject
+   *    📦 Import: import { ReadingWorkflowService } from '@/modules/flow/workflow/services';
+   * 
+   * Backend Alignment:
+   * - Backend separated workflow operations on Feb 10, 2026
+   * - Old endpoints (/flow/core/reading/{id}/validate) were removed
+   * - New endpoints (/flow/core/workflow/readings/{id}/validate) created
+   * 
+   * Migration Example:
+   * ```typescript
+   * // ❌ OLD (will not work - endpoints removed from backend)
+   * import { FlowReadingService } from '@/modules/flow/core/services';
+   * await FlowReadingService.validate(123, 456);
+   * await FlowReadingService.reject(123, 456, 'Invalid data');
+   * 
+   * // ✅ NEW (correct implementation)
+   * import { ReadingWorkflowService } from '@/modules/flow/workflow/services';
+   * await ReadingWorkflowService.validate(123, 456);
+   * await ReadingWorkflowService.reject(123, 456, 'Invalid data');
+   * ```
+   * 
+   * Architecture:
+   * - FlowReadingService: CRUD operations only
+   * - ReadingWorkflowService: State transitions (validate, reject)
+   * - FlowMonitoringService: Analytics and monitoring queries
+   */
 }
