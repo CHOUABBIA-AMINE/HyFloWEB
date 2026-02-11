@@ -8,6 +8,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-11
+ * @updated 2026-02-11 - Renamed getSeverityColor to avoid conflict with common/dto/SeverityDTO
  * @package flow/intelligence/dto/monitoring
  */
 
@@ -90,9 +91,10 @@ export interface OverdueReadingDTO {
 }
 
 /**
- * Get severity color for UI display
+ * Get severity color for UI display (overdue-specific)
+ * Renamed from getSeverityColor to avoid conflict with common/dto/SeverityDTO
  */
-export const getSeverityColor = (
+export const getOverdueSeverityColor = (
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM'
 ): 'error' | 'warning' | 'info' => {
   switch (severity) {
@@ -106,9 +108,9 @@ export const getSeverityColor = (
 };
 
 /**
- * Get severity label
+ * Get severity label for overdue readings
  */
-export const getSeverityLabel = (
+export const getOverdueSeverityLabel = (
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM',
   lang: 'en' | 'fr' | 'ar' = 'en'
 ): string => {
