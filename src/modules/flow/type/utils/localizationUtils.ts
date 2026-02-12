@@ -18,18 +18,18 @@ export type Language = 'ar' | 'fr' | 'en';
 /**
  * Get localized name from OperationTypeDTO based on current language
  */
-export function getLocalizedOperationTypeName(
+export function getLocalizedOperationTypeDesignation(
   operationType: OperationTypeDTO,
   language: Language = 'fr'
 ): string {
   switch (language) {
     case 'ar':
-      return operationType.nameAr || operationType.nameFr || operationType.nameEn || '';
+      return operationType.designationAr || operationType.designationFr || operationType.designationEn || '';
     case 'en':
-      return operationType.nameEn || operationType.nameFr || operationType.nameAr || '';
+      return operationType.designationEn || operationType.designationFr || operationType.designationAr || '';
     case 'fr':
     default:
-      return operationType.nameFr || operationType.nameEn || operationType.nameAr || '';
+      return operationType.designationFr || operationType.designationEn || operationType.designationAr || '';
   }
 }
 
@@ -56,9 +56,9 @@ export function getLocalizedEventTypeDesignation(
  */
 export function hasAllOperationTypeTranslations(operationType: OperationTypeDTO): boolean {
   return !!(
-    operationType.nameFr &&
-    operationType.nameEn &&
-    operationType.nameAr
+    operationType.designationFr &&
+    operationType.designationEn &&
+    operationType.designationAr
   );
 }
 
@@ -78,9 +78,9 @@ export function hasAllEventTypeTranslations(eventType: EventTypeDTO): boolean {
  */
 export function getMissingOperationTypeTranslations(operationType: OperationTypeDTO): Language[] {
   const missing: Language[] = [];
-  if (!operationType.nameFr) missing.push('fr');
-  if (!operationType.nameEn) missing.push('en');
-  if (!operationType.nameAr) missing.push('ar');
+  if (!operationType.designationFr) missing.push('fr');
+  if (!operationType.designationEn) missing.push('en');
+  if (!operationType.designationAr) missing.push('ar');
   return missing;
 }
 

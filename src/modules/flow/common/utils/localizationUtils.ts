@@ -105,8 +105,6 @@ export const ValidationStatusUtils = {
 export const AlertStatusUtils = {
   getDesignation: (entity: AlertStatusDTO, language: Language = 'fr') =>
     getLocalizedDesignation(entity, language),
-  getDescription: (entity: AlertStatusDTO, language: Language = 'fr') =>
-    getLocalizedDescription(entity, language),
   hasAllTranslations: (entity: AlertStatusDTO) => hasAllTranslations(entity),
   getMissingTranslations: (entity: AlertStatusDTO) => getMissingTranslations(entity),
 };

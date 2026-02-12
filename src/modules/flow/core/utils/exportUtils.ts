@@ -94,7 +94,6 @@ export function exportAlertsToCSV(alerts: FlowAlertDTO[]): string {
   const rows = alerts.map(alert => [
     alert.id || '',
     formatDateTime(alert.alertTimestamp),
-    alert.status?.code || '',
     alert.threshold?.id?.toString() || '',
     alert.actualValue !== null && alert.actualValue !== undefined ? alert.actualValue.toString() : '',
     alert.thresholdValue !== null && alert.thresholdValue !== undefined ? alert.thresholdValue.toString() : '',

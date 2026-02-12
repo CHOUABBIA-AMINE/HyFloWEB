@@ -400,7 +400,7 @@ export const ForecastList: React.FC = () => {
         <DialogContent>
           <DialogContentText>
             {t('flow.forecast.deleteConfirm', {
-              type: forecastToDelete?.operationType?.nameFr || forecastToDelete?.operationType?.code || '',
+              type: forecastToDelete?.operationType?.designationFr || forecastToDelete?.operationType?.code || '',
               infrastructure: forecastToDelete?.infrastructure?.code || '',
               date: forecastToDelete?.forecastDate || ''
             })}
