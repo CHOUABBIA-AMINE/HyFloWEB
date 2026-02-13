@@ -13,6 +13,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-11
+ * @updated 2026-02-14 00:48 - Improved error logging to show actual backend error details
  * @updated 2026-02-14 00:43 - Fixed: Backend endpoint is /flow/workflow/reading (not /flow/core/workflow/readings)
  * @package flow/workflow/services
  */
@@ -66,7 +67,8 @@ export class ReadingWorkflowService {
     }
     
     try {
-      // ✅ FIXED: Endpoint is /{id}/validate (not /readings/{id}/validate)
+      console.log('🔄 Validating reading:', { id, validatedById });
+      
       const response = await axiosInstance.post<FlowReadingDTO>(
         `${BASE_URL}/${id}/validate`,
         null, // No request body
@@ -75,26 +77,60 @@ export class ReadingWorkflowService {
         }
       );
       
+      console.log('✅ Reading validated successfully:', response.data);
       return response.data;
     } catch (error: any) {
+      // ✅ IMPROVED: Log full error for debugging
+      console.error('❌ Validation error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        fullError: error,
+      });
+      
       // Enhanced error handling
       if (error.response) {
         const status = error.response.status;
-        const message = error.response.data?.message || error.message;
+        const errorData = error.response.data;
+        
+        // Extract error message from various possible formats
+        let message = 'An unexpected error occurred';
+        
+        if (typeof errorData === 'string') {
+          message = errorData;
+        } else if (errorData?.message) {
+          message = errorData.message;
+        } else if (errorData?.error) {
+          message = errorData.error;
+        } else if (errorData?.details) {
+          message = errorData.details;
+        }
+        
+        // Include validation errors if present
+        if (errorData?.validationErrors) {
+          const validationErrors = Object.entries(errorData.validationErrors)
+            .map(([field, error]) => `${field}: ${error}`)
+            .join(', ');
+          message = `${message}. Validation errors: ${validationErrors}`;
+        }
         
         switch (status) {
           case 400:
-            throw new Error(`Validation failed: ${message}`);
+            throw new Error(`Validation failed (400): ${message}`);
           case 404:
-            throw new Error('Reading or employee not found');
+            throw new Error(`Not found (404): ${message}`);
           case 409:
-            throw new Error(`Cannot validate: ${message}`);
+            throw new Error(`Cannot validate (409): ${message}`);
+          case 500:
+            throw new Error(`Server error (500): ${message}`);
           default:
-            throw new Error(`Validation error: ${message}`);
+            throw new Error(`Validation error (${status}): ${message}`);
         }
       }
       
-      throw error;
+      // Network or other error
+      throw new Error(`Network error: ${error.message || 'Unable to connect to server'}`);
     }
   }
   
@@ -155,7 +191,8 @@ export class ReadingWorkflowService {
     }
     
     try {
-      // ✅ FIXED: Endpoint is /{id}/reject (not /readings/{id}/reject)
+      console.log('🔄 Rejecting reading:', { id, rejectedById, reason: rejectionReason.trim() });
+      
       const response = await axiosInstance.post<FlowReadingDTO>(
         `${BASE_URL}/${id}/reject`,
         null, // No request body
@@ -167,26 +204,60 @@ export class ReadingWorkflowService {
         }
       );
       
+      console.log('✅ Reading rejected successfully:', response.data);
       return response.data;
     } catch (error: any) {
+      // ✅ IMPROVED: Log full error for debugging
+      console.error('❌ Rejection error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        fullError: error,
+      });
+      
       // Enhanced error handling
       if (error.response) {
         const status = error.response.status;
-        const message = error.response.data?.message || error.message;
+        const errorData = error.response.data;
+        
+        // Extract error message from various possible formats
+        let message = 'An unexpected error occurred';
+        
+        if (typeof errorData === 'string') {
+          message = errorData;
+        } else if (errorData?.message) {
+          message = errorData.message;
+        } else if (errorData?.error) {
+          message = errorData.error;
+        } else if (errorData?.details) {
+          message = errorData.details;
+        }
+        
+        // Include validation errors if present
+        if (errorData?.validationErrors) {
+          const validationErrors = Object.entries(errorData.validationErrors)
+            .map(([field, error]) => `${field}: ${error}`)
+            .join(', ');
+          message = `${message}. Validation errors: ${validationErrors}`;
+        }
         
         switch (status) {
           case 400:
-            throw new Error(`Rejection failed: ${message}`);
+            throw new Error(`Rejection failed (400): ${message}`);
           case 404:
-            throw new Error('Reading or employee not found');
+            throw new Error(`Not found (404): ${message}`);
           case 409:
-            throw new Error(`Cannot reject: ${message}`);
+            throw new Error(`Cannot reject (409): ${message}`);
+          case 500:
+            throw new Error(`Server error (500): ${message}`);
           default:
-            throw new Error(`Rejection error: ${message}`);
+            throw new Error(`Rejection error (${status}): ${message}`);
         }
       }
       
-      throw error;
+      // Network or other error
+      throw new Error(`Network error: ${error.message || 'Unable to connect to server'}`);
     }
   }
   
