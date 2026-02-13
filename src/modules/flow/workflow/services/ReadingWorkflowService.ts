@@ -13,20 +13,22 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-11
+ * @updated 2026-02-14 00:43 - Fixed: Backend endpoint is /flow/workflow/reading (not /flow/core/workflow/readings)
  * @package flow/workflow/services
  */
 
 import axiosInstance from '@/shared/config/axios';
 import type { FlowReadingDTO } from '../../core/dto/FlowReadingDTO';
 
-const BASE_URL = '/flow/core/workflow';  // ✅ Updated path (not /flow/core/reading)
+// ✅ FIXED: Backend path is /flow/workflow/reading (singular, no 'core')
+const BASE_URL = '/flow/workflow/reading';
 
 export class ReadingWorkflowService {
   
   /**
    * Validate a submitted reading
    * 
-   * Endpoint: POST /flow/core/workflow/readings/{id}/validate?validatedById={employeeId}
+   * Endpoint: POST /flow/workflow/reading/{id}/validate?validatedById={employeeId}
    * Workflow: SUBMITTED → VALIDATED
    * 
    * Backend behavior:
@@ -64,8 +66,9 @@ export class ReadingWorkflowService {
     }
     
     try {
+      // ✅ FIXED: Endpoint is /{id}/validate (not /readings/{id}/validate)
       const response = await axiosInstance.post<FlowReadingDTO>(
-        `${BASE_URL}/readings/${id}/validate`,
+        `${BASE_URL}/${id}/validate`,
         null, // No request body
         {
           params: { validatedById },
@@ -98,7 +101,7 @@ export class ReadingWorkflowService {
   /**
    * Reject a submitted reading
    * 
-   * Endpoint: POST /flow/core/workflow/readings/{id}/reject?rejectedById={employeeId}&rejectionReason={reason}
+   * Endpoint: POST /flow/workflow/reading/{id}/reject?rejectedById={employeeId}&rejectionReason={reason}
    * Workflow: SUBMITTED → REJECTED
    * 
    * Backend behavior:
@@ -152,8 +155,9 @@ export class ReadingWorkflowService {
     }
     
     try {
+      // ✅ FIXED: Endpoint is /{id}/reject (not /readings/{id}/reject)
       const response = await axiosInstance.post<FlowReadingDTO>(
-        `${BASE_URL}/readings/${id}/reject`,
+        `${BASE_URL}/${id}/reject`,
         null, // No request body
         {
           params: {
