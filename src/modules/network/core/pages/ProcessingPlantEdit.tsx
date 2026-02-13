@@ -9,19 +9,21 @@
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-18-2026 - Fixed all hardcoded designationEn references to use i18n-based designation selector
  * @updated 01-18-2026 - Changed location selector from dropdown to Autocomplete with search
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, Typography, TextField, Button, CircularProgress, Alert,
+  Box, Typography, TextField, CircularProgress, Alert,
   Grid, Paper, Divider, Stack, MenuItem, Chip,
-  Card, CardContent, Tabs, Tab, IconButton, Autocomplete
+  Card, CardContent, Tabs, Tab, IconButton, Autocomplete, Tooltip
 } from '@mui/material';
 import {
-  Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
-  LocationOn as LocationIcon, Refresh as RefreshIcon, Edit as EditIcon
+  Save as SaveIcon, Close as CloseIcon,
+  LocationOn as LocationIcon, Refresh as RefreshIcon, Edit as EditIcon,
+  Factory as PlantIcon
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { ProcessingPlantService, ProductionFieldService } from '../services';
@@ -267,8 +269,8 @@ const ProcessingPlantEdit = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!validateForm()) return;
 
     try {
@@ -302,6 +304,10 @@ const ProcessingPlantEdit = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/network/core/processing-plants');
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
@@ -381,24 +387,53 @@ const ProcessingPlantEdit = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Button startIcon={<BackIcon />} onClick={() => navigate('/network/core/processing-plants')} sx={{ mb: 2 }}>
-          {t('common.back')}
-        </Button>
-        <Typography variant="h4" fontWeight={700}>
-          {isEditMode 
-            ? t('common.page.editTitle', { entity: t('processingPlant.title') })
-            : t('common.page.createTitle', { entity: t('processingPlant.title') })
-          }
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode 
-            ? t('common.page.editSubtitle', { entity: t('processingPlant.title') })
-            : t('common.page.createSubtitle', { entity: t('processingPlant.title') })
-          }
-        </Typography>
-      </Box>
+    <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <PlantIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {isEditMode 
+                    ? t('common.page.editTitle', { entity: t('processingPlant.title') })
+                    : t('common.page.createTitle', { entity: t('processingPlant.title') })
+                  }
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {isEditMode 
+                    ? t('common.page.editSubtitle', { entity: t('processingPlant.title') })
+                    : t('common.page.createSubtitle', { entity: t('processingPlant.title') })
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving || structures.length === 0 || locations.length === 0 || processingPlantTypes.length === 0}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
 
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
 
@@ -490,13 +525,13 @@ const ProcessingPlantEdit = () => {
                   </Box>
                 </Paper>
 
+                {/* Location section - same as TerminalEdit, truncated for brevity */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
                       {t('common.sections.locationInformation')}
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
-                    
                     <Grid container spacing={3}>
                       <Grid item xs={12}>
                         <Autocomplete
@@ -554,14 +589,12 @@ const ProcessingPlantEdit = () => {
                           loadingText={t('common.loading')}
                         />
                       </Grid>
-
                       {selectedLocation && (
                         <Grid item xs={12}>
                           <Paper variant="outlined" sx={{ p: 1.5, bgcolor: 'grey.50', borderStyle: 'dashed' }}>
                             <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1, fontWeight: 600 }}>
                               📍 {t('processingPlant.selectedLocation')}
                             </Typography>
-                            
                             <Grid container spacing={1.5} alignItems="flex-end">
                               <Grid item xs={6} sm={3} md={2}>
                                 <Typography variant="caption" color="text.secondary">{t('common.fields.place')}</Typography>
@@ -569,7 +602,6 @@ const ProcessingPlantEdit = () => {
                                   {getLocalizedDesignation(selectedLocation)}
                                 </Typography>
                               </Grid>
-
                               {selectedLocation.locality && (
                                 <Grid item xs={6} sm={3} md={2}>
                                   <Typography variant="caption" color="text.secondary">{t('common.fields.locality')}</Typography>
@@ -578,7 +610,6 @@ const ProcessingPlantEdit = () => {
                                   </Typography>
                                 </Grid>
                               )}
-
                               {selectedLocation.locality?.district && (
                                 <Grid item xs={6} sm={3} md={2}>
                                   <Typography variant="caption" color="text.secondary">{t('common.fields.district')}</Typography>
@@ -587,7 +618,6 @@ const ProcessingPlantEdit = () => {
                                   </Typography>
                                 </Grid>
                               )}
-
                               {selectedLocation.locality?.district?.state && (
                                 <Grid item xs={6} sm={3} md={2}>
                                   <Typography variant="caption" color="text.secondary">{t('common.fields.state')}</Typography>
@@ -596,7 +626,6 @@ const ProcessingPlantEdit = () => {
                                   </Typography>
                                 </Grid>
                               )}
-
                               <Grid item xs={4} sm={3} md={1.5}>
                                 <Typography variant="caption" color="text.secondary">{t('common.fields.latitude')}</Typography>
                                 <Typography variant="body2" fontSize="0.875rem">{selectedLocation.latitude.toFixed(6)}°</Typography>
@@ -764,29 +793,6 @@ const ProcessingPlantEdit = () => {
           </TabPanel>
         </CardContent>
       </Card>
-
-      <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-        <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button
-            variant="outlined" startIcon={<CancelIcon />}
-            onClick={() => navigate('/network/core/processing-plants')}
-            disabled={saving}
-            size="large"
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button
-            type="submit" variant="contained"
-            startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-            onClick={handleSubmit}
-            disabled={saving || structures.length === 0 || locations.length === 0 || processingPlantTypes.length === 0}
-            size="large"
-            sx={{ minWidth: 150 }}
-          >
-            {saving ? t('common.saving') : t('common.save')}
-          </Button>
-        </Box>
-      </Paper>
     </Box>
   );
 };
