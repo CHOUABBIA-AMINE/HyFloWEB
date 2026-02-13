@@ -8,6 +8,7 @@
  * @created 01-28-2026
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume column
+ * @updated 02-13-2026 - UI: Containerized header and updated button to IconButton style
  */
 
 import React, { useState, useEffect } from 'react';
@@ -40,6 +41,8 @@ import {
   InputAdornment,
   Switch,
   FormControlLabel,
+  Paper,
+  Stack,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -254,23 +257,33 @@ export const ThresholdList: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h4">{t('flow.threshold.title')}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('flow.threshold.subtitle')}
-          </Typography>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {t('flow.threshold.title')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('flow.threshold.subtitle')}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('action.refresh', 'Refresh')}>
+                <IconButton onClick={loadThresholds} size="medium" color="primary">
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('flow.threshold.new')}>
+                <IconButton onClick={handleCreate} size="medium" color="primary">
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleCreate}
-        >
-          {t('flow.threshold.new')}
-        </Button>
-      </Box>
+      </Paper>
 
       {/* Success/Error Alerts */}
       {error && (
@@ -348,13 +361,6 @@ export const ThresholdList: React.FC = () => {
 
           {/* Filter Actions */}
           <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={loadThresholds}
-            >
-              {t('flow.threshold.filters.refresh')}
-            </Button>
             {hasActiveFilters && (
               <Button
                 variant="outlined"
