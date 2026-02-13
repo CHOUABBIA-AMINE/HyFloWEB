@@ -13,6 +13,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-11
+ * @updated 2026-02-14 00:50 - Deep log error.response.data to show nested backend errors
  * @updated 2026-02-14 00:48 - Improved error logging to show actual backend error details
  * @updated 2026-02-14 00:43 - Fixed: Backend endpoint is /flow/workflow/reading (not /flow/core/workflow/readings)
  * @package flow/workflow/services
@@ -80,14 +81,17 @@ export class ReadingWorkflowService {
       console.log('✅ Reading validated successfully:', response.data);
       return response.data;
     } catch (error: any) {
-      // ✅ IMPROVED: Log full error for debugging
+      // ✅ IMPROVED: Separate logging for better visibility
       console.error('❌ Validation error:', {
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data,
         message: error.message,
-        fullError: error,
       });
+      
+      // Log response data separately so it's not collapsed
+      if (error.response?.data) {
+        console.error('📦 Backend error details:', error.response.data);
+      }
       
       // Enhanced error handling
       if (error.response) {
@@ -105,6 +109,9 @@ export class ReadingWorkflowService {
           message = errorData.error;
         } else if (errorData?.details) {
           message = errorData.details;
+        } else if (errorData?.trace) {
+          // Java stack trace might be in 'trace' field
+          message = `Backend exception: ${errorData.trace.split('\n')[0]}`;
         }
         
         // Include validation errors if present
@@ -207,14 +214,17 @@ export class ReadingWorkflowService {
       console.log('✅ Reading rejected successfully:', response.data);
       return response.data;
     } catch (error: any) {
-      // ✅ IMPROVED: Log full error for debugging
+      // ✅ IMPROVED: Separate logging for better visibility
       console.error('❌ Rejection error:', {
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data,
         message: error.message,
-        fullError: error,
       });
+      
+      // Log response data separately so it's not collapsed
+      if (error.response?.data) {
+        console.error('📦 Backend error details:', error.response.data);
+      }
       
       // Enhanced error handling
       if (error.response) {
@@ -232,6 +242,9 @@ export class ReadingWorkflowService {
           message = errorData.error;
         } else if (errorData?.details) {
           message = errorData.details;
+        } else if (errorData?.trace) {
+          // Java stack trace might be in 'trace' field
+          message = `Backend exception: ${errorData.trace.split('\n')[0]}`;
         }
         
         // Include validation errors if present
