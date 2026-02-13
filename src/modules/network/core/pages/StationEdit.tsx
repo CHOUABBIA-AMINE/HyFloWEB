@@ -10,18 +10,20 @@
  * @updated 01-16-2026 - Moved Structure field before Location section
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-19-2026 - Fixed i18n for location references and converted to Autocomplete
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Box, Typography, TextField, Button, CircularProgress, Alert,
-  Grid, Paper, Divider, Stack, MenuItem, Chip, Autocomplete
+  Box, Typography, TextField, CircularProgress, Alert,
+  Grid, Paper, Divider, Stack, MenuItem, Chip, Autocomplete,
+  IconButton, Tooltip
 } from '@mui/material';
 import {
-  Save as SaveIcon, Cancel as CancelIcon, ArrowBack as BackIcon,
-  LocationOn as LocationIcon,
+  Save as SaveIcon, Close as CloseIcon,
+  LocationOn as LocationIcon, AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
 import { StationService, PipelineSystemService } from '../services';
 import { VendorService, OperationalStatusService } from '../../common/services';
@@ -40,7 +42,6 @@ const StationEdit = () => {
 
   const currentLanguage = i18n.language || 'en';
 
-  // Utility function to get localized designation based on current language
   const getLocalizedDesignation = (entity: any): string => {
     if (!entity) return '';
     
@@ -48,7 +49,6 @@ const StationEdit = () => {
       : currentLanguage === 'fr' ? 'designationFr' 
       : 'designationEn';
     
-    // Return selected language designation or fallback to designationFr, then code
     return entity[designationKey] || entity.designationFr || entity.code || '';
   };
 
@@ -205,8 +205,8 @@ const StationEdit = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!validateForm()) return;
 
     try {
@@ -244,6 +244,10 @@ const StationEdit = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/network/core/stations');
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
@@ -253,24 +257,53 @@ const StationEdit = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Button startIcon={<BackIcon />} onClick={() => navigate('/network/core/stations')} sx={{ mb: 2 }}>
-          {t('common.back')}
-        </Button>
-        <Typography variant="h4" fontWeight={700}>
-          {isEditMode 
-            ? t('common.page.editTitle', { entity: t('station.title') })
-            : t('common.page.createTitle', { entity: t('station.title') })
-          }
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode 
-            ? t('common.page.editSubtitle', { entity: t('station.title') })
-            : t('common.page.createSubtitle', { entity: t('station.title') })
-          }
-        </Typography>
-      </Box>
+    <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <AccountTreeIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {isEditMode 
+                    ? t('common.page.editTitle', { entity: t('station.title') })
+                    : t('common.page.createTitle', { entity: t('station.title') })
+                  }
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {isEditMode 
+                    ? t('common.page.editSubtitle', { entity: t('station.title') })
+                    : t('common.page.createSubtitle', { entity: t('station.title') })
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving || locations.length === 0}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
 
       {error && <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>{error}</Alert>}
       {locations.length === 0 && (
@@ -580,20 +613,6 @@ const StationEdit = () => {
                   />
                 </Grid>
               </Grid>
-            </Box>
-          </Paper>
-
-          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-            <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button variant="outlined" startIcon={<CancelIcon />}
-                onClick={() => navigate('/network/core/stations')} disabled={saving} size="large">
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" variant="contained"
-                startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving || locations.length === 0} size="large" sx={{ minWidth: 150 }}>
-                {saving ? t('common.saving') : t('common.save')}
-              </Button>
             </Box>
           </Paper>
         </Stack>
