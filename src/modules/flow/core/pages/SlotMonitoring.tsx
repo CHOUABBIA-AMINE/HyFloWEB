@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-13 - Fixed: TypeScript errors (null safety, draft→drafts, optional chaining)
  * @updated 2026-02-11 13:20 - Fixed: Use SlotCoverageService and correct DTO imports
  * @updated 2026-02-11 13:00 - Integrate ReadingWorkflowService, replace browser prompt with dialog
  * @updated 2026-02-11 13:00 - Use centralized date formatting from shared/utils
@@ -612,10 +613,10 @@ const SlotMonitoring: React.FC = () => {
                 {t('flow.monitoring.slot', 'Slot')}
               </Typography>
               <Typography variant="h6">
-                {getLocalizedDesignation(coverage.slot, currentLang)}
+                {coverage.slot ? getLocalizedDesignation(coverage.slot, currentLang) : '-'}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {formatSlotTimeRange(coverage.slot.startTime, coverage.slot.endTime)}
+                {coverage.slot ? formatSlotTimeRange(coverage.slot.startTime, coverage.slot.endTime) : '-'}
               </Typography>
             </Grid>
 
@@ -651,7 +652,7 @@ const SlotMonitoring: React.FC = () => {
 
     const summaryItems = [
       { label: t('flow.monitoring.summary.total', 'Total Pipelines'), value: coverage.summary.totalPipelines, color: 'primary' },
-      { label: t('flow.monitoring.summary.recorded', 'Draft'), value: coverage.summary.draft, color: 'info' },
+      { label: t('flow.monitoring.summary.recorded', 'Draft'), value: coverage.summary.drafts, color: 'info' },
       { label: t('flow.monitoring.summary.submitted', 'Submitted'), value: coverage.summary.submitted, color: 'warning' },
       { label: t('flow.monitoring.summary.approved', 'Approved'), value: coverage.summary.approved, color: 'success' },
       { label: t('flow.monitoring.summary.rejected', 'Rejected'), value: coverage.summary.rejected, color: 'error' },
@@ -707,10 +708,10 @@ const SlotMonitoring: React.FC = () => {
               const permissions = calculatePipelinePermissions(pipeline);
 
               return (
-                <TableRow key={pipeline.pipeline.id}>
+                <TableRow key={pipeline.pipeline?.id || pipeline.pipelineId}>
                   <TableCell>
                     <Typography variant="body2" fontWeight="medium">
-                      {pipeline.pipeline?.code || `Pipeline ${pipeline.pipeline.id}`}
+                      {pipeline.pipeline?.code || `Pipeline ${pipeline.pipeline?.id || pipeline.pipelineId}`}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {getPipelineDisplayName(pipeline, currentLang)}
