@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-03
+ * @updated 2026-02-14 00:19 - Fixed: Extract status from validationStatus.code in backend response
  * @updated 2026-02-13 23:29 - Fixed: Aligned with backend path '/flow/intelligence/coverage'
  * @updated 2026-02-13 - Fixed: Changed 'draft' to 'drafts' to match DTO
  * @updated 2026-02-11 21:50 - Added response transformation to map backend fields to frontend DTO
@@ -82,7 +83,7 @@ export class SlotCoverageService {
    * @param slotNumber - Slot number (1-12)
    * @param structureId - Structure/organization unit ID
    * @returns Complete slot coverage with permissions
-   * 
+ * 
    * @example
    * ```typescript
    * const coverage = await SlotCoverageService.getSlotCoverage(
@@ -114,6 +115,33 @@ export class SlotCoverageService {
 
       const backendData = response.data;
 
+      // ✅ FIXED: Extract status from validationStatus.code in pipeline items
+      const transformedPipelines = (backendData.pipelines || []).map((item: any) => {
+        // Extract status from validationStatus if present
+        let status: ReadingStatus = 'NOT_RECORDED';
+        
+        if (item.reading) {
+          // Reading exists - check validationStatus
+          if (item.validationStatus?.code) {
+            status = item.validationStatus.code as ReadingStatus;
+          } else if (item.reading.validationStatus?.code) {
+            // Fallback: check nested in reading object
+            status = item.reading.validationStatus.code as ReadingStatus;
+          } else if (item.status) {
+            // Fallback: use direct status field if present
+            status = item.status as ReadingStatus;
+          } else {
+            // Default to DRAFT if reading exists but no status
+            status = 'DRAFT';
+          }
+        }
+        
+        return {
+          ...item,
+          status, // ✅ Add explicit status field extracted from validationStatus
+        } as PipelineCoverageItemDTO;
+      });
+
       // Transform backend response to frontend semantic DTO
       const transformedData: SlotCoverageDTO = {
         // Map readingDate → date (simpler, context is obvious)
@@ -123,7 +151,7 @@ export class SlotCoverageService {
         structure: backendData.structure,
         
         // Map pipelines → pipelineCoverage (semantic: describes coverage, not just entities)
-        pipelineCoverage: backendData.pipelines || [],
+        pipelineCoverage: transformedPipelines,
         
         // Build summary object from individual counts
         summary: {
@@ -151,11 +179,18 @@ export class SlotCoverageService {
           readingDate: backendData.readingDate,
           pipelines: backendData.pipelines?.length,
           missingCount: backendData.missingCount,
+          samplePipeline: backendData.pipelines?.[0],
         },
         frontend: {
           date: transformedData.date,
           pipelineCoverage: transformedData.pipelineCoverage.length,
           notRecorded: transformedData.summary.notRecorded,
+          pipelineStatuses: transformedData.pipelineCoverage.map(p => ({
+            code: p.pipeline?.code,
+            status: p.status,
+            hasReading: !!p.reading,
+            validationStatusCode: p.validationStatus?.code,
+          })),
         },
       });
 
@@ -186,12 +221,33 @@ export class SlotCoverageService {
       
       const backendData = response.data;
       
-      // Apply same transformation
+      // ✅ Apply same transformation with status extraction
+      const transformedPipelines = (backendData.pipelines || []).map((item: any) => {
+        let status: ReadingStatus = 'NOT_RECORDED';
+        
+        if (item.reading) {
+          if (item.validationStatus?.code) {
+            status = item.validationStatus.code as ReadingStatus;
+          } else if (item.reading.validationStatus?.code) {
+            status = item.reading.validationStatus.code as ReadingStatus;
+          } else if (item.status) {
+            status = item.status as ReadingStatus;
+          } else {
+            status = 'DRAFT';
+          }
+        }
+        
+        return {
+          ...item,
+          status,
+        } as PipelineCoverageItemDTO;
+      });
+      
       return {
         date: backendData.readingDate,
         slot: backendData.slot,
         structure: backendData.structure,
-        pipelineCoverage: backendData.pipelines || [],
+        pipelineCoverage: transformedPipelines,
         summary: {
           totalPipelines: backendData.totalPipelines || 0,
           notRecorded: backendData.missingCount || 0,
