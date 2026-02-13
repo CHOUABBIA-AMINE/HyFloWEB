@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-13 23:46 - Fixed: Force refresh after recording to update pipeline status
  * @updated 2026-02-13 - Fixed: TypeScript errors (null safety, draft→drafts, optional chaining)
  * @updated 2026-02-11 13:20 - Fixed: Use SlotCoverageService and correct DTO imports
  * @updated 2026-02-11 13:00 - Integrate ReadingWorkflowService, replace browser prompt with dialog
@@ -345,8 +346,9 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Load slot coverage from backend using SlotCoverageService
+   * ✅ FIXED: Clear coverage state before reload to force refresh
    */
-  const loadSlotCoverage = useCallback(async () => {
+  const loadSlotCoverage = useCallback(async (forceRefresh: boolean = false) => {
     if (!userStructureInfo.structureId) {
       setError(
         userStructureInfo.source === 'none'
@@ -358,8 +360,16 @@ const SlotMonitoring: React.FC = () => {
 
     setLoading(true);
     setError(null);
+    
+    // ✅ Clear coverage to show loading state
+    if (forceRefresh) {
+      console.log('🔄 Force refresh - clearing coverage state');
+      setCoverage(null);
+    }
 
     try {
+      console.log('🔄 Loading slot coverage:', { date: selectedDate, slot: selectedSlotId, structure: userStructureInfo.structureId });
+      
       // ✅ FIXED: Use SlotCoverageService.getSlotCoverage()
       const response = await SlotCoverageService.getSlotCoverage(
         selectedDate,
@@ -367,8 +377,18 @@ const SlotMonitoring: React.FC = () => {
         userStructureInfo.structureId
       );
 
+      console.log('📊 Slot coverage loaded:', {
+        pipelines: response.pipelineCoverage.length,
+        summary: response.summary,
+        pipelineStatuses: response.pipelineCoverage.map(p => ({
+          id: p.pipeline?.id,
+          code: p.pipeline?.code,
+          status: p.status,
+          hasReading: !!p.reading
+        }))
+      });
+      
       setCoverage(response);
-      console.log('📊 Slot coverage loaded:', response.pipelineCoverage.length, 'pipelines');
     } catch (err: any) {
       setError(err.message || t('flow.monitoring.errors.loadFailed', 'Failed to load slot coverage'));
       console.error('❌ Error loading slot coverage:', err);
@@ -380,9 +400,22 @@ const SlotMonitoring: React.FC = () => {
   // Auto-load on mount and filter changes
   useEffect(() => {
     if (userStructureInfo.structureId) {
-      loadSlotCoverage();
+      loadSlotCoverage(false);
     }
   }, [loadSlotCoverage, userStructureInfo.structureId]);
+
+  // ✅ FIXED: Reload data when window regains focus (after returning from edit form)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('🔄 Window focused - reloading slot coverage');
+      if (userStructureInfo.structureId) {
+        loadSlotCoverage(true);
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [userStructureInfo.structureId, loadSlotCoverage]);
 
   // ==================== EVENT HANDLERS ====================
 
@@ -393,7 +426,7 @@ const SlotMonitoring: React.FC = () => {
   const handleEdit = (pipeline: PipelineCoverageItemDTO) => {
     const status = pipeline.status || 'NOT_RECORDED';
     
-    console.log('✏️ Edit reading for pipeline:', pipeline.pipeline?.code);
+    console.log('✏️ Edit reading for pipeline:', pipeline.pipeline?.code, 'Status:', status);
     
     if (status === 'NOT_RECORDED') {
       // CREATE NEW READING
@@ -431,6 +464,7 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Handle pipeline submit action
    * Changes status from DRAFT to SUBMITTED using ReadingWorkflowService
+   * ✅ FIXED: Force refresh after submit
    */
   const handleSubmit = async (pipeline: PipelineCoverageItemDTO) => {
     if (!pipeline.reading?.id || !userEmployeeId) {
@@ -453,8 +487,8 @@ const SlotMonitoring: React.FC = () => {
         'success'
       );
       
-      // Reload coverage to show updated status
-      await loadSlotCoverage();
+      // ✅ Force refresh to show updated status
+      await loadSlotCoverage(true);
     } catch (err: any) {
       console.error('❌ Error submitting reading:', err);
       showNotification(
@@ -511,6 +545,7 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Confirm rejection with reason using ReadingWorkflowService
+   * ✅ FIXED: Force refresh after reject
    */
   const confirmReject = async () => {
     const { pipeline, reason } = rejectDialog;
@@ -548,8 +583,8 @@ const SlotMonitoring: React.FC = () => {
       // Close dialog and reset
       setRejectDialog({ open: false, pipeline: null, reason: '' });
       
-      // Reload coverage
-      await loadSlotCoverage();
+      // ✅ Force refresh to show updated status
+      await loadSlotCoverage(true);
     } catch (err: any) {
       console.error('❌ Error rejecting reading:', err);
       showNotification(
@@ -900,7 +935,7 @@ const SlotMonitoring: React.FC = () => {
                   <span>
                     <IconButton 
                       color="primary" 
-                      onClick={loadSlotCoverage}
+                      onClick={() => loadSlotCoverage(true)}
                       disabled={loading}
                     >
                       <RefreshIcon />
