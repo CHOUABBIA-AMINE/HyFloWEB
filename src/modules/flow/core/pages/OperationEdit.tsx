@@ -14,6 +14,7 @@
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-30-2026 - Aligned with updated FlowOperationDTO and Reading workflow
  * @updated 01-30-2026 - Fixed data validation and error handling
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import React, { useState, useEffect } from 'react';
@@ -26,7 +27,6 @@ import {
   CardContent,
   Typography,
   TextField,
-  Button,
   Grid,
   MenuItem,
   CircularProgress,
@@ -38,11 +38,17 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Paper,
+  Stack,
+  IconButton,
+  Tooltip,
+  Button,
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  Cancel as CancelIcon,
+  Close as CloseIcon,
   Send as SendIcon,
+  SwapHoriz as SwapHorizIcon,
 } from '@mui/icons-material';
 
 import { FlowOperationService } from '../services/FlowOperationService';
@@ -331,11 +337,60 @@ export const OperationEdit: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4">
-          {isEditMode ? t('flow.operation.edit') : t('flow.operation.create')}
-        </Typography>
-      </Box>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <SwapHorizIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {isEditMode ? t('flow.operation.edit') : t('flow.operation.create')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {isEditMode 
+                    ? 'Update operation details'
+                    : 'Record a new flow operation (draft or submit)'
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('flow.operation.actions.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={loading}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('flow.operation.actions.saveDraft')}>
+                <IconButton 
+                  onClick={handleSaveDraft} 
+                  disabled={loading}
+                  size="medium"
+                  color="default"
+                  sx={{ border: 1, borderColor: 'divider' }}
+                >
+                  {loading ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('flow.operation.actions.submitValidation')}>
+                <IconButton 
+                  onClick={handleSubmitForValidation} 
+                  disabled={loading}
+                  size="medium"
+                  color="primary"
+                >
+                  {loading ? <CircularProgress size={24} /> : <SendIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
 
       <Card>
         <CardContent>
@@ -481,32 +536,6 @@ export const OperationEdit: React.FC = () => {
               />
             </Grid>
           </Grid>
-
-          <Box sx={{ display: 'flex', gap: 2, mt: 4, justifyContent: 'flex-end' }}>
-            <Button
-              variant="outlined"
-              startIcon={<CancelIcon />}
-              onClick={handleCancel}
-            >
-              {t('flow.operation.actions.cancel')}
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<SaveIcon />}
-              onClick={handleSaveDraft}
-              disabled={loading}
-            >
-              {t('flow.operation.actions.saveDraft')}
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<SendIcon />}
-              onClick={handleSubmitForValidation}
-              disabled={loading}
-            >
-              {t('flow.operation.actions.submitValidation')}
-            </Button>
-          </Box>
         </CardContent>
       </Card>
 

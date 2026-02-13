@@ -10,6 +10,7 @@
  * @updated 02-06-2026 - Aligned cancel button with ForecastEdit/OperationEdit pattern
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-28-2026 - Added containedVolume Min/Max fields
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -20,7 +21,6 @@ import {
   Box,
   Card,
   CardContent,
-  Button,
   Typography,
   CircularProgress,
   Alert,
@@ -35,15 +35,19 @@ import {
   Switch,
   Divider,
   Paper,
+  Stack,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  ArrowBack as ArrowBackIcon,
+  Close as CloseIcon,
   Speed as SpeedIcon,
   Thermostat as ThermostatIcon,
   Opacity as OpacityIcon,
   Warning as WarningIcon,
   Storage as StorageIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 
 import { FlowThresholdService } from '../services/FlowThresholdService';
@@ -76,10 +80,8 @@ export const ThresholdEdit: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   
-  // Auto-detect mode from URL
   const mode = id ? 'edit' : 'create';
   
-  // Form state
   const { control, handleSubmit, watch, reset, formState: { errors: formErrors } } = useForm<ThresholdFormData>({
     defaultValues: {
       ...createDefaultFlowThreshold(),
@@ -88,7 +90,6 @@ export const ThresholdEdit: React.FC = () => {
     } as ThresholdFormData,
   });
   
-  // Component state
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(mode === 'edit');
   const [pipelines, setPipelines] = useState<PipelineDTO[]>([]);
@@ -96,7 +97,6 @@ export const ThresholdEdit: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   
-  // Watch individual fields to avoid infinite loop from watch()
   const pipelineId = watch('pipelineId');
   const pressureMin = watch('pressureMin');
   const pressureMax = watch('pressureMax');
@@ -109,7 +109,6 @@ export const ThresholdEdit: React.FC = () => {
   const alertTolerance = watch('alertTolerance');
   const active = watch('active');
   
-  // Load initial data
   useEffect(() => {
     loadPipelines();
     if (mode === 'edit' && id) {
@@ -117,7 +116,6 @@ export const ThresholdEdit: React.FC = () => {
     }
   }, [id, mode]);
   
-  // Validate form in real-time using useMemo to avoid infinite loop
   const currentValidationErrors = useMemo(() => {
     const watchedValues = {
       pipelineId,
@@ -147,7 +145,6 @@ export const ThresholdEdit: React.FC = () => {
     active,
   ]);
   
-  // Update validation errors only when they actually change
   useEffect(() => {
     setValidationErrors(currentValidationErrors);
   }, [currentValidationErrors.length, currentValidationErrors.join('|')]);
@@ -170,7 +167,6 @@ export const ThresholdEdit: React.FC = () => {
       const threshold = await FlowThresholdService.getById(Number(id));
       setExistingThreshold(threshold);
       
-      // Populate form with loaded data
       reset({
         pipelineId: threshold.pipelineId,
         pressureMin: threshold.pressureMin,
@@ -197,7 +193,6 @@ export const ThresholdEdit: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      // Final validation
       const errors = validateFlowThresholdDTO(data);
       if (errors.length > 0) {
         setValidationErrors(errors);
@@ -231,6 +226,10 @@ export const ThresholdEdit: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleCancel = () => {
+    navigate('/flow/thresholds');
+  };
   
   if (loadingData) {
     return (
@@ -243,21 +242,50 @@ export const ThresholdEdit: React.FC = () => {
   
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/flow/thresholds')}
-          sx={{ mr: 2 }}
-        >
-          {t('flow.threshold.actions.back')}
-        </Button>
-        <Typography variant="h4">
-          {mode === 'create' ? t('flow.threshold.create') : `${t('flow.threshold.edit')} #${id}`}
-        </Typography>
-      </Box>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <SettingsIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {mode === 'create' ? t('flow.threshold.create') : `${t('flow.threshold.edit')} #${id}`}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {mode === 'create' 
+                    ? 'Configure monitoring thresholds for pipeline'
+                    : 'Update threshold configuration and alert settings'
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('flow.threshold.actions.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={loading}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={mode === 'create' ? t('flow.threshold.createButton') : t('flow.threshold.updateButton')}>
+                <IconButton 
+                  onClick={handleSubmit(onSubmit)} 
+                  disabled={loading || validationErrors.length > 0}
+                  size="medium"
+                  color="primary"
+                >
+                  {loading ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
       
-      {/* Existing Pipeline Info (Edit Mode) */}
       {mode === 'edit' && existingThreshold && (
         <Alert severity="info" sx={{ mb: 3 }}>
           <Typography variant="body2">
@@ -269,14 +297,12 @@ export const ThresholdEdit: React.FC = () => {
         </Alert>
       )}
       
-      {/* Error Alert */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
           {error}
         </Alert>
       )}
       
-      {/* Validation Errors */}
       {validationErrors.length > 0 && (
         <Alert severity="warning" sx={{ mb: 3 }}>
           <Typography variant="subtitle2" gutterBottom>{t('flow.threshold.validationIssues')}</Typography>
@@ -290,11 +316,10 @@ export const ThresholdEdit: React.FC = () => {
       
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
-          {/* Pipeline Selection */}
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" fontWeight={600} gutterBottom>
                   {t('flow.threshold.sections.pipelineConfig')}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
@@ -328,7 +353,6 @@ export const ThresholdEdit: React.FC = () => {
             </Card>
           </Grid>
           
-          {/* Pressure Thresholds */}
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -403,7 +427,6 @@ export const ThresholdEdit: React.FC = () => {
             </Card>
           </Grid>
           
-          {/* Temperature Thresholds */}
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -478,7 +501,6 @@ export const ThresholdEdit: React.FC = () => {
             </Card>
           </Grid>
           
-          {/* Flow Rate Thresholds */}
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -553,7 +575,6 @@ export const ThresholdEdit: React.FC = () => {
             </Card>
           </Grid>
           
-          {/* Contained Volume Thresholds */}
           <Grid item xs={12} md={6}>
             <Card>
               <CardContent>
@@ -628,7 +649,6 @@ export const ThresholdEdit: React.FC = () => {
             </Card>
           </Grid>
           
-          {/* Alert Configuration */}
           <Grid item xs={12}>
             <Card>
               <CardContent>
@@ -704,36 +724,6 @@ export const ThresholdEdit: React.FC = () => {
                     />
                   </Grid>
                 </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-          
-          {/* Action Buttons */}
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="caption" color="text.secondary">
-                    {t('flow.threshold.requiredFields')}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button
-                      variant="outlined"
-                      onClick={() => navigate('/flow/thresholds')}
-                    >
-                      {t('flow.threshold.actions.cancel')}
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                      startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
-                      disabled={loading || validationErrors.length > 0}
-                    >
-                      {loading ? t('flow.threshold.saving') : mode === 'create' ? t('flow.threshold.createButton') : t('flow.threshold.updateButton')}
-                    </Button>
-                  </Box>
-                </Box>
               </CardContent>
             </Card>
           </Grid>
