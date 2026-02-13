@@ -20,6 +20,7 @@
  * @updated 01-17-2026 - Fixed: Added missing MenuItem import
  * @updated 01-18-2026 - Fixed translation keys to use common.yes/no and product.fields pattern
  * @updated 02-13-2026 - UI: Containerized header section for consistent styling
+ * @updated 02-13-2026 - UI: Updated export/create buttons to IconButton + Tooltip style
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -362,22 +363,20 @@ const ProductList = () => {
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
-              <Button
-                variant="outlined"
-                startIcon={<ExportIcon />}
-                onClick={handleExportMenuOpen}
-                sx={{ borderRadius: 2 }}
-              >
-                {t('action.export', 'Export')}
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => navigate('/network/common/products/create')}
-                sx={{ borderRadius: 2, boxShadow: 2 }}
-              >
-                {t('action.create', 'Create')}
-              </Button>
+              <Tooltip title={t('action.export', 'Export')}>
+                <IconButton onClick={handleExportMenuOpen} size="medium" color="primary">
+                  <ExportIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('action.create', 'Create')}>
+                <IconButton 
+                  onClick={() => navigate('/network/common/products/create')} 
+                  size="medium" 
+                  color="primary"
+                >
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
             </Stack>
           </Box>
         </Box>
