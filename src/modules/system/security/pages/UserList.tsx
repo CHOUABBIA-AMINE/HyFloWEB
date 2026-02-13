@@ -17,6 +17,7 @@
  * @updated 01-16-2026 - Removed ID column
  * @updated 01-17-2026 - REFACTORED: Removed debounce, server-side search only
  * @updated 01-17-2026 - Fixed subtitle to use translation key
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -275,39 +276,39 @@ const UserList = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h4" fontWeight={700} color="text.primary">
-            {t('user.title', 'Users')}
-          </Typography>
-          <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('action.refresh', 'Refresh')}>
-              <IconButton onClick={handleRefresh} size="medium" color="primary">
-                <RefreshIcon />
-              </IconButton>
-            </Tooltip>
-            <Button 
-              variant="outlined" 
-              startIcon={<ExportIcon />} 
-              onClick={handleExportMenuOpen} 
-              sx={{ borderRadius: 2 }}
-            >
-              {t('action.export', 'Export')}
-            </Button>
-            <Button 
-              variant="contained" 
-              startIcon={<AddIcon />} 
-              onClick={handleCreate} 
-              sx={{ borderRadius: 2, boxShadow: 2 }}
-            >
-              {t('action.create', 'Create')}
-            </Button>
-          </Stack>
+      {/* PART 1: HEADER SECTION - Containerized for consistent styling */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {t('user.title', 'Users')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('user.subtitle', 'Manage user accounts')}
+              </Typography>
+            </Box>
+            
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('action.refresh', 'Refresh')}>
+                <IconButton onClick={handleRefresh} size="medium" color="primary">
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('action.export', 'Export')}>
+                <IconButton onClick={handleExportMenuOpen} size="medium" color="primary">
+                  <ExportIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('action.create', 'Create')}>
+                <IconButton onClick={handleCreate} size="medium" color="primary">
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
         </Box>
-        <Typography variant="body2" color="text.secondary">
-          {t('user.subtitle', 'Manage user accounts')}
-        </Typography>
-      </Box>
+      </Paper>
 
       <Menu 
         anchorEl={exportAnchorEl} 
@@ -332,6 +333,7 @@ const UserList = () => {
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
+      {/* PART 2: SEARCH/FILTERS SECTION */}
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
@@ -360,6 +362,7 @@ const UserList = () => {
         </Box>
       </Paper>
 
+      {/* PART 3: DATA GRID */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
           rows={users}
