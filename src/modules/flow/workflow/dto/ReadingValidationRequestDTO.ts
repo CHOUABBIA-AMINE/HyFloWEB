@@ -13,10 +13,11 @@
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-04 - Aligned with backend nested DTO pattern
- * @package flow/core/dto
+ * @updated 2026-02-13 - Fixed: Corrected FlowReadingDTO import path
+ * @package flow/workflow/dto
  */
 
-import { FlowReadingDTO } from './FlowReadingDTO';
+import { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
 import { EmployeeDTO } from '@/modules/general/organization/dto/EmployeeDTO';
 
 export interface ReadingValidationRequestDTO {
