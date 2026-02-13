@@ -22,6 +22,7 @@
  * @updated 01-03-2026 - Removed MilitaryCategory and MilitaryRank (no longer in Employee model)
  * @updated 01-01-2026 - Dependent selects (Structure→Job)
  * @updated 01-01-2026 - Align routes and translation keys
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  * 
  * Required Translation Keys:
  * - employee.picture
@@ -42,7 +43,6 @@ import {
   Card,
   CardContent,
   Typography,
-  Button,
   TextField,
   Stack,
   Alert,
@@ -56,12 +56,14 @@ import {
   Avatar,
   IconButton,
   Tooltip,
+  Paper,
 } from '@mui/material';
 import { 
   Save as SaveIcon, 
-  ArrowBack as BackIcon,
+  Close as CloseIcon,
   Delete as DeleteIcon,
   PhotoCamera as PhotoCameraIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import {
   EmployeeService,
@@ -399,8 +401,8 @@ const EmployeeEdit = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
 
     if (!validateForm()) {
       setError(t('common.errors.validationFailed'));
@@ -442,6 +444,10 @@ const EmployeeEdit = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/administration/employees');
+  };
+
   const handleChange = (field: keyof EmployeeDTO, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (fieldErrors[field as string]) {
@@ -469,20 +475,55 @@ const EmployeeEdit = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <PersonIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {isEditMode 
+                    ? t('common.page.editTitle', { entity: t('employee.title') })
+                    : t('common.page.createTitle', { entity: t('employee.title') })
+                  }
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {isEditMode 
+                    ? t('common.page.editSubtitle', { entity: t('employee.title') })
+                    : t('common.page.createSubtitle', { entity: t('employee.title') })
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
+
       <Card>
         <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="h5" component="h1">
-              {isEditMode 
-                ? t('common.page.editTitle', { entity: t('employee.title') })
-                : t('common.page.createTitle', { entity: t('employee.title') })
-              }
-            </Typography>
-            <Button startIcon={<BackIcon />} onClick={() => navigate('/administration/employees')}>
-              {t('common.back')}
-            </Button>
-          </Stack>
-
           {success && (
             <Alert severity="success" sx={{ mb: 2 }}>
               {isEditMode ? t('common.messages.updateSuccess') : t('common.messages.createSuccess')}
@@ -913,20 +954,6 @@ const EmployeeEdit = () => {
                 </FormControl>
               </Grid>
             </Grid>
-
-            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={4}>
-              <Button variant="outlined" onClick={() => navigate('/administration/employees')} disabled={saving}>
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving}
-              >
-                {saving ? t('common.saving') : t('common.save')}
-              </Button>
-            </Stack>
           </Box>
         </CardContent>
       </Card>
