@@ -1,15 +1,16 @@
 /**
  * Flow Core DTOs - Barrel Export
  * 
- * Core module DTOs for CRUD operations only.
- * Intelligence/monitoring DTOs moved to intelligence module.
+ * Core module DTOs for data entities and monitoring.
+ * Workflow DTOs are in flow/workflow/dto.
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
  * @updated 2026-02-11 - Removed intelligence DTOs (migrated to intelligence module)
+ * @updated 2026-02-13 - Fixed: Removed workflow DTO exports (in workflow/dto)
  */
 
-// Core CRUD DTOs only
+// Core Entity DTOs
 export * from './FlowReadingDTO';
 export * from './FlowAlertDTO';
 export * from './FlowEventDTO';
@@ -17,28 +18,29 @@ export * from './FlowForecastDTO';
 export * from './FlowOperationDTO';
 export * from './FlowThresholdDTO';
 
-// Workflow DTOs (kept here for now)
-export * from './ReadingSubmitRequestDTO';
-export * from './ReadingValidationRequestDTO';
-
-// Slot coverage DTO (legacy, consider moving to intelligence)
+// Monitoring/Coverage DTO
 export * from './SlotCoverageDTO';
 
 /**
- * MIGRATION NOTICE:
+ * WORKFLOW DTOs LOCATION:
  * 
- * The following DTOs were moved to intelligence module:
+ * ReadingSubmitRequestDTO → flow/workflow/dto/ReadingSubmitRequestDTO
+ * ReadingValidationRequestDTO → flow/workflow/dto/ReadingValidationRequestDTO
  * 
- * - PipelineCoverageDTO → flow/intelligence/dto/analytics/PipelineCoverageDTO
- * - SlotCoverageRequestDTO → flow/intelligence/dto/monitoring/SlotCoverageRequestDTO
- * - SlotCoverageResponseDTO → flow/intelligence/dto/monitoring/SlotCoverageResponseDTO
- * 
- * Update your imports:
+ * Import from workflow module:
  * ```typescript
- * // OLD (deprecated)
- * import { PipelineCoverageDTO } from '@/modules/flow/core/dto';
+ * import { ReadingSubmitRequestDTO } from '@/modules/flow/workflow/dto';
+ * import { ReadingValidationRequestDTO } from '@/modules/flow/workflow/dto';
+ * ```
  * 
- * // NEW (correct)
+ * INTELLIGENCE DTOs LOCATION:
+ * 
+ * PipelineCoverageDTO → flow/intelligence/dto/analytics/PipelineCoverageDTO
+ * SlotCoverageRequestDTO → flow/intelligence/dto/monitoring/SlotCoverageRequestDTO
+ * SlotCoverageResponseDTO → flow/intelligence/dto/monitoring/SlotCoverageResponseDTO
+ * 
+ * Import from intelligence module:
+ * ```typescript
  * import { PipelineCoverageDTO } from '@/modules/flow/intelligence/dto/analytics';
  * import { SlotCoverageRequestDTO } from '@/modules/flow/intelligence/dto/monitoring';
  * ```
