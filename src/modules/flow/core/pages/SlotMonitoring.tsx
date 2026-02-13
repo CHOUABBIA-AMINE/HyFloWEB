@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-14 00:35 - Fixed: Use readingId instead of reading.id for validation navigation
  * @updated 2026-02-13 23:46 - Fixed: Force refresh after recording to update pipeline status
  * @updated 2026-02-13 - Fixed: TypeScript errors (null safety, draft→drafts, optional chaining)
  * @updated 2026-02-11 13:20 - Fixed: Use SlotCoverageService and correct DTO imports
@@ -384,7 +385,7 @@ const SlotMonitoring: React.FC = () => {
           id: p.pipeline?.id,
           code: p.pipeline?.code,
           status: p.status,
-          hasReading: !!p.reading
+          hasReading: !!p.readingId
         }))
       });
       
@@ -443,8 +444,9 @@ const SlotMonitoring: React.FC = () => {
       });
     } else {
       // EDIT EXISTING READING (DRAFT or REJECTED)
-      if (pipeline.reading?.id) {
-        navigate(`/flow/readings/${pipeline.reading.id}/edit`, {
+      // ✅ FIXED: Use readingId instead of reading.id
+      if (pipeline.readingId) {
+        navigate(`/flow/readings/${pipeline.readingId}/edit`, {
           state: {
             pipelineId: pipeline.pipeline?.id,
             pipelineCode: pipeline.pipeline?.code,
@@ -467,7 +469,8 @@ const SlotMonitoring: React.FC = () => {
    * ✅ FIXED: Force refresh after submit
    */
   const handleSubmit = async (pipeline: PipelineCoverageItemDTO) => {
-    if (!pipeline.reading?.id || !userEmployeeId) {
+    // ✅ FIXED: Use readingId instead of reading?.id
+    if (!pipeline.readingId || !userEmployeeId) {
       showNotification(t('flow.monitoring.errors.submitMissing', 'Cannot submit: missing reading ID or employee ID'), 'error');
       return;
     }
@@ -475,12 +478,12 @@ const SlotMonitoring: React.FC = () => {
     try {
       setLoading(true);
       console.log('📤 Submitting reading for validation:', { 
-        readingId: pipeline.reading.id, 
+        readingId: pipeline.readingId, 
         employeeId: userEmployeeId 
       });
       
       // Use workflow service to change status from DRAFT to SUBMITTED
-      await ReadingWorkflowService.validate(pipeline.reading.id, userEmployeeId);
+      await ReadingWorkflowService.validate(pipeline.readingId, userEmployeeId);
       
       showNotification(
         t('flow.monitoring.messages.submitSuccess', 'Reading submitted for validation'),
@@ -503,17 +506,19 @@ const SlotMonitoring: React.FC = () => {
   /**
    * Handle pipeline approve action
    * Navigate to ReadingEdit in validation mode (readings disabled, notes editable)
+   * ✅ FIXED: Use readingId instead of reading?.id
    */
   const handleApprove = (pipeline: PipelineCoverageItemDTO) => {
-    if (!pipeline.reading?.id) {
+    // ✅ FIXED: Check readingId directly (not reading.id)
+    if (!pipeline.readingId) {
       showNotification(t('flow.monitoring.errors.approveMissing', 'Cannot approve: missing reading ID'), 'error');
       return;
     }
 
-    console.log('✅ Navigating to validation for pipeline:', pipeline.pipeline?.code);
+    console.log('✅ Navigating to validation for pipeline:', pipeline.pipeline?.code, 'Reading ID:', pipeline.readingId);
     
     // Navigate to ReadingEdit in validation mode
-    navigate(`/flow/readings/${pipeline.reading.id}/validate`, {
+    navigate(`/flow/readings/${pipeline.readingId}/validate`, {
       state: {
         pipelineId: pipeline.pipeline?.id,
         pipelineCode: pipeline.pipeline?.code,
@@ -529,9 +534,11 @@ const SlotMonitoring: React.FC = () => {
 
   /**
    * Handle pipeline reject action - Open dialog
+   * ✅ FIXED: Use readingId instead of reading?.id
    */
   const handleReject = (pipeline: PipelineCoverageItemDTO) => {
-    if (!pipeline.reading?.id || !userEmployeeId) {
+    // ✅ FIXED: Check readingId directly (not reading.id)
+    if (!pipeline.readingId || !userEmployeeId) {
       showNotification(t('flow.monitoring.errors.rejectMissing', 'Cannot reject: missing reading ID or employee ID'), 'error');
       return;
     }
@@ -550,7 +557,8 @@ const SlotMonitoring: React.FC = () => {
   const confirmReject = async () => {
     const { pipeline, reason } = rejectDialog;
     
-    if (!pipeline?.reading?.id || !userEmployeeId) {
+    // ✅ FIXED: Use readingId instead of reading?.id
+    if (!pipeline?.readingId || !userEmployeeId) {
       showNotification('Cannot reject: missing reading ID or employee ID', 'error');
       return;
     }
@@ -563,14 +571,14 @@ const SlotMonitoring: React.FC = () => {
     try {
       setLoading(true);
       console.log('❌ Rejecting reading:', { 
-        readingId: pipeline.reading.id, 
+        readingId: pipeline.readingId, 
         employeeId: userEmployeeId, 
         reason: reason.trim() 
       });
 
       // Use workflow service to reject reading
       await ReadingWorkflowService.reject(
-        pipeline.reading.id,
+        pipeline.readingId,
         userEmployeeId,
         reason.trim()
       );
@@ -763,14 +771,14 @@ const SlotMonitoring: React.FC = () => {
 
                   <TableCell>
                     <Typography variant="body2">
-                      {pipeline.reading ? getEmployeeDisplayName(pipeline.reading.recordedBy) : '-'}
+                      {pipeline.recordedBy ? getEmployeeDisplayName(pipeline.recordedBy) : '-'}
                     </Typography>
                   </TableCell>
 
                   <TableCell>
                     <Typography variant="body2">
-                      {pipeline.reading?.recordedAt
-                        ? new Date(pipeline.reading.recordedAt).toLocaleString(currentLang)
+                      {pipeline.recordedAt
+                        ? new Date(pipeline.recordedAt).toLocaleString(currentLang)
                         : '-'}
                     </Typography>
                   </TableCell>
