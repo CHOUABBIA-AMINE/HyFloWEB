@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-03
+ * @updated 2026-02-13 - Fixed: Changed 'draft' to 'drafts' to match DTO
  * @updated 2026-02-11 21:50 - Added response transformation to map backend fields to frontend DTO
  * @updated 2026-02-11 14:45 - Fixed: Use correct '/flow/core/slot-coverage' endpoint
  * @updated 2026-02-04 - Fixed API client import path
@@ -130,8 +131,8 @@ export class SlotCoverageService {
           // Map missingCount → notRecorded (business language)
           notRecorded: backendData.missingCount || 0,
           
-          // Calculate draft count: recorded but not yet submitted/approved/rejected
-          draft: Math.max(0, 
+          // Calculate drafts count: recorded but not yet submitted/approved/rejected
+          drafts: Math.max(0, 
             (backendData.recordedCount || 0) - 
             (backendData.submittedCount || 0) - 
             (backendData.approvedCount || 0) - 
@@ -152,7 +153,7 @@ export class SlotCoverageService {
         },
         frontend: {
           date: transformedData.date,
-          pipelineCoverage: transformedData.pipelineCoverage?.length,
+          pipelineCoverage: transformedData.pipelineCoverage.length,
           notRecorded: transformedData.summary.notRecorded,
         },
       });
@@ -193,7 +194,7 @@ export class SlotCoverageService {
         summary: {
           totalPipelines: backendData.totalPipelines || 0,
           notRecorded: backendData.missingCount || 0,
-          draft: Math.max(0, 
+          drafts: Math.max(0, 
             (backendData.recordedCount || 0) - 
             (backendData.submittedCount || 0) - 
             (backendData.approvedCount || 0) - 
