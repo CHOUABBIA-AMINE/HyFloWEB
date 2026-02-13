@@ -9,6 +9,7 @@
  * @updated 01-19-2026 - Fixed Chip key prop warning in Autocomplete
  * @updated 01-18-2026 - Optimized to use common translation keys
  * @updated 01-08-2026 - Fixed type inference for users
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  * @created 12-23-2025
  */
 
@@ -19,7 +20,6 @@ import {
   Box,
   Typography,
   TextField,
-  Button,
   CircularProgress,
   Alert,
   Grid,
@@ -28,11 +28,12 @@ import {
   Stack,
   Chip,
   Autocomplete,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  Cancel as CancelIcon,
-  ArrowBack as BackIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { groupService, roleService } from '../services';
 import { GroupDTO, RoleDTO } from '../dto';
@@ -134,8 +135,8 @@ const GroupEdit = () => {
     setGroup({ ...group, roles: roleDTOs });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
     if (!validateForm()) {
       return;
@@ -188,29 +189,50 @@ const GroupEdit = () => {
     }));
 
   return (
-    <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Button
-          startIcon={<BackIcon />}
-          onClick={handleCancel}
-          sx={{ mb: 2 }}
-        >
-          {t('common.back')}
-        </Button>
-        <Typography variant="h4" fontWeight={700} color="text.primary">
-          {isEditMode 
-            ? t('common.page.editTitle', { entity: t('group.title') })
-            : t('common.page.createTitle', { entity: t('group.title') })
-          }
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          {isEditMode 
-            ? t('common.page.editSubtitle', { entity: t('group.title') })
-            : t('common.page.createSubtitle', { entity: t('group.title') })
-          }
-        </Typography>
-      </Box>
+    <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {isEditMode 
+                  ? t('common.page.editTitle', { entity: t('group.title') })
+                  : t('common.page.createTitle', { entity: t('group.title') })
+                }
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {isEditMode 
+                  ? t('common.page.editSubtitle', { entity: t('group.title') })
+                  : t('common.page.createSubtitle', { entity: t('group.title') })
+                }
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
 
       {/* Error Alert */}
       {error && (
@@ -333,31 +355,6 @@ const GroupEdit = () => {
                   </Grid>
                 )}
               </Grid>
-            </Box>
-          </Paper>
-
-          {/* Actions */}
-          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-            <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                startIcon={<CancelIcon />}
-                onClick={handleCancel}
-                disabled={saving}
-                size="large"
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving}
-                size="large"
-                sx={{ minWidth: 150 }}
-              >
-                {saving ? t('common.saving') : t('common.save')}
-              </Button>
             </Box>
           </Paper>
         </Stack>
