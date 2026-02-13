@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-14-2026 00:38 - Fixed: Pass currentEmployeeId to ValidationReview for approval/rejection
  * @updated 02-07-2026 16:30 - Aligned form types with FlowReadingDTO for better type safety
  * @updated 02-07-2026 15:10 - Changed default return path to /flow/monitoring (SlotMonitoring is now primary interface)
  * @updated 02-06-2026 - Fixed: Use designationFr instead of name in ValidationStatusDTO
@@ -664,6 +665,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
             </>
           )}
           
+          {/* ✅ FIXED: Pass currentEmployeeId to ValidationReview */}
           {mode === 'validate' && existingReading && (
             <ValidationReview
               formData={watch()}
@@ -671,6 +673,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
               pipelineId={watchedPipelineId}
               existingReading={existingReading}
               isValidationMode={true}
+              currentEmployeeId={currentEmployee?.id}
             />
           )}
         </CardContent>
