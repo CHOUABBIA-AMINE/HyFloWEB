@@ -1,110 +1,147 @@
 /**
- * Flow Event DTO - Flow Core Module
+ * @Author: MEDJERAB Abir
+ * @Name: FlowEventDTO
+ * @CreatedOn: 01-23-2026
+ * @UpdatedOn: 02-13-2026 - Complete backend alignment audit
+ * @Type: Interface
+ * @Layer: DTO
+ * @Package: Flow / Core
+ * @Description: Flow event DTO for operational events and incidents
  * 
- * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.FlowEventDTO
- * Updated: 01-25-2026 - Aligned with backend using FacilityDTO template
- * 
- * Backend file needs to be checked - creating based on original requirements
- * 
- * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
+ * CRITICAL FIX: Complete realignment with backend fields
+ * - Replaced 'startTime' with 'eventTimestamp' (PRIMARY field)
+ * - Added missing 'startTime' and 'endTime' fields
+ * - Replaced 'impact'/'resolution' with 'actionTaken'
+ * - Removed 'typeId' (not in backend)
+ * - Added 'impactOnFlow' boolean flag
+ * - Added 'relatedReadingId' and 'relatedAlertId'
+ * - Updated all field names, types, and constraints to match backend exactly
  */
 
 import { EventStatusDTO } from '../../common/dto/EventStatusDTO';
 import { SeverityDTO } from '../../common/dto/SeverityDTO';
 import { EmployeeDTO } from '../../../general/organization/dto/EmployeeDTO';
 import { InfrastructureDTO } from '../../../network/core/dto/InfrastructureDTO';
-import { EventTypeDTO } from '../../type/dto/EventTypeDTO';
+import { FlowReadingDTO } from './FlowReadingDTO';
+import { FlowAlertDTO } from './FlowAlertDTO';
 
 export interface FlowEventDTO {
   // Identifier (from GenericDTO)
   id?: number;
 
-  // Event data
-  startTime: string; // LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss) (required)
-  endTime?: string; // LocalDateTime (ISO format: YYYY-MM-DDTHH:mm:ss)
-  title: string; // Max 200 chars (required)
-  description?: string; // Max 1000 chars
-  impact?: string; // Max 500 chars
-  resolution?: string; // Max 500 chars
+  // ========== EVENT CORE FIELDS ==========
   
-  // Required relationships (IDs)
-  infrastructureId: number; // (required)
-  typeId: number; // (required) - Event type
-  severityId: number; // (required)
-  statusId: number; // (required) - Event status
-  reportedById: number; // (required)
-  
-  // Optional relationship (ID)
-  resolvedById?: number;
-  
-  // Nested objects (populated in responses)
-  infrastructure?: InfrastructureDTO;
-  type?: EventTypeDTO;
-  severity?: SeverityDTO;
-  status?: EventStatusDTO;
-  reportedBy?: EmployeeDTO;
-  resolvedBy?: EmployeeDTO;
-}
+  /**
+   * Timestamp when event occurred
+   * ISO 8601 format (YYYY-MM-DDTHH:mm:ss)
+   * @example "2026-01-22T03:15:00"
+   * @required
+   */
+  eventTimestamp: string;
 
-/**
- * Validates FlowEventDTO according to backend constraints
- * @param data - Partial flow event data to validate
- * @returns Array of validation error messages
- */
-export const validateFlowEventDTO = (data: Partial<FlowEventDTO>): string[] => {
-  const errors: string[] = [];
+  /**
+   * Brief event title (3-100 characters)
+   * @example "Emergency Shutdown - Pipeline P-101"
+   * @required
+   */
+  title: string;
+
+  /**
+   * Detailed event description (max 2000 characters)
+   * @example "Automatic shutdown triggered"
+   */
+  description?: string;
+
+  /**
+   * Event start timestamp
+   * ISO 8601 format
+   * @example "2026-01-22T03:15:00"
+   */
+  startTime?: string;
+
+  /**
+   * Event end timestamp
+   * ISO 8601 format
+   * @example "2026-01-22T05:30:00"
+   */
+  endTime?: string;
+
+  /**
+   * Corrective action description (max 2000 characters)
+   * @example "Isolated segment, deployed repair crew"
+   */
+  actionTaken?: string;
+
+  /**
+   * Did this event impact flow operations
+   * @example true
+   * @required
+   */
+  impactOnFlow: boolean;
+
+  // ========== FOREIGN KEY IDS ==========
   
-  // Start time validation
-  if (!data.startTime) {
-    errors.push('Start time is required');
-  }
+  /**
+   * Severity ID
+   */
+  severityId?: number;
+
+  /**
+   * Infrastructure ID
+   * @required
+   */
+  infrastructureId: number;
+
+  /**
+   * Reported by employee ID
+   * @required
+   */
+  reportedById: number;
+
+  /**
+   * Related flow reading ID
+   */
+  relatedReadingId?: number;
+
+  /**
+   * Related alert ID
+   */
+  relatedAlertId?: number;
+
+  /**
+   * Event status ID
+   */
+  statusId?: number;
+
+  // ========== NESTED DTOs ==========
   
-  // Title validation
-  if (!data.title) {
-    errors.push('Title is required');
-  } else if (data.title.length > 200) {
-    errors.push('Title must not exceed 200 characters');
-  }
-  
-  // Description validation
-  if (data.description && data.description.length > 1000) {
-    errors.push('Description must not exceed 1000 characters');
-  }
-  
-  // Impact validation
-  if (data.impact && data.impact.length > 500) {
-    errors.push('Impact must not exceed 500 characters');
-  }
-  
-  // Resolution validation
-  if (data.resolution && data.resolution.length > 500) {
-    errors.push('Resolution must not exceed 500 characters');
-  }
-  
-  // Infrastructure validation
-  if (data.infrastructureId === undefined || data.infrastructureId === null) {
-    errors.push('Infrastructure is required');
-  }
-  
-  // Event type validation
-  if (data.typeId === undefined || data.typeId === null) {
-    errors.push('Event type is required');
-  }
-  
-  // Severity validation
-  if (data.severityId === undefined || data.severityId === null) {
-    errors.push('Severity is required');
-  }
-  
-  // Event status validation
-  if (data.statusId === undefined || data.statusId === null) {
-    errors.push('Event status is required');
-  }
-  
-  // Reported by validation
-  if (data.reportedById === undefined || data.reportedById === null) {
-    errors.push('Reported by employee is required');
-  }
-  
-  return errors;
-};
+  /**
+   * Severity details
+   */
+  severity?: SeverityDTO;
+
+  /**
+   * Infrastructure details
+   */
+  infrastructure?: InfrastructureDTO;
+
+  /**
+   * Reporter employee details
+   */
+  reportedBy?: EmployeeDTO;
+
+  /**
+   * Related flow reading details
+   */
+  relatedReading?: FlowReadingDTO;
+
+  /**
+   * Related alert details
+   */
+  relatedAlert?: FlowAlertDTO;
+
+  /**
+   * Event status details
+   */
+  status?: EventStatusDTO;
+}
