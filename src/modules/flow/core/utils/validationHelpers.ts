@@ -5,10 +5,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-04
+ * @updated 2026-02-13 - Fixed: Corrected ReadingSubmitRequestDTO import path
  * @package flow/core/utils
  */
 
-import { ReadingSubmitRequestDTO } from '../dto/ReadingSubmitRequestDTO';
+import { ReadingSubmitRequestDTO } from '../../workflow/dto/ReadingSubmitRequestDTO';
 
 /**
  * Validation result interface
