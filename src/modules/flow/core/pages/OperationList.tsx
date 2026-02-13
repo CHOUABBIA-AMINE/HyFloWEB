@@ -13,6 +13,7 @@
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-31-2026 - Added Validate action button for PENDING operations
  * @updated 01-30-2026 - Fixed date property access for FlowOperationDTO
+ * @updated 02-13-2026 - UI: Containerized header and updated button to IconButton style
  */
 
 import React, { useState, useEffect } from 'react';
@@ -45,6 +46,8 @@ import {
   InputAdornment,
   MenuItem,
   Grid,
+  Paper,
+  Stack,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -255,22 +258,33 @@ export const OperationList: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Box>
-          <Typography variant="h4">{t('flow.operation.title')}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {t('flow.operation.subtitle')}
-          </Typography>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {t('flow.operation.title')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('flow.operation.subtitle')}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('action.refresh', 'Refresh')}>
+                <IconButton onClick={loadOperations} size="medium" color="primary">
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('flow.operation.new')}>
+                <IconButton onClick={() => navigate('/flow/operations/new')} size="medium" color="primary">
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={() => navigate('/flow/operations/new')}
-        >
-          {t('flow.operation.new')}
-        </Button>
-      </Box>
+      </Paper>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -376,9 +390,6 @@ export const OperationList: React.FC = () => {
                 <Button variant="outlined" onClick={handleClearFilters}>
                   {t('flow.operation.filters.clearFilters')}
                 </Button>
-                <IconButton onClick={loadOperations} color="primary">
-                  <RefreshIcon />
-                </IconButton>
               </Box>
             </Grid>
           </Grid>
