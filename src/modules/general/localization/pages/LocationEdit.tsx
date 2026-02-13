@@ -14,6 +14,7 @@
  * @author CHOUABBIA Amine
  * @created 01-19-2026
  * @updated 01-19-2026
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -22,7 +23,6 @@ import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
   CircularProgress,
@@ -33,12 +33,12 @@ import {
   Stack,
   TextField,
   Typography,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
-  ArrowBack as BackIcon,
-  Cancel as CancelIcon,
   Save as SaveIcon,
-  Place as LocationIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 
 import { LocationService, LocalityService, StateService, DistrictService } from '../services';
@@ -223,7 +223,7 @@ const LocationEdit = () => {
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+    if (e) e.preventDefault();
 
     if (!validateForm()) return;
 
@@ -286,26 +286,48 @@ const LocationEdit = () => {
   }
 
   return (
-    <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <LocationIcon color="primary" sx={{ fontSize: 32 }} />
-          <Typography variant="h4" fontWeight={700} color="text.primary">
-            {isEditMode
-              ? t('common.page.editTitle', { entity: t('location.title') })
-              : t('common.page.createTitle', { entity: t('location.title') })}
-          </Typography>
+    <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {isEditMode
+                  ? t('common.page.editTitle', { entity: t('location.title') })
+                  : t('common.page.createTitle', { entity: t('location.title') })}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {isEditMode
+                  ? t('common.page.editSubtitle', { entity: t('location.title') })
+                  : t('common.page.createSubtitle', { entity: t('location.title') })}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
         </Box>
-        <Typography variant="body2" color="text.secondary">
-          {isEditMode
-            ? t('common.page.editSubtitle', { entity: t('location.title') })
-            : t('common.page.createSubtitle', { entity: t('location.title') })}
-        </Typography>
-        <Button startIcon={<BackIcon />} onClick={handleCancel} sx={{ mt: 2 }}>
-          {t('common.back')}
-        </Button>
-      </Box>
+      </Paper>
 
       {/* Alerts */}
       {error && (
@@ -493,30 +515,6 @@ const LocationEdit = () => {
           </form>
         </CardContent>
       </Card>
-
-      {/* Actions */}
-      <Paper elevation={0} sx={{ p: 2.5, border: 1, borderColor: 'divider' }}>
-        <Stack direction="row" spacing={2} justifyContent="flex-end">
-          <Button
-            variant="outlined"
-            startIcon={<CancelIcon />}
-            onClick={handleCancel}
-            disabled={saving}
-            sx={{ minWidth: 120 }}
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            startIcon={<SaveIcon />}
-            disabled={saving}
-            sx={{ minWidth: 120, boxShadow: 2 }}
-          >
-            {saving ? t('common.saving') : t('common.save')}
-          </Button>
-        </Stack>
-      </Paper>
     </Box>
   );
 };

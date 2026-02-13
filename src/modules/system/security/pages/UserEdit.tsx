@@ -13,6 +13,7 @@
  * @updated 01-19-2026 - Fixed TypeScript errors: Handle optional id in DTOs
  * @updated 01-18-2026 - Optimized to use common translation keys
  * @updated 01-06-2026 - Enhanced with professional UI and role/group management
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  * @created 12-22-2025
  */
 
@@ -40,11 +41,11 @@ import {
   DialogActions,
   InputAdornment,
   IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  Cancel as CancelIcon,
-  ArrowBack as BackIcon,
+  Close as CloseIcon,
   LockReset as LockResetIcon,
   Visibility,
   VisibilityOff,
@@ -239,8 +240,8 @@ const UserEdit = () => {
     setUser({ ...user, groups: newValue });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
     if (!validateForm()) {
       return;
@@ -400,44 +401,62 @@ const UserEdit = () => {
   }
 
   return (
-    <Box>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Button
-          startIcon={<BackIcon />}
-          onClick={handleCancel}
-          sx={{ mb: 2 }}
-        >
-          {t('common.back')}
-        </Button>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h4" fontWeight={700} color="text.primary">
-              {isEditMode 
-                ? t('common.page.editTitle', { entity: t('user.title') })
-                : t('common.page.createTitle', { entity: t('user.title') })
-              }
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {isEditMode 
-                ? t('common.page.editSubtitle', { entity: t('user.title') })
-                : t('common.page.createSubtitle', { entity: t('user.title') })
-              }
-            </Typography>
+    <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized with Reset Password Button */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {isEditMode 
+                  ? t('common.page.editTitle', { entity: t('user.title') })
+                  : t('common.page.createTitle', { entity: t('user.title') })
+                }
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {isEditMode 
+                  ? t('common.page.editSubtitle', { entity: t('user.title') })
+                  : t('common.page.createSubtitle', { entity: t('user.title') })
+                }
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              {isEditMode && (
+                <Tooltip title={t('user.resetPassword') || 'Reset Password'}>
+                  <IconButton
+                    onClick={handleOpenResetDialog}
+                    size="medium"
+                    color="warning"
+                    sx={{ border: 1, borderColor: 'warning.main' }}
+                  >
+                    <LockResetIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Box>
-          {isEditMode && (
-            <Button
-              variant="outlined"
-              color="warning"
-              startIcon={<LockResetIcon />}
-              onClick={handleOpenResetDialog}
-              size="large"
-            >
-              {t('user.resetPassword') || 'Reset Password'}
-            </Button>
-          )}
         </Box>
-      </Box>
+      </Paper>
 
       {/* Error Alert */}
       {error && (
@@ -694,31 +713,6 @@ const UserEdit = () => {
                   />
                 </Grid>
               </Grid>
-            </Box>
-          </Paper>
-
-          {/* Actions */}
-          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', bgcolor: 'grey.50' }}>
-            <Box sx={{ p: 2.5, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <Button
-                variant="outlined"
-                startIcon={<CancelIcon />}
-                onClick={handleCancel}
-                disabled={saving}
-                size="large"
-              >
-                {t('common.cancel')}
-              </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-                disabled={saving}
-                size="large"
-                sx={{ minWidth: 150 }}
-              >
-                {saving ? t('common.saving') : t('common.save')}
-              </Button>
             </Box>
           </Paper>
         </Stack>
