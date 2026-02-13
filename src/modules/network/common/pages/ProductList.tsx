@@ -19,6 +19,7 @@
  * @updated 01-17-2026 - REFACTORED: Removed client-side filters, server-side search only
  * @updated 01-17-2026 - Fixed: Added missing MenuItem import
  * @updated 01-18-2026 - Fixed translation keys to use common.yes/no and product.fields pattern
+ * @updated 02-13-2026 - UI: Containerized header section for consistent styling
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -342,39 +343,45 @@ const ProductList = () => {
 
   return (
     <Box>
-      <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h4" fontWeight={700} color="text.primary">
-            {t('product.title', 'Products')}
-          </Typography>
-          <Stack direction="row" spacing={1.5}>
-            <Tooltip title={t('action.refresh', 'Refresh')}>
-              <IconButton onClick={handleRefresh} size="medium" color="primary">
-                <RefreshIcon />
-              </IconButton>
-            </Tooltip>
-            <Button
-              variant="outlined"
-              startIcon={<ExportIcon />}
-              onClick={handleExportMenuOpen}
-              sx={{ borderRadius: 2 }}
-            >
-              {t('action.export', 'Export')}
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/network/common/products/create')}
-              sx={{ borderRadius: 2, boxShadow: 2 }}
-            >
-              {t('action.create', 'Create')}
-            </Button>
-          </Stack>
+      {/* PART 1: HEADER SECTION - Containerized for consistent styling */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Box>
+              <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ mb: 0.5 }}>
+                {t('product.title', 'Products')}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {t('product.subtitle', 'Manage hydrocarbon products and materials')}
+              </Typography>
+            </Box>
+            
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('action.refresh', 'Refresh')}>
+                <IconButton onClick={handleRefresh} size="medium" color="primary">
+                  <RefreshIcon />
+                </IconButton>
+              </Tooltip>
+              <Button
+                variant="outlined"
+                startIcon={<ExportIcon />}
+                onClick={handleExportMenuOpen}
+                sx={{ borderRadius: 2 }}
+              >
+                {t('action.export', 'Export')}
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/network/common/products/create')}
+                sx={{ borderRadius: 2, boxShadow: 2 }}
+              >
+                {t('action.create', 'Create')}
+              </Button>
+            </Stack>
+          </Box>
         </Box>
-        <Typography variant="body2" color="text.secondary">
-          {t('product.subtitle', 'Manage hydrocarbon products and materials')}
-        </Typography>
-      </Box>
+      </Paper>
 
       <Menu
         anchorEl={exportAnchorEl}
@@ -399,6 +406,7 @@ const ProductList = () => {
       {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
+      {/* PART 2: SEARCH/FILTERS SECTION */}
       <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
         <Box sx={{ p: 2.5 }}>
           <Stack spacing={2.5}>
@@ -427,6 +435,7 @@ const ProductList = () => {
         </Box>
       </Paper>
 
+      {/* PART 3: DATA GRID */}
       <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
         <DataGrid
           rows={rows}
