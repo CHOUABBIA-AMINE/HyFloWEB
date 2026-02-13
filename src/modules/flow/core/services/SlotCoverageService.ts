@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 2026-02-03
+ * @updated 2026-02-14 00:31 - Fixed: Check readingId instead of reading field in status extraction
  * @updated 2026-02-14 00:19 - Fixed: Extract status from validationStatus.code in backend response
  * @updated 2026-02-13 23:29 - Fixed: Aligned with backend path '/flow/intelligence/coverage'
  * @updated 2026-02-13 - Fixed: Changed 'draft' to 'drafts' to match DTO
@@ -83,7 +84,7 @@ export class SlotCoverageService {
    * @param slotNumber - Slot number (1-12)
    * @param structureId - Structure/organization unit ID
    * @returns Complete slot coverage with permissions
- * 
+   * 
    * @example
    * ```typescript
    * const coverage = await SlotCoverageService.getSlotCoverage(
@@ -116,17 +117,18 @@ export class SlotCoverageService {
       const backendData = response.data;
 
       // ✅ FIXED: Extract status from validationStatus.code in pipeline items
+      // Backend sends:
+      // - readingId (not 'reading') to indicate a reading exists
+      // - validationStatus.code for the status
       const transformedPipelines = (backendData.pipelines || []).map((item: any) => {
         // Extract status from validationStatus if present
         let status: ReadingStatus = 'NOT_RECORDED';
         
-        if (item.reading) {
+        // ✅ Check readingId (not reading) - this is what backend actually sends
+        if (item.readingId) {
           // Reading exists - check validationStatus
           if (item.validationStatus?.code) {
             status = item.validationStatus.code as ReadingStatus;
-          } else if (item.reading.validationStatus?.code) {
-            // Fallback: check nested in reading object
-            status = item.reading.validationStatus.code as ReadingStatus;
           } else if (item.status) {
             // Fallback: use direct status field if present
             status = item.status as ReadingStatus;
@@ -135,6 +137,7 @@ export class SlotCoverageService {
             status = 'DRAFT';
           }
         }
+        // else: No readingId means no reading → status stays 'NOT_RECORDED'
         
         return {
           ...item,
@@ -185,10 +188,10 @@ export class SlotCoverageService {
           date: transformedData.date,
           pipelineCoverage: transformedData.pipelineCoverage.length,
           notRecorded: transformedData.summary.notRecorded,
-          pipelineStatuses: transformedData.pipelineCoverage.map(p => ({
+          pipelineStatuses: transformedData.pipelineCoverage.slice(0, 3).map(p => ({
             code: p.pipeline?.code,
             status: p.status,
-            hasReading: !!p.reading,
+            hasReading: !!p.readingId,
             validationStatusCode: p.validationStatus?.code,
           })),
         },
@@ -225,11 +228,10 @@ export class SlotCoverageService {
       const transformedPipelines = (backendData.pipelines || []).map((item: any) => {
         let status: ReadingStatus = 'NOT_RECORDED';
         
-        if (item.reading) {
+        // ✅ Check readingId (not reading)
+        if (item.readingId) {
           if (item.validationStatus?.code) {
             status = item.validationStatus.code as ReadingStatus;
-          } else if (item.reading.validationStatus?.code) {
-            status = item.reading.validationStatus.code as ReadingStatus;
           } else if (item.status) {
             status = item.status as ReadingStatus;
           } else {
