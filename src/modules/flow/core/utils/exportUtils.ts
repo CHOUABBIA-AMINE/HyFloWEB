@@ -6,6 +6,7 @@
  * @author CHOUABBIA Amine
  * @created 01-25-2026
  * @updated 01-30-2026 - Fixed FlowOperationDTO property access
+ * @updated 02-13-2026 - Fixed FlowEventDTO field references
  */
 
 import type { FlowReadingDTO } from '../dto/FlowReadingDTO';
@@ -112,7 +113,7 @@ export function exportAlertsToCSV(alerts: FlowAlertDTO[]): string {
 export function exportEventsToCSV(events: FlowEventDTO[]): string {
   const headers = [
     'ID',
-    'Event Type',
+    'Event Timestamp',
     'Start Time',
     'End Time',
     'Title',
@@ -120,13 +121,13 @@ export function exportEventsToCSV(events: FlowEventDTO[]): string {
     'Severity',
     'Infrastructure',
     'Description',
-    'Impact',
-    'Resolution',
+    'Impact On Flow',
+    'Action Taken',
   ];
 
   const rows = events.map(event => [
     event.id || '',
-    event.type?.code || '',
+    formatDateTime(event.eventTimestamp),
     formatDateTime(event.startTime),
     formatDateTime(event.endTime),
     event.title || '',
@@ -134,8 +135,8 @@ export function exportEventsToCSV(events: FlowEventDTO[]): string {
     event.severity?.code || '',
     event.infrastructure?.code || '',
     event.description || '',
-    event.impact || '',
-    event.resolution || '',
+    event.impactOnFlow ? 'Yes' : 'No',
+    event.actionTaken || '',
   ]);
 
   return [headers, ...rows].map(row => row.join(',')).join('\n');
