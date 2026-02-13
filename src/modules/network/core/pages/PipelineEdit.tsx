@@ -15,6 +15,7 @@
  * @updated 01-18-2026 - Optimized to use common translation keys (40% less duplication)
  * @updated 01-15-2026 - Updated to use Terminal references (departureTerminalId/arrivalTerminalId)
  * @updated 01-15-2026 - Fixed type compatibility: convert numbers to strings for DTO fields
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -24,7 +25,6 @@ import {
   Box,
   Typography,
   TextField,
-  Button,
   CircularProgress,
   Alert,
   Grid,
@@ -38,10 +38,12 @@ import {
   CardContent,
   Tabs,
   Tab,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  Cancel as CancelIcon,
+  Close as CloseIcon,
   Timeline as PipelineIcon,
 } from '@mui/icons-material';
 import { PipelineService, PipelineSystemService, TerminalService } from '../services';
@@ -397,7 +399,7 @@ const PipelineEdit = () => {
   }, [coordinates, pipelineId, isEditMode, coordinateRefreshTrigger]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+    if (e) e.preventDefault();
     
     if (!validateForm()) {
       setError('Please fill in all required fields');
@@ -484,49 +486,53 @@ const PipelineEdit = () => {
   }
 
   return (
-    <Box>
-      {/* Header with Title, Subtitle, and Actions */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PipelineIcon color="primary" sx={{ fontSize: 32 }} />
-          <Box>
-            <Typography variant="h4" fontWeight={700} color="text.primary">
-              {isEditMode 
-                ? t('common.page.editTitle', { entity: t('pipeline.title') })
-                : t('common.page.createTitle', { entity: t('pipeline.title') })
-              }
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              {isEditMode 
-                ? t('common.page.editSubtitle', { entity: t('pipeline.title') })
-                : t('common.page.createSubtitle', { entity: t('pipeline.title') })
-              }
-            </Typography>
+    <Box sx={{ p: 3 }}>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <PipelineIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {isEditMode 
+                    ? t('common.page.editTitle', { entity: t('pipeline.title') })
+                    : t('common.page.createTitle', { entity: t('pipeline.title') })
+                  }
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {isEditMode 
+                    ? t('common.page.editSubtitle', { entity: t('pipeline.title') })
+                    : t('common.page.createSubtitle', { entity: t('pipeline.title') })
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('common.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={saving}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.save')}>
+                <IconButton 
+                  onClick={() => handleSubmit()} 
+                  disabled={saving}
+                  size="medium"
+                  color="primary"
+                >
+                  {saving ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
           </Box>
         </Box>
-
-        {/* Action Buttons */}
-        <Stack direction="row" spacing={2}>
-          <Button
-            variant="outlined"
-            startIcon={<CancelIcon />}
-            onClick={handleCancel}
-            disabled={saving}
-            sx={{ minWidth: 120 }}
-          >
-            {t('common.cancel')}
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            startIcon={saving ? <CircularProgress size={20} /> : <SaveIcon />}
-            disabled={saving}
-            sx={{ minWidth: 120, boxShadow: 2 }}
-          >
-            {saving ? t('common.saving') : t('common.save')}
-          </Button>
-        </Stack>
-      </Box>
+      </Paper>
 
       {/* Alerts */}
       {error && (
