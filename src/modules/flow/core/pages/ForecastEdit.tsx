@@ -15,6 +15,7 @@
  * @created 01-29-2026
  * @updated 01-31-2026 - Added i18n translations
  * @updated 01-30-2026 - Fixed EmployeeDTO property access
+ * @updated 02-13-2026 - UI: Containerized header and updated buttons to IconButton style
  */
 
 import React, { useState, useEffect } from 'react';
@@ -27,7 +28,6 @@ import {
   CardContent,
   Typography,
   TextField,
-  Button,
   Grid,
   MenuItem,
   CircularProgress,
@@ -36,10 +36,14 @@ import {
   FormHelperText,
   Slider,
   InputAdornment,
+  Paper,
+  Stack,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Save as SaveIcon,
-  Cancel as CancelIcon,
+  Close as CloseIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 
@@ -79,7 +83,6 @@ export const ForecastEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
 
-  // Form state
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ForecastFormData>({
     defaultValues: {
       infrastructureId: '',
@@ -94,7 +97,6 @@ export const ForecastEdit: React.FC = () => {
     },
   });
 
-  // Component state
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [infrastructures, setInfrastructures] = useState<InfrastructureDTO[]>([]);
@@ -107,7 +109,6 @@ export const ForecastEdit: React.FC = () => {
     severity: 'info',
   });
 
-  // Load initial data
   useEffect(() => {
     loadInitialData();
   }, [id]);
@@ -116,7 +117,6 @@ export const ForecastEdit: React.FC = () => {
     try {
       setLoadingData(true);
 
-      // Load filter options
       const [infras, prods, types, employees] = await Promise.all([
         InfrastructureService.getAllNoPagination(),
         ProductService.getAllNoPagination(),
@@ -129,7 +129,6 @@ export const ForecastEdit: React.FC = () => {
       setOperationTypes(types);
       setSupervisors(employees);
 
-      // Load existing forecast if edit mode
       if (isEditMode && id) {
         const forecast = await FlowForecastService.getById(Number(id));
         setValue('infrastructureId', forecast.infrastructureId);
@@ -142,7 +141,6 @@ export const ForecastEdit: React.FC = () => {
         setValue('adjustmentNotes', forecast.adjustmentNotes || '');
         setValue('supervisorId', forecast.supervisorId || '');
       } else {
-        // Set minimum date to tomorrow for new forecasts
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         setValue('forecastDate', tomorrow.toISOString().split('T')[0]);
@@ -165,7 +163,6 @@ export const ForecastEdit: React.FC = () => {
     try {
       setLoading(true);
 
-      // Validate required fields
       if (!data.infrastructureId) {
         showNotification(t('flow.forecast.fields.selectInfrastructure'), 'warning');
         return;
@@ -186,7 +183,6 @@ export const ForecastEdit: React.FC = () => {
         return;
       }
 
-      // Validate forecast date is in the future
       const forecastDate = new Date(data.forecastDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -200,7 +196,6 @@ export const ForecastEdit: React.FC = () => {
         return;
       }
 
-      // Prepare DTO
       const forecastDTO: FlowForecastDTO = {
         infrastructureId: Number(data.infrastructureId),
         productId: Number(data.productId),
@@ -213,7 +208,6 @@ export const ForecastEdit: React.FC = () => {
         supervisorId: data.supervisorId ? Number(data.supervisorId) : undefined,
       };
 
-      // Save forecast
       if (isEditMode && id) {
         await FlowForecastService.update(Number(id), forecastDTO);
         showNotification(t('flow.forecast.alerts.updateSuccess'), 'success');
@@ -222,7 +216,6 @@ export const ForecastEdit: React.FC = () => {
         showNotification(t('flow.forecast.alerts.createSuccess'), 'success');
       }
 
-      // Navigate back to list
       setTimeout(() => {
         navigate('/flow/forecasts');
       }, 1000);
@@ -250,6 +243,10 @@ export const ForecastEdit: React.FC = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/flow/forecasts');
+  };
+
   if (loadingData) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
@@ -261,11 +258,49 @@ export const ForecastEdit: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4">
-          {isEditMode ? t('flow.forecast.edit') : t('flow.forecast.create')}
-        </Typography>
-      </Box>
+      {/* HEADER SECTION - Containerized */}
+      <Paper elevation={0} sx={{ mb: 3, border: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: 2.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <TrendingUpIcon color="primary" sx={{ fontSize: 32 }} />
+              <Box>
+                <Typography variant="h4" fontWeight={700} color="text.primary">
+                  {isEditMode ? t('flow.forecast.edit') : t('flow.forecast.create')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {isEditMode 
+                    ? 'Update forecast with adjusted predictions'
+                    : 'Create a new flow forecast for future planning'
+                  }
+                </Typography>
+              </Box>
+            </Box>
+            <Stack direction="row" spacing={1.5}>
+              <Tooltip title={t('flow.forecast.actions.cancel')}>
+                <IconButton 
+                  onClick={handleCancel} 
+                  disabled={loading}
+                  size="medium"
+                  color="default"
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={isEditMode ? t('flow.forecast.actions.update') : t('flow.forecast.actions.create')}>
+                <IconButton 
+                  onClick={handleSubmit(onSubmit)} 
+                  disabled={loading}
+                  size="medium"
+                  color="primary"
+                >
+                  {loading ? <CircularProgress size={24} /> : <SaveIcon />}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          </Box>
+        </Box>
+      </Paper>
 
       <Card>
         <CardContent>
@@ -483,28 +518,9 @@ export const ForecastEdit: React.FC = () => {
               />
             </Grid>
           </Grid>
-
-          <Box sx={{ display: 'flex', gap: 2, mt: 4, justifyContent: 'flex-end' }}>
-            <Button
-              variant="outlined"
-              startIcon={<CancelIcon />}
-              onClick={() => navigate('/flow/forecasts')}
-            >
-              {t('flow.forecast.actions.cancel')}
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<SaveIcon />}
-              onClick={handleSubmit(onSubmit)}
-              disabled={loading}
-            >
-              {isEditMode ? t('flow.forecast.actions.update') : t('flow.forecast.actions.create')}
-            </Button>
-          </Box>
         </CardContent>
       </Card>
 
-      {/* Notification Snackbar */}
       <Snackbar
         open={notification.open}
         autoHideDuration={6000}
