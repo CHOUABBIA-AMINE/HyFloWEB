@@ -2,10 +2,13 @@
  * PipelineSegment DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineSegmentDTO
+ * Updated: 02-14-2026 01:29 - Added coordinateIds (coordinates belong to segments, not pipeline)
  * Updated: 01-15-2026 - Exact backend alignment (24 fields)
  * 
  * Represents a segment of a pipeline with its physical properties, materials,
  * and position within the parent pipeline.
+ * 
+ * Architecture: PipelineSegment has coordinates that define its geographic path.
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -14,6 +17,7 @@ import { OperationalStatusDTO } from '../../common/dto/OperationalStatusDTO';
 import { StructureDTO } from '../../../general/organization/dto/StructureDTO';
 import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { PipelineDTO } from './PipelineDTO';
+import { CoordinateDTO } from '../../../general/localization/dto/CoordinateDTO';
 
 export interface PipelineSegmentDTO {
   // Identifier (from GenericDTO)
@@ -46,6 +50,9 @@ export interface PipelineSegmentDTO {
   interiorCoatingId: number; // @NotNull (required) - Alloy coating
   pipelineId: number; // @NotNull (required) - Parent pipeline
   
+  // Collections - Backend: Set<Long>, Frontend: number[]
+  coordinateIds?: number[]; // Backend: Set<Long> coordinateIds - Coordinate IDs defining segment path
+  
   // Nested objects (populated in responses)
   operationalStatus?: OperationalStatusDTO;
   structure?: StructureDTO;
@@ -53,6 +60,7 @@ export interface PipelineSegmentDTO {
   exteriorCoating?: AlloyDTO;
   interiorCoating?: AlloyDTO;
   pipeline?: PipelineDTO; // Parent pipeline reference
+  coordinates?: CoordinateDTO[]; // Backend: Set<Coordinate> - Populated coordinate objects
 }
 
 /**
@@ -138,3 +146,18 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
   
   return errors;
 };
+
+/**
+ * Creates an empty PipelineSegmentDTO with default values
+ */
+export const createEmptyPipelineSegmentDTO = (): Partial<PipelineSegmentDTO> => ({
+  code: '',
+  name: '',
+  diameter: 0,
+  length: 0,
+  thickness: 0,
+  roughness: 0,
+  startPoint: 0,
+  endPoint: 0,
+  coordinateIds: [], // Coordinate IDs array
+});
