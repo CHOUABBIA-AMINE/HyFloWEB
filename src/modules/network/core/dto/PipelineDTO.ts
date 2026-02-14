@@ -2,14 +2,18 @@
  * Pipeline DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineDTO
+ * Updated: 02-14-2026 01:28 - Removed coordinateIds (belongs to PipelineSegment, not Pipeline)
  * Updated: 02-06-2026 19:12 - Added vendors array for nested vendor objects in responses
- * Updated: 02-06-2026 18:52 - CRITICAL: Backend removed locations, changed to coordinateIds + vendorIds Set
- * Updated: 02-06-2026 18:21 - Aligned with backend Model (nominalDiameter/Thickness as string, coordinates support)
+ * Updated: 02-06-2026 18:52 - Added vendorIds Set for ManyToMany relationship
+ * Updated: 02-06-2026 18:21 - Aligned with backend Model (nominalDiameter/Thickness as string)
  * Updated: 02-02-2026 - Fully aligned with backend (all ID fields are number, matching Java Long)
  * Updated: 01-26-2026 - Aligned with backend (added ownerId and managerId)
  * 
  * Complex pipeline entity with detailed physical properties, pressure/capacity specs,
  * material/coating information, and terminal connections.
+ * 
+ * Note: Coordinates belong to PipelineSegment, not Pipeline.
+ * Architecture: Pipeline -> PipelineSegment[] -> Coordinate[]
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -20,7 +24,6 @@ import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { VendorDTO } from '../../common/dto/VendorDTO';
 import { PipelineSystemDTO } from './PipelineSystemDTO';
 import { TerminalDTO } from './TerminalDTO';
-import { CoordinateDTO } from '../../../general/localization/dto/CoordinateDTO';
 
 export interface PipelineDTO {
   // Identifier (from GenericDTO)
@@ -65,7 +68,6 @@ export interface PipelineDTO {
   nominalInteriorCoatingId?: number; // Optional - Alloy coating
   
   // Collections - Backend: Set<Long>, Frontend: number[]
-  coordinateIds?: number[]; // Backend: Set<Long> coordinateIds - Coordinate IDs defining pipeline path
   vendorIds?: number[]; // Backend: Set<Long> vendorIds - Multiple vendor IDs (ManyToMany)
   
   // Nested objects (populated in responses)
@@ -79,9 +81,6 @@ export interface PipelineDTO {
   pipelineSystem?: PipelineSystemDTO;
   departureTerminal?: TerminalDTO; // Starting terminal
   arrivalTerminal?: TerminalDTO; // Ending terminal
-  
-  // DEPRECATED: Backend removed locations, use coordinateIds instead
-  // locationIds?: number[]; // REMOVED from backend
 }
 
 /**
@@ -204,6 +203,5 @@ export const createEmptyPipelineDTO = (): Partial<PipelineDTO> => ({
   operationalMinServicePressure: 0,
   designCapacity: 0,
   operationalCapacity: 0,
-  coordinateIds: [],            // NEW: coordinateIds instead of locationIds
-  vendorIds: [],                // NEW: vendorIds array (Set in backend)
+  vendorIds: [],                // VendorIds array (Set in backend)
 });
