@@ -7,13 +7,14 @@
  * 
  * @description React hook for managing pipeline dashboard data.
  *              Provides auto-refresh, caching, and loading states.
+ *              Uses standard React patterns (useState/useEffect).
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import { PipelineIntelligenceService } from '../services';
 import type { PipelineDynamicDashboardDTO } from '../dto';
 
-interface UsePipelineDashboardOptions {
+export interface UsePipelineDashboardOptions {
   /**
    * Enable auto-refresh
    * @default true
@@ -33,7 +34,7 @@ interface UsePipelineDashboardOptions {
   enabled?: boolean;
 }
 
-interface UsePipelineDashboardReturn {
+export interface UsePipelineDashboardReturn {
   dashboard?: PipelineDynamicDashboardDTO;
   isLoading: boolean;
   isError: boolean;
@@ -48,7 +49,6 @@ interface UsePipelineDashboardReturn {
  * 
  * Features:
  * - Automatic fetching on mount
- * - 30-second cache (matches backend)
  * - Auto-refresh capability
  * - Loading and error states
  * - Typed response with KeyMetricsDTO
@@ -83,22 +83,54 @@ export function usePipelineDashboard(
     enabled = true,
   } = options;
 
-  const {
-    data: dashboard,
-    isLoading,
-    isError,
-    error,
-    isRefetching,
-    refetch,
-  } = useQuery({
-    queryKey: ['pipeline-dashboard', pipelineId],
-    queryFn: () => PipelineIntelligenceService.getDashboard(pipelineId),
-    enabled,
-    staleTime: 30000, // 30 seconds
-    refetchInterval: autoRefresh ? refreshInterval : false,
-    refetchOnWindowFocus: true,
-    retry: 2,
-  });
+  const [dashboard, setDashboard] = useState<PipelineDynamicDashboardDTO | undefined>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [isRefetching, setIsRefetching] = useState<boolean>(false);
+
+  const fetchDashboard = useCallback(async (isRefresh: boolean = false) => {
+    if (!enabled) return;
+
+    try {
+      if (isRefresh) {
+        setIsRefetching(true);
+      } else {
+        setIsLoading(true);
+      }
+      setIsError(false);
+      setError(null);
+
+      const data = await PipelineIntelligenceService.getDashboard(pipelineId);
+      setDashboard(data);
+    } catch (err) {
+      setIsError(true);
+      setError(err instanceof Error ? err : new Error('Failed to fetch dashboard'));
+    } finally {
+      setIsLoading(false);
+      setIsRefetching(false);
+    }
+  }, [pipelineId, enabled]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchDashboard(false);
+  }, [fetchDashboard]);
+
+  // Auto-refresh
+  useEffect(() => {
+    if (!autoRefresh || !enabled) return;
+
+    const intervalId = setInterval(() => {
+      fetchDashboard(true);
+    }, refreshInterval);
+
+    return () => clearInterval(intervalId);
+  }, [autoRefresh, enabled, refreshInterval, fetchDashboard]);
+
+  const refresh = useCallback(() => {
+    fetchDashboard(true);
+  }, [fetchDashboard]);
 
   const hasMetrics = dashboard
     ? PipelineIntelligenceService.hasKeyMetrics(dashboard)
@@ -108,9 +140,9 @@ export function usePipelineDashboard(
     dashboard,
     isLoading,
     isError,
-    error: error as Error | null,
+    error,
     isRefetching,
-    refresh: () => refetch(),
+    refresh,
     hasMetrics,
   };
 }
