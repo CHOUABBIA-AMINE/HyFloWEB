@@ -10,6 +10,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-25-2026
+ * @updated 02-14-2026 20:55 - Fixed: Skip pipeline selection when editing - start at measurement form
  * @updated 02-14-2026 00:38 - Fixed: Pass currentEmployeeId to ValidationReview for approval/rejection
  * @updated 02-07-2026 16:30 - Aligned form types with FlowReadingDTO for better type safety
  * @updated 02-07-2026 15:10 - Changed default return path to /flow/monitoring (SlotMonitoring is now primary interface)
@@ -281,6 +282,12 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
         // Load threshold for existing reading's pipeline
         loadThreshold(reading.pipelineId);
         
+        // ✅ FIX: Skip to measurement form when editing (pipeline already selected)
+        if (mode === 'edit') {
+          setCurrentStep(1);
+          console.log('📝 Edit mode: Starting at measurement form (step 1)');
+        }
+        
         // If validation mode, skip to review step
         if (mode === 'validate') {
           setCurrentStep(2);
@@ -339,9 +346,14 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
   };
   
   const handlePrevious = () => {
-    // Don't allow going back to pipeline selection if coming from SlotMonitoring
-    if (currentStep === 1 && isFromSlotMonitoring) {
-      showNotification('Pipeline is pre-selected from monitoring dashboard', 'info');
+    // ✅ FIX: Don't allow going back to pipeline selection in edit mode
+    if (currentStep === 1 && (isFromSlotMonitoring || mode === 'edit')) {
+      showNotification(
+        mode === 'edit' 
+          ? 'Pipeline is already selected for this reading' 
+          : 'Pipeline is pre-selected from monitoring dashboard',
+        'info'
+      );
       return;
     }
     
@@ -560,11 +572,20 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
           {mode === 'create' ? 'New Flow Reading' : mode === 'edit' ? 'Edit Flow Reading' : 'Validate Reading'}
         </Typography>
         
-        {/* Show context chip if coming from SlotMonitoring */}
-        {isFromSlotMonitoring && navigationState && (
+        {/* Show context chip if coming from SlotMonitoring OR editing existing reading */}
+        {(isFromSlotMonitoring && navigationState) && (
           <Chip
             icon={<CheckCircleIcon />}
             label={`Pipeline: ${navigationState.pipelineCode || navigationState.pipelineId}`}
+            color="primary"
+            variant="outlined"
+          />
+        )}
+        
+        {mode === 'edit' && existingReading && (
+          <Chip
+            icon={<CheckCircleIcon />}
+            label={`Pipeline: ${existingReading.pipeline?.code || existingReading.pipelineId}`}
             color="primary"
             variant="outlined"
           />
@@ -579,7 +600,8 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
                 {steps.map((label, index) => (
                   <Step key={label}>
                     <StepLabel>
-                      {index === 0 && isFromSlotMonitoring ? `${label} ✓` : label}
+                      {/* Mark pipeline selection as completed in edit mode or when coming from monitoring */}
+                      {index === 0 && (isFromSlotMonitoring || mode === 'edit') ? `${label} ✓` : label}
                     </StepLabel>
                   </Step>
                 ))}
@@ -601,7 +623,7 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
                     errors={errors}
                     pipelineId={watchedPipelineId}
                     threshold={selectedThreshold}
-                    isFromMonitoring={isFromSlotMonitoring}
+                    isFromMonitoring={isFromSlotMonitoring || mode === 'edit'}
                   />
                 )}
                 
@@ -618,7 +640,10 @@ export const ReadingEdit: React.FC<ReadingEditProps> = ({ mode }) => {
                 <Button
                   startIcon={<ArrowBackIcon />}
                   onClick={handlePrevious}
-                  disabled={currentStep === 0 || (currentStep === 1 && isFromSlotMonitoring)}
+                  disabled={
+                    currentStep === 0 || 
+                    (currentStep === 1 && (isFromSlotMonitoring || mode === 'edit'))
+                  }
                 >
                   Previous
                 </Button>
