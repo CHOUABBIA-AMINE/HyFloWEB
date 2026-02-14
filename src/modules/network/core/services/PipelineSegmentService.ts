@@ -8,6 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
+ * @updated 02-14-2026 01:49 - Fixed: Corrected endpoint /pipeline/{id} (was /by-pipeline/{id})
  * @updated 02-14-2026 01:39 - Added getByPipelineId alias
  * @updated 01-02-2026
  */
@@ -94,10 +95,11 @@ export class PipelineSegmentService {
 
   /**
    * Find pipeline segments by pipeline
+   * Backend endpoint: GET /network/core/pipelineSegment/pipeline/{pipelineId}
    */
   static async findByPipeline(pipelineId: number): Promise<PipelineSegmentDTO[]> {
     const response = await axiosInstance.get<PipelineSegmentDTO[]>(
-      `${BASE_URL}/by-pipeline/${pipelineId}`
+      `${BASE_URL}/pipeline/${pipelineId}`
     );
     return response.data;
   }
