@@ -8,6 +8,7 @@
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  * @created 06-26-2025
+ * @updated 02-14-2026 01:39 - Added getByPipelineId alias
  * @updated 01-02-2026
  */
 
@@ -99,5 +100,13 @@ export class PipelineSegmentService {
       `${BASE_URL}/by-pipeline/${pipelineId}`
     );
     return response.data;
+  }
+
+  /**
+   * Get pipeline segments by pipeline ID (alias for findByPipeline)
+   * Convenience method to match naming convention
+   */
+  static async getByPipelineId(pipelineId: number): Promise<PipelineSegmentDTO[]> {
+    return this.findByPipeline(pipelineId);
   }
 }
