@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 02-14-2026 21:17 - Fixed filterState.filters.showLabels access
  * @updated 02-14-2026 21:10 - Added curve separation and enhanced tooltips
  * @updated 02-14-2026 - Updated click navigation to intelligence dashboard
  * @updated 01-08-2026 - Fixed coordinate type handling
@@ -288,8 +289,8 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                 },
               }}
             >
-              {/* Enhanced Tooltip for quick info on hover */}
-              {filterState.showLabels && (
+              {/* Enhanced Tooltip for quick info on hover - FIXED: filterState.filters.showLabels */}
+              {filterState.filters.showLabels && (
                 <Tooltip 
                   direction="top" 
                   offset={[0, -10]} 
