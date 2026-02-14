@@ -2,6 +2,7 @@
  * Pipeline Polylines Component
  * Renders pipeline routes on the map as polylines
  * 
+ * Updated: 02-14-2026 21:41 - Added product to tooltips
  * Updated: 02-14-2026 21:33 - Added parallel offset for multi-segment pipelines
  * Updated: 02-14-2026 21:15 - Increased curve offset to 0.05 for better visibility
  * Updated: 02-14-2026 21:00 - Added curve separation for overlapping pipelines + enhanced tooltips
@@ -261,6 +262,9 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
           navigate(`/network/core/pipelines/${pipeline.id}`);
         }
       };
+
+      // Get product for display
+      const product = pipeline.pipelineSystem?.product;
       
       return (
         <Polyline
@@ -281,7 +285,7 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
             click: handleClick,
           }}
         >
-          {/* Enhanced Tooltip for quick info on hover */}
+          {/* Enhanced Tooltip with product information */}
           {options.showLabels && (
             <Tooltip 
               direction="top" 
@@ -292,21 +296,41 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
             >
               <Box 
                 sx={{ 
-                  p: 1, 
-                  minWidth: 120,
+                  p: 1.5, 
+                  minWidth: 140,
                   backgroundColor: 'rgba(255, 255, 255, 0.98)',
                   borderRadius: 1,
-                  boxShadow: 1,
+                  boxShadow: 2,
                 }}
               >
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5 }}>
                   {pipeline.code}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
                   {pipeline.name}
                 </Typography>
+                
+                {/* Product with color indicator */}
+                {product && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                    <Box 
+                      sx={{ 
+                        width: 12, 
+                        height: 12, 
+                        borderRadius: '50%',
+                        backgroundColor: pipelineStyle.color,
+                        border: '1px solid rgba(0,0,0,0.1)'
+                      }} 
+                    />
+                    <Typography variant="caption" fontWeight="medium">
+                      {product.code}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {/* Route */}
                 {pipeline.departureTerminal && pipeline.arrivalTerminal && (
-                  <Typography variant="caption" display="block" sx={{ mt: 0.5, fontSize: '0.7rem' }}>
+                  <Typography variant="caption" display="block" sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
                     {pipeline.departureTerminal.code} → {pipeline.arrivalTerminal.code}
                   </Typography>
                 )}
@@ -338,6 +362,12 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
               )}
               
               <Box sx={{ display: 'grid', gap: 0.5 }}>
+                {product && (
+                  <Typography variant="body2">
+                    <strong>Product:</strong> {product.code}
+                  </Typography>
+                )}
+                
                 {pipeline.nominalDiameter && (
                   <Typography variant="body2">
                     <strong>Diameter:</strong> {pipeline.nominalDiameter}"
