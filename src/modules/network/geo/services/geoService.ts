@@ -2,12 +2,13 @@
  * Geo Service
  * API service for fetching infrastructure geolocation data
  * 
+ * Updated: 02-14-2026 02:09 - Fixed: Use only segment coordinates (no infrastructure in segments)
  * Updated: 02-14-2026 02:06 - Build segment paths with infrastructure endpoints
  * Updated: 02-14-2026 01:31 - Fixed: Coordinates now belong to PipelineSegment, not Pipeline
  * Updated: 02-06-2026 - Backend replaced locationIds with coordinateIds
  * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
  * 
- * Architecture: Pipeline -> PipelineSegment[] -> [DepartureInfra, Coordinates[], ArrivalInfra]
+ * Architecture: Pipeline -> PipelineSegment[] -> Coordinates[] (ordered by sequence)
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
@@ -44,20 +45,6 @@ interface CoordinateDTO {
   longitude: number;
   altitude?: number;
   sequence?: number;
-}
-
-/**
- * Infrastructure with location (Terminal, Station, etc.)
- */
-interface InfrastructureWithLocation {
-  id?: number;
-  code?: string;
-  name?: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-    altitude?: number;
-  };
 }
 
 class GeoService {
@@ -168,66 +155,22 @@ class GeoService {
   }
 
   /**
-   * Extract location from infrastructure object
-   */
-  private extractLocation(infrastructure: InfrastructureWithLocation | undefined): LocationPoint | null {
-    if (!infrastructure?.location) {
-      return null;
-    }
-    
-    const { latitude, longitude, altitude } = infrastructure.location;
-    
-    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
-      return null;
-    }
-    
-    return {
-      id: infrastructure.id || 0,
-      latitude,
-      longitude,
-      altitude,
-      sequence: 0
-    };
-  }
-
-  /**
-   * Build complete segment path:
-   * [Departure Infrastructure] -> [Coordinates] -> [Arrival Infrastructure]
+   * Build segment path from its coordinates
+   * Note: PipelineSegmentDTO only has coordinateIds, no infrastructure references
    */
   private async buildSegmentPath(segment: PipelineSegmentDTO): Promise<LocationPoint[]> {
     const path: LocationPoint[] = [];
     
-    // 1. Add departure infrastructure location as first point
-    const departureLocation = this.extractLocation(segment.departureInfrastructure as any);
-    if (departureLocation) {
-      path.push({ ...departureLocation, sequence: 0 });
-    } else {
-      console.warn(`Segment ${segment.code} - No departure infrastructure location`);
-    }
-    
-    // 2. Add segment's intermediate coordinates
+    // Get segment's coordinates (ordered by sequence)
     if (segment.coordinateIds && segment.coordinateIds.length > 0) {
       const coordinateIdArray: number[] = Array.isArray(segment.coordinateIds)
         ? segment.coordinateIds as number[]
         : Array.from(segment.coordinateIds) as number[];
       
-      const intermediateCoords = await this.getCoordinatesByIds(coordinateIdArray);
-      
-      // Add with adjusted sequence numbers
-      intermediateCoords.forEach((coord, index) => {
-        path.push({
-          ...coord,
-          sequence: path.length
-        });
-      });
-    }
-    
-    // 3. Add arrival infrastructure location as last point
-    const arrivalLocation = this.extractLocation(segment.arrivalInfrastructure as any);
-    if (arrivalLocation) {
-      path.push({ ...arrivalLocation, sequence: path.length });
+      const coords = await this.getCoordinatesByIds(coordinateIdArray);
+      path.push(...coords);
     } else {
-      console.warn(`Segment ${segment.code} - No arrival infrastructure location`);
+      console.warn(`Segment ${segment.code} - No coordinates defined`);
     }
     
     return path;
@@ -258,7 +201,7 @@ class GeoService {
 
   /**
    * Fetch all pipelines with their geo data from segments
-   * NEW: Build paths using departure/arrival infrastructure + segment coordinates
+   * Build paths by concatenating ordered segment coordinates
    */
   private async getPipelinesWithGeoData(): Promise<PipelineGeoData[]> {
     try {
@@ -315,7 +258,7 @@ class GeoService {
             const segmentPath = await this.buildSegmentPath(segment);
             
             if (segmentPath.length === 0) {
-              console.warn(`Pipeline ${pipeline.code} - Segment ${segment.code} has no path points`);
+              console.warn(`Pipeline ${pipeline.code} - Segment ${segment.code} has no coordinates`);
               continue;
             }
             
@@ -325,8 +268,12 @@ class GeoService {
               const lastLoc = allLocations[allLocations.length - 1];
               const firstLoc = segmentPath[0];
               
-              if (lastLoc.latitude === firstLoc.latitude && lastLoc.longitude === firstLoc.longitude) {
+              // Check if coordinates match (with small tolerance for floating point)
+              const tolerance = 0.000001;
+              if (Math.abs(lastLoc.latitude - firstLoc.latitude) < tolerance && 
+                  Math.abs(lastLoc.longitude - firstLoc.longitude) < tolerance) {
                 // Skip duplicate connection point
+                console.log(`Pipeline ${pipeline.code} - Removing duplicate connection point between segments`);
                 allLocations.push(...segmentPath.slice(1));
               } else {
                 allLocations.push(...segmentPath);
@@ -337,7 +284,7 @@ class GeoService {
           }
           
           if (allLocations.length < 2) {
-            console.warn(`Pipeline ${pipeline.code} - Insufficient path points after building (need at least 2, got ${allLocations.length})`);
+            console.warn(`Pipeline ${pipeline.code} - Insufficient path points (need at least 2, got ${allLocations.length})`);
             return null;
           }
           
