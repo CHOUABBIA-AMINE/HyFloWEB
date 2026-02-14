@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 12:30 - Aligned with backend: structureId→ownerId, facilities now REQUIRED
  * @updated 02-14-2026 12:23 - Made coating fields optional per backend update
  * @updated 02-14-2026 12:16 - Aligned validation with backend @PositiveOrZero constraint
  * @updated 02-14-2026 12:03 - Clarified Structure field as organizational owner/manager
@@ -98,13 +99,13 @@ const PipelineSegmentEdit = () => {
     roughness: 0,                     // Number (Double) - @PositiveOrZero
     startPoint: 0,                    // Position in pipeline (km) - @PositiveOrZero
     endPoint: 0,                      // Position in pipeline (km) - @PositiveOrZero
-    departureFacilityId: undefined,   // OPTIONAL
-    arrivalFacilityId: undefined,     // OPTIONAL
+    departureFacilityId: undefined,   // REQUIRED (backend @NotNull)
+    arrivalFacilityId: undefined,     // REQUIRED (backend @NotNull)
     operationalStatusId: undefined,   // REQUIRED
-    structureId: undefined,           // REQUIRED - Organizational owner/manager
+    ownerId: undefined,               // OPTIONAL (backend field: ownerId, not structureId)
     constructionMaterialId: undefined,// REQUIRED
-    exteriorCoatingId: undefined,     // OPTIONAL (updated 2026-02-14)
-    interiorCoatingId: undefined,     // OPTIONAL (updated 2026-02-14)
+    exteriorCoatingId: undefined,     // OPTIONAL
+    interiorCoatingId: undefined,     // OPTIONAL
     pipelineId: Number(pipelineId),
     coordinateIds: [],
   });
@@ -303,21 +304,26 @@ const PipelineSegmentEdit = () => {
       errors.endPoint = 'End point must be greater than start point';
     }
 
-    // REQUIRED relationships only
-    // REMOVED: exteriorCoatingId and interiorCoatingId (now OPTIONAL)
+    // REQUIRED relationships (backend @NotNull)
     if (!segment.operationalStatusId) {
       errors.operationalStatusId = 'Operational status is required';
-    }
-
-    if (!segment.structureId) {
-      errors.structureId = 'Organizational structure is required';
     }
 
     if (!segment.constructionMaterialId) {
       errors.constructionMaterialId = 'Construction material is required';
     }
 
-    // Coatings are now OPTIONAL - no validation needed
+    // REQUIRED facilities (backend @NotNull)
+    if (!segment.departureFacilityId) {
+      errors.departureFacilityId = 'Departure facility is required';
+    }
+
+    if (!segment.arrivalFacilityId) {
+      errors.arrivalFacilityId = 'Arrival facility is required';
+    }
+
+    // ownerId is OPTIONAL - no validation
+    // Coatings are OPTIONAL - no validation
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -404,10 +410,10 @@ const PipelineSegmentEdit = () => {
         roughness: Number(segment.roughness),
         startPoint: Number(segment.startPoint),
         endPoint: Number(segment.endPoint),
-        departureFacilityId: segment.departureFacilityId ? Number(segment.departureFacilityId) : undefined,
-        arrivalFacilityId: segment.arrivalFacilityId ? Number(segment.arrivalFacilityId) : undefined,
+        departureFacilityId: Number(segment.departureFacilityId),  // REQUIRED
+        arrivalFacilityId: Number(segment.arrivalFacilityId),      // REQUIRED
         operationalStatusId: Number(segment.operationalStatusId),
-        structureId: Number(segment.structureId),
+        ownerId: segment.ownerId ? Number(segment.ownerId) : undefined,  // OPTIONAL
         constructionMaterialId: Number(segment.constructionMaterialId),
         exteriorCoatingId: segment.exteriorCoatingId ? Number(segment.exteriorCoatingId) : undefined, // OPTIONAL
         interiorCoatingId: segment.interiorCoatingId ? Number(segment.interiorCoatingId) : undefined, // OPTIONAL
@@ -582,11 +588,11 @@ const PipelineSegmentEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Connected Infrastructure */}
+                {/* Connected Infrastructure - NOW REQUIRED */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Connected Infrastructure (Optional)
+                      Connected Infrastructure
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
@@ -598,10 +604,10 @@ const PipelineSegmentEdit = () => {
                           label="Departure Facility"
                           value={segment.departureFacilityId || ''}
                           onChange={handleChange('departureFacilityId')}
+                          required
                           error={!!validationErrors.departureFacilityId}
-                          helperText={validationErrors.departureFacilityId || 'Starting infrastructure (Station, Terminal, etc.)'}
+                          helperText={validationErrors.departureFacilityId || 'Starting infrastructure (REQUIRED)'}
                         >
-                          <MenuItem value="">None</MenuItem>
                           {facilities.length === 0 ? (
                             <MenuItem value="" disabled>No facilities available</MenuItem>
                           ) : (
@@ -621,10 +627,10 @@ const PipelineSegmentEdit = () => {
                           label="Arrival Facility"
                           value={segment.arrivalFacilityId || ''}
                           onChange={handleChange('arrivalFacilityId')}
+                          required
                           error={!!validationErrors.arrivalFacilityId}
-                          helperText={validationErrors.arrivalFacilityId || 'Ending infrastructure (Station, Terminal, etc.)'}
+                          helperText={validationErrors.arrivalFacilityId || 'Ending infrastructure (REQUIRED)'}
                         >
-                          <MenuItem value="">None</MenuItem>
                           {facilities.length === 0 ? (
                             <MenuItem value="" disabled>No facilities available</MenuItem>
                           ) : (
@@ -745,11 +751,11 @@ const PipelineSegmentEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Organizational Details */}
+                {/* Status & Owner */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Organizational Details
+                      Status & Owner
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
@@ -777,13 +783,13 @@ const PipelineSegmentEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Organizational Structure (Owner/Manager)"
-                          value={segment.structureId || ''}
-                          onChange={handleChange('structureId')}
-                          required
-                          error={!!validationErrors.structureId}
-                          helperText={validationErrors.structureId || 'Responsible organization for this segment'}
+                          label="Owner (Optional)"
+                          value={segment.ownerId || ''}
+                          onChange={handleChange('ownerId')}
+                          error={!!validationErrors.ownerId}
+                          helperText={validationErrors.ownerId || 'Organizational owner (optional)'}
                         >
+                          <MenuItem value="">None</MenuItem>
                           {structures.map((structure) => (
                             <MenuItem key={structure.id} value={structure.id}>
                               {structure.designationFr} ({structure.code})
@@ -795,7 +801,7 @@ const PipelineSegmentEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Materials */}
+                {/* Materials & Coatings */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
