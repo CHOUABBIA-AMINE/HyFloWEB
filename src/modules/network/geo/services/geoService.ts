@@ -2,11 +2,12 @@
  * Geo Service
  * API service for fetching infrastructure geolocation data
  * 
+ * Updated: 02-14-2026 02:06 - Build segment paths with infrastructure endpoints
  * Updated: 02-14-2026 01:31 - Fixed: Coordinates now belong to PipelineSegment, not Pipeline
  * Updated: 02-06-2026 - Backend replaced locationIds with coordinateIds
  * Updated: 01-16-2026 - Replaced HydrocarbonFieldDTO with ProductionFieldDTO
  * 
- * Architecture: Pipeline -> PipelineSegment[] -> Coordinate[]
+ * Architecture: Pipeline -> PipelineSegment[] -> [DepartureInfra, Coordinates[], ArrivalInfra]
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
@@ -43,6 +44,20 @@ interface CoordinateDTO {
   longitude: number;
   altitude?: number;
   sequence?: number;
+}
+
+/**
+ * Infrastructure with location (Terminal, Station, etc.)
+ */
+interface InfrastructureWithLocation {
+  id?: number;
+  code?: string;
+  name?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    altitude?: number;
+  };
 }
 
 class GeoService {
@@ -153,23 +168,86 @@ class GeoService {
   }
 
   /**
+   * Extract location from infrastructure object
+   */
+  private extractLocation(infrastructure: InfrastructureWithLocation | undefined): LocationPoint | null {
+    if (!infrastructure?.location) {
+      return null;
+    }
+    
+    const { latitude, longitude, altitude } = infrastructure.location;
+    
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      return null;
+    }
+    
+    return {
+      id: infrastructure.id || 0,
+      latitude,
+      longitude,
+      altitude,
+      sequence: 0
+    };
+  }
+
+  /**
+   * Build complete segment path:
+   * [Departure Infrastructure] -> [Coordinates] -> [Arrival Infrastructure]
+   */
+  private async buildSegmentPath(segment: PipelineSegmentDTO): Promise<LocationPoint[]> {
+    const path: LocationPoint[] = [];
+    
+    // 1. Add departure infrastructure location as first point
+    const departureLocation = this.extractLocation(segment.departureInfrastructure as any);
+    if (departureLocation) {
+      path.push({ ...departureLocation, sequence: 0 });
+    } else {
+      console.warn(`Segment ${segment.code} - No departure infrastructure location`);
+    }
+    
+    // 2. Add segment's intermediate coordinates
+    if (segment.coordinateIds && segment.coordinateIds.length > 0) {
+      const coordinateIdArray: number[] = Array.isArray(segment.coordinateIds)
+        ? segment.coordinateIds as number[]
+        : Array.from(segment.coordinateIds) as number[];
+      
+      const intermediateCoords = await this.getCoordinatesByIds(coordinateIdArray);
+      
+      // Add with adjusted sequence numbers
+      intermediateCoords.forEach((coord, index) => {
+        path.push({
+          ...coord,
+          sequence: path.length
+        });
+      });
+    }
+    
+    // 3. Add arrival infrastructure location as last point
+    const arrivalLocation = this.extractLocation(segment.arrivalInfrastructure as any);
+    if (arrivalLocation) {
+      path.push({ ...arrivalLocation, sequence: path.length });
+    } else {
+      console.warn(`Segment ${segment.code} - No arrival infrastructure location`);
+    }
+    
+    return path;
+  }
+
+  /**
    * Fetch pipeline segments for a specific pipeline
    * NEW: Coordinates are now stored in segments, not pipelines
    */
   private async getPipelineSegments(pipelineId: number): Promise<PipelineSegmentDTO[]> {
     try {
-      // Fetch all segments for this pipeline
-      const response = await axiosInstance.get('/network/core/pipelineSegment', {
-        params: {
-          pipelineId: pipelineId,
-          size: 100 // Fetch all segments
-        }
-      });
+      // Use the correct endpoint: /pipeline/{pipelineId}
+      const response = await axiosInstance.get(`/network/core/pipelineSegment/pipeline/${pipelineId}`);
       
-      const segments = this.extractData<PipelineSegmentDTO>(response.data);
+      const segments = Array.isArray(response.data) ? response.data : this.extractData<PipelineSegmentDTO>(response.data);
       
       // Sort segments by startPoint to maintain pipeline path order
-      segments.sort((a, b) => a.startPoint - b.startPoint);
+      segments.sort((a, b) => (a.startPoint ?? 0) - (b.startPoint ?? 0));
+      
+      console.log(`GeoService - Pipeline ${pipelineId}: Found ${segments.length} segments`);
       
       return segments;
     } catch (error) {
@@ -180,7 +258,7 @@ class GeoService {
 
   /**
    * Fetch all pipelines with their geo data from segments
-   * NEW: Coordinates come from PipelineSegment.coordinateIds, not Pipeline.coordinateIds
+   * NEW: Build paths using departure/arrival infrastructure + segment coordinates
    */
   private async getPipelinesWithGeoData(): Promise<PipelineGeoData[]> {
     try {
@@ -203,7 +281,7 @@ class GeoService {
         productCode: samplePipeline.pipelineSystem?.product?.code,
       });
       
-      // Fetch segments and coordinates for each pipeline
+      // Fetch segments and build paths for each pipeline
       const pipelinesWithGeo = await Promise.all(
         pipelines.map(async (pipeline) => {
           // Log product data for debugging
@@ -214,7 +292,7 @@ class GeoService {
             console.warn(`Pipeline ${pipeline.code} - NO PRODUCT DATA (pipelineSystem: ${!!pipeline.pipelineSystem})`);
           }
 
-          // NEW: Fetch segments for this pipeline (coordinates are in segments)
+          // Fetch segments for this pipeline
           if (!pipeline.id) {
             console.warn(`Pipeline ${pipeline.code} - No ID, skipping`);
             return null;
@@ -227,35 +305,54 @@ class GeoService {
             return null;
           }
           
-          // Collect all coordinate IDs from all segments
-          const allCoordinateIds: number[] = [];
-          for (const segment of segments) {
-            if (segment.coordinateIds && segment.coordinateIds.length > 0) {
-              const coordinateIdArray: number[] = Array.isArray(segment.coordinateIds)
-                ? segment.coordinateIds as number[]
-                : Array.from(segment.coordinateIds) as number[];
-              allCoordinateIds.push(...coordinateIdArray);
+          // Build complete path by concatenating all segment paths
+          const allLocations: LocationPoint[] = [];
+          
+          for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
+            console.log(`Pipeline ${pipeline.code} - Processing segment ${i + 1}/${segments.length}: ${segment.code}`);
+            
+            const segmentPath = await this.buildSegmentPath(segment);
+            
+            if (segmentPath.length === 0) {
+              console.warn(`Pipeline ${pipeline.code} - Segment ${segment.code} has no path points`);
+              continue;
+            }
+            
+            // Add segment path to overall pipeline path
+            // Skip first point if it matches the last point of previous segment (avoid duplicates)
+            if (allLocations.length > 0 && segmentPath.length > 0) {
+              const lastLoc = allLocations[allLocations.length - 1];
+              const firstLoc = segmentPath[0];
+              
+              if (lastLoc.latitude === firstLoc.latitude && lastLoc.longitude === firstLoc.longitude) {
+                // Skip duplicate connection point
+                allLocations.push(...segmentPath.slice(1));
+              } else {
+                allLocations.push(...segmentPath);
+              }
+            } else {
+              allLocations.push(...segmentPath);
             }
           }
           
-          if (allCoordinateIds.length === 0) {
-            console.warn(`Pipeline ${pipeline.code} - No coordinates in segments`);
+          if (allLocations.length < 2) {
+            console.warn(`Pipeline ${pipeline.code} - Insufficient path points after building (need at least 2, got ${allLocations.length})`);
             return null;
           }
           
-          // Fetch the actual coordinate data
-          const locations = await this.getCoordinatesByIds(allCoordinateIds);
+          console.log(`Pipeline ${pipeline.code} - Complete path: ${allLocations.length} points from ${segments.length} segments`);
           
           // Validate coordinates before adding
-          if (locations.length >= 2 && validatePipelineCoordinates(locations)) {
-            const coordinates = convertLocationsToCoordinates(locations);
+          if (validatePipelineCoordinates(allLocations)) {
+            const coordinates = convertLocationsToCoordinates(allLocations);
             return {
               pipeline,
-              locations,
+              locations: allLocations,
               coordinates
             };
           } else {
-            console.warn(`Pipeline ${pipeline.code} - Invalid or insufficient coordinates (need at least 2, got ${locations.length})`);
+            console.warn(`Pipeline ${pipeline.code} - Invalid coordinates`);
           }
           
           return null;
