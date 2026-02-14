@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 11:50 - Added Departure and Arrival Facility fields
  * @updated 02-14-2026 01:41 - Fixed: Aligned with actual PipelineSegmentDTO structure
  * @updated 02-14-2026 01:38 - Initial creation with coordinate management
  */
@@ -36,7 +37,7 @@ import {
   Close as CloseIcon,
   LinearScale as SegmentIcon,
 } from '@mui/icons-material';
-import { PipelineSegmentService } from '../services';
+import { PipelineSegmentService, FacilityService } from '../services';
 import { AlloyService, OperationalStatusService } from '../../common/services';
 import { StructureService } from '@/modules/general/organization/services';
 import { CoordinateService } from '@/modules/general/localization/services';
@@ -93,6 +94,8 @@ const PipelineSegmentEdit = () => {
     roughness: 0,                     // Number (Double)
     startPoint: 0,                    // Position in pipeline (km)
     endPoint: 0,                      // Position in pipeline (km)
+    departureFacilityId: undefined,   // NEW: Departure infrastructure
+    arrivalFacilityId: undefined,     // NEW: Arrival infrastructure
     operationalStatusId: undefined,
     structureId: undefined,
     constructionMaterialId: undefined,
@@ -106,6 +109,7 @@ const PipelineSegmentEdit = () => {
   const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
   const [structures, setStructures] = useState<any[]>([]);
   const [alloys, setAlloys] = useState<any[]>([]);
+  const [facilities, setFacilities] = useState<any[]>([]);
   const [coordinates, setCoordinates] = useState<CoordinateDTO[]>([]);
 
   // UI state
@@ -161,11 +165,13 @@ const PipelineSegmentEdit = () => {
         coordinatesData,
         operationalStatusesData,
         structuresData,
+        facilitiesData,
       ] = await Promise.allSettled([
         AlloyService.getAllNoPagination(),
         CoordinateService.getAllNoPagination(),
         OperationalStatusService.getAllNoPagination(),
         StructureService.getAllNoPagination(),
+        FacilityService.getAllNoPagination(),
       ]);
 
       // Handle alloys
@@ -214,6 +220,18 @@ const PipelineSegmentEdit = () => {
         setStructures([]);
       }
 
+      // Handle facilities
+      if (facilitiesData.status === 'fulfilled') {
+        const facilities = Array.isArray(facilitiesData.value) 
+          ? facilitiesData.value 
+          : (Array.isArray((facilitiesData.value as any)?.data) ? (facilitiesData.value as any).data 
+            : Array.isArray((facilitiesData.value as any)?.content) ? (facilitiesData.value as any).content : []);
+        setFacilities(facilities);
+      } else {
+        console.warn('Facilities service not available yet');
+        setFacilities([]);
+      }
+
       // Set segment data if editing
       if (segmentData) {
         setSegment(segmentData);
@@ -237,6 +255,14 @@ const PipelineSegmentEdit = () => {
 
     if (!segment.name || segment.name.trim().length < 2) {
       errors.name = 'Name is required (minimum 2 characters)';
+    }
+
+    if (!segment.departureFacilityId) {
+      errors.departureFacilityId = 'Departure facility is required';
+    }
+
+    if (!segment.arrivalFacilityId) {
+      errors.arrivalFacilityId = 'Arrival facility is required';
     }
 
     if (segment.diameter === undefined || segment.diameter <= 0) {
@@ -364,6 +390,8 @@ const PipelineSegmentEdit = () => {
         roughness: Number(segment.roughness),
         startPoint: Number(segment.startPoint),
         endPoint: Number(segment.endPoint),
+        departureFacilityId: segment.departureFacilityId ? Number(segment.departureFacilityId) : undefined,
+        arrivalFacilityId: segment.arrivalFacilityId ? Number(segment.arrivalFacilityId) : undefined,
         operationalStatusId: Number(segment.operationalStatusId),
         structureId: Number(segment.structureId),
         constructionMaterialId: Number(segment.constructionMaterialId),
@@ -513,6 +541,64 @@ const PipelineSegmentEdit = () => {
                           error={!!validationErrors.name}
                           helperText={validationErrors.name || 'Segment name'}
                         />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Connected Infrastructure */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      Connected Infrastructure
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label="Departure Facility"
+                          value={segment.departureFacilityId || ''}
+                          onChange={handleChange('departureFacilityId')}
+                          required
+                          error={!!validationErrors.departureFacilityId}
+                          helperText={validationErrors.departureFacilityId || 'Starting infrastructure (Station, Terminal, etc.)'}
+                        >
+                          {facilities.length === 0 ? (
+                            <MenuItem value="" disabled>No facilities available</MenuItem>
+                          ) : (
+                            facilities.map((facility) => (
+                              <MenuItem key={facility.id} value={facility.id}>
+                                {facility.name} ({facility.code})
+                              </MenuItem>
+                            ))
+                          )}
+                        </TextField>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          select
+                          label="Arrival Facility"
+                          value={segment.arrivalFacilityId || ''}
+                          onChange={handleChange('arrivalFacilityId')}
+                          required
+                          error={!!validationErrors.arrivalFacilityId}
+                          helperText={validationErrors.arrivalFacilityId || 'Ending infrastructure (Station, Terminal, etc.)'}
+                        >
+                          {facilities.length === 0 ? (
+                            <MenuItem value="" disabled>No facilities available</MenuItem>
+                          ) : (
+                            facilities.map((facility) => (
+                              <MenuItem key={facility.id} value={facility.id}>
+                                {facility.name} ({facility.code})
+                              </MenuItem>
+                            ))
+                          )}
+                        </TextField>
                       </Grid>
                     </Grid>
                   </Box>
