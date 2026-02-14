@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
+ * @updated 02-14-2026 13:58 - Use facility code instead of name in segment list
  * @updated 02-14-2026 12:59 - Fixed: Added client-side filtering to only show segments of current pipeline
  * @updated 02-14-2026 02:35 - Fixed: Restored all form sections with infrastructure display
  * @updated 02-14-2026 02:24 - Show infrastructure facilities in segment table
@@ -253,8 +254,8 @@ const PipelineEdit = () => {
           pipelineId: seg.pipelineId,
           hasDepartureFacility: !!seg.departureFacility,
           hasArrivalFacility: !!seg.arrivalFacility,
-          departureName: seg.departureFacility?.name || 'N/A',
-          arrivalName: seg.arrivalFacility?.name || 'N/A',
+          departureCode: seg.departureFacility?.code || 'N/A',
+          arrivalCode: seg.arrivalFacility?.code || 'N/A',
           startPoint: seg.startPoint,
           endPoint: seg.endPoint,
         });
@@ -721,12 +722,30 @@ const PipelineEdit = () => {
                               <TableCell>{segment.code || 'N/A'}</TableCell>
                               <TableCell>{segment.name || 'N/A'}</TableCell>
                               <TableCell>
-                                {segment.departureFacility?.name || (
+                                {segment.departureFacility?.code ? (
+                                  <Tooltip title={segment.departureFacility.name || 'Departure facility'}>
+                                    <Chip 
+                                      label={segment.departureFacility.code} 
+                                      size="small" 
+                                      variant="outlined"
+                                      sx={{ fontFamily: 'monospace' }}
+                                    />
+                                  </Tooltip>
+                                ) : (
                                   <Chip label="Not set" size="small" color="warning" icon={<WarningIcon />} />
                                 )}
                               </TableCell>
                               <TableCell>
-                                {segment.arrivalFacility?.name || (
+                                {segment.arrivalFacility?.code ? (
+                                  <Tooltip title={segment.arrivalFacility.name || 'Arrival facility'}>
+                                    <Chip 
+                                      label={segment.arrivalFacility.code} 
+                                      size="small" 
+                                      variant="outlined"
+                                      sx={{ fontFamily: 'monospace' }}
+                                    />
+                                  </Tooltip>
+                                ) : (
                                   <Chip label="Not set" size="small" color="warning" icon={<WarningIcon />} />
                                 )}
                               </TableCell>
