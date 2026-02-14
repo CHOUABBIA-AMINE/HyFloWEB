@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 12:16 - Aligned validation with backend @PositiveOrZero constraint
  * @updated 02-14-2026 12:03 - Clarified Structure field as organizational owner/manager
  * @updated 02-14-2026 11:58 - Added detailed error logging for debugging
  * @updated 02-14-2026 11:50 - Added Departure and Arrival Facility fields
@@ -90,12 +91,12 @@ const PipelineSegmentEdit = () => {
     installationDate: undefined,
     commissioningDate: undefined,
     decommissioningDate: undefined,
-    diameter: 0,                      // Number (Double)
+    diameter: 0,                      // Number (Double) - @PositiveOrZero
     length: 0,                        // Calculated from endPoint - startPoint
-    thickness: 0,                     // Number (Double)
-    roughness: 0,                     // Number (Double)
-    startPoint: 0,                    // Position in pipeline (km)
-    endPoint: 0,                      // Position in pipeline (km)
+    thickness: 0,                     // Number (Double) - @PositiveOrZero
+    roughness: 0,                     // Number (Double) - @PositiveOrZero
+    startPoint: 0,                    // Position in pipeline (km) - @PositiveOrZero
+    endPoint: 0,                      // Position in pipeline (km) - @PositiveOrZero
     departureFacilityId: undefined,   // Departure infrastructure
     arrivalFacilityId: undefined,     // Arrival infrastructure
     operationalStatusId: undefined,
@@ -253,34 +254,55 @@ const PipelineSegmentEdit = () => {
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
+    // Code validation: 2-20 characters
     if (!segment.code || segment.code.trim().length < 2) {
       errors.code = 'Code is required (minimum 2 characters)';
+    } else if (segment.code.length > 20) {
+      errors.code = 'Code must not exceed 20 characters';
     }
 
-    if (!segment.name || segment.name.trim().length < 2) {
-      errors.name = 'Name is required (minimum 2 characters)';
+    // Name validation: 3-100 characters
+    if (!segment.name || segment.name.trim().length < 3) {
+      errors.name = 'Name is required (minimum 3 characters)';
+    } else if (segment.name.length > 100) {
+      errors.name = 'Name must not exceed 100 characters';
     }
 
-    if (segment.diameter === undefined || segment.diameter <= 0) {
-      errors.diameter = 'Diameter is required (must be > 0)';
+    // Physical dimensions: @PositiveOrZero (>= 0)
+    if (segment.diameter === undefined || segment.diameter === null) {
+      errors.diameter = 'Diameter is required';
+    } else if (segment.diameter < 0) {
+      errors.diameter = 'Diameter must be zero or positive';
     }
 
-    if (segment.thickness === undefined || segment.thickness <= 0) {
-      errors.thickness = 'Thickness is required (must be > 0)';
+    if (segment.thickness === undefined || segment.thickness === null) {
+      errors.thickness = 'Thickness is required';
+    } else if (segment.thickness < 0) {
+      errors.thickness = 'Thickness must be zero or positive';
     }
 
-    if (segment.roughness === undefined || segment.roughness < 0) {
-      errors.roughness = 'Roughness is required (must be >= 0)';
+    if (segment.roughness === undefined || segment.roughness === null) {
+      errors.roughness = 'Roughness is required';
+    } else if (segment.roughness < 0) {
+      errors.roughness = 'Roughness must be zero or positive';
     }
 
-    if (segment.startPoint === undefined || segment.startPoint < 0) {
-      errors.startPoint = 'Start point is required (must be >= 0)';
+    // Position validation: @PositiveOrZero (>= 0)
+    if (segment.startPoint === undefined || segment.startPoint === null) {
+      errors.startPoint = 'Start point is required';
+    } else if (segment.startPoint < 0) {
+      errors.startPoint = 'Start point must be zero or positive';
     }
 
-    if (segment.endPoint === undefined || segment.endPoint <= (segment.startPoint || 0)) {
+    if (segment.endPoint === undefined || segment.endPoint === null) {
+      errors.endPoint = 'End point is required';
+    } else if (segment.endPoint < 0) {
+      errors.endPoint = 'End point must be zero or positive';
+    } else if (segment.endPoint <= (segment.startPoint || 0)) {
       errors.endPoint = 'End point must be greater than start point';
     }
 
+    // Required relationships
     if (!segment.operationalStatusId) {
       errors.operationalStatusId = 'Operational status is required';
     }
@@ -545,7 +567,7 @@ const PipelineSegmentEdit = () => {
                           onChange={handleChange('code')}
                           required
                           error={!!validationErrors.code}
-                          helperText={validationErrors.code || 'Unique segment code'}
+                          helperText={validationErrors.code || 'Unique segment code (2-20 characters)'}
                         />
                       </Grid>
 
@@ -557,7 +579,7 @@ const PipelineSegmentEdit = () => {
                           onChange={handleChange('name')}
                           required
                           error={!!validationErrors.name}
-                          helperText={validationErrors.name || 'Segment name'}
+                          helperText={validationErrors.name || 'Segment name (3-100 characters)'}
                         />
                       </Grid>
                     </Grid>
