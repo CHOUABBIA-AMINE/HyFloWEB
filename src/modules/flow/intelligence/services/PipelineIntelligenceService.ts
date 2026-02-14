@@ -11,7 +11,7 @@
  * @backend dz.sh.trc.hyflo.flow.intelligence.controller.PipelineIntelligenceController
  */
 
-import { apiClient } from '@/services/apiClient';
+import axiosInstance from '@/shared/config/axios';
 import type {
   PipelineDynamicDashboardDTO,
   PipelineHealthDTO,
@@ -44,7 +44,7 @@ export class PipelineIntelligenceService {
     pipelineId: number
   ): Promise<PipelineDynamicDashboardDTO> {
     try {
-      const response = await apiClient.get<PipelineDynamicDashboardDTO>(
+      const response = await axiosInstance.get<PipelineDynamicDashboardDTO>(
         `${BASE_URL}/${pipelineId}/dashboard`
       );
       return response.data;
@@ -103,7 +103,7 @@ export class PipelineIntelligenceService {
     pipelineId: number
   ): Promise<PipelineDynamicDashboardDTO> {
     try {
-      const response = await apiClient.get<PipelineDynamicDashboardDTO>(
+      const response = await axiosInstance.get<PipelineDynamicDashboardDTO>(
         `${BASE_URL}/${pipelineId}/dashboard`,
         {
           headers: {
