@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
+ * @updated 02-14-2026 12:59 - Fixed: Added client-side filtering to only show segments of current pipeline
  * @updated 02-14-2026 02:35 - Fixed: Restored all form sections with infrastructure display
  * @updated 02-14-2026 02:24 - Show infrastructure facilities in segment table
  * @updated 02-14-2026 01:52 - Fixed: Added safety checks for segment rendering
@@ -228,13 +229,28 @@ const PipelineEdit = () => {
     
     try {
       setLoadingSegments(true);
-      console.log('Loading segments for pipeline:', pipelineId);
+      console.log('🔍 Loading segments for pipeline ID:', pipelineId);
+      
+      // Load segments from backend
       const segmentsData = await PipelineSegmentService.getByPipelineId(Number(pipelineId));
-      console.log('Loaded segments:', segmentsData);
+      console.log('📦 Backend returned segments:', segmentsData.length);
+      
+      // CLIENT-SIDE SAFETY FILTER: Only show segments that belong to THIS pipeline
+      const currentPipelineId = Number(pipelineId);
+      const filteredSegments = segmentsData.filter(seg => {
+        const belongsToThisPipeline = seg.pipelineId === currentPipelineId;
+        if (!belongsToThisPipeline) {
+          console.warn('⚠️ Filtered out segment:', seg.code, 'belongs to pipeline:', seg.pipelineId, 'current:', currentPipelineId);
+        }
+        return belongsToThisPipeline;
+      });
+      
+      console.log('✅ After filtering, showing segments:', filteredSegments.length);
       
       // Debug: Check infrastructure presence
-      segmentsData.forEach((seg, idx) => {
+      filteredSegments.forEach((seg, idx) => {
         console.log(`Segment ${idx + 1} (${seg.code}):`, {
+          pipelineId: seg.pipelineId,
           hasDepartureFacility: !!seg.departureFacility,
           hasArrivalFacility: !!seg.arrivalFacility,
           departureName: seg.departureFacility?.name || 'N/A',
@@ -244,8 +260,16 @@ const PipelineEdit = () => {
         });
       });
       
-      const sorted = segmentsData.sort((a, b) => (a.startPoint ?? 0) - (b.startPoint ?? 0));
+      // Sort by start point
+      const sorted = filteredSegments.sort((a, b) => (a.startPoint ?? 0) - (b.startPoint ?? 0));
       setSegments(sorted);
+      
+      // Warn if we filtered out segments (indicates backend issue)
+      if (segmentsData.length !== filteredSegments.length) {
+        const filteredCount = segmentsData.length - filteredSegments.length;
+        console.error(`🚨 WARNING: Backend returned ${filteredCount} segments from OTHER pipelines!`);
+        console.error('🚨 This indicates the backend /pipeline/{id} endpoint is NOT filtering correctly!');
+      }
     } catch (err: any) {
       console.error('Failed to load segments:', err);
       setError('Failed to load pipeline segments');
