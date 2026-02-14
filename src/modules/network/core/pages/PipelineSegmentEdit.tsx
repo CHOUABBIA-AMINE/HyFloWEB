@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 12:03 - Clarified Structure field as organizational owner/manager
  * @updated 02-14-2026 11:58 - Added detailed error logging for debugging
  * @updated 02-14-2026 11:50 - Added Departure and Arrival Facility fields
  * @updated 02-14-2026 01:41 - Fixed: Aligned with actual PipelineSegmentDTO structure
@@ -95,10 +96,10 @@ const PipelineSegmentEdit = () => {
     roughness: 0,                     // Number (Double)
     startPoint: 0,                    // Position in pipeline (km)
     endPoint: 0,                      // Position in pipeline (km)
-    departureFacilityId: undefined,   // NEW: Departure infrastructure
-    arrivalFacilityId: undefined,     // NEW: Arrival infrastructure
+    departureFacilityId: undefined,   // Departure infrastructure
+    arrivalFacilityId: undefined,     // Arrival infrastructure
     operationalStatusId: undefined,
-    structureId: undefined,
+    structureId: undefined,           // Organizational structure (owner/manager)
     constructionMaterialId: undefined,
     exteriorCoatingId: undefined,
     interiorCoatingId: undefined,
@@ -260,15 +261,6 @@ const PipelineSegmentEdit = () => {
       errors.name = 'Name is required (minimum 2 characters)';
     }
 
-    // Note: Facilities are optional, not required
-    // if (!segment.departureFacilityId) {
-    //   errors.departureFacilityId = 'Departure facility is required';
-    // }
-
-    // if (!segment.arrivalFacilityId) {
-    //   errors.arrivalFacilityId = 'Arrival facility is required';
-    // }
-
     if (segment.diameter === undefined || segment.diameter <= 0) {
       errors.diameter = 'Diameter is required (must be > 0)';
     }
@@ -294,7 +286,7 @@ const PipelineSegmentEdit = () => {
     }
 
     if (!segment.structureId) {
-      errors.structureId = 'Structure is required';
+      errors.structureId = 'Organizational structure is required';
     }
 
     if (!segment.constructionMaterialId) {
@@ -767,12 +759,12 @@ const PipelineSegmentEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Structure"
+                          label="Organizational Structure (Owner/Manager)"
                           value={segment.structureId || ''}
                           onChange={handleChange('structureId')}
                           required
                           error={!!validationErrors.structureId}
-                          helperText={validationErrors.structureId}
+                          helperText={validationErrors.structureId || 'Responsible organization for this segment'}
                         >
                           {structures.map((structure) => (
                             <MenuItem key={structure.id} value={structure.id}>
