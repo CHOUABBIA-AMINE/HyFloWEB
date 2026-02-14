@@ -4,11 +4,13 @@
  * Utility functions for working with PipelineDTO objects.
  * Includes formatting, validation helpers, and data transformation.
  * 
+ * Updated: 02-14-2026 01:32 - Removed coordinateIds helpers (coordinates belong to PipelineSegment)
+ * Updated: 02-06-2026 - Fixed coordinateIds/vendorIds (removed old coordinates/vendors/vendorId fields)
+ * Updated: 02-06-2026 - Aligned with updated PipelineDTO (nominalDiameter/Thickness as string, coordinates support)
+ * Updated: 02-02-2026 - Fixed DTO field names (designationFr instead of name)
+ * 
  * @author CHOUABBIA Amine
  * @created 02-02-2026
- * @updated 02-06-2026 - Fixed coordinateIds/vendorIds (removed old coordinates/vendors/vendorId fields)
- * @updated 02-06-2026 - Aligned with updated PipelineDTO (nominalDiameter/Thickness as string, coordinates support)
- * @updated 02-02-2026 - Fixed DTO field names (designationFr instead of name)
  */
 
 import type { PipelineDTO } from '../dto/PipelineDTO';
@@ -384,26 +386,6 @@ export const getPipelineLifecycleStatus = (pipeline: PipelineDTO): string => {
 };
 
 /**
- * Get count of pipeline coordinates (path points)
- * 
- * @param pipeline - Pipeline DTO
- * @returns Number of coordinates defining the pipeline path
- */
-export const getPipelineCoordinatesCount = (pipeline: PipelineDTO): number => {
-  return pipeline?.coordinateIds?.length || 0;
-};
-
-/**
- * Check if pipeline has coordinate path defined
- * 
- * @param pipeline - Pipeline DTO
- * @returns True if coordinateIds array exists and has at least 2 points
- */
-export const hasPipelinePath = (pipeline: PipelineDTO): boolean => {
-  return getPipelineCoordinatesCount(pipeline) >= 2;
-};
-
-/**
  * Get pipeline vendor count (supports ManyToMany)
  * 
  * @param pipeline - Pipeline DTO
@@ -436,9 +418,9 @@ export const createPipelineSummary = (pipeline: PipelineDTO) => {
     isNearCapacity: isPipelineNearCapacity(pipeline),
     isCommissioned: isPipelineCommissioned(pipeline),
     isDecommissioned: isPipelineDecommissioned(pipeline),
-    hasPath: hasPipelinePath(pipeline),
-    coordinatesCount: getPipelineCoordinatesCount(pipeline),
     vendorCount: getPipelineVendorCount(pipeline),
+    // Note: Coordinates now belong to PipelineSegment, not Pipeline
+    // To check path, fetch segments and check segment.coordinateIds
   };
 };
 
@@ -562,7 +544,6 @@ export const exportPipelinesToCSV = (pipelines: PipelineDTO[]): string => {
     'System',
     'Status',
     'Vendors',
-    'Coordinates',
   ];
   
   const rows = pipelines.map(p => [
@@ -580,7 +561,6 @@ export const exportPipelinesToCSV = (pipelines: PipelineDTO[]): string => {
     p.pipelineSystem?.name || '',
     p.operationalStatus?.designationFr || '',
     getPipelineVendorCount(p),
-    getPipelineCoordinatesCount(p),
   ]);
   
   const csvContent = [
