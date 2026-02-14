@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 02-14-2026 21:37 - Updated colors: LPG=Blue, Gas=Red, Crude=Green, Condensate=Orange
  * @updated 01-06-2026 - Colors: GN yellow, PB black, GPL green, COND purple
  */
 
@@ -20,49 +21,50 @@ export interface ProductColorMap {
 }
 
 // Product color mapping with multiple formats
+// Updated 02-14-2026: LPG=Blue, Gas=Red, Crude=Green, Condensate=Orange
 export const DEFAULT_PRODUCT_COLORS: ProductColorMap = {
-  // GN (Natural Gas) - YELLOW
-  'GN': '#FFD700',
-  'gn': '#FFD700',
-  'NATURAL_GAS': '#FFD700',
-  'natural_gas': '#FFD700',
-  'NATURAL GAS': '#FFD700',
-  'Natural Gas': '#FFD700',
-  'GAS': '#FFD700',
-  'gas': '#FFD700',
-  'GAZ': '#FFD700',
-  'gaz': '#FFD700',
+  // GPL/LPG - BLUE
+  'GPL': '#2196F3',
+  'gpl': '#2196F3',
+  'LPG': '#2196F3',
+  'lpg': '#2196F3',
   
-  // PB (Pétrole Brut / Crude) - BLACK
-  'PB': '#000000',
-  'pb': '#000000',
-  'PETROLE_BRUT': '#000000',
-  'petrole_brut': '#000000',
-  'PETROLE BRUT': '#000000',
-  'Pétrole Brut': '#000000',
-  'CRUDE': '#000000',
-  'crude': '#000000',
-  'CRUDE_OIL': '#000000',
-  'crude_oil': '#000000',
-  'CRUDE OIL': '#000000',
-  'OIL': '#000000',
-  'oil': '#000000',
-  'BRUT': '#000000',
-  'brut': '#000000',
+  // GN (Natural Gas) - RED
+  'GN': '#F44336',
+  'gn': '#F44336',
+  'NATURAL_GAS': '#F44336',
+  'natural_gas': '#F44336',
+  'NATURAL GAS': '#F44336',
+  'Natural Gas': '#F44336',
+  'GAS': '#F44336',
+  'gas': '#F44336',
+  'GAZ': '#F44336',
+  'gaz': '#F44336',
   
-  // GPL - GREEN
-  'GPL': '#00C853',
-  'gpl': '#00C853',
-  'LPG': '#00C853',
-  'lpg': '#00C853',
+  // PB (Pétrole Brut / Crude) - GREEN
+  'PB': '#4CAF50',
+  'pb': '#4CAF50',
+  'PETROLE_BRUT': '#4CAF50',
+  'petrole_brut': '#4CAF50',
+  'PETROLE BRUT': '#4CAF50',
+  'Pétrole Brut': '#4CAF50',
+  'CRUDE': '#4CAF50',
+  'crude': '#4CAF50',
+  'CRUDE_OIL': '#4CAF50',
+  'crude_oil': '#4CAF50',
+  'CRUDE OIL': '#4CAF50',
+  'OIL': '#4CAF50',
+  'oil': '#4CAF50',
+  'BRUT': '#4CAF50',
+  'brut': '#4CAF50',
   
-  // COND (Condensate) - PURPLE
-  'COND': '#9C27B0',
-  'cond': '#9C27B0',
-  'CONDENSATE': '#9C27B0',
-  'condensate': '#9C27B0',
-  'CONDENSAT': '#9C27B0',
-  'condensat': '#9C27B0',
+  // COND (Condensate) - ORANGE
+  'COND': '#FF9800',
+  'cond': '#FF9800',
+  'CONDENSATE': '#FF9800',
+  'condensate': '#FF9800',
+  'CONDENSAT': '#FF9800',
+  'condensat': '#FF9800',
   
   // Other/Unknown - GRAY
   'OTHER': '#9E9E9E',
@@ -95,22 +97,22 @@ export const getProductColor = (productCode: string | undefined | null): string 
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[_\s-]/g, '');
 
-  // GN - YELLOW
-  if (normalized === 'gn' || normalized.includes('naturalgas') || normalized.includes('gaz') || normalized.includes('gas')) {
-    return DEFAULT_PRODUCT_COLORS['GN'];
-  }
-
-  // PB - BLACK
-  if (normalized === 'pb' || normalized.includes('petrolebrut') || normalized.includes('crud') || normalized.includes('oil') || normalized.includes('brut')) {
-    return DEFAULT_PRODUCT_COLORS['PB'];
-  }
-
-  // GPL - GREEN
+  // GPL/LPG - BLUE
   if (normalized === 'gpl' || normalized.includes('lpg')) {
     return DEFAULT_PRODUCT_COLORS['GPL'];
   }
 
-  // COND - PURPLE
+  // GN (Gas) - RED
+  if (normalized === 'gn' || normalized.includes('naturalgas') || normalized.includes('gaz') || normalized.includes('gas')) {
+    return DEFAULT_PRODUCT_COLORS['GN'];
+  }
+
+  // PB (Crude) - GREEN
+  if (normalized === 'pb' || normalized.includes('petrolebrut') || normalized.includes('crud') || normalized.includes('oil') || normalized.includes('brut')) {
+    return DEFAULT_PRODUCT_COLORS['PB'];
+  }
+
+  // COND (Condensate) - ORANGE
   if (normalized === 'cond' || normalized.includes('condensat')) {
     return DEFAULT_PRODUCT_COLORS['COND'];
   }
