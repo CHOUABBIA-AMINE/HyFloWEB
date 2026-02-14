@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-14-2026 01:57 - Added PipelineSegmentEdit routes
  * @updated 02-07-2026 15:10 - Removed /flow/readings route - SlotMonitoring is now the primary flow interface
  * @updated 02-05-2026 - Added React Router v7 future flags
  * @updated 02-04-2026 - Added SlotMonitoring route
@@ -56,6 +57,7 @@ import {
   ProcessingPlantEdit,
   PipelineList,
   PipelineEdit,
+  PipelineSegmentEdit,
   PipelineSystemList,
   PipelineSystemEdit
 } from './modules/network/core/pages';
@@ -101,7 +103,8 @@ function App() {
   // Create emotion cache for RTL support
   const cacheRtl = useMemo(
     () =>
-      createCache({        key: isRtl ? 'muirtl' : 'muiltr',
+      createCache({
+        key: isRtl ? 'muirtl' : 'muiltr',
         // Type assertion needed due to recursive type incompatibility between
         // our StylisElement definition and emotion's internal types.
         // The plugins are structurally compatible and work correctly at runtime.
@@ -720,6 +723,24 @@ function App() {
                         element={
                           <ProtectedRoute>
                             <PipelineEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+
+                      {/* Pipeline Segments - Nested under pipelines */}
+                      <Route
+                        path="pipelines/:pipelineId/segments/new"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineSegmentEdit />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="pipelines/:pipelineId/segments/:segmentId/edit"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineSegmentEdit />
                           </ProtectedRoute>
                         }
                       />
