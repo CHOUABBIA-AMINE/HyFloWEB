@@ -1,34 +1,18 @@
 /**
  * PipelineSegment DTO - Network Core Module
  * 
- * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineSegmentDTO
- * Updated: 02-14-2026 12:22 - Made exteriorCoating/interiorCoating OPTIONAL per backend update
- * Updated: 02-14-2026 12:19 - Clarified @NotNull constraints on required fields
- * Updated: 02-14-2026 02:22 - Added departureFacility/arrivalFacility infrastructure references
- * Updated: 02-14-2026 01:29 - Added coordinateIds (coordinates belong to segments, not pipeline)
- * Updated: 01-15-2026 - Exact backend alignment (24 fields)
+ * EXACTLY aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineSegmentDTO
+ * Backend SHA: 9611477ab9929990945ddddeb87eb33e829c9d53
+ * 
+ * Updated: 02-14-2026 12:26 - COMPLETE ALIGNMENT with latest backend structure
+ * 
+ * CRITICAL FIELD MAPPINGS:
+ * - Backend 'ownerId' (Structure) → Frontend 'ownerId' (organizational owner)
+ * - Backend 'departureFacilityId' → Frontend 'departureFacilityId' (REQUIRED)
+ * - Backend 'arrivalFacilityId' → Frontend 'arrivalFacilityId' (REQUIRED)
  * 
  * Represents a segment of a pipeline with its physical properties, materials,
  * and position within the parent pipeline.
- * 
- * Architecture: PipelineSegment has:
- * - Infrastructure endpoints (departureFacility, arrivalFacility)
- * - Coordinates that define its geographic path between endpoints
- * 
- * CRITICAL REQUIRED FIELDS (@NotNull in backend):
- * - code, name (identification)
- * - diameter, length, thickness, roughness (physical specs)
- * - startPoint, endPoint (position)
- * - operationalStatusId (status)
- * - structureId (organizational owner/manager - REQUIRED)
- * - constructionMaterialId (REQUIRED)
- * - pipelineId (parent pipeline)
- * 
- * OPTIONAL FIELDS (can be null):
- * - exteriorCoatingId (OPTIONAL - not all segments have coatings)
- * - interiorCoatingId (OPTIONAL - not all segments have coatings)
- * - departureFacilityId, arrivalFacilityId (OPTIONAL)
- * - All date fields (OPTIONAL)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -37,110 +21,106 @@ import { OperationalStatusDTO } from '../../common/dto/OperationalStatusDTO';
 import { StructureDTO } from '../../../general/organization/dto/StructureDTO';
 import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { PipelineDTO } from './PipelineDTO';
+import { FacilityDTO } from './FacilityDTO';
 import { CoordinateDTO } from '../../../general/localization/dto/CoordinateDTO';
 
 /**
- * Generic infrastructure interface for departure/arrival facilities
- * Can be Terminal, Station, ProcessingPlant, or ProductionField
+ * PipelineSegment DTO Interface
+ * Exactly matches backend PipelineSegmentDTO.java structure
  */
-export interface InfrastructureDTO {
-  id?: number;
-  code?: string;
-  name?: string;
-  location?: {
-    latitude: number;
-    longitude: number;
-    altitude?: number;
-  };
-}
-
 export interface PipelineSegmentDTO {
-  // Identifier (from GenericDTO)
-  id?: number;
+  // ========== IDENTIFIER (from GenericDTO) ==========
+  id?: number; // Long in Java
 
-  // Core infrastructure fields (REQUIRED)
-  code: string; // @NotBlank, 2-20 chars (REQUIRED)
-  name: string; // @NotBlank, 3-100 chars (REQUIRED)
+  // ========== REQUIRED STRING FIELDS ==========
+  // @NotBlank @Size(min=2, max=20)
+  code: string;
   
-  // Date fields (OPTIONAL)
-  installationDate?: string; // LocalDate (ISO format: YYYY-MM-DD) - OPTIONAL
-  commissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD) - OPTIONAL
-  decommissioningDate?: string; // LocalDate (ISO format: YYYY-MM-DD) - OPTIONAL
+  // @NotBlank @Size(min=3, max=100)
+  name: string;
   
-  // Physical dimensions (ALL REQUIRED, @NotNull, @PositiveOrZero)
-  diameter: number; // Double - Segment diameter (REQUIRED)
-  length: number; // Double - Segment length (REQUIRED)
-  thickness: number; // Double - Wall thickness (REQUIRED)
-  roughness: number; // Double - Surface roughness (REQUIRED)
+  // ========== OPTIONAL DATE FIELDS ==========
+  // LocalDate in backend → ISO string (YYYY-MM-DD) in frontend
+  installationDate?: string;
+  commissioningDate?: string;
+  decommissioningDate?: string;
   
-  // Position within pipeline (BOTH REQUIRED, @NotNull, @PositiveOrZero)
-  startPoint: number; // Double - Starting point along pipeline (km) (REQUIRED)
-  endPoint: number; // Double - Ending point along pipeline (km) (REQUIRED)
+  // ========== REQUIRED PHYSICAL DIMENSIONS ==========
+  // All are @NotNull @PositiveOrZero Double in backend
+  diameter: number;
+  length: number;
+  thickness: number;
+  roughness: number;
   
-  // Required relationships (IDs)
-  operationalStatusId: number; // @NotNull (REQUIRED)
-  structureId: number; // @NotNull (REQUIRED) - Organizational owner/manager
-  constructionMaterialId: number; // @NotNull (REQUIRED) - Alloy material
-  pipelineId: number; // @NotNull (REQUIRED) - Parent pipeline
+  // ========== REQUIRED POSITION FIELDS ==========
+  // @NotNull @PositiveOrZero Double
+  startPoint: number;
+  endPoint: number;
   
-  // Optional relationships (IDs) - UPDATED: Coatings are now OPTIONAL
-  exteriorCoatingId?: number; // OPTIONAL - Exterior coating (may not exist)
-  interiorCoatingId?: number; // OPTIONAL - Interior coating (may not exist)
+  // ========== REQUIRED RELATIONSHIP IDs ==========
+  // @NotNull Long
+  operationalStatusId: number;
+  constructionMaterialId: number;
+  pipelineId: number;
+  departureFacilityId: number;  // REQUIRED in backend
+  arrivalFacilityId: number;    // REQUIRED in backend
   
-  // Infrastructure endpoints (OPTIONAL)
-  departureFacilityId?: number; // Infrastructure at segment start (OPTIONAL)
-  arrivalFacilityId?: number; // Infrastructure at segment end (OPTIONAL)
+  // ========== OPTIONAL RELATIONSHIP IDs ==========
+  // Long (nullable)
+  ownerId?: number;              // Structure (organizational owner) - OPTIONAL
+  exteriorCoatingId?: number;    // Alloy - OPTIONAL
+  interiorCoatingId?: number;    // Alloy - OPTIONAL
   
-  // Collections - Backend: Set<Long>, Frontend: number[] (OPTIONAL)
-  coordinateIds?: number[]; // Backend: Set<Long> coordinateIds - Coordinate IDs defining segment path
+  // ========== COLLECTIONS ==========
+  // Set<Long> in backend → number[] in frontend
+  coordinateIds?: number[];      // Default: new HashSet<>()
   
-  // Nested objects (populated in responses, READ-ONLY)
+  // ========== NESTED OBJECTS (populated in responses, READ-ONLY) ==========
   operationalStatus?: OperationalStatusDTO;
-  structure?: StructureDTO; // Organizational owner/manager
+  owner?: StructureDTO;                    // Backend field name: 'owner'
   constructionMaterial?: AlloyDTO;
-  exteriorCoating?: AlloyDTO; // May be null if no coating
-  interiorCoating?: AlloyDTO; // May be null if no coating
-  pipeline?: PipelineDTO; // Parent pipeline reference
-  coordinates?: CoordinateDTO[]; // Backend: Set<Coordinate> - Populated coordinate objects
-  
-  // Infrastructure endpoint references (populated, READ-ONLY)
-  departureFacility?: InfrastructureDTO; // Departure infrastructure (Terminal/Station/etc)
-  arrivalFacility?: InfrastructureDTO; // Arrival infrastructure (Terminal/Station/etc)
+  exteriorCoating?: AlloyDTO;
+  interiorCoating?: AlloyDTO;
+  pipeline?: PipelineDTO;
+  departureFacility?: FacilityDTO;
+  arrivalFacility?: FacilityDTO;
+  coordinates?: CoordinateDTO[];           // Set<CoordinateDTO> in backend
 }
 
 /**
- * Validates PipelineSegmentDTO according to backend constraints
- * 
- * UPDATED 2026-02-14: Coating IDs are now OPTIONAL
- * Frontend must provide valid IDs for REQUIRED fields only
+ * Validates PipelineSegmentDTO according to EXACT backend constraints
+ * Based on @NotNull, @NotBlank, @Size, @PositiveOrZero annotations
  */
 export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): string[] => {
   const errors: string[] = [];
   
-  // Code validation: @NotBlank @Size(2, 20)
+  // ========== STRING VALIDATIONS ==========
+  
+  // Code: @NotBlank @Size(min=2, max=20)
   if (!data.code || data.code.trim() === '') {
     errors.push("Code is required");
   } else if (data.code.length < 2 || data.code.length > 20) {
     errors.push("Code must be between 2 and 20 characters");
   }
   
-  // Name validation: @NotBlank @Size(3, 100)
+  // Name: @NotBlank @Size(min=3, max=100)
   if (!data.name || data.name.trim() === '') {
     errors.push("Name is required");
   } else if (data.name.length < 3 || data.name.length > 100) {
     errors.push("Name must be between 3 and 100 characters");
   }
   
-  // Physical dimensions validation: @NotNull @PositiveOrZero
-  const physicalFields = [
+  // ========== PHYSICAL DIMENSIONS: @NotNull @PositiveOrZero ==========
+  
+  const physicalFields: Array<{ name: keyof PipelineSegmentDTO; label: string }> = [
     { name: 'diameter', label: 'Diameter' },
     { name: 'length', label: 'Length' },
     { name: 'thickness', label: 'Thickness' },
     { name: 'roughness', label: 'Roughness' }
-  ] as const;
+  ];
   
   physicalFields.forEach(({ name, label }) => {
-    const value = data[name];
+    const value = data[name] as number | undefined;
     if (value === undefined || value === null) {
       errors.push(`${label} is required`);
     } else if (value < 0) {
@@ -148,7 +128,8 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
     }
   });
   
-  // Position validation: @NotNull @PositiveOrZero
+  // ========== POSITION FIELDS: @NotNull @PositiveOrZero ==========
+  
   if (data.startPoint === undefined || data.startPoint === null) {
     errors.push("Start point is required");
   } else if (data.startPoint < 0) {
@@ -161,32 +142,42 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
     errors.push("End point must be zero or positive");
   }
   
-  // Validate start < end
+  // Business rule: endPoint must be greater than startPoint
   if (data.startPoint !== undefined && data.endPoint !== undefined && 
       data.startPoint >= data.endPoint) {
     errors.push("End point must be greater than start point");
   }
   
-  // REQUIRED Relationship validations
-  // UPDATED: Removed exteriorCoatingId and interiorCoatingId (now OPTIONAL)
-  const relationshipFields = [
-    { name: 'operationalStatusId', label: 'Operational status' },
-    { name: 'structureId', label: 'Organizational structure' },
-    { name: 'constructionMaterialId', label: 'Construction material' },
-    { name: 'pipelineId', label: 'Pipeline' }
-  ] as const;
+  // ========== REQUIRED RELATIONSHIPS: @NotNull ==========
   
-  relationshipFields.forEach(({ name, label }) => {
-    const value = data[name];
+  const requiredRelationships: Array<{ name: keyof PipelineSegmentDTO; label: string }> = [
+    { name: 'operationalStatusId', label: 'Operational status' },
+    { name: 'constructionMaterialId', label: 'Construction material' },
+    { name: 'pipelineId', label: 'Pipeline' },
+    { name: 'departureFacilityId', label: 'Departure facility' },  // REQUIRED
+    { name: 'arrivalFacilityId', label: 'Arrival facility' }        // REQUIRED
+  ];
+  
+  requiredRelationships.forEach(({ name, label }) => {
+    const value = data[name] as number | undefined;
     if (value === undefined || value === null || value === 0) {
       errors.push(`${label} is required`);
     }
   });
   
-  // Date format validation (if provided) - OPTIONAL fields
-  const dateFields = ['installationDate', 'commissioningDate', 'decommissioningDate'] as const;
+  // ========== OPTIONAL RELATIONSHIPS ==========
+  // ownerId, exteriorCoatingId, interiorCoatingId - no validation needed
+  
+  // ========== DATE FORMAT VALIDATION (if provided) ==========
+  
+  const dateFields: Array<keyof PipelineSegmentDTO> = [
+    'installationDate', 
+    'commissioningDate', 
+    'decommissioningDate'
+  ];
+  
   dateFields.forEach(field => {
-    const value = data[field];
+    const value = data[field] as string | undefined;
     if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       errors.push(`${field} must be in YYYY-MM-DD format`);
     }
@@ -197,6 +188,7 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
 
 /**
  * Creates an empty PipelineSegmentDTO with default values
+ * Matches backend @Builder.Default for coordinateIds = new HashSet<>()
  */
 export const createEmptyPipelineSegmentDTO = (): Partial<PipelineSegmentDTO> => ({
   code: '',
@@ -207,9 +199,36 @@ export const createEmptyPipelineSegmentDTO = (): Partial<PipelineSegmentDTO> => 
   roughness: 0,
   startPoint: 0,
   endPoint: 0,
-  coordinateIds: [], // Coordinate IDs array
-  departureFacilityId: undefined,  // OPTIONAL
-  arrivalFacilityId: undefined,    // OPTIONAL
-  exteriorCoatingId: undefined,    // OPTIONAL (updated 2026-02-14)
-  interiorCoatingId: undefined,    // OPTIONAL (updated 2026-02-14)
+  coordinateIds: [], // Default empty array (HashSet in backend)
+  
+  // Optional fields - undefined by default
+  ownerId: undefined,
+  exteriorCoatingId: undefined,
+  interiorCoatingId: undefined,
+  installationDate: undefined,
+  commissioningDate: undefined,
+  decommissioningDate: undefined,
 });
+
+/**
+ * Type guard to check if a value is a valid PipelineSegmentDTO
+ */
+export const isPipelineSegmentDTO = (value: any): value is PipelineSegmentDTO => {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof value.code === 'string' &&
+    typeof value.name === 'string' &&
+    typeof value.diameter === 'number' &&
+    typeof value.length === 'number' &&
+    typeof value.thickness === 'number' &&
+    typeof value.roughness === 'number' &&
+    typeof value.startPoint === 'number' &&
+    typeof value.endPoint === 'number' &&
+    typeof value.operationalStatusId === 'number' &&
+    typeof value.constructionMaterialId === 'number' &&
+    typeof value.pipelineId === 'number' &&
+    typeof value.departureFacilityId === 'number' &&
+    typeof value.arrivalFacilityId === 'number'
+  );
+};
