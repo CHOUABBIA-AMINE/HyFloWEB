@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 02-14-2026 21:28 - Added parallel offset for multi-segment pipelines
  * @updated 02-14-2026 21:24 - Moved debug logging to useEffect
  * @updated 02-14-2026 21:20 - Increased offset to 0.2 and added debug logging
  * @updated 02-14-2026 21:17 - Fixed filterState.filters.showLabels access
@@ -44,7 +45,7 @@ interface PipelineMapViewProps {
 
 /**
  * Calculate a curved path between two points using a bezier curve
- * This creates visual separation for overlapping pipelines
+ * This creates visual separation for overlapping pipelines (for simple 2-point routes)
  */
 const calculateCurvedPath = (
   start: [number, number],
@@ -89,6 +90,41 @@ const calculateCurvedPath = (
   }
   
   return points;
+};
+
+/**
+ * Apply parallel offset to multi-segment path
+ * Shifts all coordinates perpendicular to the overall path direction
+ */
+const calculateParallelOffset = (
+  coordinates: LatLngExpression[],
+  offset: number
+): LatLngExpression[] => {
+  if (coordinates.length < 2) return coordinates;
+  
+  // Get start and end to determine overall direction
+  const start = coordinates[0] as [number, number];
+  const end = coordinates[coordinates.length - 1] as [number, number];
+  
+  // Calculate perpendicular direction based on overall path
+  const dx = end[1] - start[1]; // lng difference
+  const dy = end[0] - start[0]; // lat difference
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance === 0) return coordinates;
+  
+  // Perpendicular direction (rotated 90 degrees)
+  const perpLat = -dx / distance;
+  const perpLng = dy / distance;
+  
+  // Apply offset to all points
+  return coordinates.map(coord => {
+    const [lat, lng] = coord as [number, number];
+    return [
+      lat + perpLat * offset,
+      lng + perpLng * offset
+    ] as [number, number];
+  });
 };
 
 /**
@@ -255,7 +291,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
             return null;
           }
 
-          // Calculate curve offset for overlapping pipelines based on coordinates
+          // Calculate offset for overlapping pipelines based on coordinates
           let displayCoordinates: LatLngExpression[] = coordinates;
           
           // Get start and end for route key
@@ -267,35 +303,32 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
           
           const groupPipelines = routeGroups.get(routeKey) || [];
           
-          // Only apply curve if there are multiple pipelines on this route
+          // Only apply offset if there are multiple pipelines on this route
           if (groupPipelines.length > 1) {
             const pipelineIndex = groupPipelines.findIndex(
               (p) => p.pipeline.id === pipeline.id
             );
             
-            // INCREASED base offset from 0.05 to 0.2 degrees (~22 km) for maximum visibility
-            const baseOffset = 0.2;
-            const curveOffset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
+            // Base offset: 0.01 degrees (~1.1 km) for better visibility
+            const baseOffset = 0.01;
+            const offset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
             
-            console.log(`🌀 Applying curve to ${pipeline.code}:`, {
+            console.log(`🌀 Applying offset to ${pipeline.code}:`, {
               routeKey,
               groupSize: groupPipelines.length,
               pipelineIndex,
-              curveOffset,
+              offset,
               coordinatesLength: coordinates.length
             });
             
-            // Only apply curve if we have exactly 2 coordinate points (start and end)
-            // For multi-segment pipelines, keep original path
             if (coordinates.length === 2) {
-              displayCoordinates = calculateCurvedPath(
-                start,
-                end,
-                curveOffset
-              );
-              console.log(`✅ Curve applied to ${pipeline.code}`);
+              // Simple 2-point route: use curved path
+              displayCoordinates = calculateCurvedPath(start, end, offset * 20); // 20x for curve visibility
+              console.log(`✅ Curved path applied to ${pipeline.code}`);
             } else {
-              console.log(`⚠️ Skipping curve for ${pipeline.code} - multi-segment pipeline (${coordinates.length} points)`);
+              // Multi-segment route: use parallel offset
+              displayCoordinates = calculateParallelOffset(coordinates, offset);
+              console.log(`✅ Parallel offset applied to ${pipeline.code}`);
             }
           }
 
