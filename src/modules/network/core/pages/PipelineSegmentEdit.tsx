@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 12:23 - Made coating fields optional per backend update
  * @updated 02-14-2026 12:16 - Aligned validation with backend @PositiveOrZero constraint
  * @updated 02-14-2026 12:03 - Clarified Structure field as organizational owner/manager
  * @updated 02-14-2026 11:58 - Added detailed error logging for debugging
@@ -97,13 +98,13 @@ const PipelineSegmentEdit = () => {
     roughness: 0,                     // Number (Double) - @PositiveOrZero
     startPoint: 0,                    // Position in pipeline (km) - @PositiveOrZero
     endPoint: 0,                      // Position in pipeline (km) - @PositiveOrZero
-    departureFacilityId: undefined,   // Departure infrastructure
-    arrivalFacilityId: undefined,     // Arrival infrastructure
-    operationalStatusId: undefined,
-    structureId: undefined,           // Organizational structure (owner/manager)
-    constructionMaterialId: undefined,
-    exteriorCoatingId: undefined,
-    interiorCoatingId: undefined,
+    departureFacilityId: undefined,   // OPTIONAL
+    arrivalFacilityId: undefined,     // OPTIONAL
+    operationalStatusId: undefined,   // REQUIRED
+    structureId: undefined,           // REQUIRED - Organizational owner/manager
+    constructionMaterialId: undefined,// REQUIRED
+    exteriorCoatingId: undefined,     // OPTIONAL (updated 2026-02-14)
+    interiorCoatingId: undefined,     // OPTIONAL (updated 2026-02-14)
     pipelineId: Number(pipelineId),
     coordinateIds: [],
   });
@@ -302,7 +303,8 @@ const PipelineSegmentEdit = () => {
       errors.endPoint = 'End point must be greater than start point';
     }
 
-    // Required relationships
+    // REQUIRED relationships only
+    // REMOVED: exteriorCoatingId and interiorCoatingId (now OPTIONAL)
     if (!segment.operationalStatusId) {
       errors.operationalStatusId = 'Operational status is required';
     }
@@ -315,13 +317,7 @@ const PipelineSegmentEdit = () => {
       errors.constructionMaterialId = 'Construction material is required';
     }
 
-    if (!segment.exteriorCoatingId) {
-      errors.exteriorCoatingId = 'Exterior coating is required';
-    }
-
-    if (!segment.interiorCoatingId) {
-      errors.interiorCoatingId = 'Interior coating is required';
-    }
+    // Coatings are now OPTIONAL - no validation needed
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
@@ -413,8 +409,8 @@ const PipelineSegmentEdit = () => {
         operationalStatusId: Number(segment.operationalStatusId),
         structureId: Number(segment.structureId),
         constructionMaterialId: Number(segment.constructionMaterialId),
-        exteriorCoatingId: Number(segment.exteriorCoatingId),
-        interiorCoatingId: Number(segment.interiorCoatingId),
+        exteriorCoatingId: segment.exteriorCoatingId ? Number(segment.exteriorCoatingId) : undefined, // OPTIONAL
+        interiorCoatingId: segment.interiorCoatingId ? Number(segment.interiorCoatingId) : undefined, // OPTIONAL
         pipelineId: Number(pipelineId),
         coordinateIds: segment.coordinateIds || [],
       };
@@ -803,7 +799,7 @@ const PipelineSegmentEdit = () => {
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Materials
+                      Materials & Coatings
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
@@ -831,13 +827,13 @@ const PipelineSegmentEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Exterior Coating"
+                          label="Exterior Coating (Optional)"
                           value={segment.exteriorCoatingId || ''}
                           onChange={handleChange('exteriorCoatingId')}
-                          required
                           error={!!validationErrors.exteriorCoatingId}
-                          helperText={validationErrors.exteriorCoatingId}
+                          helperText="External protective coating (optional for bare metal)"
                         >
+                          <MenuItem value="">None</MenuItem>
                           {sortedAlloys.map((alloy) => (
                             <MenuItem key={alloy.id} value={alloy.id}>
                               {getLocalizedName(alloy, currentLanguage)}
@@ -850,13 +846,13 @@ const PipelineSegmentEdit = () => {
                         <TextField
                           fullWidth
                           select
-                          label="Interior Coating"
+                          label="Interior Coating (Optional)"
                           value={segment.interiorCoatingId || ''}
                           onChange={handleChange('interiorCoatingId')}
-                          required
                           error={!!validationErrors.interiorCoatingId}
-                          helperText={validationErrors.interiorCoatingId}
+                          helperText="Internal protective coating (optional for bare metal)"
                         >
+                          <MenuItem value="">None</MenuItem>
                           {sortedAlloys.map((alloy) => (
                             <MenuItem key={alloy.id} value={alloy.id}>
                               {getLocalizedName(alloy, currentLanguage)}
