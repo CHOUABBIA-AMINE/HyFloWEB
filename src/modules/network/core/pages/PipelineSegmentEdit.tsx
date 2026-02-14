@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 11:58 - Added detailed error logging for debugging
  * @updated 02-14-2026 11:50 - Added Departure and Arrival Facility fields
  * @updated 02-14-2026 01:41 - Fixed: Aligned with actual PipelineSegmentDTO structure
  * @updated 02-14-2026 01:38 - Initial creation with coordinate management
@@ -226,14 +227,16 @@ const PipelineSegmentEdit = () => {
           ? facilitiesData.value 
           : (Array.isArray((facilitiesData.value as any)?.data) ? (facilitiesData.value as any).data 
             : Array.isArray((facilitiesData.value as any)?.content) ? (facilitiesData.value as any).content : []);
+        console.log('Loaded facilities:', facilities);
         setFacilities(facilities);
       } else {
-        console.warn('Facilities service not available yet');
+        console.warn('Facilities service not available:', facilitiesData.reason);
         setFacilities([]);
       }
 
       // Set segment data if editing
       if (segmentData) {
+        console.log('Loaded segment data:', segmentData);
         setSegment(segmentData);
       }
 
@@ -257,13 +260,14 @@ const PipelineSegmentEdit = () => {
       errors.name = 'Name is required (minimum 2 characters)';
     }
 
-    if (!segment.departureFacilityId) {
-      errors.departureFacilityId = 'Departure facility is required';
-    }
+    // Note: Facilities are optional, not required
+    // if (!segment.departureFacilityId) {
+    //   errors.departureFacilityId = 'Departure facility is required';
+    // }
 
-    if (!segment.arrivalFacilityId) {
-      errors.arrivalFacilityId = 'Arrival facility is required';
-    }
+    // if (!segment.arrivalFacilityId) {
+    //   errors.arrivalFacilityId = 'Arrival facility is required';
+    // }
 
     if (segment.diameter === undefined || segment.diameter <= 0) {
       errors.diameter = 'Diameter is required (must be > 0)';
@@ -401,6 +405,8 @@ const PipelineSegmentEdit = () => {
         coordinateIds: segment.coordinateIds || [],
       };
 
+      console.log('Submitting segment data:', segmentData);
+
       if (isEditMode) {
         await PipelineSegmentService.update(Number(segmentId), { id: Number(segmentId), ...segmentData } as PipelineSegmentDTO);
         setSuccess('Segment updated successfully');
@@ -414,7 +420,27 @@ const PipelineSegmentEdit = () => {
       }
     } catch (err: any) {
       console.error('Failed to save segment:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to save segment');
+      console.error('Error response:', err.response?.data);
+      
+      // Extract detailed error message from backend
+      let errorMessage = 'Failed to save segment';
+      
+      if (err.response?.data) {
+        const errorData = err.response.data;
+        
+        // Check for validation errors
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorMessage = errorData.errors.join(', ');
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -550,7 +576,7 @@ const PipelineSegmentEdit = () => {
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Connected Infrastructure
+                      Connected Infrastructure (Optional)
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
@@ -562,10 +588,10 @@ const PipelineSegmentEdit = () => {
                           label="Departure Facility"
                           value={segment.departureFacilityId || ''}
                           onChange={handleChange('departureFacilityId')}
-                          required
                           error={!!validationErrors.departureFacilityId}
                           helperText={validationErrors.departureFacilityId || 'Starting infrastructure (Station, Terminal, etc.)'}
                         >
+                          <MenuItem value="">None</MenuItem>
                           {facilities.length === 0 ? (
                             <MenuItem value="" disabled>No facilities available</MenuItem>
                           ) : (
@@ -585,10 +611,10 @@ const PipelineSegmentEdit = () => {
                           label="Arrival Facility"
                           value={segment.arrivalFacilityId || ''}
                           onChange={handleChange('arrivalFacilityId')}
-                          required
                           error={!!validationErrors.arrivalFacilityId}
                           helperText={validationErrors.arrivalFacilityId || 'Ending infrastructure (Station, Terminal, etc.)'}
                         >
+                          <MenuItem value="">None</MenuItem>
                           {facilities.length === 0 ? (
                             <MenuItem value="" disabled>No facilities available</MenuItem>
                           ) : (
