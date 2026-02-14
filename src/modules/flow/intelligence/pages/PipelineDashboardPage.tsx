@@ -3,11 +3,11 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
- * @updated 02-14-2026
+ * @updated 02-14-2026 - Added comprehensive Analytics tab with charts
  * 
  * @description Comprehensive operational intelligence dashboard.
  *              Combines infrastructure details, real-time metrics,
- *              connected assets, and activity timeline.
+ *              connected assets, activity timeline, and analytics charts.
  *              
  * @route /flow/intelligence/pipeline/:pipelineId/dashboard
  */
@@ -41,6 +41,7 @@ import {
   AccordionSummary,
   AccordionDetails,
   Stack,
+  CircularProgress,
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -61,7 +62,20 @@ import {
   ShowChart as ShowChartIcon,
   Info as InfoIcon,
   Circle as CircleIcon,
+  TrendingDown,
 } from '@mui/icons-material';
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import axiosInstance from '@/shared/config/axios';
 import { usePipelineDashboard } from '../hooks';
 import type { KeyMetricsDTO } from '../dto';
@@ -87,6 +101,24 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+interface TimeSeriesData {
+  measurementType: string;
+  dataPoints: Array<{
+    timestamp: string;
+    value: number;
+    slotCode: string;
+    validationStatus: string;
+    hasWarning: boolean;
+  }>;
+  statistics: {
+    min: number;
+    max: number;
+    avg: number;
+    median: number;
+    stdDev: number;
+  };
+}
+
 /**
  * Pipeline Intelligence Dashboard Page
  */
@@ -98,6 +130,13 @@ export const PipelineDashboardPage: React.FC = () => {
   const [timeline, setTimeline] = useState<any>(null);
   const [infoLoading, setInfoLoading] = useState(true);
   const [infoError, setInfoError] = useState<string | null>(null);
+
+  // Analytics state
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+  const [pressureData, setPressureData] = useState<TimeSeriesData | null>(null);
+  const [temperatureData, setTemperatureData] = useState<TimeSeriesData | null>(null);
+  const [flowRateData, setFlowRateData] = useState<TimeSeriesData | null>(null);
 
   const { dashboard, isLoading, error, refresh, isRefetching, hasMetrics } =
     usePipelineDashboard(Number(pipelineId), {
@@ -146,6 +185,55 @@ export const PipelineDashboardPage: React.FC = () => {
       fetchTimeline();
     }
   }, [pipelineId]);
+
+  // Fetch analytics data when Analytics tab is active
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      if (tabValue !== 1 || !pipelineId) return;
+
+      try {
+        setAnalyticsLoading(true);
+        setAnalyticsError(null);
+
+        // Calculate date range (last 7 days)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+
+        const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+        // Fetch pressure, temperature, and flow rate data in parallel
+        const [pressureRes, temperatureRes, flowRateRes] = await Promise.all([
+          axiosInstance.get(
+            `/flow/intelligence/pipeline/${pipelineId}/readings-timeseries?startDate=${formatDate(
+              startDate
+            )}&endDate=${formatDate(endDate)}&measurementType=PRESSURE`
+          ),
+          axiosInstance.get(
+            `/flow/intelligence/pipeline/${pipelineId}/readings-timeseries?startDate=${formatDate(
+              startDate
+            )}&endDate=${formatDate(endDate)}&measurementType=TEMPERATURE`
+          ),
+          axiosInstance.get(
+            `/flow/intelligence/pipeline/${pipelineId}/readings-timeseries?startDate=${formatDate(
+              startDate
+            )}&endDate=${formatDate(endDate)}&measurementType=FLOW_RATE`
+          ),
+        ]);
+
+        setPressureData(pressureRes.data);
+        setTemperatureData(temperatureRes.data);
+        setFlowRateData(flowRateRes.data);
+      } catch (err: any) {
+        console.error('Failed to fetch analytics data:', err);
+        setAnalyticsError(err?.message || 'Failed to load analytics data');
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [pipelineId, tabValue]);
 
   // Check if error is 403
   const isForbidden = 
@@ -256,6 +344,22 @@ export const PipelineDashboardPage: React.FC = () => {
     }
   };
 
+  // Format chart data
+  const formatChartData = (data: TimeSeriesData | null) => {
+    if (!data?.dataPoints) return [];
+    return data.dataPoints.map((point) => ({
+      time: new Date(point.timestamp).toLocaleString('en-GB', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+      value: point.value,
+      slot: point.slotCode,
+      validated: point.validationStatus === 'APPROVED',
+    }));
+  };
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       {/* Breadcrumbs */}
@@ -323,7 +427,7 @@ export const PipelineDashboardPage: React.FC = () => {
       <Paper elevation={2} sx={{ mb: 3 }}>
         <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)} aria-label="dashboard tabs">
           <Tab icon={<ShowChartIcon />} label="Overview" iconPosition="start" />
-          <Tab icon={<TimelineIcon />} label="Analytics" iconPosition="start" disabled />
+          <Tab icon={<TimelineIcon />} label="Analytics" iconPosition="start" />
           <Tab icon={<NotificationsIcon />} label="Timeline" iconPosition="start" />
           <Tab icon={<Warning />} label="Alerts" iconPosition="start" disabled />
         </Tabs>
@@ -492,6 +596,219 @@ export const PipelineDashboardPage: React.FC = () => {
             </Grid>
           </AccordionDetails>
         </Accordion>
+      </TabPanel>
+
+      {/* Tab: Analytics */}
+      <TabPanel value={tabValue} index={1}>
+        {analyticsLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+            <CircularProgress size={60} />
+          </Box>
+        ) : analyticsError ? (
+          <Alert severity="error">
+            <AlertTitle>Failed to Load Analytics</AlertTitle>
+            {analyticsError}
+          </Alert>
+        ) : (
+          <>
+            {/* Statistical Summary Cards */}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+              {/* Pressure Stats */}
+              {pressureData?.statistics && (
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <SpeedIcon color="primary" /> Pressure Statistics (7 days)
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Min</Typography>
+                          <Typography variant="h6">{pressureData.statistics.min.toFixed(2)} bar</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Max</Typography>
+                          <Typography variant="h6">{pressureData.statistics.max.toFixed(2)} bar</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Average</Typography>
+                          <Typography variant="h6" color="primary">{pressureData.statistics.avg.toFixed(2)} bar</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Std Dev</Typography>
+                          <Typography variant="h6">{pressureData.statistics.stdDev.toFixed(2)}</Typography>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Temperature Stats */}
+              {temperatureData?.statistics && (
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <ThermostatIcon color="error" /> Temperature Statistics (7 days)
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Min</Typography>
+                          <Typography variant="h6">{temperatureData.statistics.min.toFixed(1)} °C</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Max</Typography>
+                          <Typography variant="h6">{temperatureData.statistics.max.toFixed(1)} °C</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Average</Typography>
+                          <Typography variant="h6" color="error">{temperatureData.statistics.avg.toFixed(1)} °C</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Std Dev</Typography>
+                          <Typography variant="h6">{temperatureData.statistics.stdDev.toFixed(2)}</Typography>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+
+              {/* Flow Rate Stats */}
+              {flowRateData?.statistics && (
+                <Grid item xs={12} md={4}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <WaterDropIcon color="info" /> Flow Rate Statistics (7 days)
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Min</Typography>
+                          <Typography variant="h6">{flowRateData.statistics.min.toFixed(0)} m³/h</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Max</Typography>
+                          <Typography variant="h6">{flowRateData.statistics.max.toFixed(0)} m³/h</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Average</Typography>
+                          <Typography variant="h6" color="info.main">{flowRateData.statistics.avg.toFixed(0)} m³/h</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                          <Typography variant="caption" color="text.secondary">Std Dev</Typography>
+                          <Typography variant="h6">{flowRateData.statistics.stdDev.toFixed(2)}</Typography>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+            </Grid>
+
+            {/* Pressure Trend Chart */}
+            {pressureData && (
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TrendingUp /> Pressure Trend (Last 7 Days)
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={formatChartData(pressureData)}>
+                    <defs>
+                      <linearGradient id="colorPressure" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#1976d2" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#1976d2" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                    <YAxis label={{ value: 'Pressure (bar)', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#1976d2"
+                      fillOpacity={1}
+                      fill="url(#colorPressure)"
+                      name="Pressure"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
+            )}
+
+            {/* Temperature Trend Chart */}
+            {temperatureData && (
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TrendingUp /> Temperature Trend (Last 7 Days)
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={formatChartData(temperatureData)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                    <YAxis label={{ value: 'Temperature (°C)', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#d32f2f"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      name="Temperature"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Paper>
+            )}
+
+            {/* Flow Rate Trend Chart */}
+            {flowRateData && (
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TrendingUp /> Flow Rate Trend (Last 7 Days)
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart data={formatChartData(flowRateData)}>
+                    <defs>
+                      <linearGradient id="colorFlow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0288d1" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#0288d1" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+                    <YAxis label={{ value: 'Flow Rate (m³/h)', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#0288d1"
+                      fillOpacity={1}
+                      fill="url(#colorFlow)"
+                      name="Flow Rate"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Paper>
+            )}
+
+            {(!pressureData && !temperatureData && !flowRateData) && (
+              <Alert severity="info">
+                <AlertTitle>No Analytics Data</AlertTitle>
+                No historical data available for the last 7 days. Charts will appear once readings are recorded.
+              </Alert>
+            )}
+          </>
+        )}
       </TabPanel>
 
       {/* Tab: Timeline */}
