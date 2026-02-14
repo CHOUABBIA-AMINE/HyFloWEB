@@ -1,103 +1,65 @@
 /**
- * Facility Service - Network Core Module
+ * Facility Service
+ * Manages infrastructure facilities (stations, terminals, etc.)
  * 
- * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.service.FacilityService
- * 
- * Provides CRUD operations and search functionality for facilities.
- * Facilities represent physical locations where equipment is installed.
- * 
- * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
- * @created 06-26-2025
- * @updated 01-02-2026
+ * @author CHOUABBIA Amine
+ * @created 02-14-2026 11:52
  */
 
-import axiosInstance from '@/shared/config/axios';
-import type { FacilityDTO } from '../dto/FacilityDTO';
-import type { Page, Pageable } from '@/types/pagination';
+import api from '@/config/axios';
+import { FacilityDTO } from '../dto/FacilityDTO';
 
-const BASE_URL = '/network/core/facility';
+const API_URL = '/api/facilities';
 
-export class FacilityService {
-  /**
-   * Get all facilities with pagination
-   */
-  static async getAll(pageable: Pageable): Promise<Page<FacilityDTO>> {
-    const response = await axiosInstance.get<Page<FacilityDTO>>(BASE_URL, {
-      params: {
-        page: pageable.page,
-        size: pageable.size,
-        sort: pageable.sort,
-      },
-    });
-    return response.data;
-  }
-
+export const FacilityService = {
   /**
    * Get all facilities without pagination
    */
-  static async getAllNoPagination(): Promise<FacilityDTO[]> {
-    const response = await axiosInstance.get<FacilityDTO[]>(`${BASE_URL}/all`);
+  async getAllNoPagination(): Promise<FacilityDTO[]> {
+    const response = await api.get<FacilityDTO[]>(`${API_URL}/all`);
     return response.data;
-  }
+  },
+
+  /**
+   * Get paginated facilities
+   */
+  async getAll(page: number = 0, size: number = 20): Promise<{ content: FacilityDTO[]; totalElements: number }> {
+    const response = await api.get(`${API_URL}`, {
+      params: { page, size }
+    });
+    return response.data;
+  },
 
   /**
    * Get facility by ID
    */
-  static async getById(id: number): Promise<FacilityDTO> {
-    const response = await axiosInstance.get<FacilityDTO>(`${BASE_URL}/${id}`);
+  async getById(id: number): Promise<FacilityDTO> {
+    const response = await api.get<FacilityDTO>(`${API_URL}/${id}`);
     return response.data;
-  }
+  },
 
   /**
    * Create new facility
-   * Validates that code doesn't already exist
    */
-  static async create(dto: FacilityDTO): Promise<FacilityDTO> {
-    const response = await axiosInstance.post<FacilityDTO>(BASE_URL, dto);
+  async create(data: Partial<FacilityDTO>): Promise<FacilityDTO> {
+    const response = await api.post<FacilityDTO>(API_URL, data);
     return response.data;
-  }
+  },
 
   /**
    * Update existing facility
-   * Validates that code doesn't exist for other records
    */
-  static async update(id: number, dto: FacilityDTO): Promise<FacilityDTO> {
-    const response = await axiosInstance.put<FacilityDTO>(`${BASE_URL}/${id}`, dto);
+  async update(id: number, data: FacilityDTO): Promise<FacilityDTO> {
+    const response = await api.put<FacilityDTO>(`${API_URL}/${id}`, data);
     return response.data;
-  }
+  },
 
   /**
-   * Delete facility by ID
+   * Delete facility
    */
-  static async delete(id: number): Promise<void> {
-    await axiosInstance.delete(`${BASE_URL}/${id}`);
-  }
+  async delete(id: number): Promise<void> {
+    await api.delete(`${API_URL}/${id}`);
+  },
+};
 
-  /**
-   * Global search across all facility fields
-   */
-  static async globalSearch(
-    searchTerm: string,
-    pageable: Pageable
-  ): Promise<Page<FacilityDTO>> {
-    const response = await axiosInstance.get<Page<FacilityDTO>>(`${BASE_URL}/search`, {
-      params: {
-        q: searchTerm,
-        page: pageable.page,
-        size: pageable.size,
-        sort: pageable.sort,
-      },
-    });
-    return response.data;
-  }
-
-  /**
-   * Find facilities by infrastructure
-   */
-  static async findByInfrastructure(infrastructureId: number): Promise<FacilityDTO[]> {
-    const response = await axiosInstance.get<FacilityDTO[]>(
-      `${BASE_URL}/by-infrastructure/${infrastructureId}`
-    );
-    return response.data;
-  }
-}
+export default FacilityService;
