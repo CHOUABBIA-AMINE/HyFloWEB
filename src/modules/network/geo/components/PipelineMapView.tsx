@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 02-14-2026 21:39 - Added product to tooltips
  * @updated 02-14-2026 21:28 - Added parallel offset for multi-segment pipelines
  * @updated 02-14-2026 21:24 - Moved debug logging to useEffect
  * @updated 02-14-2026 21:20 - Increased offset to 0.2 and added debug logging
@@ -363,7 +364,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                 },
               }}
             >
-              {/* Enhanced Tooltip for quick info on hover */}
+              {/* Enhanced Tooltip with product information */}
               {filterState.filters.showLabels && (
                 <Tooltip 
                   direction="top" 
@@ -374,21 +375,41 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                 >
                   <Box 
                     sx={{ 
-                      p: 1, 
-                      minWidth: 120,
+                      p: 1.5, 
+                      minWidth: 140,
                       backgroundColor: 'rgba(255, 255, 255, 0.98)',
                       borderRadius: 1,
-                      boxShadow: 1,
+                      boxShadow: 2,
                     }}
                   >
                     <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5 }}>
                       {pipeline.code}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
                       {pipeline.name}
                     </Typography>
+                    
+                    {/* Product with color indicator */}
+                    {product && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                        <Box 
+                          sx={{ 
+                            width: 12, 
+                            height: 12, 
+                            borderRadius: '50%',
+                            backgroundColor: pipelineStyle.color,
+                            border: '1px solid rgba(0,0,0,0.1)'
+                          }} 
+                        />
+                        <Typography variant="caption" fontWeight="medium">
+                          {product.code}
+                        </Typography>
+                      </Box>
+                    )}
+                    
+                    {/* Route */}
                     {pipeline.departureTerminal && pipeline.arrivalTerminal && (
-                      <Typography variant="caption" display="block" sx={{ mt: 0.5, fontSize: '0.7rem' }}>
+                      <Typography variant="caption" display="block" sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
                         {pipeline.departureTerminal.code} → {pipeline.arrivalTerminal.code}
                       </Typography>
                     )}
