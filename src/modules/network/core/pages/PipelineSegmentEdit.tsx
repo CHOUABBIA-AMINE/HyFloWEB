@@ -6,6 +6,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 02-14-2026
+ * @updated 02-14-2026 01:41 - Fixed: Aligned with actual PipelineSegmentDTO structure
  * @updated 02-14-2026 01:38 - Initial creation with coordinate management
  */
 
@@ -36,7 +37,8 @@ import {
   LinearScale as SegmentIcon,
 } from '@mui/icons-material';
 import { PipelineSegmentService } from '../services';
-import { AlloyService } from '../../common/services';
+import { AlloyService, OperationalStatusService } from '../../common/services';
+import { StructureService } from '@/modules/general/organization/services';
 import { CoordinateService } from '@/modules/general/localization/services';
 import { PipelineSegmentDTO } from '../dto/PipelineSegmentDTO';
 import { CoordinateDTO } from '@/modules/general/localization/dto/CoordinateDTO';
@@ -82,21 +84,27 @@ const PipelineSegmentEdit = () => {
   const [segment, setSegment] = useState<Partial<PipelineSegmentDTO>>({
     code: '',
     name: '',
-    description: '',
-    diameter: '',                     // String with unit
+    installationDate: undefined,
+    commissioningDate: undefined,
+    decommissioningDate: undefined,
+    diameter: 0,                      // Number (Double)
     length: 0,                        // Calculated from endPoint - startPoint
-    thickness: '',                    // String with unit
+    thickness: 0,                     // Number (Double)
+    roughness: 0,                     // Number (Double)
+    startPoint: 0,                    // Position in pipeline (km)
+    endPoint: 0,                      // Position in pipeline (km)
+    operationalStatusId: undefined,
+    structureId: undefined,
     constructionMaterialId: undefined,
     exteriorCoatingId: undefined,
     interiorCoatingId: undefined,
-    startPoint: 0,                    // Position in pipeline (km)
-    endPoint: 0,                      // Position in pipeline (km)
-    serviceDate: undefined,
     pipelineId: Number(pipelineId),
     coordinateIds: [],
   });
 
   // Available options
+  const [operationalStatuses, setOperationalStatuses] = useState<any[]>([]);
+  const [structures, setStructures] = useState<any[]>([]);
   const [alloys, setAlloys] = useState<any[]>([]);
   const [coordinates, setCoordinates] = useState<CoordinateDTO[]>([]);
 
@@ -132,6 +140,11 @@ const PipelineSegmentEdit = () => {
     [alloys, currentLanguage]
   );
 
+  const sortedOperationalStatuses = useMemo(
+    () => sortByLocalizedName(operationalStatuses, currentLanguage),
+    [operationalStatuses, currentLanguage]
+  );
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -146,9 +159,13 @@ const PipelineSegmentEdit = () => {
       const [
         alloysData,
         coordinatesData,
+        operationalStatusesData,
+        structuresData,
       ] = await Promise.allSettled([
         AlloyService.getAllNoPagination(),
         CoordinateService.getAllNoPagination(),
+        OperationalStatusService.getAllNoPagination(),
+        StructureService.getAllNoPagination(),
       ]);
 
       // Handle alloys
@@ -172,6 +189,29 @@ const PipelineSegmentEdit = () => {
       } else {
         console.error('Failed to load coordinates:', coordinatesData.reason);
         setCoordinates([]);
+      }
+
+      // Handle operational statuses
+      if (operationalStatusesData.status === 'fulfilled') {
+        const statuses = Array.isArray(operationalStatusesData.value) 
+          ? operationalStatusesData.value 
+          : (Array.isArray((operationalStatusesData.value as any)?.data) ? (operationalStatusesData.value as any).data 
+            : Array.isArray((operationalStatusesData.value as any)?.content) ? (operationalStatusesData.value as any).content : []);
+        setOperationalStatuses(statuses);
+      } else {
+        console.error('Failed to load operational statuses:', operationalStatusesData.reason);
+      }
+
+      // Handle structures
+      if (structuresData.status === 'fulfilled') {
+        const structures = Array.isArray(structuresData.value) 
+          ? structuresData.value 
+          : (Array.isArray((structuresData.value as any)?.data) ? (structuresData.value as any).data 
+            : Array.isArray((structuresData.value as any)?.content) ? (structuresData.value as any).content : []);
+        setStructures(structures);
+      } else {
+        console.error('Failed to load structures:', structuresData.reason);
+        setStructures([]);
       }
 
       // Set segment data if editing
@@ -199,12 +239,16 @@ const PipelineSegmentEdit = () => {
       errors.name = 'Name is required (minimum 2 characters)';
     }
 
-    if (!segment.diameter || segment.diameter.trim() === '') {
-      errors.diameter = 'Diameter is required (e.g., "48 inches")';
+    if (segment.diameter === undefined || segment.diameter <= 0) {
+      errors.diameter = 'Diameter is required (must be > 0)';
     }
 
-    if (!segment.thickness || segment.thickness.trim() === '') {
-      errors.thickness = 'Thickness is required (e.g., "12.7 mm")';
+    if (segment.thickness === undefined || segment.thickness <= 0) {
+      errors.thickness = 'Thickness is required (must be > 0)';
+    }
+
+    if (segment.roughness === undefined || segment.roughness < 0) {
+      errors.roughness = 'Roughness is required (must be >= 0)';
     }
 
     if (segment.startPoint === undefined || segment.startPoint < 0) {
@@ -213,6 +257,26 @@ const PipelineSegmentEdit = () => {
 
     if (segment.endPoint === undefined || segment.endPoint <= (segment.startPoint || 0)) {
       errors.endPoint = 'End point must be greater than start point';
+    }
+
+    if (!segment.operationalStatusId) {
+      errors.operationalStatusId = 'Operational status is required';
+    }
+
+    if (!segment.structureId) {
+      errors.structureId = 'Structure is required';
+    }
+
+    if (!segment.constructionMaterialId) {
+      errors.constructionMaterialId = 'Construction material is required';
+    }
+
+    if (!segment.exteriorCoatingId) {
+      errors.exteriorCoatingId = 'Exterior coating is required';
+    }
+
+    if (!segment.interiorCoatingId) {
+      errors.interiorCoatingId = 'Interior coating is required';
     }
 
     setValidationErrors(errors);
@@ -291,16 +355,20 @@ const PipelineSegmentEdit = () => {
       const segmentData: Partial<PipelineSegmentDTO> = {
         code: segment.code!,
         name: segment.name!,
-        description: segment.description,
-        diameter: segment.diameter || '',
-        length: segment.length !== undefined ? Number(segment.length) : 0,
-        thickness: segment.thickness || '',
-        constructionMaterialId: segment.constructionMaterialId ? Number(segment.constructionMaterialId) : undefined,
-        exteriorCoatingId: segment.exteriorCoatingId ? Number(segment.exteriorCoatingId) : undefined,
-        interiorCoatingId: segment.interiorCoatingId ? Number(segment.interiorCoatingId) : undefined,
+        installationDate: segment.installationDate,
+        commissioningDate: segment.commissioningDate,
+        decommissioningDate: segment.decommissioningDate,
+        diameter: Number(segment.diameter),
+        length: Number(segment.length),
+        thickness: Number(segment.thickness),
+        roughness: Number(segment.roughness),
         startPoint: Number(segment.startPoint),
         endPoint: Number(segment.endPoint),
-        serviceDate: segment.serviceDate,
+        operationalStatusId: Number(segment.operationalStatusId),
+        structureId: Number(segment.structureId),
+        constructionMaterialId: Number(segment.constructionMaterialId),
+        exteriorCoatingId: Number(segment.exteriorCoatingId),
+        interiorCoatingId: Number(segment.interiorCoatingId),
         pipelineId: Number(pipelineId),
         coordinateIds: segment.coordinateIds || [],
       };
@@ -446,18 +514,6 @@ const PipelineSegmentEdit = () => {
                           helperText={validationErrors.name || 'Segment name'}
                         />
                       </Grid>
-
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Description"
-                          value={segment.description || ''}
-                          onChange={handleChange('description')}
-                          multiline
-                          rows={2}
-                          helperText="Optional description of the segment"
-                        />
-                      </Grid>
                     </Grid>
                   </Box>
                 </Paper>
@@ -522,32 +578,96 @@ const PipelineSegmentEdit = () => {
                     <Divider sx={{ mb: 3 }} />
                     
                     <Grid container spacing={3}>
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label="Diameter (mm)"
+                          type="number"
+                          value={segment.diameter ?? 0}
+                          onChange={handleChange('diameter')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          error={!!validationErrors.diameter}
+                          helperText={validationErrors.diameter || 'Segment diameter in millimeters'}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label="Wall Thickness (mm)"
+                          type="number"
+                          value={segment.thickness ?? 0}
+                          onChange={handleChange('thickness')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          error={!!validationErrors.thickness}
+                          helperText={validationErrors.thickness || 'Wall thickness in millimeters'}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label="Roughness (mm)"
+                          type="number"
+                          value={segment.roughness ?? 0}
+                          onChange={handleChange('roughness')}
+                          inputProps={{ step: 0.0001, min: 0 }}
+                          required
+                          error={!!validationErrors.roughness}
+                          helperText={validationErrors.roughness || 'Surface roughness in millimeters'}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Paper>
+
+                {/* Organizational Details */}
+                <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
+                  <Box sx={{ p: 2.5 }}>
+                    <Typography variant="h6" fontWeight={600} gutterBottom>
+                      Organizational Details
+                    </Typography>
+                    <Divider sx={{ mb: 3 }} />
+                    
+                    <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
-                          label="Diameter"
-                          type="text"
-                          value={segment.diameter || ''}
-                          onChange={handleChange('diameter')}
+                          select
+                          label="Operational Status"
+                          value={segment.operationalStatusId || ''}
+                          onChange={handleChange('operationalStatusId')}
                           required
-                          error={!!validationErrors.diameter}
-                          helperText={validationErrors.diameter || 'e.g., "48 inches", "1200 mm"'}
-                          placeholder="48 inches"
-                        />
+                          error={!!validationErrors.operationalStatusId}
+                          helperText={validationErrors.operationalStatusId}
+                        >
+                          {sortedOperationalStatuses.map((status) => (
+                            <MenuItem key={status.id} value={status.id}>
+                              {getLocalizedName(status, currentLanguage)}
+                            </MenuItem>
+                          ))}
+                        </TextField>
                       </Grid>
 
                       <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
-                          label="Wall Thickness"
-                          type="text"
-                          value={segment.thickness || ''}
-                          onChange={handleChange('thickness')}
+                          select
+                          label="Structure"
+                          value={segment.structureId || ''}
+                          onChange={handleChange('structureId')}
                           required
-                          error={!!validationErrors.thickness}
-                          helperText={validationErrors.thickness || 'e.g., "12.7 mm", "0.5 inch"'}
-                          placeholder="12.7 mm"
-                        />
+                          error={!!validationErrors.structureId}
+                          helperText={validationErrors.structureId}
+                        >
+                          {structures.map((structure) => (
+                            <MenuItem key={structure.id} value={structure.id}>
+                              {structure.designationFr} ({structure.code})
+                            </MenuItem>
+                          ))}
+                        </TextField>
                       </Grid>
                     </Grid>
                   </Box>
@@ -569,8 +689,10 @@ const PipelineSegmentEdit = () => {
                           label="Construction Material"
                           value={segment.constructionMaterialId || ''}
                           onChange={handleChange('constructionMaterialId')}
+                          required
+                          error={!!validationErrors.constructionMaterialId}
+                          helperText={validationErrors.constructionMaterialId}
                         >
-                          <MenuItem value="">None</MenuItem>
                           {sortedAlloys.map((alloy) => (
                             <MenuItem key={alloy.id} value={alloy.id}>
                               {getLocalizedName(alloy, currentLanguage)}
@@ -586,8 +708,10 @@ const PipelineSegmentEdit = () => {
                           label="Exterior Coating"
                           value={segment.exteriorCoatingId || ''}
                           onChange={handleChange('exteriorCoatingId')}
+                          required
+                          error={!!validationErrors.exteriorCoatingId}
+                          helperText={validationErrors.exteriorCoatingId}
                         >
-                          <MenuItem value="">None</MenuItem>
                           {sortedAlloys.map((alloy) => (
                             <MenuItem key={alloy.id} value={alloy.id}>
                               {getLocalizedName(alloy, currentLanguage)}
@@ -603,8 +727,10 @@ const PipelineSegmentEdit = () => {
                           label="Interior Coating"
                           value={segment.interiorCoatingId || ''}
                           onChange={handleChange('interiorCoatingId')}
+                          required
+                          error={!!validationErrors.interiorCoatingId}
+                          helperText={validationErrors.interiorCoatingId}
                         >
-                          <MenuItem value="">None</MenuItem>
                           {sortedAlloys.map((alloy) => (
                             <MenuItem key={alloy.id} value={alloy.id}>
                               {getLocalizedName(alloy, currentLanguage)}
@@ -616,24 +742,48 @@ const PipelineSegmentEdit = () => {
                   </Box>
                 </Paper>
 
-                {/* Service Date */}
+                {/* Important Dates */}
                 <Paper elevation={0} sx={{ border: 1, borderColor: 'divider' }}>
                   <Box sx={{ p: 2.5 }}>
                     <Typography variant="h6" fontWeight={600} gutterBottom>
-                      Service Information
+                      Important Dates
                     </Typography>
                     <Divider sx={{ mb: 3 }} />
                     
                     <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
+                      <Grid item xs={12} md={4}>
                         <TextField
                           fullWidth
-                          label="Service Date"
+                          label="Installation Date"
                           type="date"
-                          value={segment.serviceDate || ''}
-                          onChange={handleChange('serviceDate')}
+                          value={segment.installationDate || ''}
+                          onChange={handleChange('installationDate')}
                           InputLabelProps={{ shrink: true }}
-                          helperText="Date when segment was put into service"
+                          helperText="Date when segment was installed"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label="Commissioning Date"
+                          type="date"
+                          value={segment.commissioningDate || ''}
+                          onChange={handleChange('commissioningDate')}
+                          InputLabelProps={{ shrink: true }}
+                          helperText="Date when segment was commissioned"
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={4}>
+                        <TextField
+                          fullWidth
+                          label="Decommissioning Date"
+                          type="date"
+                          value={segment.decommissioningDate || ''}
+                          onChange={handleChange('decommissioningDate')}
+                          InputLabelProps={{ shrink: true }}
+                          helperText="Date when segment was decommissioned"
                         />
                       </Grid>
                     </Grid>
