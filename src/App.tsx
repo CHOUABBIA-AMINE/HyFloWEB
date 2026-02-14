@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-22-2025
+ * @updated 02-14-2026 18:08 - Added Pipeline Intelligence Dashboard route
  * @updated 02-14-2026 01:57 - Added PipelineSegmentEdit routes
  * @updated 02-07-2026 15:10 - Removed /flow/readings route - SlotMonitoring is now the primary flow interface
  * @updated 02-05-2026 - Added React Router v7 future flags
@@ -90,6 +91,9 @@ import {
   OperationValidation
 } from './modules/flow/core/pages';
 
+// Flow Intelligence Module
+import { PipelineDashboardPage } from './modules/flow/intelligence/pages';
+
 function App() {
   const { i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
@@ -166,6 +170,19 @@ function App() {
 
                   {/* Flow Module - Protected */}
                   <Route path="flow">
+                    {/* Intelligence Sub-module */}
+                    <Route path="intelligence">
+                      {/* Pipeline Real-time Dashboard */}
+                      <Route
+                        path="pipeline/:pipelineId/dashboard"
+                        element={
+                          <ProtectedRoute>
+                            <PipelineDashboardPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Route>
+
                     {/* Slot Monitoring - PRIMARY INTERFACE */}
                     <Route
                       path="monitoring"
