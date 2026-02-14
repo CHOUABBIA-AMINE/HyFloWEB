@@ -5,6 +5,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 12-24-2025
+ * @updated 02-14-2026 01:52 - Fixed: Added safety checks for segment rendering
  * @updated 02-14-2026 01:47 - Fixed: Restored complete General Information form fields
  * @updated 02-14-2026 01:35 - Added Pipeline Segments tab (coordinates moved to segments)
  */
@@ -223,11 +224,14 @@ const PipelineEdit = () => {
     
     try {
       setLoadingSegments(true);
+      console.log('Loading segments for pipeline:', pipelineId);
       const segmentsData = await PipelineSegmentService.getByPipelineId(Number(pipelineId));
-      const sorted = segmentsData.sort((a, b) => a.startPoint - b.startPoint);
+      console.log('Loaded segments:', segmentsData);
+      const sorted = segmentsData.sort((a, b) => (a.startPoint ?? 0) - (b.startPoint ?? 0));
       setSegments(sorted);
     } catch (err: any) {
       console.error('Failed to load segments:', err);
+      setError('Failed to load pipeline segments');
     } finally {
       setLoadingSegments(false);
     }
@@ -671,12 +675,12 @@ const PipelineEdit = () => {
                         <TableBody>
                           {segments.map((segment) => (
                             <TableRow key={segment.id} hover>
-                              <TableCell>{segment.code}</TableCell>
-                              <TableCell>{segment.name}</TableCell>
-                              <TableCell align="right">{segment.startPoint.toFixed(2)} km</TableCell>
-                              <TableCell align="right">{segment.endPoint.toFixed(2)} km</TableCell>
-                              <TableCell align="right">{segment.length.toFixed(2)} km</TableCell>
-                              <TableCell align="right">{segment.coordinateIds?.length || 0} points</TableCell>
+                              <TableCell>{segment.code || 'N/A'}</TableCell>
+                              <TableCell>{segment.name || 'N/A'}</TableCell>
+                              <TableCell align="right">{(segment.startPoint ?? 0).toFixed(2)} km</TableCell>
+                              <TableCell align="right">{(segment.endPoint ?? 0).toFixed(2)} km</TableCell>
+                              <TableCell align="right">{(segment.length ?? 0).toFixed(2)} km</TableCell>
+                              <TableCell align="right">{segment.coordinateIds?.length ?? 0} points</TableCell>
                               <TableCell align="right">
                                 <Stack direction="row" spacing={1} justifyContent="flex-end">
                                   <Tooltip title="Edit Segment">
