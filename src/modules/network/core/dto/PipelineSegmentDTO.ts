@@ -2,13 +2,16 @@
  * PipelineSegment DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineSegmentDTO
+ * Updated: 02-14-2026 02:22 - Added departureFacility/arrivalFacility infrastructure references
  * Updated: 02-14-2026 01:29 - Added coordinateIds (coordinates belong to segments, not pipeline)
  * Updated: 01-15-2026 - Exact backend alignment (24 fields)
  * 
  * Represents a segment of a pipeline with its physical properties, materials,
  * and position within the parent pipeline.
  * 
- * Architecture: PipelineSegment has coordinates that define its geographic path.
+ * Architecture: PipelineSegment has:
+ * - Infrastructure endpoints (departureFacility, arrivalFacility)
+ * - Coordinates that define its geographic path between endpoints
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -18,6 +21,21 @@ import { StructureDTO } from '../../../general/organization/dto/StructureDTO';
 import { AlloyDTO } from '../../common/dto/AlloyDTO';
 import { PipelineDTO } from './PipelineDTO';
 import { CoordinateDTO } from '../../../general/localization/dto/CoordinateDTO';
+
+/**
+ * Generic infrastructure interface for departure/arrival facilities
+ * Can be Terminal, Station, ProcessingPlant, or ProductionField
+ */
+export interface InfrastructureDTO {
+  id?: number;
+  code?: string;
+  name?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+    altitude?: number;
+  };
+}
 
 export interface PipelineSegmentDTO {
   // Identifier (from GenericDTO)
@@ -39,8 +57,8 @@ export interface PipelineSegmentDTO {
   roughness: number; // Double - Surface roughness
   
   // Position within pipeline (both required, @NotNull, @PositiveOrZero)
-  startPoint: number; // Double - Starting point along pipeline
-  endPoint: number; // Double - Ending point along pipeline
+  startPoint: number; // Double - Starting point along pipeline (km)
+  endPoint: number; // Double - Ending point along pipeline (km)
   
   // Required relationships (IDs)
   operationalStatusId: number; // @NotNull (required)
@@ -49,6 +67,10 @@ export interface PipelineSegmentDTO {
   exteriorCoatingId: number; // @NotNull (required) - Alloy coating
   interiorCoatingId: number; // @NotNull (required) - Alloy coating
   pipelineId: number; // @NotNull (required) - Parent pipeline
+  
+  // Infrastructure endpoints (NEW)
+  departureFacilityId?: number; // Infrastructure at segment start
+  arrivalFacilityId?: number; // Infrastructure at segment end
   
   // Collections - Backend: Set<Long>, Frontend: number[]
   coordinateIds?: number[]; // Backend: Set<Long> coordinateIds - Coordinate IDs defining segment path
@@ -61,6 +83,10 @@ export interface PipelineSegmentDTO {
   interiorCoating?: AlloyDTO;
   pipeline?: PipelineDTO; // Parent pipeline reference
   coordinates?: CoordinateDTO[]; // Backend: Set<Coordinate> - Populated coordinate objects
+  
+  // Infrastructure endpoint references (populated)
+  departureFacility?: InfrastructureDTO; // Departure infrastructure (Terminal/Station/etc)
+  arrivalFacility?: InfrastructureDTO; // Arrival infrastructure (Terminal/Station/etc)
 }
 
 /**
@@ -160,4 +186,6 @@ export const createEmptyPipelineSegmentDTO = (): Partial<PipelineSegmentDTO> => 
   startPoint: 0,
   endPoint: 0,
   coordinateIds: [], // Coordinate IDs array
+  departureFacilityId: undefined,
+  arrivalFacilityId: undefined,
 });
