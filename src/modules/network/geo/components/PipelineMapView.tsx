@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 02-14-2026 21:24 - Moved debug logging to useEffect
  * @updated 02-14-2026 21:20 - Increased offset to 0.2 and added debug logging
  * @updated 02-14-2026 21:17 - Fixed filterState.filters.showLabels access
  * @updated 02-14-2026 21:10 - Added curve separation and enhanced tooltips
@@ -11,7 +12,7 @@
  * @updated 01-08-2026 - Fixed coordinate type handling
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MapContainer, TileLayer, Polyline, Popup, Tooltip, useMap } from 'react-leaflet';
 import { Box, Typography, Chip, Divider, Button } from '@mui/material';
 import { PipelineGeoData } from '../types';
@@ -121,15 +122,6 @@ const groupPipelinesByRoute = (pipelines: PipelineGeoData[]) => {
     routeGroups.get(routeKey)!.push(pipelineData);
   });
   
-  // Log routes with multiple pipelines
-  console.log('🗺️ Pipeline Route Groups:');
-  routeGroups.forEach((group, key) => {
-    if (group.length > 1) {
-      console.log(`  Route ${key}: ${group.length} pipelines`, 
-        group.map(p => p.pipeline.code));
-    }
-  });
-  
   return routeGroups;
 };
 
@@ -174,6 +166,27 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
   const routeGroups = useMemo(() => {
     return groupPipelinesByRoute(filteredPipelines);
   }, [filteredPipelines]);
+
+  // Debug logging in useEffect to ensure it runs when data changes
+  useEffect(() => {
+    console.log('🗺️ Pipeline Map View - Total pipelines:', filteredPipelines.length);
+    console.log('🗺️ Pipeline Route Groups:', routeGroups.size, 'unique routes');
+    
+    let overlappingCount = 0;
+    routeGroups.forEach((group, key) => {
+      if (group.length > 1) {
+        overlappingCount++;
+        console.log(`  ✅ Route ${key}: ${group.length} pipelines`, 
+          group.map(p => `${p.pipeline.code} (${p.coordinates.length} points)`));
+      }
+    });
+    
+    if (overlappingCount === 0) {
+      console.log('  ⚠️ No overlapping routes found - all pipelines have unique start/end points');
+    } else {
+      console.log(`  📊 Total overlapping routes: ${overlappingCount}`);
+    }
+  }, [filteredPipelines, routeGroups]);
 
   // Calculate center from all pipelines
   const center = useMemo(() => {
