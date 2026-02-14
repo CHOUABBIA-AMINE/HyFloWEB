@@ -1,8 +1,8 @@
 /**
  * Network Core Pages - Barrel Export
  * 
- * Updated: 01-15-2026
- * - Added ProcessingPlant and ProductionField pages
+ * Updated: 02-14-2026 01:57 - Added PipelineSegmentEdit export
+ * Updated: 01-15-2026 - Added ProcessingPlant and ProductionField pages
  * - Removed orphaned HydrocarbonField pages
  */
 
@@ -17,6 +17,7 @@ export { default as TerminalEdit } from './TerminalEdit';
 // Pipeline pages
 export { default as PipelineList } from './PipelineList';
 export { default as PipelineEdit } from './PipelineEdit';
+export { default as PipelineSegmentEdit } from './PipelineSegmentEdit';
 
 // Pipeline System pages
 export { default as PipelineSystemList } from './PipelineSystemList';
