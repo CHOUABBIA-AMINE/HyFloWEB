@@ -26,6 +26,7 @@ import {
   Chip,
   LinearProgress,
   Alert,
+  AlertTitle,
   Breadcrumbs,
   Link,
   Divider,
@@ -37,7 +38,8 @@ import {
   Warning,
   CheckCircle,
   Error as ErrorIcon,
-  Timeline,
+  Lock as LockIcon,
+  VpnKey as VpnKeyIcon,
 } from '@mui/icons-material';
 import { usePipelineDashboard } from '../hooks';
 import { PipelineIntelligenceService } from '../services';
@@ -56,6 +58,13 @@ export const PipelineDashboardPage: React.FC = () => {
       refreshInterval: 30000,
     });
 
+  // Check if error is 403 Forbidden
+  const isForbidden = 
+    error?.message?.includes('403') || 
+    error?.message?.toLowerCase().includes('forbidden') ||
+    (error as any)?.response?.status === 403 ||
+    (error as any)?.status === 403;
+
   // Loading state
   if (isLoading) {
     return (
@@ -72,7 +81,114 @@ export const PipelineDashboardPage: React.FC = () => {
     );
   }
 
-  // Error state
+  // 403 Forbidden - Permission Error
+  if (error && isForbidden) {
+    return (
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            border: '2px solid',
+            borderColor: 'warning.main',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 3 }}>
+            <LockIcon sx={{ fontSize: 48, color: 'warning.main' }} />
+            <Box>
+              <Typography variant="h4" gutterBottom>
+                Access Denied
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Pipeline Dashboard - Permission Required
+              </Typography>
+            </Box>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            <AlertTitle>Insufficient Permissions</AlertTitle>
+            You don't have permission to view this pipeline's operational intelligence dashboard.
+          </Alert>
+
+          <Paper variant="outlined" sx={{ p: 3, mb: 3, bgcolor: 'background.default' }}>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <VpnKeyIcon fontSize="small" />
+              Required Permissions
+            </Typography>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              To access this dashboard, you need at least one of the following authorities:
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, ml: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip label="FLOW_READ" size="small" color="primary" variant="outlined" />
+                <Typography variant="body2" color="text.secondary">
+                  - View flow data and dashboards
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip label="FLOW_WRITE" size="small" color="primary" variant="outlined" />
+                <Typography variant="body2" color="text.secondary">
+                  - Create and edit flow readings
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Chip label="FLOW_VALIDATE" size="small" color="primary" variant="outlined" />
+                <Typography variant="body2" color="text.secondary">
+                  - Validate and approve readings
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 3, mb: 3, bgcolor: 'info.lighter' }}>
+            <Typography variant="h6" gutterBottom>
+              How to get access:
+            </Typography>
+            <Box component="ul" sx={{ pl: 2, m: 0 }}>
+              <li>
+                <Typography variant="body2">
+                  Contact your system administrator to request access
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  Provide Pipeline ID: <strong>{pipelineId}</strong>
+                </Typography>
+              </li>
+              <li>
+                <Typography variant="body2">
+                  Specify which permission level you need (READ, WRITE, or VALIDATE)
+                </Typography>
+              </li>
+            </Box>
+          </Paper>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/network/map/pipelines')}
+              fullWidth
+            >
+              Back to Pipeline Map
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => window.location.reload()}
+              fullWidth
+            >
+              Retry
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
+
+  // Other Error states
   if (error) {
     return (
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
@@ -89,6 +205,13 @@ export const PipelineDashboardPage: React.FC = () => {
           </Typography>
           <Typography variant="body2">{error.message}</Typography>
         </Alert>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/network/map/pipelines')}
+          sx={{ mt: 2 }}
+        >
+          Back to Pipeline Map
+        </Button>
       </Container>
     );
   }
@@ -97,6 +220,13 @@ export const PipelineDashboardPage: React.FC = () => {
     return (
       <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
         <Alert severity="info">No dashboard data available for this pipeline.</Alert>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate('/network/map/pipelines')}
+          sx={{ mt: 2 }}
+        >
+          Back to Pipeline Map
+        </Button>
       </Container>
     );
   }
