@@ -2,6 +2,7 @@
  * Pipeline Polylines Component
  * Renders pipeline routes on the map as polylines
  * 
+ * Updated: 02-14-2026 21:33 - Added parallel offset for multi-segment pipelines
  * Updated: 02-14-2026 21:15 - Increased curve offset to 0.05 for better visibility
  * Updated: 02-14-2026 21:00 - Added curve separation for overlapping pipelines + enhanced tooltips
  * Updated: 01-16-2026 - Fixed to use departureTerminal and arrivalTerminal instead of departureFacility/arrivalFacility
@@ -11,7 +12,7 @@
  * @updated 02-14-2026
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Polyline, Popup, Tooltip } from 'react-leaflet';
 import { PipelineGeoData, PipelineDisplayOptions } from '../types';
 import { getPipelineStyle } from '../utils/pipelineHelpers';
@@ -36,7 +37,7 @@ const defaultDisplayOptions: PipelineDisplayOptions = {
 
 /**
  * Calculate a curved path between two points using a bezier curve
- * This creates visual separation for overlapping pipelines
+ * This creates visual separation for overlapping pipelines (for simple 2-point routes)
  */
 const calculateCurvedPath = (
   start: [number, number],
@@ -84,6 +85,41 @@ const calculateCurvedPath = (
 };
 
 /**
+ * Apply parallel offset to multi-segment path
+ * Shifts all coordinates perpendicular to the overall path direction
+ */
+const calculateParallelOffset = (
+  coordinates: LatLngExpression[],
+  offset: number
+): LatLngExpression[] => {
+  if (coordinates.length < 2) return coordinates;
+  
+  // Get start and end to determine overall direction
+  const start = coordinates[0] as [number, number];
+  const end = coordinates[coordinates.length - 1] as [number, number];
+  
+  // Calculate perpendicular direction based on overall path
+  const dx = end[1] - start[1]; // lng difference
+  const dy = end[0] - start[0]; // lat difference
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance === 0) return coordinates;
+  
+  // Perpendicular direction (rotated 90 degrees)
+  const perpLat = -dx / distance;
+  const perpLng = dy / distance;
+  
+  // Apply offset to all points
+  return coordinates.map(coord => {
+    const [lat, lng] = coord as [number, number];
+    return [
+      lat + perpLat * offset,
+      lng + perpLng * offset
+    ] as [number, number];
+  });
+};
+
+/**
  * Group pipelines by their departure and arrival terminals
  * to identify overlapping routes
  */
@@ -91,20 +127,27 @@ const groupPipelinesByRoute = (pipelines: PipelineGeoData[]) => {
   const routeGroups = new Map<string, PipelineGeoData[]>();
   
   pipelines.forEach((pipelineData) => {
-    const { pipeline } = pipelineData;
+    const { pipeline, coordinates } = pipelineData;
     
-    if (pipeline.departureTerminalId && pipeline.arrivalTerminalId) {
-      // Create a unique key for this route (sorted to handle both directions)
-      const routeKey = [pipeline.departureTerminalId, pipeline.arrivalTerminalId]
-        .sort()
-        .join('-');
-      
-      if (!routeGroups.has(routeKey)) {
-        routeGroups.set(routeKey, []);
-      }
-      
-      routeGroups.get(routeKey)!.push(pipelineData);
+    // Skip if no coordinates
+    if (!coordinates || coordinates.length < 2) return;
+    
+    // Get start and end coordinates
+    const start = coordinates[0] as [number, number];
+    const end = coordinates[coordinates.length - 1] as [number, number];
+    
+    // Create route key based on rounded coordinates (group pipelines with very close endpoints)
+    const startKey = `${start[0].toFixed(3)},${start[1].toFixed(3)}`;
+    const endKey = `${end[0].toFixed(3)},${end[1].toFixed(3)}`;
+    
+    // Sort to handle both directions
+    const routeKey = [startKey, endKey].sort().join('|');
+    
+    if (!routeGroups.has(routeKey)) {
+      routeGroups.set(routeKey, []);
     }
+    
+    routeGroups.get(routeKey)!.push(pipelineData);
   });
   
   return routeGroups;
@@ -120,10 +163,33 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
   
   const options = { ...defaultDisplayOptions, ...displayOptions };
   
-  const pipelineElements = useMemo(() => {
-    // Group pipelines by route to detect overlaps
-    const routeGroups = groupPipelinesByRoute(pipelines);
+  // Group pipelines by route to detect overlaps
+  const routeGroups = useMemo(() => {
+    return groupPipelinesByRoute(pipelines);
+  }, [pipelines]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🗺️ Infrastructure Map - Total pipelines:', pipelines.length);
+    console.log('🗺️ Pipeline Route Groups:', routeGroups.size, 'unique routes');
     
+    let overlappingCount = 0;
+    routeGroups.forEach((group, key) => {
+      if (group.length > 1) {
+        overlappingCount++;
+        console.log(`  ✅ Route ${key}: ${group.length} pipelines`, 
+          group.map(p => `${p.pipeline.code} (${p.coordinates.length} points)`));
+      }
+    });
+    
+    if (overlappingCount === 0) {
+      console.log('  ⚠️ No overlapping routes found');
+    } else {
+      console.log(`  📊 Total overlapping routes: ${overlappingCount}`);
+    }
+  }, [pipelines, routeGroups]);
+  
+  const pipelineElements = useMemo(() => {
     return pipelines.map((pipelineData) => {
       const { pipeline, coordinates } = pipelineData;
       
@@ -147,36 +213,44 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
         opacity: isHovered ? 1 : pipelineStyle.opacity,
       };
       
-      // Calculate curve offset for overlapping pipelines
+      // Calculate offset for overlapping pipelines based on coordinates
       let displayCoordinates: LatLngExpression[] = coordinates;
       
-      if (pipeline.departureTerminalId && pipeline.arrivalTerminalId) {
-        const routeKey = [pipeline.departureTerminalId, pipeline.arrivalTerminalId]
-          .sort()
-          .join('-');
+      // Get start and end for route key
+      const start = coordinates[0] as [number, number];
+      const end = coordinates[coordinates.length - 1] as [number, number];
+      const startKey = `${start[0].toFixed(3)},${start[1].toFixed(3)}`;
+      const endKey = `${end[0].toFixed(3)},${end[1].toFixed(3)}`;
+      const routeKey = [startKey, endKey].sort().join('|');
+      
+      const groupPipelines = routeGroups.get(routeKey) || [];
+      
+      // Only apply offset if there are multiple pipelines on this route
+      if (groupPipelines.length > 1) {
+        const pipelineIndex = groupPipelines.findIndex(
+          (p) => p.pipeline.id === pipeline.id
+        );
         
-        const groupPipelines = routeGroups.get(routeKey) || [];
+        // Base offset: 0.01 degrees (~1.1 km) for better visibility
+        const baseOffset = 0.01;
+        const offset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
         
-        // Only apply curve if there are multiple pipelines on this route
-        if (groupPipelines.length > 1) {
-          const pipelineIndex = groupPipelines.findIndex(
-            (p) => p.pipeline.id === pipeline.id
-          );
-          
-          // Apply different curve offsets for each pipeline
-          // INCREASED base offset from 0.0001 to 0.05 for better visibility
-          const baseOffset = 0.05;
-          const curveOffset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
-          
-          // Only apply curve if we have exactly 2 coordinate points (start and end)
-          // For multi-segment pipelines, keep original path
-          if (coordinates.length === 2) {
-            displayCoordinates = calculateCurvedPath(
-              coordinates[0] as [number, number],
-              coordinates[1] as [number, number],
-              curveOffset
-            );
-          }
+        console.log(`🌀 Applying offset to ${pipeline.code}:`, {
+          routeKey,
+          groupSize: groupPipelines.length,
+          pipelineIndex,
+          offset,
+          coordinatesLength: coordinates.length
+        });
+        
+        if (coordinates.length === 2) {
+          // Simple 2-point route: use curved path
+          displayCoordinates = calculateCurvedPath(start, end, offset * 20); // 20x for curve visibility
+          console.log(`✅ Curved path applied to ${pipeline.code}`);
+        } else {
+          // Multi-segment route: use parallel offset
+          displayCoordinates = calculateParallelOffset(coordinates, offset);
+          console.log(`✅ Parallel offset applied to ${pipeline.code}`);
         }
       }
       
@@ -315,7 +389,7 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
         </Polyline>
       );
     }).filter(element => element !== null);
-  }, [pipelines, hoveredPipeline, options, onPipelineClick, navigate]);
+  }, [pipelines, hoveredPipeline, options, onPipelineClick, navigate, routeGroups]);
   
   return <>{pipelineElements}</>;
 };
