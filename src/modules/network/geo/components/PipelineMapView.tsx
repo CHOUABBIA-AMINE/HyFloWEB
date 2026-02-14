@@ -4,19 +4,20 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
- * @updated 01-08-2026 - Fixed coordinate type handling
+ * @updated 02-14-2026 21:10 - Added curve separation and enhanced tooltips
  * @updated 02-14-2026 - Updated click navigation to intelligence dashboard
+ * @updated 01-08-2026 - Fixed coordinate type handling
  */
 
 import React, { useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Polyline, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Popup, Tooltip, useMap } from 'react-leaflet';
 import { Box, Typography, Chip, Divider, Button } from '@mui/material';
 import { PipelineGeoData } from '../types';
 import { usePipelineFilters } from '../hooks/usePipelineFilters';
 import { PipelineFilterPanel } from './PipelineFilterPanel';
 import { getPipelineStyle } from '../utils/pipelineHelpers';
 import { useNavigate } from 'react-router-dom';
-import { LatLngTuple } from 'leaflet';
+import { LatLngTuple, LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet default icon issue
@@ -37,6 +38,82 @@ interface PipelineMapViewProps {
   pipelines?: PipelineGeoData[];
   onPipelineClick?: (pipelineId: number) => void;
 }
+
+/**
+ * Calculate a curved path between two points using a bezier curve
+ * This creates visual separation for overlapping pipelines
+ */
+const calculateCurvedPath = (
+  start: [number, number],
+  end: [number, number],
+  curveOffset: number,
+  segments: number = 50
+): LatLngExpression[] => {
+  const [startLat, startLng] = start;
+  const [endLat, endLng] = end;
+  
+  // Calculate midpoint
+  const midLat = (startLat + endLat) / 2;
+  const midLng = (startLng + endLng) / 2;
+  
+  // Calculate perpendicular offset for curve control point
+  const dx = endLng - startLng;
+  const dy = endLat - startLat;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance === 0) return [start, end];
+  
+  // Perpendicular direction (rotated 90 degrees)
+  const perpLat = -dx / distance;
+  const perpLng = dy / distance;
+  
+  // Control point offset perpendicular to the line
+  const controlLat = midLat + perpLat * curveOffset;
+  const controlLng = midLng + perpLng * curveOffset;
+  
+  // Generate bezier curve points
+  const points: LatLngExpression[] = [];
+  
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const invT = 1 - t;
+    
+    // Quadratic bezier formula
+    const lat = invT * invT * startLat + 2 * invT * t * controlLat + t * t * endLat;
+    const lng = invT * invT * startLng + 2 * invT * t * controlLng + t * t * endLng;
+    
+    points.push([lat, lng]);
+  }
+  
+  return points;
+};
+
+/**
+ * Group pipelines by their departure and arrival terminals
+ * to identify overlapping routes
+ */
+const groupPipelinesByRoute = (pipelines: PipelineGeoData[]) => {
+  const routeGroups = new Map<string, PipelineGeoData[]>();
+  
+  pipelines.forEach((pipelineData) => {
+    const { pipeline } = pipelineData;
+    
+    if (pipeline.departureTerminalId && pipeline.arrivalTerminalId) {
+      // Create a unique key for this route (sorted to handle both directions)
+      const routeKey = [pipeline.departureTerminalId, pipeline.arrivalTerminalId]
+        .sort()
+        .join('-');
+      
+      if (!routeGroups.has(routeKey)) {
+        routeGroups.set(routeKey, []);
+      }
+      
+      routeGroups.get(routeKey)!.push(pipelineData);
+    }
+  });
+  
+  return routeGroups;
+};
 
 // Map bounds updater component
 const MapBoundsUpdater: React.FC<{ pipelines: PipelineGeoData[] }> = ({ pipelines }) => {
@@ -74,6 +151,11 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     toggleAllProducts,
     toggleAllStatuses,
   } = usePipelineFilters(pipelines);
+
+  // Group pipelines by route to detect overlaps
+  const routeGroups = useMemo(() => {
+    return groupPipelinesByRoute(filteredPipelines);
+  }, [filteredPipelines]);
 
   // Calculate center from all pipelines
   const center = useMemo(() => {
@@ -134,12 +216,45 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
         {/* Update map bounds when filtered pipelines change */}
         <MapBoundsUpdater pipelines={filteredPipelines} />
 
-        {/* Render filtered pipelines */}
+        {/* Render filtered pipelines with curve separation */}
         {filteredPipelines.map((pipelineData) => {
           const { pipeline, coordinates } = pipelineData;
 
           if (!coordinates || coordinates.length < 2 || !pipeline.id) {
             return null;
+          }
+
+          // Calculate curve offset for overlapping pipelines
+          let displayCoordinates: LatLngExpression[] = coordinates;
+          
+          if (pipeline.departureTerminalId && pipeline.arrivalTerminalId) {
+            const routeKey = [pipeline.departureTerminalId, pipeline.arrivalTerminalId]
+              .sort()
+              .join('-');
+            
+            const groupPipelines = routeGroups.get(routeKey) || [];
+            
+            // Only apply curve if there are multiple pipelines on this route
+            if (groupPipelines.length > 1) {
+              const pipelineIndex = groupPipelines.findIndex(
+                (p) => p.pipeline.id === pipeline.id
+              );
+              
+              // Apply different curve offsets for each pipeline
+              // INCREASED base offset from 0.0001 to 0.05 for better visibility
+              const baseOffset = 0.05;
+              const curveOffset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
+              
+              // Only apply curve if we have exactly 2 coordinate points (start and end)
+              // For multi-segment pipelines, keep original path
+              if (coordinates.length === 2) {
+                displayCoordinates = calculateCurvedPath(
+                  coordinates[0] as [number, number],
+                  coordinates[1] as [number, number],
+                  curveOffset
+                );
+              }
+            }
           }
 
           const pipelineStyle = getPipelineStyle(pipeline);
@@ -157,7 +272,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
           return (
             <Polyline
               key={`pipeline-${pipeline.id}`}
-              positions={coordinates}
+              positions={displayCoordinates}
               pathOptions={effectiveStyle}
               eventHandlers={{
                 mouseover: () => {
@@ -173,6 +288,40 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                 },
               }}
             >
+              {/* Enhanced Tooltip for quick info on hover */}
+              {filterState.showLabels && (
+                <Tooltip 
+                  direction="top" 
+                  offset={[0, -10]} 
+                  opacity={0.95}
+                  permanent={false}
+                  sticky
+                >
+                  <Box 
+                    sx={{ 
+                      p: 1, 
+                      minWidth: 120,
+                      backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                      borderRadius: 1,
+                      boxShadow: 1,
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight="bold" sx={{ mb: 0.5 }}>
+                      {pipeline.code}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {pipeline.name}
+                    </Typography>
+                    {pipeline.departureTerminal && pipeline.arrivalTerminal && (
+                      <Typography variant="caption" display="block" sx={{ mt: 0.5, fontSize: '0.7rem' }}>
+                        {pipeline.departureTerminal.code} → {pipeline.arrivalTerminal.code}
+                      </Typography>
+                    )}
+                  </Box>
+                </Tooltip>
+              )}
+
+              {/* Detailed Popup on click */}
               <Popup maxWidth={300}>
                 <Box sx={{ p: 1 }}>
                   <Typography variant="h6" gutterBottom>
@@ -217,6 +366,18 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                     {pipeline.pipelineSystem && (
                       <Typography variant="body2">
                         <strong>System:</strong> {pipeline.pipelineSystem.name}
+                      </Typography>
+                    )}
+                    
+                    {pipeline.departureTerminal && (
+                      <Typography variant="body2">
+                        <strong>From:</strong> {pipeline.departureTerminal.name}
+                      </Typography>
+                    )}
+                    
+                    {pipeline.arrivalTerminal && (
+                      <Typography variant="body2">
+                        <strong>To:</strong> {pipeline.arrivalTerminal.name}
                       </Typography>
                     )}
                   </Box>
