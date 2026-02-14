@@ -4,6 +4,7 @@
  * 
  * @author CHOUABBIA Amine
  * @created 01-06-2026
+ * @updated 02-14-2026 21:20 - Increased offset to 0.2 and added debug logging
  * @updated 02-14-2026 21:17 - Fixed filterState.filters.showLabels access
  * @updated 02-14-2026 21:10 - Added curve separation and enhanced tooltips
  * @updated 02-14-2026 - Updated click navigation to intelligence dashboard
@@ -90,26 +91,42 @@ const calculateCurvedPath = (
 };
 
 /**
- * Group pipelines by their departure and arrival terminals
- * to identify overlapping routes
+ * Group pipelines by their start and end coordinates
+ * to identify overlapping routes (works even without terminal IDs)
  */
 const groupPipelinesByRoute = (pipelines: PipelineGeoData[]) => {
   const routeGroups = new Map<string, PipelineGeoData[]>();
   
   pipelines.forEach((pipelineData) => {
-    const { pipeline } = pipelineData;
+    const { pipeline, coordinates } = pipelineData;
     
-    if (pipeline.departureTerminalId && pipeline.arrivalTerminalId) {
-      // Create a unique key for this route (sorted to handle both directions)
-      const routeKey = [pipeline.departureTerminalId, pipeline.arrivalTerminalId]
-        .sort()
-        .join('-');
-      
-      if (!routeGroups.has(routeKey)) {
-        routeGroups.set(routeKey, []);
-      }
-      
-      routeGroups.get(routeKey)!.push(pipelineData);
+    // Skip if no coordinates
+    if (!coordinates || coordinates.length < 2) return;
+    
+    // Get start and end coordinates
+    const start = coordinates[0] as [number, number];
+    const end = coordinates[coordinates.length - 1] as [number, number];
+    
+    // Create route key based on rounded coordinates (group pipelines with very close endpoints)
+    const startKey = `${start[0].toFixed(3)},${start[1].toFixed(3)}`;
+    const endKey = `${end[0].toFixed(3)},${end[1].toFixed(3)}`;
+    
+    // Sort to handle both directions
+    const routeKey = [startKey, endKey].sort().join('|');
+    
+    if (!routeGroups.has(routeKey)) {
+      routeGroups.set(routeKey, []);
+    }
+    
+    routeGroups.get(routeKey)!.push(pipelineData);
+  });
+  
+  // Log routes with multiple pipelines
+  console.log('🗺️ Pipeline Route Groups:');
+  routeGroups.forEach((group, key) => {
+    if (group.length > 1) {
+      console.log(`  Route ${key}: ${group.length} pipelines`, 
+        group.map(p => p.pipeline.code));
     }
   });
   
@@ -225,36 +242,47 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
             return null;
           }
 
-          // Calculate curve offset for overlapping pipelines
+          // Calculate curve offset for overlapping pipelines based on coordinates
           let displayCoordinates: LatLngExpression[] = coordinates;
           
-          if (pipeline.departureTerminalId && pipeline.arrivalTerminalId) {
-            const routeKey = [pipeline.departureTerminalId, pipeline.arrivalTerminalId]
-              .sort()
-              .join('-');
+          // Get start and end for route key
+          const start = coordinates[0] as [number, number];
+          const end = coordinates[coordinates.length - 1] as [number, number];
+          const startKey = `${start[0].toFixed(3)},${start[1].toFixed(3)}`;
+          const endKey = `${end[0].toFixed(3)},${end[1].toFixed(3)}`;
+          const routeKey = [startKey, endKey].sort().join('|');
+          
+          const groupPipelines = routeGroups.get(routeKey) || [];
+          
+          // Only apply curve if there are multiple pipelines on this route
+          if (groupPipelines.length > 1) {
+            const pipelineIndex = groupPipelines.findIndex(
+              (p) => p.pipeline.id === pipeline.id
+            );
             
-            const groupPipelines = routeGroups.get(routeKey) || [];
+            // INCREASED base offset from 0.05 to 0.2 degrees (~22 km) for maximum visibility
+            const baseOffset = 0.2;
+            const curveOffset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
             
-            // Only apply curve if there are multiple pipelines on this route
-            if (groupPipelines.length > 1) {
-              const pipelineIndex = groupPipelines.findIndex(
-                (p) => p.pipeline.id === pipeline.id
+            console.log(`🌀 Applying curve to ${pipeline.code}:`, {
+              routeKey,
+              groupSize: groupPipelines.length,
+              pipelineIndex,
+              curveOffset,
+              coordinatesLength: coordinates.length
+            });
+            
+            // Only apply curve if we have exactly 2 coordinate points (start and end)
+            // For multi-segment pipelines, keep original path
+            if (coordinates.length === 2) {
+              displayCoordinates = calculateCurvedPath(
+                start,
+                end,
+                curveOffset
               );
-              
-              // Apply different curve offsets for each pipeline
-              // INCREASED base offset from 0.0001 to 0.05 for better visibility
-              const baseOffset = 0.05;
-              const curveOffset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
-              
-              // Only apply curve if we have exactly 2 coordinate points (start and end)
-              // For multi-segment pipelines, keep original path
-              if (coordinates.length === 2) {
-                displayCoordinates = calculateCurvedPath(
-                  coordinates[0] as [number, number],
-                  coordinates[1] as [number, number],
-                  curveOffset
-                );
-              }
+              console.log(`✅ Curve applied to ${pipeline.code}`);
+            } else {
+              console.log(`⚠️ Skipping curve for ${pipeline.code} - multi-segment pipeline (${coordinates.length} points)`);
             }
           }
 
@@ -289,7 +317,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                 },
               }}
             >
-              {/* Enhanced Tooltip for quick info on hover - FIXED: filterState.filters.showLabels */}
+              {/* Enhanced Tooltip for quick info on hover */}
               {filterState.filters.showLabels && (
                 <Tooltip 
                   direction="top" 
