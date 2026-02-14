@@ -9,10 +9,13 @@
 export * from './PipelineOverviewDTO';
 export * from './SlotStatusDTO';
 
-// Dashboard & Health (NEW)
+// Dashboard & Health
 export * from './KeyMetricsDTO';
 export * from './PipelineHealthDTO';
-export * from './PipelineDynamicDashboardDTO';
+
+// Re-export types explicitly to avoid ambiguity
+export type { HealthStatus, MetricStatus } from './PipelineDynamicDashboardDTO';
+export type { PipelineDynamicDashboardDTO } from './PipelineDynamicDashboardDTO';
 
 // Time Series & Statistics
 export * from './ReadingsTimeSeriesDTO';
