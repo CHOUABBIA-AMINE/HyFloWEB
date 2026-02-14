@@ -33,12 +33,10 @@ import {
   Divider,
   Tabs,
   Tab,
-  Collapse,
   List,
   ListItem,
   ListItemText,
   ListItemIcon,
-  Badge,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -61,10 +59,6 @@ import {
   Timeline as TimelineIcon,
   Notifications as NotificationsIcon,
   ShowChart as ShowChartIcon,
-  Map as MapIcon,
-  Build as BuildIcon,
-  Factory as FactoryIcon,
-  Sensors as SensorsIcon,
   Info as InfoIcon,
   Circle as CircleIcon,
 } from '@mui/icons-material';
@@ -327,7 +321,7 @@ export const PipelineDashboardPage: React.FC = () => {
           <Tab icon={<ShowChartIcon />} label="Overview" iconPosition="start" />
           <Tab icon={<TimelineIcon />} label="Analytics" iconPosition="start" disabled />
           <Tab icon={<NotificationsIcon />} label="Timeline" iconPosition="start" />
-          <Tab icon={<WarningIcon />} label="Alerts" iconPosition="start" disabled />
+          <Tab icon={<Warning />} label="Alerts" iconPosition="start" disabled />
         </Tabs>
       </Paper>
 
