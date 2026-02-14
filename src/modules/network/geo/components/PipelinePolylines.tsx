@@ -2,6 +2,7 @@
  * Pipeline Polylines Component
  * Renders pipeline routes on the map as polylines
  * 
+ * Updated: 02-14-2026 21:15 - Increased curve offset to 0.05 for better visibility
  * Updated: 02-14-2026 21:00 - Added curve separation for overlapping pipelines + enhanced tooltips
  * Updated: 01-16-2026 - Fixed to use departureTerminal and arrivalTerminal instead of departureFacility/arrivalFacility
  * 
@@ -54,6 +55,8 @@ const calculateCurvedPath = (
   const dx = endLng - startLng;
   const dy = endLat - startLat;
   const distance = Math.sqrt(dx * dx + dy * dy);
+  
+  if (distance === 0) return [start, end];
   
   // Perpendicular direction (rotated 90 degrees)
   const perpLat = -dx / distance;
@@ -161,8 +164,8 @@ export const PipelinePolylines: React.FC<PipelinePolylinesProps> = ({
           );
           
           // Apply different curve offsets for each pipeline
-          // Base offset increases with index: 0.0001, 0.0002, 0.0003, etc.
-          const baseOffset = 0.0001;
+          // INCREASED base offset from 0.0001 to 0.05 for better visibility
+          const baseOffset = 0.05;
           const curveOffset = baseOffset * (pipelineIndex - (groupPipelines.length - 1) / 2);
           
           // Only apply curve if we have exactly 2 coordinate points (start and end)
