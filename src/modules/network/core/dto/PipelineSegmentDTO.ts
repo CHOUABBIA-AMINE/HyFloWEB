@@ -2,6 +2,7 @@
  * PipelineSegment DTO - Network Core Module
  * 
  * Strictly aligned with backend: dz.sh.trc.hyflo.network.core.dto.PipelineSegmentDTO
+ * Updated: 02-14-2026 12:22 - Made exteriorCoating/interiorCoating OPTIONAL per backend update
  * Updated: 02-14-2026 12:19 - Clarified @NotNull constraints on required fields
  * Updated: 02-14-2026 02:22 - Added departureFacility/arrivalFacility infrastructure references
  * Updated: 02-14-2026 01:29 - Added coordinateIds (coordinates belong to segments, not pipeline)
@@ -21,9 +22,13 @@
  * - operationalStatusId (status)
  * - structureId (organizational owner/manager - REQUIRED)
  * - constructionMaterialId (REQUIRED)
- * - exteriorCoatingId (REQUIRED)
- * - interiorCoatingId (REQUIRED)
  * - pipelineId (parent pipeline)
+ * 
+ * OPTIONAL FIELDS (can be null):
+ * - exteriorCoatingId (OPTIONAL - not all segments have coatings)
+ * - interiorCoatingId (OPTIONAL - not all segments have coatings)
+ * - departureFacilityId, arrivalFacilityId (OPTIONAL)
+ * - All date fields (OPTIONAL)
  * 
  * @author MEDJERAB Abir (Backend), CHOUABBIA Amine (Frontend)
  */
@@ -72,13 +77,15 @@ export interface PipelineSegmentDTO {
   startPoint: number; // Double - Starting point along pipeline (km) (REQUIRED)
   endPoint: number; // Double - Ending point along pipeline (km) (REQUIRED)
   
-  // Required relationships (IDs) - ALL @NotNull (REQUIRED)
+  // Required relationships (IDs)
   operationalStatusId: number; // @NotNull (REQUIRED)
   structureId: number; // @NotNull (REQUIRED) - Organizational owner/manager
   constructionMaterialId: number; // @NotNull (REQUIRED) - Alloy material
-  exteriorCoatingId: number; // @NotNull (REQUIRED) - Alloy exterior coating
-  interiorCoatingId: number; // @NotNull (REQUIRED) - Alloy interior coating
   pipelineId: number; // @NotNull (REQUIRED) - Parent pipeline
+  
+  // Optional relationships (IDs) - UPDATED: Coatings are now OPTIONAL
+  exteriorCoatingId?: number; // OPTIONAL - Exterior coating (may not exist)
+  interiorCoatingId?: number; // OPTIONAL - Interior coating (may not exist)
   
   // Infrastructure endpoints (OPTIONAL)
   departureFacilityId?: number; // Infrastructure at segment start (OPTIONAL)
@@ -91,8 +98,8 @@ export interface PipelineSegmentDTO {
   operationalStatus?: OperationalStatusDTO;
   structure?: StructureDTO; // Organizational owner/manager
   constructionMaterial?: AlloyDTO;
-  exteriorCoating?: AlloyDTO;
-  interiorCoating?: AlloyDTO;
+  exteriorCoating?: AlloyDTO; // May be null if no coating
+  interiorCoating?: AlloyDTO; // May be null if no coating
   pipeline?: PipelineDTO; // Parent pipeline reference
   coordinates?: CoordinateDTO[]; // Backend: Set<Coordinate> - Populated coordinate objects
   
@@ -104,8 +111,8 @@ export interface PipelineSegmentDTO {
 /**
  * Validates PipelineSegmentDTO according to backend constraints
  * 
- * CRITICAL: All material/coating IDs are @NotNull in backend
- * Frontend MUST provide valid IDs, not null/undefined/0
+ * UPDATED 2026-02-14: Coating IDs are now OPTIONAL
+ * Frontend must provide valid IDs for REQUIRED fields only
  */
 export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): string[] => {
   const errors: string[] = [];
@@ -160,14 +167,12 @@ export const validatePipelineSegmentDTO = (data: Partial<PipelineSegmentDTO>): s
     errors.push("End point must be greater than start point");
   }
   
-  // Relationship validations: ALL @NotNull (REQUIRED)
-  // CRITICAL: These cannot be null, undefined, or 0 (invalid ID)
+  // REQUIRED Relationship validations
+  // UPDATED: Removed exteriorCoatingId and interiorCoatingId (now OPTIONAL)
   const relationshipFields = [
     { name: 'operationalStatusId', label: 'Operational status' },
     { name: 'structureId', label: 'Organizational structure' },
     { name: 'constructionMaterialId', label: 'Construction material' },
-    { name: 'exteriorCoatingId', label: 'Exterior coating' },
-    { name: 'interiorCoatingId', label: 'Interior coating' },
     { name: 'pipelineId', label: 'Pipeline' }
   ] as const;
   
@@ -203,6 +208,8 @@ export const createEmptyPipelineSegmentDTO = (): Partial<PipelineSegmentDTO> => 
   startPoint: 0,
   endPoint: 0,
   coordinateIds: [], // Coordinate IDs array
-  departureFacilityId: undefined, // OPTIONAL
-  arrivalFacilityId: undefined,   // OPTIONAL
+  departureFacilityId: undefined,  // OPTIONAL
+  arrivalFacilityId: undefined,    // OPTIONAL
+  exteriorCoatingId: undefined,    // OPTIONAL (updated 2026-02-14)
+  interiorCoatingId: undefined,    // OPTIONAL (updated 2026-02-14)
 });
