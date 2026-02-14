@@ -97,6 +97,7 @@ export const PipelineDashboardPage: React.FC = () => {
   const [pipelineInfo, setPipelineInfo] = useState<any>(null);
   const [timeline, setTimeline] = useState<any>(null);
   const [infoLoading, setInfoLoading] = useState(true);
+  const [infoError, setInfoError] = useState<string | null>(null);
 
   const { dashboard, isLoading, error, refresh, isRefetching, hasMetrics } =
     usePipelineDashboard(Number(pipelineId), {
@@ -109,12 +110,15 @@ export const PipelineDashboardPage: React.FC = () => {
     const fetchInfo = async () => {
       try {
         setInfoLoading(true);
+        setInfoError(null);
         const response = await axiosInstance.get(
           `/flow/intelligence/pipeline/${pipelineId}/info?includeHealth=false&includeEntities=false`
         );
         setPipelineInfo(response.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to fetch pipeline info:', err);
+        const is403 = err?.response?.status === 403 || err?.message?.includes('403');
+        setInfoError(is403 ? 'permission' : 'error');
       } finally {
         setInfoLoading(false);
       }
@@ -337,6 +341,17 @@ export const PipelineDashboardPage: React.FC = () => {
           <AccordionDetails>
             {infoLoading ? (
               <LinearProgress />
+            ) : infoError === 'permission' ? (
+              <Alert severity="warning" icon={<LockIcon />}>
+                <AlertTitle>Access Restricted</AlertTitle>
+                Infrastructure details require the same permissions as dashboard access.
+                Your account has dashboard access but infrastructure data may be restricted.
+              </Alert>
+            ) : infoError ? (
+              <Alert severity="error">
+                <AlertTitle>Failed to Load Infrastructure Details</AlertTitle>
+                Unable to retrieve pipeline infrastructure information. Please try refreshing the page.
+              </Alert>
             ) : pipelineInfo ? (
               <Grid container spacing={3}>
                 <Grid item xs={12} sm={4}>
@@ -361,7 +376,7 @@ export const PipelineDashboardPage: React.FC = () => {
                 </Grid>
               </Grid>
             ) : (
-              <Alert severity="info">Infrastructure details not available</Alert>
+              <Alert severity="info">No infrastructure data available</Alert>
             )}
           </AccordionDetails>
         </Accordion>
