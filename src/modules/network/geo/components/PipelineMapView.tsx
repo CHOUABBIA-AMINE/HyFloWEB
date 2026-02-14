@@ -5,6 +5,7 @@
  * @author CHOUABBIA Amine
  * @created 01-06-2026
  * @updated 01-08-2026 - Fixed coordinate type handling
+ * @updated 02-14-2026 - Updated click navigation to intelligence dashboard
  */
 
 import React, { useState, useMemo } from 'react';
@@ -112,7 +113,8 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
     if (onPipelineClick) {
       onPipelineClick(pipelineId);
     } else {
-      navigate(`/network/core/pipelines/${pipelineId}`);
+      // Navigate to real-time intelligence dashboard instead of edit page
+      navigate(`/flow/intelligence/pipeline/${pipelineId}/dashboard`);
     }
   };
 
@@ -220,7 +222,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                   </Box>
 
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     size="small"
                     fullWidth
                     sx={{ mt: 2 }}
@@ -230,7 +232,7 @@ export const PipelineMapView: React.FC<PipelineMapViewProps> = ({
                       }
                     }}
                   >
-                    View Details
+                    View Dashboard
                   </Button>
                 </Box>
               </Popup>
