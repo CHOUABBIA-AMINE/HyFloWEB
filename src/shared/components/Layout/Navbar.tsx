@@ -202,8 +202,8 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
           {!logoError ? (
             <Box
               component="img"
-              src="/logo.svg"
-              alt="IAAS Logo"
+              src="/images/logo.svg"
+              alt="HyFlo Logo"
               sx={{
                 height: 40,
                 width: 'auto',
@@ -214,7 +214,7 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
               onError={(e: any) => {
                 // Try PNG fallback
                 if (e.target.src.endsWith('.svg')) {
-                  e.target.src = '/logo.png';
+                  e.target.src = '/images/logo.png';
                 } else {
                   // Both failed, show icon fallback
                   setLogoError(true);
@@ -239,7 +239,7 @@ const Navbar = ({ onMenuClick, isAuthenticated = false }: NavbarProps) => {
               letterSpacing: '-0.01em',
             }}
           >
-            {t('app.name')}
+            
           </Typography>
         </Box>
 
