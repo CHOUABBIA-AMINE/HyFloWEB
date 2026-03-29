@@ -1,49 +1,39 @@
 /**
  * Reading Validation Request DTO
- * 
- * Workflow command for validating (approving/rejecting) flow readings.
- * Strictly aligned with backend: dz.sh.trc.hyflo.flow.core.dto.ReadingValidationRequestDTO
- * 
- * PATTERN: Dual representation (ID + nested DTO)
- * - readingId: Used by backend to fetch and lock the reading
- * - reading: Optional, populated by backend for confirmation display
- * - employeeId: Used by backend for audit trail
- * - employee: Populated by backend for validator info display
- * 
+ *
+ * Workflow command for validating (approving or rejecting) flow readings.
+ * Strictly aligned with backend:
+ *   dz.sh.trc.hyflo.flow.workflow.dto.command.ReadingValidationRequestDTO
+ *
+ * Used as the request body for:
+ *   POST /flow/workflow/readings/{id}/approve
+ *   POST /flow/workflow/readings/{id}/reject
+ *
+ * The reading ID is carried in the URL path, NOT in the body.
+ * The action (APPROVE / REJECT) is expressed by the endpoint choice,
+ * NOT by a field in this DTO — the `action` field has been removed.
+ *
  * @author CHOUABBIA Amine
  * @created 2026-02-04
- * @updated 2026-02-04 - Aligned with backend nested DTO pattern
- * @updated 2026-02-13 - Fixed: Corrected FlowReadingDTO import path
+ * @updated 2026-03-29 - Removed `action` field (expressed via endpoint)
+ *                     - Removed `readingId` field (carried in URL path)
+ *                     - Removed `reading` nested DTO (not sent to backend)
+ *                     - Kept employeeId + comments as the actual contract
  * @package flow/workflow/dto
  */
 
-import { FlowReadingDTO } from '@/modules/flow/core/dto/FlowReadingDTO';
-import { EmployeeDTO } from '@/modules/general/organization/dto/EmployeeDTO';
-
 export interface ReadingValidationRequestDTO {
-  // ========== READING CONTEXT (ID + nested DTO) ==========
-  
-  /** Flow reading ID to validate (required) */
-  readingId: number;
-  
-  /** Flow reading details (for confirmation/display purposes) */
-  reading?: FlowReadingDTO;
-  
-  // ========== VALIDATION ACTION ==========
-  
-  /** Validation action: "APPROVE" or "REJECT" (required) */
-  action: 'APPROVE' | 'REJECT';
-  
-  // ========== VALIDATOR CONTEXT (ID + nested DTO) ==========
-  
-  /** Employee performing validation (required) */
+  /**
+   * ID of the employee performing the validation.
+   * Must be a valid validator with FLOW:APPROVE permission.
+   */
   employeeId: number;
-  
-  /** Validator details (name, role) */
-  employee?: EmployeeDTO;
-  
-  // ========== COMMENTS ==========
-  
-  /** Validation comments (required for REJECT, max 500 chars) */
+
+  /**
+   * Validation comments.
+   * Required when rejecting (action = REJECT).
+   * Optional when approving.
+   * Max 500 characters.
+   */
   comments?: string;
 }
